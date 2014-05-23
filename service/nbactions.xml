@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Generate Doxygen</actionName>
+            <displayName>Generate Doxygen</displayName>
+            <recursive>false</recursive>
+            <goals>
+                <goal>net.sf.doodleproject:doxygen-maven-plugin:report</goal>
+            </goals>
+        </action>
+    </actions>

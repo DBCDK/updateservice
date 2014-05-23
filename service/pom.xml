@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <groupId>dk.dbc</groupId>
+    <artifactId>validateservice</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    
+    <name>validateservice</name>
+    
+    <properties>
+        <doxygen.executable>/usr/local/bin/doxygen</doxygen.executable>
+        <doxygen.project.name>ValidateService</doxygen.project.name>
+        <doxygen.configurationFile>doc/doxygen.config</doxygen.configurationFile>
+        <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
+    </properties>
+
+    <modules>
+        <module>validateservice-app</module>
+        <module>validateservice-ws</module>
+    </modules>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>doodleproject-repo</id>
+            <name>DoodleProject Maven 2 Repository</name>
+            <url>http://doodleproject.sourceforge.net/maven2/release</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
+    </pluginRepositories>  
+        
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Maven Site -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.0</version>
+                </plugin>
+
+                <!-- Doxygen -->
+                <plugin>
+                    <groupId>net.sf.doodleproject</groupId>
+                    <artifactId>doxygen-maven-plugin</artifactId>
+                    <version>2.2</version>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+        
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.0</version>
+            </plugin>
+
+            <!-- Doxygen -->
+            <plugin>
+                <groupId>net.sf.doodleproject</groupId>
+                <artifactId>doxygen-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <executable>${doxygen.executable}</executable>
+                    <configurationFile>${doxygen.configurationFile}</configurationFile>
+                    <projectName>${doxygen.project.name}</projectName>
+                    <workDirectory>${report.outputDirectory}</workDirectory>
+                </configuration>
+            </plugin>                
+        </plugins>        
+    </build>
+    <reporting>
+        <outputDirectory>${report.outputDirectory}</outputDirectory>
+
+        <plugins>
+            <plugin>
+                <groupId>net.sf.doodleproject</groupId>
+                <artifactId>doxygen-maven-plugin</artifactId>
+                <version>2.2</version>
+                <configuration>
+                    <executable>${doxygen.executable}</executable>
+                    <configurationFile>${doxygen.configurationFile}</configurationFile>
+                    <projectName>${doxygen.project.name}</projectName>
+                    <workDirectory>${report.outputDirectory}</workDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+</project>

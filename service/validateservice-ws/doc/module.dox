@@ -1,0 +1,12 @@
+/**
+ * @defgroup ejb-ws Web Service EJB
+ * @brief EJB for selve web servicen.
+ * 
+ */
+
+/**
+ * @defgroup ejb-ws-test Web Service EJB Tests
+ * @ingroup ejb-ws
+ * 
+ * @brief Unit tests of Web Service EJB
+ */

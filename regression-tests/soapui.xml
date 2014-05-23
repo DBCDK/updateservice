@@ -1,0 +1,710 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<con:soapui-project activeEnvironment="Default" name="ValidateService" resourceRoot="" soapui-version="4.6.3" abortOnError="false" runType="SEQUENTIAL" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+  <con:entry key="Environment" value="Default"/>
+  <con:entry key="Global Properties" value=""/>
+  <con:entry key="TestSuite" value="RegressionTests"/>
+  <con:entry key="Password" value=""/>
+  <con:entry key="TestRunner Path" value=""/>
+  <con:entry key="Tool Args" value=""/>
+  <con:entry key="Ignore Errors" value="false"/>
+  <con:entry key="Host:Port" value=""/>
+  <con:entry key="user-settings.xml Password" value=""/>
+  <con:entry key="WSS Password Type" value=""/>
+  <con:entry key="Save Project" value="false"/>
+  <con:entry key="Enable UI" value="false"/>
+  <con:entry key="System Properties" value=""/>
+  <con:entry key="Domain" value=""/>
+  <con:entry key="Coverage Report" value="false"/>
+  <con:entry key="Export JUnit Results" value="false"/>
+  <con:entry key="Open Report" value="false"/>
+  <con:entry key="Project Properties" value=""/>
+  <con:entry key="Export All" value="false"/>
+  <con:entry key="Project Password" value=""/>
+  <con:entry key="Report Format(s)" value=""/>
+  <con:entry key="TestCase" value="validate TestCase"/>
+  <con:entry key="Print Report" value="false"/>
+  <con:entry key="Username" value=""/>
+  <con:entry key="Root Folder" value=""/>
+  <con:entry key="Save After" value="false"/>
+  <con:entry key="Add Settings" value="false"/>
+  <con:entry key="Endpoint" value="http://iscrum-i01:8080/CValidationServices/OpenValidate"/>
+  <con:entry key="Select Report Type" value=""/>
+</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="BasicHttpBinding_IValidationServices" type="wsdl" bindingName="{http://oss.dbc.dk/ns/openCatalogingValidate}BasicHttpBinding_IValidationServices" soapVersion="1_1" anonymous="optional" definition="http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings><con:setting id="CreateWsdlDocumentationAction@report-directory">/Users/stp/tmp/logs</con:setting></con:settings><con:definitionCache type="TEXT" rootPart="http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?wsdl"><con:part><con:url>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?wsdl</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
+<wsdl:definitions name="CValidationServices" targetNamespace="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl">
+  <wsdl:types>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
+      <xs:import namespace="http://oss.dbc.dk/ns/openCatalogingValidate" schemaLocation="http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?xsd=2"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="IValidationServices_Validate_InputMessage">
+    <wsdl:part name="parameters" element="tns:validate"/>
+  </wsdl:message>
+  <wsdl:message name="IValidationServices_Validate_OutputMessage">
+    <wsdl:part name="parameters" element="tns:validateResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="IValidationServices">
+    <wsdl:operation name="validate">
+      <wsdl:input wsaw:Action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate" message="tns:IValidationServices_Validate_InputMessage"/>
+      <wsdl:output wsaw:Action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/ValidateResponse" message="tns:IValidationServices_Validate_OutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IValidationServices" type="tns:IValidationServices">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="validate">
+      <soap:operation soapAction="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CValidationServices">
+    <wsdl:port name="BasicHttpBinding_IValidationServices" binding="tns:BasicHttpBinding_IValidationServices">
+      <soap:address location="http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?xsd=2</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
+<xs:schema elementFormDefault="qualified" targetNamespace="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:cdto="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+  <xs:import namespace="http://oss.dbc.dk/ns/openCataloging/DataContracts" schemaLocation="http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?xsd=1"/>
+  <xs:element name="validate">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="validateRequest" type="cdto:CDTOValidateRequest"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="validateResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="validateResult" type="cdto:CDTOValidateResult"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part><con:part><con:url>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate?xsd=1</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
+<xs:schema elementFormDefault="qualified" targetNamespace="http://oss.dbc.dk/ns/openCataloging/DataContracts" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+  <!--request / result-->
+  <!--validate-->
+  <xs:element name="CDTOValidateRequest" type="tns:CDTOValidateRequest"/>
+  <xs:complexType name="CDTOValidateRequest">
+    <xs:sequence>
+      <xs:element name="validateSchema" type="xs:string"/>
+      <xs:element name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+      <xs:element ref="tns:trackingId" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOValidateResult" nillable="true" type="tns:CDTOValidateResult"/>
+  <xs:complexType name="CDTOValidateResult">
+    <xs:sequence>
+      <xs:element name="validateInstance" nillable="true" type="tns:CDTOValidateInstance"/>
+      <xs:element minOccurs="0" name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--updateRecord-->
+  <xs:element name="CDTOUpdateRecordRequest" type="tns:CDTOUpdateRecordRequest"/>
+  <xs:complexType name="CDTOUpdateRecordRequest">
+    <xs:sequence>
+      <xs:element name="agencyId" type="xs:string"/>
+      <xs:element name="updateSchema" type="xs:string"/>
+      <xs:element name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+      <xs:element name="options" minOccurs="0" type="tns:CDTOUpdateOptions"/>
+      <xs:element ref="tns:trackingId" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOUpdateRecordResult" nillable="true" type="tns:CDTOUpdateRecordResult"/>
+  <xs:complexType name="CDTOUpdateRecordResult">
+    <xs:sequence/>
+  </xs:complexType>
+  <!--updateStatus-->
+  <xs:element name="CDTOUpdateStatusRequest" type="tns:CDTOUpdateStatusRequest"/>
+  <xs:complexType name="CDTOUpdateStatusRequest">
+    <xs:sequence>
+      <xs:element name="updateTicket" type="xs:string"/>
+      <xs:element ref="tns:trackingId" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOUpdateStatusResult" nillable="true" type="tns:CDTOUpdateStatusResult"/>
+  <xs:complexType name="CDTOUpdateStatusResult">
+    <xs:sequence/>
+  </xs:complexType>
+  <!--build-->
+  <xs:element name="CDTOBuildRequest" type="tns:CDTOBuildRequest"/>
+  <xs:complexType name="CDTOBuildRequest">
+    <xs:sequence>
+      <xs:element name="buildSchema" type="xs:string"/>
+      <xs:element name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+      <xs:element ref="tns:trackingId" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOBuildResult" nillable="true" type="tns:CDTOBuildResult"/>
+  <xs:complexType name="CDTOBuildResult">
+    <xs:sequence/>
+  </xs:complexType>
+  <!--types-->
+  <xs:element name="CDTOBibliographicalRecord" nillable="true" type="tns:CDTOBibliographicalRecord"/>
+  <xs:complexType name="CDTOBibliographicalRecord">
+    <xs:sequence>
+      <xs:element name="recordSchema" type="xs:string"/>
+      <xs:element name="recordPacking" type="xs:string"/>
+      <xs:element name="recordData">
+        <xs:complexType mixed="true">
+          <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element minOccurs="0" name="extraRecordData">
+        <xs:complexType mixed="true">
+          <xs:sequence>
+            <xs:any namespace="##any" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOValidateInstance" nillable="true" type="tns:CDTOValidateInstance"/>
+  <xs:complexType name="CDTOValidateInstance">
+    <xs:sequence/>
+  </xs:complexType>
+  <xs:element name="trackingId" type="xs:string">
+    <xs:annotation>
+      <xs:documentation xml:lang="en">Unique id to track this request</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+  <xs:element name="CDTOUpdateOptions" nillable="true" type="tns:CDTOUpdateOptions"/>
+  <xs:complexType name="CDTOUpdateOptions">
+    <xs:sequence>
+      <xs:element name="option" maxOccurs="unbounded" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!--extensions-->
+  <!--Validate-->
+  <!--... Success-->
+  <xs:element name="CDTOValidate_Success" nillable="true" type="tns:CDTOValidate_Success"/>
+  <xs:complexType name="CDTOValidate_Success">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidateInstance">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--... Error-->
+  <xs:element name="CDTOValidate_Error" nillable="true" type="tns:CDTOValidate_Error"/>
+  <xs:complexType name="CDTOValidate_Error">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidateInstance">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="CDTOValidate_Error_Entry" nillable="true" type="tns:CDTOValidate_Error_Entry"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry" nillable="true" type="tns:CDTOValidate_Error_Entry"/>
+  <xs:complexType name="CDTOValidate_Error_Entry">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="urlForDocumentation" type="xs:anyURI"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ordinalPositionOfRecord" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_UnstructuredSuggestion" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_UnstructuredSuggestion"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_UnstructuredSuggestion">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="suggestion" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ordinalPositionOfField" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ordinalPositionOfSubField" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredSuggestion" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredSuggestion"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredSuggestion">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="suggestion" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent_SuggestedAlternativeContent" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent_SuggestedAlternativeContent"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent_SuggestedAlternativeContent">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_ValidContent">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="content" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="validateError" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidCount" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidCount"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidCount">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="currentCount" type="xs:unsignedInt"/>
+          <xs:element minOccurs="0" name="maximumCount" type="xs:unsignedInt"/>
+          <xs:element minOccurs="0" name="minimumCount" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToRecordFormat" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToRecordFormat"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToRecordFormat">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToCatalogingRules" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToCatalogingRules"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent_InvalidAccordingToCatalogingRules">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field_SubField_InvalidContent">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredValidateError" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredValidateError"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredValidateError">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="validateError" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredSuggestion" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredSuggestion"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_UnstructuredSuggestion">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="suggestion" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_Field_InvalidCount" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_Field_InvalidCount"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_Field_InvalidCount">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record_Field">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="currentCount" type="xs:unsignedInt"/>
+          <xs:element minOccurs="0" name="maximumCount" type="xs:unsignedInt"/>
+          <xs:element minOccurs="0" name="minimumCount" type="xs:unsignedInt"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_Record_UnstructuredValidateError" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_Record_UnstructuredValidateError"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_Record_UnstructuredValidateError">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection_Record">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="validateError" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_UnstructuredValidateError" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_UnstructuredValidateError"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_UnstructuredValidateError">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="validateError" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Error_Entry_Collection_UnstructuredSuggestion" nillable="true" type="tns:CDTOValidate_Error_Entry_Collection_UnstructuredSuggestion"/>
+  <xs:complexType name="CDTOValidate_Error_Entry_Collection_UnstructuredSuggestion">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Error_Entry_Collection">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--... Failure-->
+  <xs:element name="CDTOValidate_Failure" nillable="true" type="tns:CDTOValidate_Failure"/>
+  <xs:complexType name="CDTOValidate_Failure">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidateInstance">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Failure_InvalidContentOf_BibliographicalRecord" nillable="true" type="tns:CDTOValidate_Failure_InvalidContentOf_BibliographicalRecord"/>
+  <xs:complexType name="CDTOValidate_Failure_InvalidContentOf_BibliographicalRecord">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Failure">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Failure_InvalidValidateSchema" nillable="true" type="tns:CDTOValidate_Failure_InvalidValidateSchema"/>
+  <xs:complexType name="CDTOValidate_Failure_InvalidValidateSchema">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Failure">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOValidate_Failure_InternalError" nillable="true" type="tns:CDTOValidate_Failure_InternalError"/>
+  <xs:complexType name="CDTOValidate_Failure_InternalError">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOValidate_Failure">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="errorMessage" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--updateRecord-->
+  <xs:element name="CDTOVUpdateRecord_Success" nillable="true" type="tns:CDTOUpdateRecord_Success"/>
+  <xs:complexType name="CDTOUpdateRecord_Success">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateRecordResult">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOVUpdateRecord_Success_Record" nillable="true" type="tns:CDTOUpdateRecord_Success_Record"/>
+  <xs:complexType name="CDTOUpdateRecord_Success_Record">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateRecord_Success">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOVUpdateRecord_Success_Ticket" nillable="true" type="tns:CDTOUpdateRecord_Success_Ticket"/>
+  <xs:complexType name="CDTOUpdateRecord_Success_Ticket">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateRecord_Success">
+        <xs:sequence>
+          <xs:element name="updateTicket" nillable="true" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOUpdateRecord_Error_Or_Failure" nillable="true" type="tns:CDTOUpdateRecord_Error_Or_Failure"/>
+  <xs:complexType name="CDTOUpdateRecord_Error_Or_Failure">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateRecordResult">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="validateInstance" type="tns:CDTOValidateInstance"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--updateStatus-->
+  <xs:element name="CDTOUpdateStatus_Done" nillable="true" type="tns:CDTOUpdateStatus_Done"/>
+  <xs:complexType name="CDTOUpdateStatus_Done">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateStatusResult">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="bibliographicalRecord" type="tns:CDTOBibliographicalRecord"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOUpdateStatus_Processing" nillable="true" type="tns:CDTOUpdateStatus_Processing"/>
+  <xs:complexType name="CDTOUpdateStatus_Processing">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOUpdateStatusResult">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="processingMessage" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!--build-->
+  <xs:element name="CDTOBuild_Success" nillable="true" type="tns:CDTOBuild_Success"/>
+  <xs:complexType name="CDTOBuild_Success">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOBuildResult">
+        <xs:sequence>
+          <xs:element name="bibliographicalRecord" nillable="true" type="tns:CDTOBibliographicalRecord"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOBuild_Failure" nillable="true" type="tns:CDTOBuild_Failure"/>
+  <xs:complexType name="CDTOBuild_Failure">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOBuildResult">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="CDTOBuild_Failure_Unknown_Build_Schema" nillable="true" type="tns:CDTOBuild_Failure_Unknown_Build_Schema"/>
+  <xs:complexType name="CDTOBuild_Failure_Unknown_Build_Schema">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:CDTOBuild_Failure">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://dhcp321.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp344.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp94.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://iscrum-i01:8080/ValidateService/ValidateService</con:endpoint><con:endpoint>http://opencatalogingvalidate.addi.dk/</con:endpoint><con:endpoint>http://thomaslang:8080/CValidationServices/OpenValidate</con:endpoint></con:endpoints><con:operation isOneWay="false" action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate" name="validate" bindingOperationName="validate" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <open:validate>
+         <open:validateRequest>
+            <dat:validateSchema>dataio</dat:validateSchema>
+            <dat:bibliographicalRecord>
+               <dat:recordSchema>info:lc/xmlns/marcxchange-v2</dat:recordSchema>
+               <dat:recordPacking>xml</dat:recordPacking>
+               <dat:recordData>
+                  </dat:recordData>
+            </dat:bibliographicalRecord>
+         </open:validateRequest>
+      </open:validate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>NTLM</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate"/><con:wsrmConfig version="1.2"/></con:call></con:operation></con:interface><con:testSuite name="RegressionTests"><con:settings/><con:runType>SEQUENTIAL</con:runType><con:testCase failOnError="true" failTestCaseOnErrors="true" keepSession="false" maxResults="0" name="validate TestCase" searchProperties="true" id="1aa5cf31-2815-42fa-a358-39f6936964ac"><con:settings/><con:testStep type="request" name="Single Record OK"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>BasicHttpBinding_IValidationServices</con:interface><con:operation>validate</con:operation><con:request name="Single Record OK"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <open:validate>
+         <open:validateRequest>
+            <dat:validateSchema>bog</dat:validateSchema>
+            <dat:bibliographicalRecord>
+               <dat:recordSchema>info:lc/xmlns/marcxchange-v1</dat:recordSchema>
+               <dat:recordPacking>xml</dat:recordPacking>
+               <dat:recordData>
+                  <sru:collection xsi:schemaLocation="info:lc/xmlns/marcxchange-v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sru="info:lc/xmlns/marcxchange-v1">
+                     <sru:record>
+                        <sru:datafield tag="001">
+                           <sru:subfield code="a">2 017 106 5</sru:subfield>
+                           <sru:subfield code="b">870970</sru:subfield>
+                           <sru:subfield code="c">12072013</sru:subfield>
+                           <sru:subfield code="d">12072013101735</sru:subfield>
+                           <sru:subfield code="f">a</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="004">
+                           <sru:subfield code="a">e</sru:subfield>
+                           <sru:subfield code="r">n</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="008">
+                           <sru:subfield code="v">1</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="009">
+                           <sru:subfield code="a">a</sru:subfield>
+                           <sru:subfield code="g">xx</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="245"></sru:datafield>
+                        <sru:datafield tag="652"></sru:datafield>
+                     </sru:record>
+                  </sru:collection>
+               </dat:recordData>
+               <!--Optional:-->
+               <dat:extraRecordData>
+                  cum
+                  <!--You may enter ANY elements at this point-->
+                  sonoras
+               </dat:extraRecordData>
+            </dat:bibliographicalRecord>
+            <!--Optional:-->
+            <dat:trackingId>42</dat:trackingId>
+         </open:validateRequest>
+      </open:validate>
+   </soapenv:Body>
+</soapenv:Envelope>]]]]>><![CDATA[</con:request><con:assertion type="SOAP Response"/><con:assertion type="SOAP Fault Assertion"/><con:assertion type="XPath Match" name="XPath Match"><con:configuration><path>declare namespace ns2='http://oss.dbc.dk/ns/openCatalogingValidate';
+]]></con:request><con:assertion type="SOAP Response"/><con:assertion type="SOAP Fault Assertion"/><con:assertion type="XPath Match" name="XPath Match"><con:configuration><path>declare namespace ns2='http://oss.dbc.dk/ns/openCatalogingValidate';
+declare namespace ns1='http://oss.dbc.dk/ns/openCataloging/DataContracts';
+declare namespace S='http://schemas.xmlsoap.org/soap/envelope/';
+
+/S:Envelope/S:Body/ns2:validateResponse/ns2:validateResult</path><content>&lt;ns2:validateResult xmlns="http://oss.dbc.dk/ns/openCataloging/DataContracts" xmlns:ns2="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+  &lt;validateInstance xsi:type="CDTOValidate_Success" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+&lt;/ns2:validateResult></content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="Schema Compliance" name="Schema Compliance"><con:configuration><definition/></con:configuration></con:assertion><con:credentials><con:selectedAuthProfile>Basic</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" name="Multible MarcXChange Records"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>BasicHttpBinding_IValidationServices</con:interface><con:operation>validate</con:operation><con:request name="Multible MarcXChange Records"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <open:validate>
+         <open:validateRequest>
+            <dat:validateSchema>bog</dat:validateSchema>
+            <dat:bibliographicalRecord>
+               <dat:recordSchema>info:lc/xmlns/marcxchange-v1</dat:recordSchema>
+               <dat:recordPacking>xml</dat:recordPacking>
+               <dat:recordData>
+                  <sru:collection
+                  	xsi:schemaLocation="info:lc/xmlns/marcxchange-v1"
+                  	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  	xmlns:sru="info:lc/xmlns/marcxchange-v2">
+                     <sru:record>
+                        <sru:datafield tag="001">
+                           <sru:subfield code="a">2 017 106 5</sru:subfield>
+                           <sru:subfield code="b">870970</sru:subfield>
+                           <sru:subfield code="c">12072013</sru:subfield>
+                           <sru:subfield code="d">12072013101735</sru:subfield>
+                           <sru:subfield code="f">a</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="004">
+                           <sru:subfield code="a">e</sru:subfield>
+                           <sru:subfield code="r">n</sru:subfield>
+                        </sru:datafield>
+                     </sru:record>
+                     <sru:record>
+                        <sru:datafield tag="001">
+                           <sru:subfield code="a">2 017 106 5</sru:subfield>
+                           <sru:subfield code="b">870970</sru:subfield>
+                           <sru:subfield code="c">12072013</sru:subfield>
+                           <sru:subfield code="d">12072013101735</sru:subfield>
+                           <sru:subfield code="f">a</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="004">
+                           <sru:subfield code="a">e</sru:subfield>
+                           <sru:subfield code="r">n</sru:subfield>
+                        </sru:datafield>
+                     </sru:record>
+                  </sru:collection>
+               </dat:recordData>
+               <!--Optional:-->
+               <dat:extraRecordData>
+                  cum
+                  <!--You may enter ANY elements at this point-->
+                  sonoras
+               </dat:extraRecordData>
+            </dat:bibliographicalRecord>
+            <!--Optional:-->
+            <dat:trackingId>42</dat:trackingId>
+         </open:validateRequest>
+      </open:validate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response"/><con:assertion type="SOAP Fault Assertion"/><con:assertion type="XPath Match" name="XPath Match"><con:configuration><path>declare namespace ns2='http://oss.dbc.dk/ns/openCatalogingValidate';
+declare namespace ns1='http://oss.dbc.dk/ns/openCataloging/DataContracts';
+declare namespace S='http://schemas.xmlsoap.org/soap/envelope/';
+
+/S:Envelope/S:Body/ns2:validateResponse/ns2:validateResult</path><content>&lt;ns2:validateResult xmlns="http://oss.dbc.dk/ns/openCataloging/DataContracts" xmlns:ns2="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+  &lt;validateInstance xsi:type="CDTOValidate_Failure_InvalidContentOf_BibliographicalRecord" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+&lt;/ns2:validateResult></content><allowWildcards>false</allowWildcards><ignoreNamspaceDifferences>false</ignoreNamspaceDifferences><ignoreComments>false</ignoreComments></con:configuration></con:assertion><con:assertion type="Schema Compliance" name="Schema Compliance"><con:configuration><definition/></con:configuration></con:assertion><con:credentials><con:selectedAuthProfile>Basic</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:testStep type="request" name="Missing Mandatory Field"><con:settings/><con:config xsi:type="con:RequestStep" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:interface>BasicHttpBinding_IValidationServices</con:interface><con:operation>validate</con:operation><con:request name="Missing Mandatory Field"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:request><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <open:validate>
+         <open:validateRequest>
+            <dat:validateSchema>bog</dat:validateSchema>
+            <dat:bibliographicalRecord>
+               <dat:recordSchema>info:lc/xmlns/marcxchange-v1</dat:recordSchema>
+               <dat:recordPacking>xml</dat:recordPacking>
+               <dat:recordData>
+                  <sru:collection xsi:schemaLocation="info:lc/xmlns/marcxchange-v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sru="info:lc/xmlns/marcxchange-v1">
+                     <sru:record>
+                        <sru:datafield tag="002">
+                           <sru:subfield code="a">1 234 567 8</sru:subfield>
+                           <sru:subfield code="b">870970</sru:subfield>
+                           <sru:subfield code="c">12072013</sru:subfield>
+                           <sru:subfield code="d">12072013101735</sru:subfield>
+                           <sru:subfield code="f">a</sru:subfield>
+                        </sru:datafield>
+                        <sru:datafield tag="004">
+                           <sru:subfield code="a">e</sru:subfield>
+                           <sru:subfield code="r">n</sru:subfield>
+                        </sru:datafield>
+                     </sru:record>
+                  </sru:collection>
+               </dat:recordData>
+               <!--Optional:-->
+               <dat:extraRecordData>
+                  cum
+                  <!--You may enter ANY elements at this point-->
+                  sonoras
+               </dat:extraRecordData>
+            </dat:bibliographicalRecord>
+            <!--Optional:-->
+            <dat:trackingId>42</dat:trackingId>
+         </open:validateRequest>
+      </open:validate>
+   </soapenv:Body>
+</soapenv:Envelope>]]></con:request><con:assertion type="SOAP Response"/><con:assertion type="Schema Compliance"><con:configuration/></con:assertion><con:assertion type="SOAP Fault Assertion"/><con:assertion type="Simple Contains" name="Contains"><con:configuration><token><![CDATA[<S:Envelope xmlns:S="http://schemas.xmlsoap.org/soap/envelope/">
+   <S:Body>
+      <ns2:validateResponse xmlns="http://oss.dbc.dk/ns/openCataloging/DataContracts" xmlns:ns2="http://oss.dbc.dk/ns/openCatalogingValidate">
+         <ns2:validateResult>
+            <validateInstance xsi:type="CDTOValidate_Error" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+               <CDTOValidate_Error_Entry xsi:type="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError">
+                  <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.6.htm#pgfId=1532873</urlForDocumentation>
+                  <ordinalPositionOfField>1</ordinalPositionOfField>
+                  <ordinalPositionOfSubField>1</ordinalPositionOfSubField>
+                  <validateError>delfelt "a" med værdien "12345678" er ikke et gyldigt faustnummer</validateError>
+               </CDTOValidate_Error_Entry>
+               <CDTOValidate_Error_Entry xsi:type="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError">
+                  <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.6.htm#pgfId=1532873</urlForDocumentation>
+                  <ordinalPositionOfField>1</ordinalPositionOfField>
+                  <ordinalPositionOfSubField>3</ordinalPositionOfSubField>
+                  <validateError>delfelt "c" med værdien "12072013" er ikke et gyldigt faustnummer</validateError>
+               </CDTOValidate_Error_Entry>
+               <CDTOValidate_Error_Entry xsi:type="CDTOValidate_Error_Entry_Collection_Record_Field_SubField_UnstructuredValidateError">
+                  <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.6.htm#pgfId=1532873</urlForDocumentation>
+                  <ordinalPositionOfField>1</ordinalPositionOfField>
+                  <ordinalPositionOfSubField>5</ordinalPositionOfSubField>
+                  <validateError>Delfelt 'f' kan ikke anvendes paa felt '002' i denne skabelon.</validateError>
+               </CDTOValidate_Error_Entry>
+            </validateInstance>
+         </ns2:validateResult>
+      </ns2:validateResponse>
+   </S:Body>
+</S:Envelope>]]></token><ignoreCase>false</ignoreCase><useRegEx>false</useRegEx></con:configuration></con:assertion><con:credentials><con:selectedAuthProfile>Basic</con:selectedAuthProfile><con:addedBasicAuthenticationTypes>Basic</con:addedBasicAuthenticationTypes><con:authType>Global HTTP Settings</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508"/><con:wsrmConfig version="1.2"/></con:request></con:config></con:testStep><con:properties/></con:testCase><con:properties/></con:testSuite><con:properties/><con:wssContainer/><con:oAuth2ProfileContainer/><con:sensitiveInformation/></con:soapui-project>

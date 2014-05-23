@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns="http://oss.dbc.dk/ns/openCatalogingValidate/20140306" xmlns:ns1="http://oss.dbc.dk/ns/openCataloging/DataContracts/20140306">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ns:validate>
+            <ns:validationRequest>
+                <ns1:validateSchema>bog</ns1:validateSchema>
+                <ns1:bibliographicalRecord>
+                    <ns1:recordSchema>info:lc/xmlns/marcxchange-v1</ns1:recordSchema>
+                    <ns1:recordPacking>xml</ns1:recordPacking>
+                    <ns1:recordData>
+                        <sru:collection
+                            xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+                            xmlns:sru='info:lc/xmlns/marcxchange-v1'
+                            xsi:schemaLocation='info:lc/xmlns/marcxchange-v1'>
+                            <sru:record>
+                                <sru:datafield tag="001">
+                                    <sru:subfield code="a">1 234 567 8</sru:subfield>
+                                    <sru:subfield code="b">870970</sru:subfield>
+                                    <sru:subfield code="c">12072013</sru:subfield>
+                                    <sru:subfield code="d">12072013101735</sru:subfield>
+                                    <sru:subfield code="f">a</sru:subfield>
+                                </sru:datafield>
+                                <sru:datafield tag="004">
+                                    <sru:subfield code="a">e</sru:subfield>
+                                    <sru:subfield code="r">n</sru:subfield>
+                                </sru:datafield>
+                            </sru:record>
+                            <sru:record>
+                                <sru:datafield tag="001">
+                                    <sru:subfield code="a">2 234 567 8</sru:subfield>
+                                    <sru:subfield code="b">870970</sru:subfield>
+                                    <sru:subfield code="c">12072013</sru:subfield>
+                                    <sru:subfield code="d">12072013101735</sru:subfield>
+                                    <sru:subfield code="f">a</sru:subfield>
+                                </sru:datafield>
+                                <sru:datafield tag="004">
+                                    <sru:subfield code="a">e</sru:subfield>
+                                    <sru:subfield code="r">n</sru:subfield>
+                                </sru:datafield>
+                            </sru:record>
+                        </sru:collection>
+                    </ns1:recordData>
+                    <!--Optional:-->
+                    <ns1:extraRecordData>
+                       cum
+                       <!--You may enter ANY elements at this point-->
+                       sonoras
+                    </ns1:extraRecordData>
+                </ns1:bibliographicalRecord>
+            </ns:validationRequest>
+        </ns:validate>
+    </soapenv:Body>
+</soapenv:Envelope>
+
+
