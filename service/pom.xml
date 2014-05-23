@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>dk.dbc</groupId>
-    <artifactId>validateservice</artifactId>
+    <artifactId>updateservice</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     
-    <name>validateservice</name>
+    <name>updateservice</name>
     
     <properties>
         <doxygen.executable>/usr/local/bin/doxygen</doxygen.executable>
@@ -17,8 +17,8 @@
     </properties>
 
     <modules>
-        <module>validateservice-app</module>
-        <module>validateservice-ws</module>
+        <module>updateservice-app</module>
+        <module>updateservice-ws</module>
     </modules>
 
     <pluginRepositories>
