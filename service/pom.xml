@@ -11,7 +11,7 @@
     
     <properties>
         <doxygen.executable>/usr/local/bin/doxygen</doxygen.executable>
-        <doxygen.project.name>ValidateService</doxygen.project.name>
+        <doxygen.project.name>UpdateService</doxygen.project.name>
         <doxygen.configurationFile>doc/doxygen.config</doxygen.configurationFile>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
     </properties>
