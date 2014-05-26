@@ -2,6 +2,7 @@
 package dk.dbc.validateservice.ws;
 
 //-----------------------------------------------------------------------------
+import dk.dbc.updateservice.ws.OpenValidate;
 import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOBibliographicalRecord;
 import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateError;
 import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntry;

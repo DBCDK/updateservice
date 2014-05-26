@@ -1,0 +1,44 @@
+{
+    "fields": [
+        {
+            "name": "001",
+            "indicator": "00",
+            "subfields": [
+                {
+                    "name": "a",
+                    "value": "2 017 106 5"
+                },
+                {
+                    "name": "b",
+                    "value": "870970"
+                },
+                {
+                    "name": "c",
+                    "value": ""
+                },
+                {
+                    "name": "d",
+                    "value": ""
+                },
+                {
+                    "name": "f",
+                    "value": ""
+                }
+            ]
+        },
+        {
+            "name": "004",
+            "indicator": "00",
+            "subfields": [
+                {
+                    "name": "a",
+                    "value": "e"
+                },
+                {
+                    "name": "r",
+                    "value": "n"
+                }
+            ]
+        }
+    ]
+}    

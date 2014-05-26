@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
-package dk.dbc.validateservice.ws;
+package dk.dbc.updateservice.validate;
 
 //-----------------------------------------------------------------------------
-
+import dk.dbc.validateservice.ws.*;
 import dk.dbc.updateservice.ws.OpenValidate;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
@@ -10,12 +10,13 @@ import java.io.IOException;
 import java.util.Properties;
 import org.slf4j.ext.XLoggerFactory;
 
+//-----------------------------------------------------------------------------
 /**
  *
  * @author stp
  */
-public class OpenValidateMock extends OpenValidate {
-    public OpenValidateMock() {
+public class ValidatorMock extends Validator {
+    public ValidatorMock() {
         super();
     }
     
@@ -24,13 +25,12 @@ public class OpenValidateMock extends OpenValidate {
         setLogger( XLoggerFactory.getXLogger( this.getClass() ) );
     }
     
-    public static OpenValidate newInstance( String scriptResource ) throws IOException {
-        OpenValidate service = new OpenValidateMock();
+    public static Validator newInstance( String scriptResource ) throws IOException {
+        Validator service = new ValidatorMock();
         
         Properties props = IOUtils.loadProperties( ";", "dk/dbc/validateservice/ws/settings.properties",
                                                         "javascript/iscrum/settings.properties" );
         props.setProperty( "entryresource", scriptResource );
-        //props.setProperty( "modulesearchpath", "javascript/iscrum/rules/;javascript/iscrum/templates/" );
 
         JSEngine bean = new JSEngine();
         bean.init();
