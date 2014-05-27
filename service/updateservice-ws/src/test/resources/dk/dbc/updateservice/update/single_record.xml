@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sru:collection
+    xsi:schemaLocation="info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:sru="info:lc/xmlns/marcxchange-v1">
+    <sru:record>
+        <sru:datafield tag="001">
+            <sru:subfield code="a">2 017 106 5</sru:subfield>
+            <sru:subfield code="b">870970</sru:subfield>
+            <sru:subfield code="c">12072013</sru:subfield>
+            <sru:subfield code="d">12072013101735</sru:subfield>
+            <sru:subfield code="f">a</sru:subfield>
+        </sru:datafield>
+        <sru:datafield tag="004">
+            <sru:subfield code="a">e</sru:subfield>
+            <sru:subfield code="r">n</sru:subfield>
+        </sru:datafield>
+    </sru:record>
+</sru:collection>
