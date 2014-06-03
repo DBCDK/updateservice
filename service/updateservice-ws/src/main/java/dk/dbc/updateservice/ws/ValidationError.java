@@ -3,10 +3,10 @@ package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntry;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionUnstructuredValidateError;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntry;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionUnstructuredValidateError;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -21,7 +21,7 @@ public class ValidationError {
     
     //!\name Constructors
     //@{
-    public void ValidationError() {
+    public ValidationError() {
         this.type = "";
         this.params = new HashMap<>();
     }
@@ -83,6 +83,7 @@ public class ValidationError {
      * @return 
      *      A service validation error.
      */
+    /*
     public CDTOValidateErrorEntry convertToServiceError() {
         switch( this.type ) {
             case "CDTOValidationResponseSuccessEntryCollectionRecordUnstructuredValidationError": {
@@ -98,6 +99,7 @@ public class ValidationError {
         
         return null;
     }
+    */
 
     /**
      * @brief Convert of this validation error to the one that is used for 
@@ -106,6 +108,7 @@ public class ValidationError {
      * @return 
      *      An instance of CDTOValidateErrorEntryCollectionUnstructuredValidateError.
      */
+    /*
     public CDTOValidateErrorEntry convertToRecordError() {
         CDTOValidateErrorEntryCollectionUnstructuredValidateError err;
         err = new CDTOValidateErrorEntryCollectionUnstructuredValidateError();
@@ -124,6 +127,7 @@ public class ValidationError {
         
         return err;
     }
+    */
     
     /**
      * @brief Convert of this validation field error to the one that is used for 
@@ -132,6 +136,7 @@ public class ValidationError {
      * @return 
      *      An instance of CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError.
      */
+    /*
     public CDTOValidateErrorEntry convertToFieldError() {
         CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError err;
         err = new CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError();
@@ -154,6 +159,7 @@ public class ValidationError {
 
         return err;
     }
+    */
 
     /**
      * @brief Convert of this validation subfield error to the one that is used for 
@@ -162,6 +168,7 @@ public class ValidationError {
      * @return 
      *      An instance of CDTOValidationResponseSuccessEntryCollectionRecordFieldUnstructuredValidationError.
      */
+    /*
     public CDTOValidateErrorEntry convertToSubfieldError() {
         CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError err;
         err = new CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError();
@@ -188,6 +195,7 @@ public class ValidationError {
 
         return err;
     }
+    */
 
     //-------------------------------------------------------------------------
     //              Private

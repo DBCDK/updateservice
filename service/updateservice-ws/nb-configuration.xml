@@ -15,5 +15,6 @@ Any value defined here will override the pom.xml file value but is only applicab
 -->
         <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>1.7</org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>
         <org-netbeans-modules-maven-jaxws._5f_C_5f_DBCvalidate>https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidate.wsdl</org-netbeans-modules-maven-jaxws._5f_C_5f_DBCvalidate>
+        <org-netbeans-modules-maven-jaxws._5f_S_5f_catalogingUpdate_5f_1>file:/Users/stp/tmp/wsdl/catalogingUpdate.wsdl</org-netbeans-modules-maven-jaxws._5f_S_5f_catalogingUpdate_5f_1>
     </properties>
 </project-shared-configuration>

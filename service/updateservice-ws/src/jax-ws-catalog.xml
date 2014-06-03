@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
-    <system systemId="https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidate.wsdl" uri="wsdl/DBCvalidate.wsdl"/>
-    <system systemId="https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidate.xsd" uri="wsdl/DBCvalidate.xsd"/>
-    <system systemId="https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidateDTO.xsd" uri="wsdl/DBCvalidateDTO.xsd"/>
-    <system systemId="https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidateResultSuccessDTO.xsd" uri="wsdl/DBCvalidateResultSuccessDTO.xsd"/>
-    <system systemId="https://svn.dbc.dk/repos/opencataloging/WSContracts/trunk/openCatalogingValidate/DBCvalidateResultFailureDTO.xsd" uri="wsdl/DBCvalidateResultFailureDTO.xsd"/>
+    <system systemId="https://svn.dbc.dk/repos/WSContracts/catalogingUpdate/trunk/catalogingUpdate.wsdl" uri="wsdl/catalogingUpdate.wsdl"/>
+    <system systemId="https://svn.dbc.dk/repos/WSContracts/catalogingUpdate/trunk/catalogingUpdate.xsd" uri="wsdl/catalogingUpdate.xsd"/>
 </catalog>

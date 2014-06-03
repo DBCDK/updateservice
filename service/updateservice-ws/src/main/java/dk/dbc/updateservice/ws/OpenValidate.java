@@ -9,15 +9,15 @@ import dk.dbc.iscrum.utils.Exceptions;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOBibliographicalRecord;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateError;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInternalError;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInvalidContentOfBibliographicalRecord;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInvalidValidateSchema;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateInstance;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateRequest;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateResult;
-import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateSuccess;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOBibliographicalRecord;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateError;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInternalError;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInvalidContentOfBibliographicalRecord;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateFailureInvalidValidateSchema;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateInstance;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateRequest;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateResult;
+//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateSuccess;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -84,6 +84,7 @@ public class OpenValidate {
     }
     //@}
 
+    /*
     public CDTOValidateResult validate( CDTOValidateRequest parameters ) {
         logger.entry( parameters );
         Long startTime = ( new Date() ).getTime();
@@ -150,7 +151,8 @@ public class OpenValidate {
             return response;
         }
     }
-
+    */
+    
     private boolean checkValidateSchema( String name ) throws JavaScriptException {
         logger.entry( name );
         Object jsResult;
@@ -171,6 +173,7 @@ public class OpenValidate {
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate" ) );
     }
 
+    /*
     private CDTOValidateInstance validateRecord( String templateName, MarcRecord record ) {
         logger.entry( record );
         Gson gson = new Gson();
@@ -195,7 +198,8 @@ public class OpenValidate {
         logger.exit( result );
         return result;
     }
-
+    */
+    
     public static String loadTemplate( String resName ) throws IOException {
         XLoggerFactory.getXLogger( OpenValidate.class ).entry( resName );
         String ret = null;
