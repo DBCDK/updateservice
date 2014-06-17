@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Valid marcXchange record, that applies to the xsd
+-->
+<ns1:collection
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns:ns1='info:lc/xmlns/marcxchange-v1'
+    xsi:schemaLocation='info:lc/xmlns/marcxchange-v1'>
+    <ns1:record>
+        <ns1:datafield tag="001" ind1="1" ind2="0">
+            <ns1:subfield code="a">1 234 567 8</ns1:subfield>
+            <ns1:subfield code="b">870970</ns1:subfield>
+            <ns1:subfield code="c">12072013</ns1:subfield>
+            <ns1:subfield code="d">12072013101735</ns1:subfield>
+            <ns1:subfield code="f">a</ns1:subfield>
+        </ns1:datafield>
+        <ns1:datafield tag="004" ind1="1" ind2="0">
+            <ns1:subfield code="a">e</ns1:subfield>
+            <ns1:subfield code="r">n</ns1:subfield>
+        </ns1:datafield>
+    </ns1:record>
+
+</ns1:collection>

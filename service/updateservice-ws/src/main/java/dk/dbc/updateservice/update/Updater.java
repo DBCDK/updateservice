@@ -67,6 +67,8 @@ public class Updater {
     }
     
     private byte[] encodeRecord( MarcRecord record ) throws JAXBException {
+        logger.entry( record );
+        
         MarcXchangeFactory marcXchangeFactory = new MarcXchangeFactory();
         CollectionType marcXhangeCollectionType = marcXchangeFactory.createMarcXchangeFromMarc( record );
 
@@ -77,10 +79,13 @@ public class Updater {
         ByteArrayOutputStream recData = new ByteArrayOutputStream();
         marshaller.marshal( marcXhangeCollectionType, recData );
         
+        logger.exit( recData.toByteArray() );
         return recData.toByteArray();
     }
     
     private void saveRecord( RawRepoDAO rawRepo, byte[] content, String recId, int libraryId, String parentId ) throws SQLException {
+        logger.entry( rawRepo, content, recId, libraryId, parentId );
+        
         final Record rawRepoRecord = rawRepo.fetchRecord( recId, libraryId );
         rawRepoRecord.setContent( content );
         rawRepo.saveRecord( rawRepoRecord );
@@ -90,7 +95,9 @@ public class Updater {
             references.add( new RecordId( parentId, libraryId ) );
         }
         rawRepo.setRelationsFrom( rawRepoRecord.getId(), references );
-        rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId() );        
+        rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId() );
+        
+        logger.exit();
     }
     
     //------------------------------------------------------------------------

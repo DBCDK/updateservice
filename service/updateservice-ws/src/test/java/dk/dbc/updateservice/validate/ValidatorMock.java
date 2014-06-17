@@ -2,8 +2,6 @@
 package dk.dbc.updateservice.validate;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.validateservice.ws.*;
-import dk.dbc.updateservice.ws.OpenValidate;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import java.io.IOException;
