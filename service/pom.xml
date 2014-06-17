@@ -19,6 +19,7 @@
     <modules>
         <module>updateservice-app</module>
         <module>updateservice-ws</module>
+        <module>updateservice-integration-tests</module>
     </modules>
 
     <pluginRepositories>
