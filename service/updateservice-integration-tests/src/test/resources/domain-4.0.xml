@@ -51,6 +51,7 @@
   <system-applications />
   <applications />
   <resources>
+    <!--
     <jdbc-resource pool-name="__TimerPool" jndi-name="jdbc/__TimerPool" object-type="system-admin" />
     <jdbc-resource pool-name="DerbyPool" jndi-name="jdbc/__default" object-type="system-all" />
     <jdbc-connection-pool name="__TimerPool" datasource-classname="org.apache.derby.jdbc.EmbeddedXADataSource" res-type="javax.sql.XADataSource">
@@ -61,7 +62,8 @@
       <property name="databaseName" value="${com.sun.aas.instanceRoot}/lib/databases/embedded_default" />
       <property name="connectionAttributes" value=";create=true" />
     </jdbc-connection-pool>
-    <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" res-type="javax.sql.DataSource" name="jdbc/opencataloging-update-ws/raw-repo/pool">
+    -->
+    <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" res-type="javax.sql.DataSource" name="jdbc/updateservice/raw-repo/pool">
       <property name="driverClass" value="org.postgresql.Driver"></property>
       <property name="DatabaseName" value="${rawrepo.db.name}"></property>
       <property name="BinaryTransfer" value="true"></property>
@@ -77,17 +79,16 @@
       <property name="User" value="${user.name}"></property>
       <property name="Password" value="${user.name}"></property>
     </jdbc-connection-pool>
-    <jdbc-resource pool-name="jdbc/opencataloging-update-ws/raw-repo/pool" jndi-name="jdbc/opencataloging-update-ws/raw-repo"></jdbc-resource>
-    <custom-resource res-type="java.lang.String" jndi-name="opencataloging-validate-ws/endpoint" factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory">
-      <property name="value" value="${validate.ws.url}"></property>
-    </custom-resource>
+    <jdbc-resource pool-name="jdbc/updateservice/raw-repo/pool" jndi-name="jdbc/updateservice/raw-repo"></jdbc-resource>
+    <jdbc-resource pool-name="jdbc/updateservice/raw-repo/pool" jndi-name="jdbc/__default" object-type="system-all" />
   </resources>
   <servers>
     <server name="server" config-ref="server-config">
+      <!--
       <resource-ref ref="jdbc/__TimerPool" />
+      -->
       <resource-ref ref="jdbc/__default" />
-      <resource-ref ref="jdbc/opencataloging-update-ws/raw-repo"></resource-ref>
-      <resource-ref ref="opencataloging-validate-ws/endpoint"></resource-ref>
+      <resource-ref ref="jdbc/updateservice/raw-repo" />
     </server>
   </servers>
  <configs>
