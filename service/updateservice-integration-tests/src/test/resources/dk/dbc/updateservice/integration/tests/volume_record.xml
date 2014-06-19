@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Valid marcXchange record, that applies to the xsd
+-->
+<marcx:collection
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+    xmlns:marcx='info:lc/xmlns/marcxchange-v1'
+    xsi:schemaLocation='info:lc/xmlns/marcxchange-v1'>
+    <marcx:record format="danMARC2" type="BibliographicVolume">
+        <marcx:leader>00000n    2200000   4500</marcx:leader>
+        <marcx:datafield ind1="0" ind2="0" tag="001">
+            <marcx:subfield code="a">58442895</marcx:subfield>
+            <marcx:subfield code="b">870978</marcx:subfield>
+            <marcx:subfield code="c">20100323101835</marcx:subfield>
+            <marcx:subfield code="d">20080411</marcx:subfield>
+            <marcx:subfield code="f">a</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="004">
+            <marcx:subfield code="r">n</marcx:subfield>
+            <marcx:subfield code="a">b</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="008">
+            <marcx:subfield code="t">m</marcx:subfield>
+            <marcx:subfield code="u">f</marcx:subfield>
+            <marcx:subfield code="a">1975</marcx:subfield>
+            <marcx:subfield code="z">1979</marcx:subfield>
+            <marcx:subfield code="l">dan</marcx:subfield>
+            <marcx:subfield code="v">0</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="014">
+            <marcx:subfield code="a">58442615</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="032">
+            <marcx:subfield code="a">DAN197900</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="245">
+            <marcx:subfield code="a">København</marcx:subfield>
+        </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="260">
+            <marcx:subfield code="c">1979</marcx:subfield>
+        </marcx:datafield>
+    </marcx:record>
+</marcx:collection>
