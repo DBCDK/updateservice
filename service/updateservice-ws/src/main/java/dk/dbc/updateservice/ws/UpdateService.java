@@ -8,17 +8,17 @@ import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
 import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasRequest;
 import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasResult;
+import dk.dbc.oss.ns.catalogingupdate.Schema;
 import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
+import dk.dbc.oss.ns.catalogingupdate.ValidateSchemasStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -108,7 +108,14 @@ public class UpdateService implements CatalogingUpdatePortType {
             MDC.put( TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId() );
             
             logger.entry( getValidateSchemasRequest );
+            List<Schema> names = validator.getValidateSchemas();
+            
+            GetValidateSchemasResult response = new GetValidateSchemasResult();
+            response.setValidateSchemasStatus( ValidateSchemasStatusEnum.OK );
+            response.getSchema().addAll( names );
+                        
             logger.exit();
+            return response;
         } 
         catch( EJBException ex ) {
             logger.error( "Got EJBException: {}", ex.getCause() );
@@ -117,8 +124,6 @@ public class UpdateService implements CatalogingUpdatePortType {
         finally {
             MDC.remove( TRACKING_ID_LOG_CONTEXT );
         }
-        
-        throw new UnsupportedOperationException( "Not implemented yet." );
     }
     
     //-------------------------------------------------------------------------
