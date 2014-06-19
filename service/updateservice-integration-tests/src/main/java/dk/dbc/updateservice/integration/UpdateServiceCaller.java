@@ -5,6 +5,8 @@ package dk.dbc.updateservice.integration;
 
 import dk.dbc.updateservice.integration.service.CatalogingUpdatePortType;
 import dk.dbc.updateservice.integration.service.CatalogingUpdateServices;
+import dk.dbc.updateservice.integration.service.GetValidateSchemasRequest;
+import dk.dbc.updateservice.integration.service.GetValidateSchemasResult;
 import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
 import dk.dbc.updateservice.integration.service.UpdateRecordResult;
 import javax.xml.ws.BindingProvider;
@@ -24,6 +26,10 @@ public class UpdateServiceCaller {
         return this.callerProxy.updateRecord( updateRecordRequest );
     }
     
+    public GetValidateSchemasResult getValidateSchemas( GetValidateSchemasRequest request ) {
+        return this.callerProxy.getValidateSchemas( request );
+    }
+
     private CatalogingUpdatePortType getAndConfigureUpdateProxy() {
         CatalogingUpdatePortType port = this.services.getCatalogingUpdatePort();
         BindingProvider proxy = (BindingProvider)port;
