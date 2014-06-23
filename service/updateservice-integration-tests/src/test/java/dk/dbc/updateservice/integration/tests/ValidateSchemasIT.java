@@ -3,14 +3,17 @@ package dk.dbc.updateservice.integration.tests;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.GetValidateSchemasRequest;
 import dk.dbc.updateservice.integration.service.GetValidateSchemasResult;
 import dk.dbc.updateservice.integration.service.Schema;
 import dk.dbc.updateservice.integration.service.ValidateSchemasStatusEnum;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -28,7 +31,7 @@ public class ValidateSchemasIT {
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
     
     @BeforeClass
-    public static void setUpClass() throws ClassNotFoundException, SQLException {
+    public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
         try (final Connection connection = newRawRepoConnection() ) {
             JDBCUtil.update( connection, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
             JDBCUtil.update( connection, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
@@ -36,7 +39,7 @@ public class ValidateSchemasIT {
     }
     
     @AfterClass
-    public static void tearDownClass() throws ClassNotFoundException, SQLException {
+    public static void tearDownClass() throws ClassNotFoundException, SQLException, IOException {
         try (final Connection conn = newRawRepoConnection() ) {        
             JDBCUtil.update( conn, "DELETE FROM queuerules");
             JDBCUtil.update( conn, "DELETE FROM queueworkers");
@@ -44,7 +47,7 @@ public class ValidateSchemasIT {
     }
 
     @After
-    public void clearRawRepo() throws SQLException, ClassNotFoundException {
+    public void clearRawRepo() throws SQLException, ClassNotFoundException, IOException {
         try (final Connection connection = newRawRepoConnection()) {
             JDBCUtil.update(connection, "DELETE FROM relations");
             JDBCUtil.update(connection, "DELETE FROM records");
@@ -53,7 +56,7 @@ public class ValidateSchemasIT {
     }
     
     @Test
-    public void testGetValidateSchemas() {
+    public void testGetValidateSchemas() throws IOException {
         GetValidateSchemasRequest request = new GetValidateSchemasRequest();
         request.setAgencyId( "870970" );
         request.setTrackingId( "trackingId" );
@@ -71,10 +74,12 @@ public class ValidateSchemasIT {
         }
     }
 
-    private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("org.postgresql.Driver");
+    private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
+        Properties settings = IOUtils.loadProperties( ValidateSchemasIT.class.getClassLoader(), "settings.properties" );
+
+        Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
         Connection conn = DriverManager.getConnection(
-                String.format("jdbc:postgresql://localhost:%s/%s", System.getProperty( "rawrepo.db.port" ), System.getProperty( "rawrepo.db.name" ) ),
+                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), System.getProperty( "rawrepo.db.name" ) ),
                 System.getProperty("user.name"), System.getProperty("user.name") );
         conn.setAutoCommit(true);
         
