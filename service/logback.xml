@@ -11,7 +11,7 @@
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOGDIR}/validateservice.log</file>
+        <file>${LOGDIR}/updateservice.log</file>
         <append>true</append>
         <prudent>true</prudent>
 
@@ -21,7 +21,7 @@
     </appender>
 
     <appender name="ERRFILE" class="ch.qos.logback.core.FileAppender">
-        <file>${LOGDIR}/validateservice-warn-err.log</file>
+        <file>${LOGDIR}/updateservice-warn-err.log</file>
         <append>true</append>
         <prudent>true</prudent>
 
