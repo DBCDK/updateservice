@@ -8,6 +8,7 @@ import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
 import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasRequest;
 import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasResult;
+import dk.dbc.oss.ns.catalogingupdate.Options;
 import dk.dbc.oss.ns.catalogingupdate.Schema;
 import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
@@ -17,6 +18,7 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateSchemasStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
+import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.util.List;
 import javax.ejb.EJB;
@@ -72,17 +74,28 @@ public class UpdateService implements CatalogingUpdatePortType {
                     writer.addValidateResults( valErrors );
                     writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
                 }
-                else if( !updateRecordRequest.getOptions().getOption().contains( UpdateOptionEnum.VALIDATE_ONLY ) ) {
-                    try {
-                        writer.setUpdateStatus( UpdateStatusEnum.OK );
-                        
-                        logger.info( "Updating record [{}|{}]", recId, libId );
-                        updater.updateRecord( record );
+                else {
+                    Options options = updateRecordRequest.getOptions();
+                    boolean doUpdate = true;
+                    
+                    if( options != null && options.getOption() != null ) {
+                        if( options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY ) ) {
+                            doUpdate = false;
+                        }
                     }
-                    catch( UpdateException ex ) {
-                        writer.setUpdateStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-                        logger.error( "Update error: {}", ex  );
-                    }
+                    
+                    if( doUpdate ) {
+                        try {
+                            writer.setUpdateStatus( UpdateStatusEnum.OK );
+
+                            logger.info( "Updating record [{}|{}]", recId, libId );
+                            updater.updateRecord( record );
+                        }
+                        catch( UpdateException ex ) {
+                            writer.setUpdateStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
+                            logger.error( "Update error: {}", ex  );
+                        }
+                    }                    
                 }          
             }
                         
@@ -93,7 +106,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             logger.error( "Got EJBException: {}", ex.getCause() );
             throw ex;
         }
-        catch( ClassNotFoundException | IllegalArgumentException | JAXBException | JavaScriptException | SQLException ex ) {
+        catch( ClassNotFoundException | IllegalArgumentException | JAXBException | UnsupportedEncodingException | JavaScriptException | SQLException ex ) {
             logger.error( "Got exception: {}", ex );
             throw new EJBException( ex );
         }

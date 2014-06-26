@@ -11,6 +11,8 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import java.io.ByteArrayOutputStream;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -51,7 +53,7 @@ public class Updater {
     //              Business logic
     //-------------------------------------------------------------------------
 
-    public void updateRecord( MarcRecord record ) throws SQLException, ClassNotFoundException, JAXBException, UpdateException {
+    public void updateRecord( MarcRecord record ) throws SQLException, ClassNotFoundException, JAXBException, UpdateException, UnsupportedEncodingException {
         logger.entry( record );
         
         try( Connection conn = dataSource.getConnection() ) {
@@ -73,7 +75,7 @@ public class Updater {
         logger.exit();
     }
     
-    private byte[] encodeRecord( MarcRecord record ) throws JAXBException {
+    private byte[] encodeRecord( MarcRecord record ) throws JAXBException, UnsupportedEncodingException {
         logger.entry( record );
         
         MarcXchangeFactory marcXchangeFactory = new MarcXchangeFactory();
@@ -84,13 +86,16 @@ public class Updater {
         
         JAXBContext jc = JAXBContext.newInstance( CollectionType.class );
         Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty( Marshaller.JAXB_SCHEMA_LOCATION, "http://www.loc.gov/standards/iso25577/marcxchange-2-0.xsd" );
+        marshaller.setProperty( Marshaller.JAXB_SCHEMA_LOCATION, "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd" );
         
-        ByteArrayOutputStream recData = new ByteArrayOutputStream();
+        StringWriter recData = new StringWriter();        
         marshaller.marshal( jAXBElement, recData );
         
-        logger.exit( recData.toByteArray() );
-        return recData.toByteArray();
+        logger.info(  "Marshelled record: {}", recData.toString() );
+        byte[] result = recData.toString().getBytes( "UTF-8" );
+        
+        logger.exit( result );
+        return result;
     }
     
     private void saveRecord( RawRepoDAO rawRepo, byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException {
@@ -142,6 +147,6 @@ public class Updater {
 
     private XLogger logger;    
     
-    @Resource( name = JNDI_JDBC_RAW_REPO_NAME )
+    @Resource( lookup = JNDI_JDBC_RAW_REPO_NAME )
     private DataSource dataSource;
 }

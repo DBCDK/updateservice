@@ -29,11 +29,11 @@
   <con:entry key="Add Settings" value="false"/>
   <con:entry key="Endpoint" value="http://iscrum-i01:8080/CValidationServices/OpenValidate"/>
   <con:entry key="Select Report Type" value=""/>
-</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="CatalogingUpdateBinding" type="wsdl" bindingName="{http://oss.dbc.dk/ns/catalogingUpdate}CatalogingUpdateBinding" soapVersion="1_1" anonymous="optional" definition="http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings><con:setting id="CreateWsdlDocumentationAction@report-directory">/Users/stp/tmp/logs</con:setting></con:settings><con:definitionCache type="TEXT" rootPart="http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl"><con:part><con:url>http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
+</xml-fragment>]]></con:setting></con:settings><con:interface xsi:type="con:WsdlInterface" wsaVersion="NONE" name="CatalogingUpdateBinding" type="wsdl" bindingName="{http://oss.dbc.dk/ns/catalogingUpdate}CatalogingUpdateBinding" soapVersion="1_1" anonymous="optional" definition="http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:settings><con:setting id="CreateWsdlDocumentationAction@report-directory">/Users/stp/tmp/logs</con:setting></con:settings><con:definitionCache type="TEXT" rootPart="http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl"><con:part><con:url>http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService?wsdl</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
 <wsdl:definitions name="UpdateServices" targetNamespace="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl">
   <wsdl:types>
     <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
-      <xs:import namespace="http://oss.dbc.dk/ns/catalogingUpdate" schemaLocation="http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService?xsd=1"/>
+      <xs:import namespace="http://oss.dbc.dk/ns/catalogingUpdate" schemaLocation="http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService?xsd=1"/>
     </xs:schema>
   </wsdl:types>
   <wsdl:message name="UpdateRecordInputMessage">
@@ -81,10 +81,10 @@
   </wsdl:binding>
   <wsdl:service name="CatalogingUpdateServices">
     <wsdl:port name="CatalogingUpdatePort" binding="tns:CatalogingUpdateBinding">
-      <soap:address location="http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService"/>
+      <soap:address location="http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService"/>
     </wsdl:port>
   </wsdl:service>
-</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService?xsd=1</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
+</wsdl:definitions>]]></con:content><con:type>http://schemas.xmlsoap.org/wsdl/</con:type></con:part><con:part><con:url>http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService?xsd=1</con:url><con:content><![CDATA[<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is Metro/2.3 (tags/2.3-7528; 2013-04-29T19:34:10+0000) JAXWS-RI/2.2.8 JAXWS/2.2 svn-revision#unknown.-->
 <xs:schema elementFormDefault="qualified" targetNamespace="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://oss.dbc.dk/ns/catalogingUpdate">
   <!--updateRecord request / response-->
   <xs:element name="updateRecord">
@@ -116,11 +116,6 @@
     <xs:sequence>
       <xs:element ref="tns:updateStatus"/>
       <xs:element name="validateInstance" type="tns:ValidateInstance" minOccurs="0"/>
-      <xs:element name="bibliographicRecord" type="tns:BibliographicRecord" minOccurs="0">
-        <xs:annotation>
-          <xs:documentation xml:lang="en">If the update/validation has altered the record, the corrected records is returned here. Currently empty</xs:documentation>
-        </xs:annotation>
-      </xs:element>
     </xs:sequence>
   </xs:complexType>
   <!--getValidateSchemas request / response-->
@@ -315,22 +310,42 @@
       <xs:enumeration value="failed_internal_error"/>
     </xs:restriction>
   </xs:simpleType>
-</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:endpoint>http://dhcp321.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp344.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp94.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://iscrum-i01:8080/ValidateService/ValidateService</con:endpoint><con:endpoint>http://opencatalogingvalidate.addi.dk/</con:endpoint><con:endpoint>http://thomaslang:8080/CValidationServices/OpenValidate</con:endpoint></con:endpoints><con:operation isOneWay="false" action="http://oss.dbc.dk/ns/catalogingUpdate/UpdateRecord" name="updateRecord" bindingOperationName="updateRecord" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp102.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cat="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
+</xs:schema>]]></con:content><con:type>http://www.w3.org/2001/XMLSchema</con:type></con:part></con:definitionCache><con:endpoints><con:endpoint>http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:endpoint>http://dhcp321.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp344.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:endpoint>http://dhcp85.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://dhcp94.dbc.dk:8080/CValidationServices/OpenValidate</con:endpoint><con:endpoint>http://iscrum-i01:8080/ValidateService/ValidateService</con:endpoint><con:endpoint>http://opencatalogingvalidate.addi.dk/</con:endpoint><con:endpoint>http://thomaslang:8080/CValidationServices/OpenValidate</con:endpoint></con:endpoints><con:operation isOneWay="false" action="http://oss.dbc.dk/ns/catalogingUpdate/UpdateRecord" name="updateRecord" bindingOperationName="updateRecord" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cat="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:open="http://oss.dbc.dk/ns/openCatalogingValidate" xmlns:dat="http://oss.dbc.dk/ns/openCataloging/DataContracts">
    <soapenv:Header/>
    <soapenv:Body>
       <cat:updateRecord>
          <cat:updateRecordRequest>
             <cat:agencyId>?</cat:agencyId>
-            <cat:validateSchema>bog</cat:validateSchema>
+            <cat:validateSchema>us-book</cat:validateSchema>
             <cat:bibliographicRecord>
-               <cat:recordSchema>xfg</cat:recordSchema>
-               <cat:recordPacking>?</cat:recordPacking>
-               <cat:recordData>e gero</cat:recordData>
+               <cat:recordSchema>info:lc/xmlns/marcxchange-v1</cat:recordSchema>
+               <cat:recordPacking>xml</cat:recordPacking>
+               <cat:recordData>
+				<ns1:collection
+				    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+				    xmlns:ns1='info:lc/xmlns/marcxchange-v1'
+				    xsi:schemaLocation='info:lc/xmlns/marcxchange-v1'>
+				    <ns1:record>
+				        <ns1:datafield tag="001" ind1="1" ind2="0">
+				            <ns1:subfield code="a">1 234 567 8</ns1:subfield>
+				            <ns1:subfield code="b">870970</ns1:subfield>
+				            <ns1:subfield code="c">12072013</ns1:subfield>
+				            <ns1:subfield code="d">12072013101735</ns1:subfield>
+				            <ns1:subfield code="f">a</ns1:subfield>
+				        </ns1:datafield>
+				        <ns1:datafield tag="004" ind1="1" ind2="0">
+				            <ns1:subfield code="a">e</ns1:subfield>
+				            <ns1:subfield code="r">n</ns1:subfield>
+				        </ns1:datafield>
+				    </ns1:record>
+				
+				</ns1:collection>
+			</cat:recordData>
             </cat:bibliographicRecord>
          </cat:updateRecordRequest>
       </cat:updateRecord>
    </soapenv:Body>
-</soapenv:Envelope>]]></con:request><con:credentials><con:authType>NTLM</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation isOneWay="false" action="http://oss.dbc.dk/ns/catalogingUpdate/GetValidateSchemas" name="getValidateSchemas" bindingOperationName="getValidateSchemas" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings/><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp316.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cat="http://oss.dbc.dk/ns/catalogingUpdate">
+</soapenv:Envelope>]]></con:request><con:credentials><con:authType>NTLM</con:authType></con:credentials><con:jmsConfig JMSDeliveryMode="PERSISTENT"/><con:jmsPropertyConfig/><con:wsaConfig mustUnderstand="NONE" version="200508" action="http://oss.dbc.dk/ns/openCatalogingValidate/IValidationServices/Validate"/><con:wsrmConfig version="1.2"/></con:call></con:operation><con:operation isOneWay="false" action="http://oss.dbc.dk/ns/catalogingUpdate/GetValidateSchemas" name="getValidateSchemas" bindingOperationName="getValidateSchemas" type="Request-Response" inputName="" receivesAttachments="false" sendsAttachments="false" anonymous="optional"><con:settings/><con:call name="Request 1"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.WsdlRequest@request-headers">&lt;xml-fragment/></con:setting></con:settings><con:encoding>UTF-8</con:encoding><con:endpoint>http://dhcp52.dbc.dk:8080/CatalogingUpdateServices/UpdateService</con:endpoint><con:request><![CDATA[<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cat="http://oss.dbc.dk/ns/catalogingUpdate">
    <soapenv:Header/>
    <soapenv:Body>
       <cat:getValidateSchemas>
