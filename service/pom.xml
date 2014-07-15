@@ -10,9 +10,6 @@
     <name>updateservice</name>
     
     <properties>
-        <doxygen.executable>/usr/local/bin/doxygen</doxygen.executable>
-        <doxygen.project.name>UpdateService</doxygen.project.name>
-        <doxygen.configurationFile>doc/doxygen.config</doxygen.configurationFile>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
     </properties>
 
@@ -21,35 +18,15 @@
         <module>updateservice-ws</module>
         <module>updateservice-system-tests</module>
     </modules>
-
-    <pluginRepositories>
-        <pluginRepository>
-            <id>doodleproject-repo</id>
-            <name>DoodleProject Maven 2 Repository</name>
-            <url>http://doodleproject.sourceforge.net/maven2/release</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>  
         
     <build>
         <pluginManagement>
             <plugins>
-                <!-- Maven Site -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>3.0</version>
                 </plugin>
-
-                <!-- Doxygen -->
-                <plugin>
-                    <groupId>net.sf.doodleproject</groupId>
-                    <artifactId>doxygen-maven-plugin</artifactId>
-                    <version>2.2</version>
-                </plugin>
-
             </plugins>
         </pluginManagement>
         
@@ -59,36 +36,10 @@
                 <artifactId>maven-site-plugin</artifactId>
                 <version>3.0</version>
             </plugin>
-
-            <!-- Doxygen -->
-            <plugin>
-                <groupId>net.sf.doodleproject</groupId>
-                <artifactId>doxygen-maven-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <executable>${doxygen.executable}</executable>
-                    <configurationFile>${doxygen.configurationFile}</configurationFile>
-                    <projectName>${doxygen.project.name}</projectName>
-                    <workDirectory>${report.outputDirectory}</workDirectory>
-                </configuration>
-            </plugin>                
         </plugins>        
     </build>
+    
     <reporting>
         <outputDirectory>${report.outputDirectory}</outputDirectory>
-
-        <plugins>
-            <plugin>
-                <groupId>net.sf.doodleproject</groupId>
-                <artifactId>doxygen-maven-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <executable>${doxygen.executable}</executable>
-                    <configurationFile>${doxygen.configurationFile}</configurationFile>
-                    <projectName>${doxygen.project.name}</projectName>
-                    <workDirectory>${report.outputDirectory}</workDirectory>
-                </configuration>
-            </plugin>
-        </plugins>
     </reporting>
 </project>
