@@ -38,7 +38,7 @@
 
         <jdbc-resource pool-name="DerbyPool" jndi-name="jdbc/__default" object-type="system-all"></jdbc-resource>
         <jdbc-connection-pool is-isolation-level-guaranteed="false" datasource-classname="org.apache.derby.jdbc.ClientDataSource" res-type="javax.sql.DataSource" name="DerbyPool">
-            <property name="PortNumber" value="1527"></property>
+            <property name="PortNumber" value="${derby.port}"></property>
             <property name="Password" value="APP"></property>
             <property name="User" value="APP"></property>
             <property name="serverName" value="localhost"></property>
@@ -91,7 +91,7 @@
         <config name="server-config">
             <system-property name="LOGDIR" value="${logback.logdir}"></system-property>
             <system-property name="logback.configurationFile" value="${logback.logfile}"></system-property>
-            <system-property description="Port Number that JMS Service will listen for remote clients connection." name="JMS_PROVIDER_PORT" value="7676"></system-property>
+            <system-property description="Port Number that JMS Service will listen for remote clients connection." name="JMS_PROVIDER_PORT" value="${jms.services.port}"></system-property>
             <http-service>
                 <access-log></access-log>
                 <virtual-server id="server" network-listeners="http-listener-1,http-listener-2"></virtual-server>
@@ -99,16 +99,16 @@
             </http-service>
             <iiop-service>
                 <orb use-thread-pool-ids="thread-pool-1"></orb>
-                <iiop-listener port="3700" id="orb-listener-1" address="0.0.0.0" lazy-init="true"></iiop-listener>
-                <iiop-listener port="3820" id="SSL" address="0.0.0.0" security-enabled="true">
+                <iiop-listener port="${iiop.orb.port}" id="orb-listener-1" address="0.0.0.0" lazy-init="true"></iiop-listener>
+                <iiop-listener port="${iiop.ssl.port}" id="SSL" address="0.0.0.0" security-enabled="true">
                     <ssl classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="s1as"></ssl>
                 </iiop-listener>
-                <iiop-listener port="3920" id="SSL_MUTUALAUTH" address="0.0.0.0" security-enabled="true">
+                <iiop-listener port="${iiop.ssl.mutualauth.port}" id="SSL_MUTUALAUTH" address="0.0.0.0" security-enabled="true">
                     <ssl classname="com.sun.enterprise.security.ssl.GlassfishSSLImpl" cert-nickname="s1as" client-auth-enabled="true"></ssl>
                 </iiop-listener>
             </iiop-service>
             <admin-service system-jmx-connector-name="system" type="das-and-server">
-                <jmx-connector port="8686" address="0.0.0.0" security-enabled="false" auth-realm-name="admin-realm" name="system"></jmx-connector>
+                <jmx-connector port="${jmx.port}" address="0.0.0.0" security-enabled="false" auth-realm-name="admin-realm" name="system"></jmx-connector>
                 <property name="adminConsoleContextRoot" value="/admin"></property>
                 <property name="adminConsoleDownloadLocation" value="${com.sun.aas.installRoot}/lib/install/applications/admingui.war"></property>
                 <property name="ipsRoot" value="${com.sun.aas.installRoot}/.."></property>
@@ -118,7 +118,7 @@
             <transaction-service tx-log-dir="${com.sun.aas.instanceRoot}/logs"></transaction-service>
             <batch-runtime-configuration></batch-runtime-configuration>
             <jms-service default-jms-host="default_JMS_host" type="EMBEDDED">
-                <jms-host port="${JMS_PROVIDER_PORT}" host="localhost" name="default_JMS_host"></jms-host>
+                <jms-host port="${jms.provider.port}" host="localhost" name="default_JMS_host"></jms-host>
             </jms-service>
             <ejb-container>
                 <ejb-timer-service></ejb-timer-service>
@@ -213,7 +213,7 @@
                 <jvm-options>-DANTLR_USE_DIRECT_CLASS_LOADING=true</jvm-options>
                 <jvm-options>-Dcom.sun.enterprise.config.config_environment_factory_class=com.sun.enterprise.config.serverbeans.AppserverConfigEnvironmentFactory</jvm-options>
                 <jvm-options>-Dorg.glassfish.additionalOSGiBundlesToStart=org.apache.felix.shell,org.apache.felix.gogo.runtime,org.apache.felix.gogo.shell,org.apache.felix.gogo.command,org.apache.felix.shell.remote,org.apache.felix.fileinstall</jvm-options>
-                <jvm-options>-Dosgi.shell.telnet.port=6666</jvm-options>
+                <jvm-options>-Dosgi.shell.telnet.port=${osgi.shell.telnet.port}</jvm-options>
                 <jvm-options>-Dosgi.shell.telnet.maxconn=1</jvm-options>
                 <jvm-options>-Dosgi.shell.telnet.ip=127.0.0.1</jvm-options>
                 <jvm-options>-Dgosh.args=--nointeractive</jvm-options>
