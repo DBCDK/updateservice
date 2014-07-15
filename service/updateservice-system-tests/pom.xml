@@ -20,13 +20,29 @@
         <container.id>glassfish4</container.id>
         <container.version>4.0</container.version>
         <container.host>localhost</container.host>
-        <container.http1.port>12080</container.http1.port>
-        <container.http2.port>12081</container.http2.port>
-        <container.admin.port>12848</container.admin.port>
         <container.admin.username>admin</container.admin.username>
         <container.admin.password></container.admin.password>
 
-        <rawrepo.db.port>65432</rawrepo.db.port>
+        <!-- Glassfish port 130XX -->
+        <container.http1.port>13080</container.http1.port>
+        <container.http2.port>13081</container.http2.port>
+        <container.admin.port>13048</container.admin.port>
+
+        <!-- Databases port 131XX -->
+        <derby.port>13127</derby.port>
+        <rawrepo.db.port>13132</rawrepo.db.port>
+
+        <!-- IIOP/JMX/JMS port 1321X -->
+        <iiop.orb.port>13211</iiop.orb.port>
+        <iiop.ssl.port>13212</iiop.ssl.port>
+        <iiop.ssl.mutualauth.port>13213</iiop.ssl.mutualauth.port>
+        <jmx.port>13214</jmx.port>
+        <jms.services.port>13215</jms.services.port>
+        <jms.provider.port>13216</jms.provider.port>
+        
+        <!-- OSGi port 1322X -->        
+        <osgi.shell.telnet.port>13221</osgi.shell.telnet.port>
+    
         <rawrepo.db.name>rawrepo</rawrepo.db.name>
         <rawrepo.db.driver.version>9.3-1101-jdbc41</rawrepo.db.driver.version>
     </properties>
