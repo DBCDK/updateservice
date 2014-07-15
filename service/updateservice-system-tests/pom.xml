@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>dk.dbc</groupId>
+        <artifactId>updateservice</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    
+    <artifactId>updateservice-system-tests</artifactId>
+    <packaging>pom</packaging>
+    
+    <modules>
+        <module>updateservice-system-tests-service</module>
+    </modules>
+    
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <container.id>glassfish4</container.id>
+        <container.version>4.0</container.version>
+        <container.host>localhost</container.host>
+        <container.http1.port>12080</container.http1.port>
+        <container.http2.port>12081</container.http2.port>
+        <container.admin.port>12848</container.admin.port>
+        <container.admin.username>admin</container.admin.username>
+        <container.admin.password></container.admin.password>
+
+        <rawrepo.db.port>65432</rawrepo.db.port>
+        <rawrepo.db.name>rawrepo</rawrepo.db.name>
+        <rawrepo.db.driver.version>9.3-1101-jdbc41</rawrepo.db.driver.version>
+    </properties>
+    
+</project>
