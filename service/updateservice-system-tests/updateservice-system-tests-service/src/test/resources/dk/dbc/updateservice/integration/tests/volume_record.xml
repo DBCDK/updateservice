@@ -10,7 +10,7 @@
         <marcx:leader>00000n    2200000   4500</marcx:leader>
         <marcx:datafield ind1="0" ind2="0" tag="001">
             <marcx:subfield code="a">58442895</marcx:subfield>
-            <marcx:subfield code="b">870978</marcx:subfield>
+            <marcx:subfield code="b">870970</marcx:subfield>
             <marcx:subfield code="c">20100323101835</marcx:subfield>
             <marcx:subfield code="d">20080411</marcx:subfield>
             <marcx:subfield code="f">a</marcx:subfield>

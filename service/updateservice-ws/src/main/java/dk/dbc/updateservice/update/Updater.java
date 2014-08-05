@@ -10,7 +10,6 @@ import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
@@ -45,7 +44,7 @@ public class Updater {
     //@{
     @PostConstruct
     public void init() {
-        logger = XLoggerFactory.getXLogger( this.getClass() );
+        logger = XLoggerFactory.getXLogger( this.getClass() );        
     }
     //@}
 
@@ -100,26 +99,37 @@ public class Updater {
     
     private void saveRecord( RawRepoDAO rawRepo, byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException {
         logger.entry( rawRepo, content, recId, libraryId, parentId );
-        
+                
         if( !parentId.isEmpty() && !rawRepo.recordExists( parentId, libraryId ) ) {
             String err = String.format( "Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId );
             logger.warn( err );
             throw new UpdateException( err );
         }
         
-        
         final Record rawRepoRecord = rawRepo.fetchRecord( recId, libraryId );
         rawRepoRecord.setContent( content );
         rawRepo.saveRecord( rawRepoRecord );
 
-        final HashSet<RecordId> references = new HashSet<>();
-        if( !parentId.isEmpty() ) {
-            references.add( new RecordId( parentId, libraryId ) );
+        if( RawRepoDAO.COMMON_LIBRARY == libraryId ) {
+            if( !parentId.isEmpty() ) {
+                linkToRecord( rawRepo, rawRepoRecord.getId(), new RecordId( parentId, libraryId ) );
+            }
         }
-        rawRepo.setRelationsFrom( rawRepoRecord.getId(), references );
+        else {
+            if( rawRepo.recordExists( recId, RawRepoDAO.COMMON_LIBRARY ) ) {
+                logger.info( "Linker record [{}] -> [{}]", rawRepoRecord.getId(), new RecordId( recId, RawRepoDAO.COMMON_LIBRARY ) );
+                linkToRecord( rawRepo, rawRepoRecord.getId(), new RecordId( recId, RawRepoDAO.COMMON_LIBRARY ) );
+            }
+        }
+                
         rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId() );
-        
         logger.exit();
+    }
+    
+    private void linkToRecord( RawRepoDAO rawRepo, RecordId id, RecordId refer_id ) throws SQLException {
+        final HashSet<RecordId> references = new HashSet<>();
+        references.add( refer_id );
+        rawRepo.setRelationsFrom( id, references );
     }
     
     //------------------------------------------------------------------------

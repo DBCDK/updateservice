@@ -6,7 +6,7 @@
         </filter>
         
         <encoder>
-            <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+            <Pattern>%d{HH:mm:ss.SSS} [%thread] [%X{trackingId}] %-5level %logger{36} - %msg%n</Pattern>
         </encoder>
     </appender>
 
@@ -16,7 +16,7 @@
         <prudent>true</prudent>
 
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] [%X{trackingId}] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -30,7 +30,7 @@
         </filter>
 
         <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+            <pattern>%date %level [%thread] [%X{trackingId}] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
 

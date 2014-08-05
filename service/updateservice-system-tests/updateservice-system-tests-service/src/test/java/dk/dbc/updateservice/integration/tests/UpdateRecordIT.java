@@ -48,6 +48,7 @@ public class UpdateRecordIT {
     private static final String BOOK_TEMPLATE_NAME = "us-book";
     private static final String BOOK_MAIN_TEMPLATE_NAME = "us-bookmain";
     private static final String BOOK_VOLUME_TEMPLATE_NAME = "us-bookvolume";
+    private static final String BOOK_ASSOCIATED_TEMPLATE_NAME = "us-associated-book";
     
     public UpdateRecordIT() {        
     }
@@ -271,7 +272,7 @@ public class UpdateRecordIT {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
             
             String id = "58442895";
-            int library = 870978;
+            int library = 870970;
             
             assertFalse( rawRepo.recordExists( id, library ) );
         }
@@ -304,7 +305,7 @@ public class UpdateRecordIT {
         try (final Connection connection = newRawRepoConnection()) {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
             
-            assertTrue( rawRepo.recordExists( "58442615", 870978 ) );
+            assertTrue( rawRepo.recordExists( "58442615", 870970 ) );
         }
         
         // Update volume record
@@ -332,20 +333,120 @@ public class UpdateRecordIT {
         try (final Connection connection = newRawRepoConnection()) {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
             
-            assertTrue( rawRepo.recordExists( "58442615", 870978 ) );
-            assertTrue( rawRepo.recordExists( "58442895", 870978 ) );
+            assertTrue( rawRepo.recordExists( "58442615", 870970 ) );
+            assertTrue( rawRepo.recordExists( "58442895", 870970 ) );
             
-            RecordId rawMainRecord = new RecordId( "58442615", 870978 );
-            Set<RecordId> rawVolumeSet = rawRepo.getRelationsChildren( rawMainRecord );
+            RecordId rawMainRecord = new RecordId( "58442615", 870970 );
+            Set<RecordId> rawVolumeSet = rawRepo.getRelationsChildren(rawMainRecord );
             assertEquals( 1, rawVolumeSet.size() );
             
             Iterator<RecordId> iterator = rawVolumeSet.iterator();
             RecordId volumeRec = iterator.next();
             assertEquals( "58442895",volumeRec.getId() );
-            assertEquals( 870978,volumeRec.getLibrary() );
+            assertEquals( 870970,volumeRec.getLibrary() );
         }
     }
 
+    @Test
+    public void testUpdateLocalRecord() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        
+        // Update main record
+        request.setAgencyId( "700100" );        
+        request.setValidateSchema( BOOK_ASSOCIATED_TEMPLATE_NAME );
+        request.setOptions( new Options() );
+        request.setTrackingId( "trackingId" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/local_record.xml" ) );
+        
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+
+        // Check record is updated.
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
+            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+            
+            assertTrue( rawRepo.recordExists( "20611529", 700100 ) );
+            assertTrue( rawRepo.getRelationsFrom( new RecordId( "20611529", 700100 ) ).isEmpty() );
+        }        
+    }
+
+    @Test
+    public void testUpdateAssociatedRecord() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        
+        // Update common record
+        request.setAgencyId( "870970" );        
+        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setOptions( new Options() );
+        request.setTrackingId( "testUpdateAssociatedRecord_CommonRecord" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
+        
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+
+        // Check common record is updated.
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
+            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+            
+            assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
+        }
+        
+        // Update associated record
+        request = new UpdateRecordRequest();
+        request.setAgencyId( "700100" );        
+        request.setValidateSchema( BOOK_ASSOCIATED_TEMPLATE_NAME );
+        request.setOptions( new Options() );
+        request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/associated_record.xml" ) );
+        
+        caller = new UpdateServiceCaller();
+        response = caller.updateRecord( request );
+
+        // Check volume record is updated.
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
+            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+            
+            assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
+            assertTrue( rawRepo.recordExists( "20611529", 700100 ) );
+            //assertFalse( rawRepo.getRelationsFrom( new RecordId( "20611529", 700100 ) ).isEmpty() );
+
+            //RecordId rawMainRecord = new RecordId( "20611529", 870970 );
+            Set<Integer> localLibrariesSet = rawRepo.getRelationsLocalDataLibraries( "20611529" );
+            assertEquals( 1, localLibrariesSet.size() );
+            
+            Iterator<Integer> iterator = localLibrariesSet.iterator();
+            assertEquals( 700100, iterator.next().longValue() );
+        }
+    }
+    
     private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
         Properties settings = IOUtils.loadProperties( UpdateRecordIT.class.getClassLoader(), "settings.properties" );
 
