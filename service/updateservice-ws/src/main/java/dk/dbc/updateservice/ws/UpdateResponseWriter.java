@@ -2,7 +2,6 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
-
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
@@ -15,20 +14,55 @@ import java.util.List;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+//-----------------------------------------------------------------------------
 /**
- * @brief Class to generate a complete response.
+ * Class to generate a complete response.
+ * <p>
+ * Usage:
+ * <pre>
+ *  UpdateResponseWriter writer = new UpdateResponseWriter();
+ *  writer.addValidateResults( valErrorsList );
+ *  writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
+ * 
+ *  UpdateRecordResult response = writer.getResponse();
+ * </pre>
+ * After the sequence the variable <code>response</code> will contain a 
+ * complete valid response that can be returned thought the JavaEE container.
  * 
  * @author stp
  */
 public class UpdateResponseWriter {
+    //-------------------------------------------------------------------------
+    //              Constructors
+    //-------------------------------------------------------------------------
+
+    /**
+     * Basic constructor, that constructs the internal response.
+     */
     public UpdateResponseWriter() {
         this.response = new UpdateRecordResult();
     }
+    
+    //-------------------------------------------------------------------------
+    //              Properties
+    //-------------------------------------------------------------------------
     
     public UpdateRecordResult getResponse() {
         return response;
     }
     
+    //-------------------------------------------------------------------------
+    //              Helper functions
+    //-------------------------------------------------------------------------
+
+    /**
+     * Adds a list of validation errors to the response.
+     * <p>
+     * If the list is empty then the response is not changed. In this case the
+     * function is a nop.
+     * 
+     * @param valErrors List of validation errors.
+     */
     public void addValidateResults( List<ValidationError> valErrors ) {
         logger.entry( valErrors );
         
@@ -71,6 +105,11 @@ public class UpdateResponseWriter {
         logger.exit();
     }
     
+    /**
+     * Sets the update status in the response.
+     * 
+     * @param value The update status.
+     */
     public void setUpdateStatus( UpdateStatusEnum value ) {
         this.response.setUpdateStatus( value );
     }
@@ -79,6 +118,13 @@ public class UpdateResponseWriter {
     //              Members
     //-------------------------------------------------------------------------
 
+    /**
+     * Logger instance to write entries to the log files.
+     */
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
+    
+    /**
+     * Response that each helper method writes to, to construct a complete response.
+     */
     private UpdateRecordResult response;    
 }

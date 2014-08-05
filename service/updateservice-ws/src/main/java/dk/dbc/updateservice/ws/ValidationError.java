@@ -7,27 +7,79 @@ import java.util.Objects;
 
 //-----------------------------------------------------------------------------
 /**
- *
+ * ValidationError represents an validate error.
+ * <p>
+ * Validation errors are returned by the JavaScript layer in the form of a json
+ * string that contains an array of objects. An item in that array is represented
+ * by this class.
+ * 
+ * <h3>Properties</h3>
+ * 
+ * <dl>
+ *      <dt>type</dt>
+ *      <dd>
+ *          For historical reasons each validation error was associated with a
+ *          type identifier. It was used to map the validation error with the
+ *          exact class type for that kind of errors.
+ *          <p>
+ *          We do not used it anymore. But the JavaScript layer still returns it,
+ *          so to avoid any misunderstanding, we have leaved it here. It can be 
+ *          safely removed, ones the JavaScript has been refactored.
+ *      </dd>
+ *      <dt>params</dt>
+ *      <dd>
+ *          <code>params</code> is a map that contains the actual values of 
+ *          the validation error.
+ *          The following values are used be the web service:
+ *          <dl>
+ *              <dt>message</dt>
+ *              <dd>
+ *                  A string with a human description of what caused the error.
+ *              </dd>
+ *              <dt>url</dt>
+ *              <dd>
+ *                  A complete URL that points to the documentation of the 
+ *                  field/subfield in which the error occurred.
+ *              </dd>
+ *              <dt>fieldno</dt>
+ *              <dd>
+ *                  An 0-based integer to number of field in the record where 
+ *                  the error occurred. If the error can not be associated with 
+ *                  a field then set it to -1 or just exclude it from 
+ *                  <code>params</code>
+ *              </dd>
+ *              <dt>subfieldno</dt>
+ *              <dd>
+ *                  An 0-based integer to number the subfield in the field where 
+ *                  the error occurred. If the error can not be associated with 
+ *                  a subfield then set it to -1 or just exclude it from 
+ *                  <code>params</code>
+ *              </dd>
+ *          </dl>          
+ *      </dd>
+ * </dl>
+ * 
  * @author stp
  */
 public class ValidationError {
     //-------------------------------------------------------------------------
     //              Constructors
     //-------------------------------------------------------------------------
-    
-    //!\name Constructors
-    //@{
+   
+    /**
+     * Constructs an empty ValidationError
+     * <p>
+     * The properties are initialized with "empty" values.
+     */
     public ValidationError() {
         this.type = "";
         this.params = new HashMap<>();
     }
 
-    //@}
     //-------------------------------------------------------------------------
     //              Public
     //-------------------------------------------------------------------------
-    //!\name Properties
-    //@{
+
     public String getType() {
         return type;
     }
@@ -44,9 +96,6 @@ public class ValidationError {
         this.params = params;
     }    
 
-    //@}
-    //!\name Object
-    //@{
     @Override
     public int hashCode() {
         int hash = 7;
@@ -70,137 +119,20 @@ public class ValidationError {
         }
         return true;
     }    
-    //@}
     
-    /**
-     * @brief Convert of this validation error to one of the validation error 
-     *        types that is used in the response of the service.
-     * 
-     * @return 
-     *      A service validation error.
-     */
-    /*
-    public CDTOValidateErrorEntry convertToServiceError() {
-        switch( this.type ) {
-            case "CDTOValidationResponseSuccessEntryCollectionRecordUnstructuredValidationError": {
-                return convertToRecordError();
-            }            
-            case "CDTOValidationResponseSuccessEntryCollectionRecordFieldUnstructuredValidationError": {
-                return convertToFieldError();
-            }            
-            case "CDTOValidationResponseSuccessEntryCollectionRecordFieldSubFieldUnstructuredValidationError": {
-                return convertToSubfieldError();
-            }            
-        }
-        
-        return null;
-    }
-    */
-
-    /**
-     * @brief Convert of this validation error to the one that is used for 
-     *        general record errors in the response of the service.
-     * 
-     * @return 
-     *      An instance of CDTOValidateErrorEntryCollectionUnstructuredValidateError.
-     */
-    /*
-    public CDTOValidateErrorEntry convertToRecordError() {
-        CDTOValidateErrorEntryCollectionUnstructuredValidateError err;
-        err = new CDTOValidateErrorEntryCollectionUnstructuredValidateError();
-
-        if( this.params == null ) {
-            return err;
-        }
-        
-        if( this.params.containsKey( "message" ) ) {
-            err.setValidateError( params.get( "message" ).toString() );
-        }
-
-        if( this.params.containsKey( "url" ) ) {
-            err.setUrlForDocumentation( params.get( "url" ).toString() );
-        }
-        
-        return err;
-    }
-    */
-    
-    /**
-     * @brief Convert of this validation field error to the one that is used for 
-     *        general record errors in the response of the service.
-     * 
-     * @return 
-     *      An instance of CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError.
-     */
-    /*
-    public CDTOValidateErrorEntry convertToFieldError() {
-        CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError err;
-        err = new CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError();
-
-        if( this.params == null ) {
-            return err;
-        }
-        
-        if( this.params.containsKey( "message" ) ) {
-            err.setValidateError( params.get( "message" ).toString() );
-        }
-
-        if( this.params.containsKey( "url" ) ) {
-            err.setUrlForDocumentation( params.get( "url" ).toString() );
-        }
-        
-        if( this.params.containsKey( "fieldno" ) ) {
-            err.setOrdinalPositionOfField( Double.valueOf( params.get( "fieldno" ).toString() ).longValue() );
-        }
-
-        return err;
-    }
-    */
-
-    /**
-     * @brief Convert of this validation subfield error to the one that is used for 
-     *        general record errors in the response of the service.
-     * 
-     * @return 
-     *      An instance of CDTOValidationResponseSuccessEntryCollectionRecordFieldUnstructuredValidationError.
-     */
-    /*
-    public CDTOValidateErrorEntry convertToSubfieldError() {
-        CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError err;
-        err = new CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError();
-
-        if( this.params == null ) {
-            return err;
-        }
-        
-        if( this.params.containsKey( "message" ) ) {
-            err.setValidateError( params.get( "message" ).toString() );
-        }
-
-        if( this.params.containsKey( "url" ) ) {
-            err.setUrlForDocumentation( params.get( "url" ).toString() );
-        }
-        
-        if( this.params.containsKey( "fieldno" ) ) {
-            err.setOrdinalPositionOfField( Double.valueOf( params.get( "fieldno" ).toString() ).longValue() );
-        }
-
-        if( this.params.containsKey( "subfieldno" ) ) {
-            err.setOrdinalPositionOfSubField( Double.valueOf( params.get( "subfieldno" ).toString() ).longValue() );
-        }
-
-        return err;
-    }
-    */
-
     //-------------------------------------------------------------------------
     //              Private
     //-------------------------------------------------------------------------
 
+    /**
+     * Contains the type of this validation error.
+     * 
+     * For historical reasons, a type is a classification of an validation error.
+     */
     private String type;
     
     /**
-     * @brief Map of extra parameters to the validation type.
+     * Map of extra parameters to the validation type.
      */
     private HashMap<String, Object> params;
 }
