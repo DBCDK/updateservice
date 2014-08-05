@@ -64,7 +64,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      * This operation has 2 uses:
      * <ol>
      *  <li>Validation of the record only.</li>
-     *  <Validation and update of the record</li>
+     *  <li>Validation and update of the record</li>
      * </ol>
      * The actual operation is specified in the request by {@link Options}
      * 
