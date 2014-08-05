@@ -42,7 +42,7 @@ public class Validator {
         if ( jsProvider != null ) {
             try {
                 jsProvider.initialize( IOUtils.loadProperties( Validator.class.getClassLoader(),
-                        ";", "dk/dbc/validateservice/ws/settings.properties",
+                        ";", "dk/dbc/updateservice/ws/settings.properties",
                         "javascript/iscrum/settings.properties" ) );
             } catch ( IOException | IllegalArgumentException ex ) {
                 logger.catching( XLogger.Level.WARN, ex );

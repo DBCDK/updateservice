@@ -2,14 +2,10 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
-
-//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntry;
-//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldSubFieldUnstructuredValidateError;
-//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionRecordFieldUnstructuredValidateError;
-//import dk.dbc.oss.ns.opencataloging.datacontracts.CDTOValidateErrorEntryCollectionUnstructuredValidateError;
 import java.util.HashMap;
 import java.util.Objects;
 
+//-----------------------------------------------------------------------------
 /**
  *
  * @author stp

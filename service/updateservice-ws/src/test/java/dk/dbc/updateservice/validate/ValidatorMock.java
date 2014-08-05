@@ -26,7 +26,7 @@ public class ValidatorMock extends Validator {
     public static Validator newInstance( String scriptResource ) throws IOException {
         Validator service = new ValidatorMock();
         
-        Properties props = IOUtils.loadProperties( ";", "dk/dbc/validateservice/ws/settings.properties",
+        Properties props = IOUtils.loadProperties( ";", "dk/dbc/updateservice/ws/settings.properties",
                                                         "javascript/iscrum/settings.properties" );
         props.setProperty( "entryresource", scriptResource );
 
