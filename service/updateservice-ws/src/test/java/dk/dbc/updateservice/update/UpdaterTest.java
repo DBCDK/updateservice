@@ -47,7 +47,7 @@ public class UpdaterTest {
 
     @Test( expected = NullPointerException.class )
     public void testUpdateRecord_NullRecord() throws Exception {
-        Updater updater = new Updater( new RawRepoMock() );
+        Updater updater = new Updater( rawRepoDAO );
         updater.init();
         updater.updateRecord( null );
     }
