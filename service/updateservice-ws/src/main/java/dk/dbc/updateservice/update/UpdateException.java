@@ -29,4 +29,15 @@ public class UpdateException extends Exception {
     public UpdateException( String msg ) {
         super( msg );
     }
+
+    /**
+     * Constructs an instance of <code>UpdateException</code> with the specified
+     * detail message.
+     *
+     * @param msg the detail message.
+     * @param cause the exception that causes this exception.
+     */
+    public UpdateException( String msg, Throwable cause ) {
+        super( msg, cause );
+    }
 }
