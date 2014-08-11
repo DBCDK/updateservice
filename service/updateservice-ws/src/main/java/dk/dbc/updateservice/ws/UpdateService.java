@@ -142,7 +142,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             logger.error( "Got EJBException: {}", ex.getCause() );
             throw ex;
         }
-        catch( ClassNotFoundException | IllegalArgumentException | JAXBException | UnsupportedEncodingException | JavaScriptException | SQLException ex ) {
+        catch( IllegalArgumentException | JavaScriptException ex ) {
             logger.error( "Got exception: {}", ex );
             throw new EJBException( ex );
         }
