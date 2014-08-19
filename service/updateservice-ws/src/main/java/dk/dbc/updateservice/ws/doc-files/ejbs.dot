@@ -2,4 +2,5 @@ digraph EJBs {
     ws -> Validator
     ws -> Updater
     Validator -> "JS Engine"
+    Updater -> "JS Engine"
 }
