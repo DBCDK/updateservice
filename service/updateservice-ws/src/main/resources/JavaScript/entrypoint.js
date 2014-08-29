@@ -1,4 +1,6 @@
 //-----------------------------------------------------------------------------
+use( "ClassificationData" );
+use( "Marc" );
 use( "MarcFactory" );
 use( "TemplateContainer" );
 use( "Validator" );
@@ -54,6 +56,10 @@ function validateRecord( templateName, record ) {
 //                  Entry points for update EJB
 //-----------------------------------------------------------------------------
 
+function hasClassificationData( marc ) {
+    return UpdaterEntryPoint.hasClassificationData( marc );    
+}
+
 /**
  * Checks if the classifications has changed between two records.
  * 
@@ -63,7 +69,7 @@ function validateRecord( templateName, record ) {
  * @return {Boolean} true if the classifications has changed, false otherwise.
  */
 function hasClassificationsChanged( oldRecord, newRecord ) {
-    return false;
+    return UpdaterEntryPoint.hasClassificationsChanged( oldRecord, newRecord );
 }
 
 /**
@@ -75,7 +81,7 @@ function hasClassificationsChanged( oldRecord, newRecord ) {
  * @return {String} A json with the new record.
  */
 function createLibraryExtendedRecord( dbcRecord, libraryId ) {
-    
+    return UpdaterEntryPoint.createLibraryExtendedRecord( dbcRecord, libraryId );
 }
 
 /**
@@ -88,5 +94,5 @@ function createLibraryExtendedRecord( dbcRecord, libraryId ) {
  * @return {String} A json with the updated record.
  */
 function updateLibraryExtendedRecord( dbcRecord, libraryRecord ) {
-    
+    return UpdaterEntryPoint.updateLibraryExtendedRecord( dbcRecord, libraryRecord );
 }
