@@ -8,7 +8,6 @@ import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.Options;
@@ -350,8 +349,8 @@ public class UpdateRecordIT {
 
         Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
         Connection conn = DriverManager.getConnection(
-                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), System.getProperty( "rawrepo.db.name" ) ),
-                System.getProperty("user.name"), System.getProperty("user.name") );
+                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), settings.getProperty( "rawrepo.dbname" ) ),
+                settings.getProperty( "rawrepo.user.name" ), settings.getProperty( "rawrepo.user.passwd" ) );
         conn.setAutoCommit(true);
         
         return conn;

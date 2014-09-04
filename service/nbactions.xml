@@ -14,4 +14,11 @@
             <goal>javadoc:javadoc</goal>
         </goals>
     </action>
+    <action>
+            <actionName>CUSTOM-Generate Test JavaDoc</actionName>
+            <displayName>Generate Test JavaDoc</displayName>
+            <goals>
+                <goal>javadoc:test-javadoc</goal>
+            </goals>
+        </action>
 </actions>

@@ -30,7 +30,8 @@
 
         <!-- Databases port 131XX -->
         <derby.port>13127</derby.port>
-        <rawrepo.db.port>13132</rawrepo.db.port>
+        <rawrepo.db.port>5432</rawrepo.db.port>
+        <holdingitems.db.port>5432</holdingitems.db.port>
 
         <!-- IIOP/JMX/JMS port 1321X -->
         <iiop.orb.port>13211</iiop.orb.port>
@@ -45,6 +46,13 @@
     
         <rawrepo.db.name>rawrepo</rawrepo.db.name>
         <rawrepo.db.driver.version>9.3-1101-jdbc41</rawrepo.db.driver.version>
+        <rawrepo.user.name>postgres</rawrepo.user.name>
+        <rawrepo.user.passwd>Dra75geons</rawrepo.user.passwd>
+
+        <holdingitems.db.name>holdingitems</holdingitems.db.name>
+        <holdingitems.db.driver.version>${rawrepo.db.driver.version}</holdingitems.db.driver.version>
+        <holdingitems.user.name>${rawrepo.user.name}</holdingitems.user.name>
+        <holdingitems.user.passwd>${rawrepo.user.passwd}</holdingitems.user.passwd>
     </properties>
     
 </project>
