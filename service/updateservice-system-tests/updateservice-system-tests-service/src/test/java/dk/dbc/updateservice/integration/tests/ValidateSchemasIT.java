@@ -79,8 +79,8 @@ public class ValidateSchemasIT {
 
         Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
         Connection conn = DriverManager.getConnection(
-                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), System.getProperty( "rawrepo.db.name" ) ),
-                System.getProperty("user.name"), System.getProperty("user.name") );
+                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), settings.getProperty( "rawrepo.dbname" ) ),
+                settings.getProperty( "rawrepo.user.name" ), settings.getProperty( "rawrepo.user.passwd" ) );
         conn.setAutoCommit(true);
         
         return conn;

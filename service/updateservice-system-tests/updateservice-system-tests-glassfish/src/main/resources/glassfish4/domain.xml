@@ -60,10 +60,28 @@
             <property name="LoginTimeout" value="0"></property>
             <property name="UnknownLength" value="2147483647"></property>
             <property name="PrepareThreshold" value="5"></property>
-            <property name="User" value="${user.name}"></property>
-            <property name="Password" value="${user.name}"></property>
+            <property name="User" value="${rawrepo.user.name}"></property>
+            <property name="Password" value="${rawrepo.user.passwd}"></property>
         </jdbc-connection-pool>
         
+        <jdbc-resource pool-name="jdbc/updateservice/holdingitems/pool" jndi-name="jdbc/updateservice/holdingitems"></jdbc-resource>
+        <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" res-type="javax.sql.DataSource" name="jdbc/updateservice/holdingitems/pool">
+            <property name="driverClass" value="org.postgresql.Driver"></property>
+            <property name="DatabaseName" value="${holdingitems.db.name}"></property>
+            <property name="BinaryTransfer" value="true"></property>
+            <property name="Ssl" value="false"></property>
+            <property name="ServerName" value="localhost"></property>
+            <property name="ProtocolVersion" value="0"></property>
+            <property name="TcpKeepAlive" value="false"></property>
+            <property name="SocketTimeout" value="0"></property>
+            <property name="PortNumber" value="${holdingitems.db.port}"></property>
+            <property name="LoginTimeout" value="0"></property>
+            <property name="UnknownLength" value="2147483647"></property>
+            <property name="PrepareThreshold" value="5"></property>
+            <property name="User" value="${holdingitems.user.name}"></property>
+            <property name="Password" value="${holdingitems.user.passwd}"></property>
+        </jdbc-connection-pool>
+
         <connector-connection-pool max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" resource-adapter-name="jmsra" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
         <connector-resource pool-name="jms/__defaultConnectionFactory-Connection-Pool" jndi-name="jms/__defaultConnectionFactory" object-type="system-all-req"></connector-resource>
         <managed-scheduled-executor-service jndi-name="concurrent/__defaultManagedScheduledExecutorService" object-type="system-all"></managed-scheduled-executor-service>
@@ -77,6 +95,7 @@
             <resource-ref ref="jdbc/__TimerPool"></resource-ref>
             <resource-ref ref="jdbc/__default"></resource-ref>
             <resource-ref ref="jdbc/updateservice/raw-repo"></resource-ref>
+            <resource-ref ref="jdbc/updateservice/holdingitems"></resource-ref>
             <resource-ref ref="jms/__defaultConnectionFactory"></resource-ref>
             <resource-ref ref="concurrent/__defaultManagedScheduledExecutorService"></resource-ref>
             <resource-ref ref="concurrent/__defaultManagedExecutorService"></resource-ref>

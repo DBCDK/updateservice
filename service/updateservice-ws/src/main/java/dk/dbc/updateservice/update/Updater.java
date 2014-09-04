@@ -10,9 +10,13 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.iscrum.utils.IOUtils;
+import dk.dbc.iscrumjs.ejb.JSEngine;
+import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -23,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.sql.DataSource;
@@ -120,7 +125,16 @@ public class Updater {
         }
 
         if( recordsHandler == null ) {
-            this.recordsHandler = new LibraryRecordsHandler();
+            if ( jsProvider != null ) {
+                try {
+                    jsProvider.initialize( IOUtils.loadProperties( Updater.class.getClassLoader(),
+                            ";", "dk/dbc/updateservice/ws/settings.properties",
+                            "javascript/iscrum/settings.properties" ) );
+                } catch ( IOException | IllegalArgumentException ex ) {
+                    logger.catching( XLogger.Level.WARN, ex );
+                }
+            }
+            this.recordsHandler = new LibraryRecordsHandler( jsProvider );
         }
     }
 
@@ -155,7 +169,7 @@ public class Updater {
                 }
             }
         }
-        catch( SQLException | JAXBException | UnsupportedEncodingException ex ) {
+        catch( SQLException | JAXBException | UnsupportedEncodingException | JavaScriptException ex ) {
             logger.error( "Update error: " + ex.getMessage(), ex );
             throw new UpdateException( ex.getMessage(), ex );
         }
@@ -163,10 +177,22 @@ public class Updater {
         logger.exit();
     }
     
-    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException {
+    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+        logger.entry( record );
+        
         String recId = MarcReader.getRecordValue( record, "001", "a" );
         int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
         String parentId = MarcReader.getRecordValue( record, "014", "a" );
+        
+        logger.info(  "Record id: [{}:{}]", recId, libraryId );
+        logger.info(  "Parent Record id: {}", parentId );
+        
+        Set<Integer> localLibraries = rawRepoDAO.getRelationsLocalDataLibraries( recId );
+        if( !rawRepoDAO.recordExists( recId, libraryId ) && !localLibraries.isEmpty() ) {
+            logger.error( "Try to update common record [{}:{}], but local records exists: {}",
+                          recId, libraryId, recId, localLibraries );
+            throw new UpdateException( String.format( "It is not posible to update a common record when local records exists: {}", localLibraries ) );
+        }
         
         MarcRecord oldRecord = null;
         if( rawRepoDAO.recordExists( recId, libraryId ) ) {
@@ -181,20 +207,35 @@ public class Updater {
             oldRecord.setFields(  new ArrayList<MarcField>() );
         }
         
+        logger.info( "Current record in rawrepo:\n{}", oldRecord.toString() );
+        logger.info( "Saves record:\n{}", record.toString() );
         saveRecord( encodeRecord( record ), recId, libraryId, parentId );
         
-        if( recordsHandler.hasClassificationsChanged( oldRecord, record ) ) {
-            Set<Integer> holdingsLibraries = holdingItemsDAO.getAgenciesThatHasHoldingsFor( recId );
-            for( Integer id : holdingsLibraries ) {
-                if( rawRepoDAO.recordExists( recId, id ) ) {
-                    Record extRecord = rawRepoDAO.fetchRecord( recId, id );
-                    updateLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, decodeRecord( extRecord.getContent() ) );
-                }
-                else {
-                    createLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, id );
+        if( recordsHandler.hasClassificationData( oldRecord ) && recordsHandler.hasClassificationData( record ) ) {
+            if( recordsHandler.hasClassificationsChanged( oldRecord, record ) ) {
+                logger.info(  "Classifications was changed for record [{}:{}]", recId, libraryId );
+                Set<Integer> holdingsLibraries = holdingItemsDAO.getAgenciesThatHasHoldingsFor( recId );
+                for( Integer id : holdingsLibraries ) {
+                    logger.info(  "Local library for record: {}", id );
+                    if( rawRepoDAO.recordExists( recId, id ) ) {
+                        Record extRecord = rawRepoDAO.fetchRecord( recId, id );
+                        MarcRecord extRecordData = decodeRecord( extRecord.getContent() );
+                        if( !recordsHandler.hasClassificationData( extRecordData ) ) {
+                            updateLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, decodeRecord( extRecord.getContent() ) );
+                        }
+                        else {
+                            enqueueRecord( extRecord.getId() );                        
+                        }
+                    }
+                    else {
+                        createLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, id );
+                    }
                 }
             }
         }
+        enqueueExtendedRecords( new RecordId( recId, libraryId ) );
+        
+        logger.exit();
     }
     
     void updateLibraryLocalRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException {
@@ -205,24 +246,36 @@ public class Updater {
         saveRecord( encodeRecord( record ), recId, libraryId, parentId );        
     }
     
-    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException {
+    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+        logger.entry( commonRecord, oldCommonRecordData, libraryId );
         MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord( oldCommonRecordData, libraryId );
         
         String recId = MarcReader.getRecordValue( extRecord, "001", "a" );
+        logger.info( "Record id: [{}:{}]", recId, libraryId );
         
+        logger.info(  "Save new library extended record:\n{}", extRecord );
         saveRecord( encodeRecord( extRecord ), recId, libraryId, "" );
-        rawRepoDAO.enqueue( new RecordId( recId, libraryId ), PROVIDER, true, true );
+        enqueueRecord( new RecordId( recId, libraryId ) );
+        
+        logger.exit();
     }
 
-    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException {
+    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+        logger.entry( commonRecord, oldCommonRecordData, record );
         MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord( oldCommonRecordData, record );
         
         String recId = MarcReader.getRecordValue( record, "001", "a" );
         int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
         String parentId = MarcReader.getRecordValue( record, "014", "a" );
         
+        logger.info( "Record id: [{}:{}]", recId, libraryId );
+        logger.info( "Parent Record id: {}", parentId );
+        logger.info( "Original library extended record:\n{}", record );
+        logger.info( "Overwrite existing library extended record:\n{}", extRecord );
         saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
-        rawRepoDAO.enqueue( new RecordId( recId, libraryId ), PROVIDER, true, true );
+        enqueueRecord( new RecordId( recId, libraryId ) );
+
+        logger.exit();
     }
     
     MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
@@ -274,7 +327,7 @@ public class Updater {
         logger.exit( result );
         return result;
     }
-    
+       
     /**
      * Saves the record in a rawrepo.
      * 
@@ -331,6 +384,17 @@ public class Updater {
         rawRepoDAO.setRelationsFrom( id, references );
     }
     
+    private void enqueueRecord( RecordId id ) throws SQLException {
+        rawRepoDAO.enqueue( id, PROVIDER, true, true );
+    }
+    
+    private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException {
+        Set<Integer> extLibraries = rawRepoDAO.getRelationsLocalDataLibraries( commonRecId.getId() );
+        for( Integer libId : extLibraries ) {
+            enqueueRecord( new RecordId( commonRecId.getId(), libId ) );
+        }
+    }
+    
     //------------------------------------------------------------------------
     //              Testing
     //------------------------------------------------------------------------
@@ -364,7 +428,10 @@ public class Updater {
      * Name of the JDBC resource that points to the holdingitems database.
      */
     private static final String JNDI_JDBC_HOLDINGITEMS_NAME = "jdbc/updateservice/holdingitems";
-
+    
+    @EJB
+    private JSEngine jsProvider;
+    
     /**
      * Injected DataSource to access the rawrepo database.
      */

@@ -24,6 +24,12 @@
         <rawrepo.schema.remote>https://svn.dbc.dk/repos/rawrepo-commons/trunk/access/schema/rawrepo.sql</rawrepo.schema.remote>
         <rawrepo.schema.local.directory>${project.build.directory}</rawrepo.schema.local.directory>
         <rawrepo.schema.local.filename>${rawrepo.schema.local.directory}/rawrepo.sql</rawrepo.schema.local.filename>
+
+        <holdingitems.host>localhost</holdingitems.host>
+        <holdingitems.version>1.0-SNAPSHOT</holdingitems.version>
+        <holdingitems.schema.remote>https://svn.dbc.dk/repos/holdings-items-commons/trunk/access/schema/holdingsitems.sql</holdingitems.schema.remote>
+        <holdingitems.schema.local.directory>${project.build.directory}</holdingitems.schema.local.directory>
+        <holdingitems.schema.local.filename>${rawrepo.schema.local.directory}/holdingitems.sql</holdingitems.schema.local.filename>
     </properties>
 
     <repositories>
@@ -225,16 +231,28 @@
                             <outputDirectory>${rawrepo.schema.local.directory}</outputDirectory>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>get-holdingitems-schema</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>wget</goal>
+                        </goals>
+                        <configuration>
+                            <url>${holdingitems.schema.remote}</url>
+                            <outputDirectory>${holdingitems.schema.local.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
+            <!--
             <plugin>
               <groupId>dk.dbc</groupId>
               <artifactId>postgresql-maven-plugin</artifactId>
               <version>1.3-SNAPSHOT</version>
               <executions>
                 <execution>
-                  <id>start-postgresql</id>
+                  <id>start-rawrepo-postgresql</id>
                   <phase>pre-integration-test</phase>
                   <goals>
                     <goal>start</goal>
@@ -248,7 +266,7 @@
                   </configuration>
                 </execution>
                 <execution>
-                  <id>stop-postgresql</id>
+                  <id>stop-rawrepo-postgresql</id>
                   <phase>post-integration-test</phase>
                   <goals>
                     <goal>shutdown</goal>
@@ -256,7 +274,8 @@
                 </execution>
               </executions>
             </plugin>
-
+            -->
+            
             <plugin>
                 <groupId>org.jvnet.jax-ws-commons</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
