@@ -162,7 +162,7 @@ public class Updater {
             else {
                 if( rawRepoDAO.recordExists( recId, RawRepoDAO.COMMON_LIBRARY ) ) {
                     Record commonRecord = rawRepoDAO.fetchRecord( recId, RawRepoDAO.COMMON_LIBRARY );
-                    updateLibraryExtendedRecord( commonRecord, decodeRecord( commonRecord.getContent() ), record );
+                    saveLibraryExtendedRecord( commonRecord, record );
                 }
                 else {
                     updateLibraryLocalRecord( record );
@@ -188,6 +188,7 @@ public class Updater {
         logger.info(  "Parent Record id: {}", parentId );
         
         Set<Integer> localLibraries = rawRepoDAO.getRelationsLocalDataLibraries( recId );
+        logger.info(  "Local libraries: {}", localLibraries );
         if( !rawRepoDAO.recordExists( recId, libraryId ) && !localLibraries.isEmpty() ) {
             logger.error( "Try to update common record [{}:{}], but local records exists: {}",
                           recId, libraryId, recId, localLibraries );
@@ -213,7 +214,7 @@ public class Updater {
         
         if( recordsHandler.hasClassificationData( oldRecord ) && recordsHandler.hasClassificationData( record ) ) {
             if( recordsHandler.hasClassificationsChanged( oldRecord, record ) ) {
-                logger.info(  "Classifications was changed for record [{}:{}]", recId, libraryId );
+                logger.info(  "Classifications was changed for common record [{}:{}]", recId, libraryId );
                 Set<Integer> holdingsLibraries = holdingItemsDAO.getAgenciesThatHasHoldingsFor( recId );
                 for( Integer id : holdingsLibraries ) {
                     logger.info(  "Local library for record: {}", id );
@@ -221,13 +222,16 @@ public class Updater {
                         Record extRecord = rawRepoDAO.fetchRecord( recId, id );
                         MarcRecord extRecordData = decodeRecord( extRecord.getContent() );
                         if( !recordsHandler.hasClassificationData( extRecordData ) ) {
+                            logger.info( "Update classifications for extended library record: [{}:{}]", recId, id );
                             updateLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, decodeRecord( extRecord.getContent() ) );
                         }
                         else {
+                            logger.info( "Extended library record, [{}:{}], has its own classifications. Record not updated.", recId, id );
                             enqueueRecord( extRecord.getId() );                        
                         }
                     }
                     else {
+                        logger.info( "Create new extended library record: [{}:{}].", recId, id );
                         createLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, id );
                     }
                 }
@@ -273,6 +277,38 @@ public class Updater {
         logger.info( "Original library extended record:\n{}", record );
         logger.info( "Overwrite existing library extended record:\n{}", extRecord );
         saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
+        enqueueRecord( new RecordId( recId, libraryId ) );
+
+        logger.exit();
+    }
+
+    void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, JavaScriptException, SQLException, UpdateException, JAXBException {
+        logger.entry( commonRecord, record );
+        MarcRecord extRecord = record;
+        
+        if( commonRecord.hasContent() ) {
+            MarcRecord commonRecData = decodeRecord( commonRecord.getContent() );
+            extRecord = recordsHandler.correctLibraryExtendedRecord( commonRecData, record );
+        }
+        
+        String recId = MarcReader.getRecordValue( record, "001", "a" );
+        int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
+        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+
+        logger.info( "Record id: [{}:{}]", recId, libraryId );
+        logger.info( "Parent Record id: {}", parentId );
+        logger.info( "Original library extended record:\n{}", record );
+
+        if( extRecord.getFields().isEmpty() ) {
+            logger.info( "Overwrite existing library extended record: Empty!" );
+            if( rawRepoDAO.recordExists( recId, libraryId ) ) {
+                saveRecord( null, recId, libraryId, parentId );
+            }
+        }
+        else {
+            logger.info( "Overwrite existing library extended record:\n{}", extRecord );
+            saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
+        }
         enqueueRecord( new RecordId( recId, libraryId ) );
 
         logger.exit();
@@ -327,7 +363,7 @@ public class Updater {
         logger.exit( result );
         return result;
     }
-       
+          
     /**
      * Saves the record in a rawrepo.
      * 
@@ -343,6 +379,18 @@ public class Updater {
     private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException {
         logger.entry( content, recId, libraryId, parentId );
                 
+        if( content == null ) {
+            if( !rawRepoDAO.recordExists( recId, libraryId ) ) {
+                String err = String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recId, libraryId );
+                logger.warn( err );
+                throw new UpdateException( err );
+            }
+
+            logger.info( "Deleting record [{}:{}]", recId, libraryId );
+            rawRepoDAO.deleteRecord( new RecordId( recId, libraryId ) );
+            return;
+        }
+        
         if( !parentId.isEmpty() && !rawRepoDAO.recordExists( parentId, libraryId ) ) {
             String err = String.format( "Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId );
             logger.warn( err );
@@ -385,7 +433,11 @@ public class Updater {
     }
     
     private void enqueueRecord( RecordId id ) throws SQLException {
+        logger.entry( id );
+        
+        logger.info(  "Enqueue record: [{}:{}]", id.getId(), id.getLibrary() );
         rawRepoDAO.enqueue( id, PROVIDER, true, true );
+        logger.exit();
     }
     
     private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException {
@@ -417,7 +469,7 @@ public class Updater {
      * content. This constant defines the provider name for the update web 
      * service.
      */
-    static final String PROVIDER = "updateservice";
+    static final String PROVIDER = "opencataloging-update";
        
     /**
      * Name of the JDBC resource that points to the rawrepo database.

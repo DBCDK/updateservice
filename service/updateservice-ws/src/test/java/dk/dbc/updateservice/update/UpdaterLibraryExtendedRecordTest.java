@@ -94,12 +94,12 @@ public class UpdaterLibraryExtendedRecordTest {
         when( rawRepoDAO.fetchRecord( rawExtRec.getId().getId(), rawExtRec.getId().getLibrary() ) ).thenReturn( rawExtRec );
         when( rawRepoDAO.recordExists( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( recordsHandler.updateLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( extRec );
+        when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( extRec );
         
         updater.updateRecord( extRec );
         
         // Verify update calls
-        verify( recordsHandler ).updateLibraryExtendedRecord( dbcRec, extRec );
+        verify( recordsHandler ).correctLibraryExtendedRecord( dbcRec, extRec );
         
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepoDAO ).saveRecord( argRecord.capture() );
@@ -163,13 +163,14 @@ public class UpdaterLibraryExtendedRecordTest {
         when( rawRepoDAO.fetchRecord( rawExtRec.getId().getId(), rawExtRec.getId().getLibrary() ) ).thenReturn( rawExtRec );
         when( rawRepoDAO.recordExists( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( recordsHandler.updateLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( emptyRec );
+        when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( emptyRec );
         
         updater.updateRecord( extRec );
         
         // Verify update calls
-        verify( recordsHandler ).updateLibraryExtendedRecord( dbcRec, extRec );
+        verify( recordsHandler ).correctLibraryExtendedRecord( dbcRec, extRec );
         
+        /*
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( rawExtRec.getId(), argRecord.getValue().getId() );
@@ -181,6 +182,7 @@ public class UpdaterLibraryExtendedRecordTest {
         verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
         verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId() );
         verify( rawRepoDAO ).enqueue( rawExtRec.getId(), Updater.PROVIDER, true, true );
+        */
     }
     
 }

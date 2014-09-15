@@ -1,5 +1,6 @@
 //-----------------------------------------------------------------------------
 use( "ClassificationData" );
+use( "Log" );
 use( "Marc" );
 use( "MarcFactory" );
 
@@ -82,12 +83,42 @@ var UpdaterEntryPoint = function() {
 
         return MarcFactory.createJsonFromRecord( ClassificationData.updateClassificationsInRecord( dbcMarc, libraryMarc ) );
     }
+     
+    function correctLibraryExtendedRecord( dbcRecord, libraryRecord ) {
+        Log.info( "Enter - ClassificationData.__hasFieldChanged()" );
+        var dbcMarc = MarcFactory.createRecordFromJson( dbcRecord );
+        var libraryMarc = MarcFactory.createRecordFromJson( libraryRecord );
+
+        Log.info( "    dbcMarc: " + dbcMarc );
+        Log.info( "    libraryMarc: " + libraryMarc );
+
+        if( ClassificationData.hasClassificationData( dbcMarc ) ) {
+            if( !ClassificationData.hasClassificationsChanged( dbcMarc, libraryMarc ) ) {
+                Log.info( "Classifications is the same. Removing it from library record." );
+                libraryMarc = ClassificationData.removeClassificationsFromRecord( libraryMarc );
+            }
+            else {
+                Log.info( "Classifications has changed." );                
+            }
+        }
+        else {
+            Log.info( "Common record has no classifications." );            
+        }
+        
+        if( libraryMarc.size() === 1 && libraryMarc.field( 0 ).name === "001" ) {
+            libraryMarc = new Record;
+        }
+
+        Log.info( "Exit - ClassificationData.correctLibraryExtendedRecord(): " + libraryMarc );
+        return MarcFactory.createJsonFromRecord( libraryMarc );
+    }
     
     return {
         'hasClassificationData': hasClassificationData,
         'hasClassificationsChanged': hasClassificationsChanged,
         'createLibraryExtendedRecord': createLibraryExtendedRecord,
-        'updateLibraryExtendedRecord': updateLibraryExtendedRecord
+        'updateLibraryExtendedRecord': updateLibraryExtendedRecord,
+        'correctLibraryExtendedRecord': correctLibraryExtendedRecord
     };
 
 }();

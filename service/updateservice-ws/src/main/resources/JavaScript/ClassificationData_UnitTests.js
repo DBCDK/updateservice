@@ -484,6 +484,26 @@ UnitTest.addFixture( "ClassificationData.hasClassificationsChanged", function() 
     
 } );
 
+UnitTest.addFixture( "ClassificationData.removeClassificationsFromRecord", function() {
+    var record = {
+        fields: [
+            {
+                name: "001", indicator: "00",
+                subfields: [ { name: "a", value: "xxx" } ]
+            },
+            {
+                name: "245", indicator: "00",
+                subfields: [ { name: "f", value: "xy" },
+                             { name: "a", value: "Hansen" } ]
+            }            
+        ]
+    };
+    
+    var result = ClassificationData.removeClassificationsFromRecord( MarcFactory.createRecordFromJson( JSON.stringify( record ) ) );
+    
+    Assert.equalValue( "Remove fields", result.size(), 1 ); 
+} );
+
 UnitTest.addFixture( "ClassificationData.__stripValue", function() {
     Assert.equalValue( "", ClassificationData.__stripValue( "" ), "" ); 
     Assert.equalValue( "", ClassificationData.__stripValue( " " ), "" ); 

@@ -3,6 +3,7 @@ use( "ClassificationData" );
 use( "Marc" );
 use( "MarcFactory" );
 use( "TemplateContainer" );
+use( "UpdaterEntryPoint" );
 use( "Validator" );
 
 //-----------------------------------------------------------------------------
@@ -95,4 +96,8 @@ function createLibraryExtendedRecord( dbcRecord, libraryId ) {
  */
 function updateLibraryExtendedRecord( dbcRecord, libraryRecord ) {
     return UpdaterEntryPoint.updateLibraryExtendedRecord( dbcRecord, libraryRecord );
+}
+
+function correctLibraryExtendedRecord( dbcRecord, libraryRecord ) {
+    return UpdaterEntryPoint.correctLibraryExtendedRecord( dbcRecord, libraryRecord );    
 }
