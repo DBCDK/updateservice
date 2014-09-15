@@ -6,15 +6,15 @@ import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
-import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasRequest;
-import dk.dbc.oss.ns.catalogingupdate.GetValidateSchemasResult;
+import dk.dbc.oss.ns.catalogingupdate.GetSchemasRequest;
+import dk.dbc.oss.ns.catalogingupdate.GetSchemasResult;
 import dk.dbc.oss.ns.catalogingupdate.Options;
 import dk.dbc.oss.ns.catalogingupdate.Schema;
 import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import dk.dbc.oss.ns.catalogingupdate.ValidateSchemasStatusEnum;
+import dk.dbc.oss.ns.catalogingupdate.SchemasStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
@@ -85,8 +85,8 @@ public class UpdateService implements CatalogingUpdatePortType {
             UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
             UpdateResponseWriter writer = new UpdateResponseWriter();
             
-            if( !validator.checkValidateSchema( reader.readValidateSchema() ) ) {
-                logger.warn( "Unknown validate schema: {}", reader.readValidateSchema() );
+            if( !validator.checkValidateSchema( reader.readSchemaName() ) ) {
+                logger.warn( "Unknown validate schema: {}", reader.readSchemaName() );
                 writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
             }
             else if( !reader.isRecordSchemaValid() ) {
@@ -103,7 +103,7 @@ public class UpdateService implements CatalogingUpdatePortType {
                 String libId = MarcReader.getRecordValue( record, "001", "b" );
 
                 logger.info( "Validate record [{}|{}]", recId, libId );
-                List<ValidationError> valErrors = validator.validateRecord( reader.readValidateSchema(), record );
+                List<ValidationError> valErrors = validator.validateRecord( reader.readSchemaName(), record );
                 
                 writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
                 if( !valErrors.isEmpty() ) {
@@ -165,15 +165,15 @@ public class UpdateService implements CatalogingUpdatePortType {
      * @throws EJBException In case of an error.
      */
     @Override
-    public GetValidateSchemasResult getValidateSchemas( GetValidateSchemasRequest getValidateSchemasRequest ) {
+    public GetSchemasResult getSchemas( GetSchemasRequest getValidateSchemasRequest ) {
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId() );
             
             logger.entry( getValidateSchemasRequest );
             List<Schema> names = validator.getValidateSchemas();
             
-            GetValidateSchemasResult response = new GetValidateSchemasResult();
-            response.setValidateSchemasStatus( ValidateSchemasStatusEnum.OK );
+            GetSchemasResult response = new GetSchemasResult();
+            response.setSchemasStatus( SchemasStatusEnum.OK );
             response.getSchema().addAll( names );
                         
             logger.exit();

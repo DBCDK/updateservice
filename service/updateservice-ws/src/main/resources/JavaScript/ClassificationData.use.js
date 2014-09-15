@@ -141,6 +141,21 @@ var ClassificationData = function() {
         return record;
     }
     
+    function removeClassificationsFromRecord( record ) {
+        Log.info( "Enter - ClassificationData.updateClassificationsInRecord()" );
+        Log.info( "    record: " + record );
+        
+        var result = new Record;
+        record.eachField( /./, function( field ) {
+            if( !classificationFields.test( field.name ) ) {
+                result.append( field );
+            }
+        });
+        
+        Log.info( "Exit - ClassificationData.updateClassificationsInRecord(): " + result );
+        return result;
+    }
+    
     function __hasRecordChanged( oldRecord, newRecord, valueFunc ) {
         Log.info( "Enter - ClassificationData.__hasRecordChanged()" );
         Log.info( "    oldRecord: " + oldRecord );
@@ -308,6 +323,7 @@ var ClassificationData = function() {
         'hasClassificationData': hasClassificationData,
         'hasClassificationsChanged': hasClassificationsChanged,
         'updateClassificationsInRecord': updateClassificationsInRecord,
+        'removeClassificationsFromRecord': removeClassificationsFromRecord,
         '__stripValue': __stripValue
     };
     

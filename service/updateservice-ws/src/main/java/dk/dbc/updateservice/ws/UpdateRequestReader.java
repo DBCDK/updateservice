@@ -107,12 +107,12 @@ public class UpdateRequestReader {
      * @return The validation scheme if it can be read from the request, the 
      *         empty string otherwise.
      */
-    public String readValidateSchema() {
+    public String readSchemaName() {
         logger.entry();
         
         String result = "";
         if( request != null ) {
-            result = request.getValidateSchema();
+            result = request.getSchemaName();
         }
         else {
             logger.warn( "Unable to validate schema from request: {}", request.toString() );
