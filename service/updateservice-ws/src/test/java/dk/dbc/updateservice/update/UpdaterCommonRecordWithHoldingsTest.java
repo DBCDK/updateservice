@@ -135,7 +135,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
     
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
+        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
 
     /**
@@ -206,7 +206,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
+        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
 
     /**
@@ -279,7 +279,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
+        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
 
     /**
@@ -351,7 +351,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
     
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
+        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
     
     /**
@@ -435,7 +435,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         references.add( new RecordId( extRecord.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) );
         rawRepoOrder.verify( rawRepoDAO ).setRelationsFrom( extRecord.getId(), references );
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, extRecord.getId() );
-        rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
+        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
 
     /**
@@ -517,7 +517,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );
         verify( recordsHandler, never() ).updateLibraryExtendedRecord( oldCommonRecData, extRecData );
         
-        rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
+        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
     
     /**
@@ -600,7 +600,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );
         verify( recordsHandler ).updateLibraryExtendedRecord( oldCommonRecData, extRecData );
         
-        rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
+        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
 
 }

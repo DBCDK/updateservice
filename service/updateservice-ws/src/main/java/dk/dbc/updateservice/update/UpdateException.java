@@ -14,6 +14,11 @@ package dk.dbc.updateservice.update;
 public class UpdateException extends Exception {
 
     /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	/**
      * Creates a new instance of <code>UpdateException</code> without detail
      * message.
      */

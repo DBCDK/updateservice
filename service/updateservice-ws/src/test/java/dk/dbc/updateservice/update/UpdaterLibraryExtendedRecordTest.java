@@ -111,7 +111,7 @@ public class UpdaterLibraryExtendedRecordTest {
         references.add( new RecordId( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) );                
         verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
         verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId() );
-        verify( rawRepoDAO ).enqueue( rawExtRec.getId(), Updater.PROVIDER, true, true );
+        //verify( rawRepoDAO ).enqueue( rawExtRec.getId(), Updater.PROVIDER, true, true );
     }
 
     /**

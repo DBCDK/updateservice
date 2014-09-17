@@ -5,18 +5,22 @@ package dk.dbc.updateservice.integration.tests;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
-import dk.dbc.updateservice.integration.service.GetValidateSchemasRequest;
-import dk.dbc.updateservice.integration.service.GetValidateSchemasResult;
+import dk.dbc.updateservice.integration.service.GetSchemasRequest;
+import dk.dbc.updateservice.integration.service.GetSchemasResult;
 import dk.dbc.updateservice.integration.service.Schema;
-import dk.dbc.updateservice.integration.service.ValidateSchemasStatusEnum;
+import dk.dbc.updateservice.integration.service.SchemasStatusEnum;
+
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
+
 import org.junit.After;
 import org.junit.AfterClass;
+
 import static org.junit.Assert.*;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
@@ -57,20 +61,20 @@ public class ValidateSchemasIT {
     
     @Test
     public void testGetValidateSchemas() throws IOException {
-        GetValidateSchemasRequest request = new GetValidateSchemasRequest();
+        GetSchemasRequest request = new GetSchemasRequest();
         request.setAgencyId( "870970" );
         request.setTrackingId( "trackingId" );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
-        GetValidateSchemasResult response = caller.getValidateSchemas( request );
+        GetSchemasResult response = caller.getSchemas( request );
         
         assertNotNull( response );
         assertNotNull( response.getSchema() );
         
-        assertEquals( ValidateSchemasStatusEnum.OK, response.getValidateSchemasStatus() );
+        assertEquals( SchemasStatusEnum.OK, response.getSchemasStatus() );
         assertFalse( response.getSchema().isEmpty() );
         for( Schema schema : response.getSchema() ) {
-            assertFalse( schema.getValidateSchemaName().isEmpty() );
+            assertFalse( schema.getSchemaName().isEmpty() );
         }
     }
 

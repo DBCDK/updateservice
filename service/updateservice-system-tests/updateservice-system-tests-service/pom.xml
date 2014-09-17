@@ -229,7 +229,8 @@
                                 <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
                             </wsdlFiles>
                             <packageName>dk.dbc.updateservice.integration.service</packageName>
-                            <wsdlLocation>file:${project.build.directory}/../../../updateservice-ws/src/wsdl/catalogingUpdate.wsdl</wsdlLocation>
+                			<wsdlDirectory>${basedir}/../../updateservice-ws/src/wsdl</wsdlDirectory>
+                            <!--  <wsdlLocation>file:${project.build.directory}/../../../updateservice-ws/src/wsdl/catalogingUpdate.wsdl</wsdlLocation>  -->
                             <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-catalogingUpdate</id>

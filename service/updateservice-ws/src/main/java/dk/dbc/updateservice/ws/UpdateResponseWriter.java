@@ -8,7 +8,6 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
 import dk.dbc.oss.ns.catalogingupdate.ValidateInstance;
 import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import org.slf4j.ext.XLogger;

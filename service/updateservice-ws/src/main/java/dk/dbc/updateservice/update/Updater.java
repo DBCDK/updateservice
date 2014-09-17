@@ -14,8 +14,10 @@ import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.rawrepo.RawRepoDAO;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -35,6 +38,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -110,9 +114,9 @@ public class Updater {
             try {
                 rawRepoDAO = RawRepoDAO.newInstance( rawRepoDataSource.getConnection() );
             }
-            catch( ClassNotFoundException | SQLException ex ) {
+            catch( RawRepoException | SQLException ex ) {
                 logger.error( "Unable to initialize the rawRepo", ex );
-            }
+			}
         }
         
         if( holdingItemsDAO == null ) {
@@ -169,7 +173,7 @@ public class Updater {
                 }
             }
         }
-        catch( SQLException | JAXBException | UnsupportedEncodingException | JavaScriptException ex ) {
+        catch( RawRepoException | SQLException | JAXBException | UnsupportedEncodingException | JavaScriptException ex ) {
             logger.error( "Update error: " + ex.getMessage(), ex );
             throw new UpdateException( ex.getMessage(), ex );
         }
@@ -177,7 +181,7 @@ public class Updater {
         logger.exit();
     }
     
-    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         logger.entry( record );
         
         String recId = MarcReader.getRecordValue( record, "001", "a" );
@@ -187,8 +191,13 @@ public class Updater {
         logger.info(  "Record id: [{}:{}]", recId, libraryId );
         logger.info(  "Parent Record id: {}", parentId );
         
-        Set<Integer> localLibraries = rawRepoDAO.getRelationsLocalDataLibraries( recId );
+        // Fetch ids of local libraries for recId.
+        // Note: We remove RawRepoDAO.COMMON_LIBRARY from the set because the interface
+        // 		 returns *all* libraries and not only local libraries.
+        Set<Integer> localLibraries = rawRepoDAO.allLibrariesForId( recId );
+        localLibraries.remove( RawRepoDAO.COMMON_LIBRARY );
         logger.info(  "Local libraries: {}", localLibraries );
+        
         if( !rawRepoDAO.recordExists( recId, libraryId ) && !localLibraries.isEmpty() ) {
             logger.error( "Try to update common record [{}:{}], but local records exists: {}",
                           recId, libraryId, recId, localLibraries );
@@ -242,7 +251,7 @@ public class Updater {
         logger.exit();
     }
     
-    void updateLibraryLocalRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException {
+    void updateLibraryLocalRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, RawRepoException {
         String recId = MarcReader.getRecordValue( record, "001", "a" );
         int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
         String parentId = MarcReader.getRecordValue( record, "014", "a" );
@@ -250,7 +259,7 @@ public class Updater {
         saveRecord( encodeRecord( record ), recId, libraryId, parentId );        
     }
     
-    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         logger.entry( commonRecord, oldCommonRecordData, libraryId );
         MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord( oldCommonRecordData, libraryId );
         
@@ -264,7 +273,7 @@ public class Updater {
         logger.exit();
     }
 
-    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException {
+    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         logger.entry( commonRecord, oldCommonRecordData, record );
         MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord( oldCommonRecordData, record );
         
@@ -282,7 +291,7 @@ public class Updater {
         logger.exit();
     }
 
-    void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, JavaScriptException, SQLException, UpdateException, JAXBException {
+    void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, JavaScriptException, SQLException, UpdateException, JAXBException, RawRepoException {
         logger.entry( commonRecord, record );
         MarcRecord extRecord = record;
         
@@ -375,8 +384,9 @@ public class Updater {
      * 
      * @throws SQLException JDBC errors.
      * @throws UpdateException if a parent record does not exist.
+     * @throws RawRepoException 
      */
-    private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException {
+    private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException, RawRepoException {
         logger.entry( content, recId, libraryId, parentId );
                 
         if( content == null ) {
@@ -425,8 +435,9 @@ public class Updater {
      * @param refer_id The id of the record to link to.
      * 
      * @throws SQLException JDBC errors.
+     * @throws RawRepoException 
      */
-    private void linkToRecord( RecordId id, RecordId refer_id ) throws SQLException {
+    private void linkToRecord( RecordId id, RecordId refer_id ) throws SQLException, RawRepoException {
         final HashSet<RecordId> references = new HashSet<>();
         references.add( refer_id );
         rawRepoDAO.setRelationsFrom( id, references );
@@ -436,12 +447,12 @@ public class Updater {
         logger.entry( id );
         
         logger.info(  "Enqueue record: [{}:{}]", id.getId(), id.getLibrary() );
-        rawRepoDAO.enqueue( id, PROVIDER, true, true );
+        //rawRepoDAO.enqueue( id, PROVIDER, true, true );
         logger.exit();
     }
     
-    private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException {
-        Set<Integer> extLibraries = rawRepoDAO.getRelationsLocalDataLibraries( commonRecId.getId() );
+    private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException, RawRepoException {
+        Set<Integer> extLibraries = rawRepoDAO.allLibrariesForId( commonRecId.getId() );
         for( Integer libId : extLibraries ) {
             enqueueRecord( new RecordId( commonRecId.getId(), libId ) );
         }
