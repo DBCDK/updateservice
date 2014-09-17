@@ -29,7 +29,7 @@ if [ "$1" == "mac" ]; then
 elif [ "$1" == "linux" ]; then
 	mkdir -p $BASEDIR/home
 	cd $BASEDIR/home
-	tar -xfz ../postgresql-9.3.5-1-linux-x64-binaries.tar.gz
+	tar xfz ../postgresql-9.3.5-1-linux-x64-binaries.tar.gz
 	cd -
 else
 	die "Platform '$1' is not supported"
