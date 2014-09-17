@@ -7,9 +7,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>dk.dbc</groupId>
     <artifactId>updateservice-ws</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <packaging>ejb</packaging>
 
     <name>updateservice-ws</name>

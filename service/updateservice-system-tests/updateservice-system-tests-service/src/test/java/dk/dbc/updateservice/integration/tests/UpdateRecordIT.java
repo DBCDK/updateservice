@@ -77,11 +77,11 @@ public class UpdateRecordIT {
     }
 
     @Test( expected = javax.xml.ws.WebServiceException.class )
-    public void testRecordWithInvalidValidateSchema() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testRecordWithInvalidValidateSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( "Unknown-Schema" );
+        request.setSchemaName( "Unknown-Schema" );
         request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
@@ -100,11 +100,11 @@ public class UpdateRecordIT {
     }
     
     @Test
-    public void testRecordWithInvalidRecordSchema() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testRecordWithInvalidRecordSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
@@ -124,11 +124,11 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testRecordWithInvalidRecordPacking() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testRecordWithInvalidRecordPacking() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
@@ -148,11 +148,11 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testValidateRecordWithFailure() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testValidateRecordWithFailure() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
         request.setOptions( options );
@@ -174,11 +174,11 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testValidateRecordWithSuccess() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testValidateRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
         request.setOptions( options );
@@ -206,11 +206,11 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testUpdateSingleRecordWithSuccess() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testUpdateSingleRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
@@ -244,11 +244,11 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testUpdateVolumeRecordWithUnknownParent() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testUpdateVolumeRecordWithUnknownParent() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_VOLUME_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_VOLUME_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/volume_record.xml" ) );
@@ -277,12 +277,12 @@ public class UpdateRecordIT {
     }
     
     @Test
-    public void testUpdateLibraryExtendedRecord() throws ParserConfigurationException, SAXException, IOException, ClassNotFoundException, SQLException {
+    public void testUpdateLibraryExtendedRecord() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         // Update common record
         request.setAgencyId( "870970" );        
-        request.setValidateSchema( BOOK_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "testUpdateAssociatedRecord_CommonRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
@@ -309,7 +309,7 @@ public class UpdateRecordIT {
         // Update associated record
         request = new UpdateRecordRequest();
         request.setAgencyId( "700100" );        
-        request.setValidateSchema( BOOK_ASSOCIATED_TEMPLATE_NAME );
+        request.setSchemaName( BOOK_ASSOCIATED_TEMPLATE_NAME );
         request.setOptions( new Options() );
         request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/associated_record.xml" ) );
@@ -333,11 +333,11 @@ public class UpdateRecordIT {
             
             assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
             assertTrue( rawRepo.recordExists( "20611529", 700100 ) );
-            //assertFalse( rawRepo.getRelationsFrom( new RecordId( "20611529", 700100 ) ).isEmpty() );
 
-            //RecordId rawMainRecord = new RecordId( "20611529", 870970 );
-            Set<Integer> localLibrariesSet = rawRepo.getRelationsLocalDataLibraries( "20611529" );
-            assertEquals( 1, localLibrariesSet.size() );
+            Set<Integer> localLibrariesSet = rawRepo.allLibrariesForId( "20611529" );
+            assertEquals( 2, localLibrariesSet.size() );
+            assertTrue( localLibrariesSet.contains( 700100 ) );
+            assertTrue( localLibrariesSet.contains( 870970 ) );
             
             Iterator<Integer> iterator = localLibrariesSet.iterator();
             assertEquals( 700100, iterator.next().longValue() );

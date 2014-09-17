@@ -6,12 +6,14 @@ package dk.dbc.updateservice.integration;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.integration.service.CatalogingUpdatePortType;
 import dk.dbc.updateservice.integration.service.CatalogingUpdateServices;
-import dk.dbc.updateservice.integration.service.GetValidateSchemasRequest;
-import dk.dbc.updateservice.integration.service.GetValidateSchemasResult;
+import dk.dbc.updateservice.integration.service.GetSchemasRequest;
+import dk.dbc.updateservice.integration.service.GetSchemasResult;
 import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
 import dk.dbc.updateservice.integration.service.UpdateRecordResult;
+
 import java.io.IOException;
 import java.util.Properties;
+
 import javax.xml.ws.BindingProvider;
 
 /**
@@ -22,7 +24,6 @@ public class UpdateServiceCaller {
     public UpdateServiceCaller() throws IOException {
         Properties settings = IOUtils.loadProperties( getClass().getClassLoader(), "settings.properties" );
         
-        //this.endpoint = String.format( "http://localhost:%s/CatalogingUpdateServices/UpdateService", System.getProperty( "container.http.port" ) );
         this.endpoint = String.format( "http://%s:%s/%s", settings.getProperty( "service.host" ), settings.getProperty( "service.port" ), settings.getProperty( "service.endpoint.path" ) );
         this.services = new CatalogingUpdateServices();
         this.callerProxy = getAndConfigureUpdateProxy();
@@ -32,8 +33,8 @@ public class UpdateServiceCaller {
         return this.callerProxy.updateRecord( updateRecordRequest );
     }
     
-    public GetValidateSchemasResult getValidateSchemas( GetValidateSchemasRequest request ) {
-        return this.callerProxy.getValidateSchemas( request );
+    public GetSchemasResult getSchemas( GetSchemasRequest request ) {
+        return this.callerProxy.getSchemas( request );
     }
 
     private CatalogingUpdatePortType getAndConfigureUpdateProxy() {
