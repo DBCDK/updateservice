@@ -212,7 +212,7 @@ public class UpdateRecordIT {
         request.setAgencyId( "870970" );        
         request.setSchemaName( BOOK_TEMPLATE_NAME );
         request.setOptions( new Options() );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testUpdateSingleRecordWithSuccess" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -250,7 +250,7 @@ public class UpdateRecordIT {
         request.setAgencyId( "870970" );        
         request.setSchemaName( BOOK_VOLUME_TEMPLATE_NAME );
         request.setOptions( new Options() );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testUpdateVolumeRecordWithUnknownParent" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/volume_record.xml" ) );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
