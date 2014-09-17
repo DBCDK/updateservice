@@ -27,7 +27,10 @@ rm -rf $BASEDIR/home
 if [ "$1" == "mac" ]; then
 	unzip $BASEDIR/postgresql-9.3.5-1-osx-binaries.zip -d $BASEDIR/home
 elif [ "$1" == "linux" ]; then
-	die "Platform '$1' is not implementated yet!"
+	mkdir -p $BASEDIR/home
+	cd $BASEDIR/home
+	tar -xfz ../postgresql-9.3.5-1-linux-x64-binaries.tar.gz
+	cd -
 else
 	die "Platform '$1' is not supported"
 fi
