@@ -323,7 +323,7 @@ public class Updater {
         logger.exit();
     }
     
-    MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
+    public MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
         String recData = new String( bytes, "UTF-8" );
 
         MarcFactory factory = new MarcFactory();
@@ -485,7 +485,7 @@ public class Updater {
     /**
      * Name of the JDBC resource that points to the rawrepo database.
      */
-    private static final String JNDI_JDBC_RAW_REPO_NAME = "jdbc/updateservice/raw-repo";
+    public static final String JNDI_JDBC_RAW_REPO_NAME = "jdbc/updateservice/raw-repo";
 
     /**
      * Name of the JDBC resource that points to the holdingitems database.
