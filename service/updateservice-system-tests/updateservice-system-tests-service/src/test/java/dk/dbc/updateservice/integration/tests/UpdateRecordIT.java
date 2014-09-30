@@ -206,6 +206,47 @@ public class UpdateRecordIT {
     }
 
     @Test
+    public void testValidateRecordWithUpdatedRecordType() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        
+        request.setAgencyId( "870970" );        
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
+        request.setOptions( new Options() );
+        request.setTrackingId( "testValidateRecordWithUpdatedRecordType_singleRecord" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_single_record.xml" ) );
+        
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+        
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
+            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+
+        request = new UpdateRecordRequest();
+        
+        request.setAgencyId( "870970" );        
+        request.setSchemaName( BOOK_MAIN_TEMPLATE_NAME );
+        Options options = new Options();
+        options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
+        request.setOptions( options );
+        request.setTrackingId( "testValidateRecordWithUpdatedRecordType_mainRecord" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_main_record.xml" ) );
+        
+        caller = new UpdateServiceCaller();
+        response = caller.updateRecord( request );
+        
+        assertNotNull( response );
+        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
+        assertNotSame( 0, response.getValidateInstance().getValidateEntry().size() );
+    }
+    
+    @Test
     public void testUpdateSingleRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         

@@ -8,7 +8,6 @@ import java.sql.SQLException;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.naming.OperationNotSupportedException;
 import javax.sql.DataSource;
 
 import org.slf4j.ext.XLogger;
@@ -42,11 +41,12 @@ public class UpdaterRawRepo {
 	 * @throws UpdaterRawRepoException In case of errors.
 	 */
 	public static MarcRecord fetchRecord( String recordId, int libraryNo ) throws UpdaterRawRepoException {
-		try {
-			Connection con = getConnection();			
+		logger.entry( recordId, libraryNo );
+		
+		MarcRecord result = null;
+		try( Connection con = getConnection() ) {			
 			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance( con );
 
-			MarcRecord result = null;
 			Record record = rawRepoDAO.fetchRecord( recordId, libraryNo );
 			if( !record.hasContent() ) {
 				result = new MarcRecord();
@@ -55,7 +55,6 @@ public class UpdaterRawRepo {
 				result = new Updater().decodeRecord( record.getContent() );
 			}
 			
-			con.close();			
 			return result;
 		}
 		catch( NamingException ex ) {
@@ -78,6 +77,9 @@ public class UpdaterRawRepo {
 			logger.error( msg, ex );
 			throw new UpdaterRawRepoException( msg, ex );
 		}
+		finally {
+			logger.exit( result );
+		}
 	}
 
 	/**
@@ -92,12 +94,13 @@ public class UpdaterRawRepo {
 	 * @throws UpdaterRawRepoException If an error occurred.
 	 */
 	public static boolean recordExists( String recordId, int libraryNo ) throws UpdaterRawRepoException {
-		try {
-			Connection con = getConnection();			
+		logger.entry( recordId, libraryNo );
+		boolean result = false;
+		
+		try( Connection con = getConnection() ) {			
 			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance( con );
 			
-			boolean result = rawRepoDAO.recordExists( recordId, libraryNo );			
-			con.close();
+			result = rawRepoDAO.recordExists( recordId, libraryNo );			
 			
 			return result;
 		}
@@ -115,6 +118,9 @@ public class UpdaterRawRepo {
 			String msg = String.format( "Rawrepo error: %s", ex.getMessage() ); 
 			logger.error( msg, ex );
 			throw new UpdaterRawRepoException( msg, ex );
+		}
+		finally {
+			logger.exit( result );
 		}
 	}
 
