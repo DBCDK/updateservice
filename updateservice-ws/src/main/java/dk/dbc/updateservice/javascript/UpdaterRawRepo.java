@@ -48,7 +48,7 @@ public class UpdaterRawRepo {
 			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance( con );
 
 			Record record = rawRepoDAO.fetchRecord( recordId, libraryNo );
-			if( !record.hasContent() ) {
+			if( record.getContent() == null ) {
 				result = new MarcRecord();
 			}
 			else {

@@ -10,12 +10,7 @@ import dk.dbc.rawrepo.RecordId;
 import java.util.HashSet;
 import java.util.Set;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Before;
@@ -26,9 +21,6 @@ import static org.mockito.Matchers.any;
 import org.mockito.Mock;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
@@ -103,19 +95,19 @@ public class UpdaterCommonRecordWithHoldingsTest {
         Record commonRec = RecordUtils.createRawRecord( "20611529", 870970 );
         MarcRecord oldCommonRecData = RecordUtils.createMarcRecord();
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
-        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getId(), 700100 );
+        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getBibliographicRecordId(), 700100 );
         
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( false );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( false );
-        when( recordsHandler.createLibraryExtendedRecord( oldCommonRecData, extRecord.getId().getLibrary() ) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( false );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( recordsHandler.createLibraryExtendedRecord( oldCommonRecData, extRecord.getId().getAgencyId() ) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -125,7 +117,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -175,19 +167,19 @@ public class UpdaterCommonRecordWithHoldingsTest {
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
         
         Record commonRec = RecordUtils.createRawRecord( oldCommonRecData );
-        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getId(), 700100 );
+        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getBibliographicRecordId(), 700100 );
         
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( false );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( false );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -197,7 +189,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -206,7 +198,6 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
 
     /**
@@ -252,15 +243,15 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( extRecData ) ).thenReturn( false );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -270,7 +261,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -279,7 +270,6 @@ public class UpdaterCommonRecordWithHoldingsTest {
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
 
     /**
@@ -324,14 +314,14 @@ public class UpdaterCommonRecordWithHoldingsTest {
         
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( false );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -341,7 +331,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -351,7 +341,6 @@ public class UpdaterCommonRecordWithHoldingsTest {
     
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
         rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
     }
     
     /**
@@ -398,20 +387,20 @@ public class UpdaterCommonRecordWithHoldingsTest {
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
         
         Record commonRec = RecordUtils.createRawRecord( oldCommonRecData );
-        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getId(), 700100 );
+        Record extRecord = RecordUtils.createRawRecord( commonRec.getId().getBibliographicRecordId(), 700100 );
         
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( false );
-        when( recordsHandler.createLibraryExtendedRecord( oldCommonRecData, extRecord.getId().getLibrary() ) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( false );
+        when( recordsHandler.createLibraryExtendedRecord( oldCommonRecData, extRecord.getId().getAgencyId() ) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -421,7 +410,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -429,13 +418,12 @@ public class UpdaterCommonRecordWithHoldingsTest {
         // Verify calls to create extended record
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( extRecord.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
     
         final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( extRecord.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) );
+        references.add( new RecordId( extRecord.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) );
         rawRepoOrder.verify( rawRepoDAO ).setRelationsFrom( extRecord.getId(), references );
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, extRecord.getId() );
-        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
 
     /**
@@ -490,15 +478,15 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( extRecData ) ).thenReturn( true );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -508,7 +496,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -516,8 +504,6 @@ public class UpdaterCommonRecordWithHoldingsTest {
         // Verify calls to create extended record
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );
         verify( recordsHandler, never() ).updateLibraryExtendedRecord( oldCommonRecData, extRecData );
-        
-        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
     
     /**
@@ -572,16 +558,16 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( commonRec );
-        when( rawRepoDAO.fetchRecord( extRecord.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( extRecord );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), commonRec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.recordExists( commonRec.getId().getId(), extRecord.getId().getLibrary() ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
+        when( rawRepoDAO.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( extRecData ) ).thenReturn( false );
         when( recordsHandler.updateLibraryExtendedRecord( oldCommonRecData, extRecData ) ).thenReturn( extRecData );
         
         Set<Integer> holdingsItems = new HashSet<>();
-        holdingsItems.add( extRecord.getId().getLibrary() );        
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getId() ) ).thenReturn( holdingsItems );
+        holdingsItems.add( extRecord.getId().getAgencyId() );        
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( holdingsItems );
         
         updater.updateRecord( recData );
         
@@ -591,7 +577,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
@@ -599,8 +585,6 @@ public class UpdaterCommonRecordWithHoldingsTest {
         // Verify calls to create extended record
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );
         verify( recordsHandler ).updateLibraryExtendedRecord( oldCommonRecData, extRecData );
-        
-        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRecord.getId(), Updater.PROVIDER, true, true );
     }
 
 }

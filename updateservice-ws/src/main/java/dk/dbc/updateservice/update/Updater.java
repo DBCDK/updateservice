@@ -194,7 +194,7 @@ public class Updater {
         // Fetch ids of local libraries for recId.
         // Note: We remove RawRepoDAO.COMMON_LIBRARY from the set because the interface
         // 		 returns *all* libraries and not only local libraries.
-        Set<Integer> localLibraries = rawRepoDAO.allLibrariesForId( recId );
+        Set<Integer> localLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId( recId );
         localLibraries.remove( RawRepoDAO.COMMON_LIBRARY );
         logger.info(  "Local libraries: {}", localLibraries );
         
@@ -207,7 +207,7 @@ public class Updater {
         MarcRecord oldRecord = null;
         if( rawRepoDAO.recordExists( recId, libraryId ) ) {
             Record rawRecord = rawRepoDAO.fetchRecord( recId, libraryId );
-            if( rawRecord.hasContent() ) {
+            if( rawRecord.getContent() != null ) {
                 oldRecord = decodeRecord( rawRecord.getContent() );
             }
         }
@@ -295,7 +295,7 @@ public class Updater {
         logger.entry( commonRecord, record );
         MarcRecord extRecord = record;
         
-        if( commonRecord.hasContent() ) {
+        if( commonRecord.getContent() != null ) {
             MarcRecord commonRecData = decodeRecord( commonRecord.getContent() );
             extRecord = recordsHandler.correctLibraryExtendedRecord( commonRecData, record );
         }
@@ -446,15 +446,15 @@ public class Updater {
     private void enqueueRecord( RecordId id ) throws SQLException {
         logger.entry( id );
         
-        logger.info(  "Enqueue record: [{}:{}]", id.getId(), id.getLibrary() );
+        logger.info(  "Enqueue record: [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId() );
         //rawRepoDAO.enqueue( id, PROVIDER, true, true );
         logger.exit();
     }
     
     private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException, RawRepoException {
-        Set<Integer> extLibraries = rawRepoDAO.allLibrariesForId( commonRecId.getId() );
+        Set<Integer> extLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId( commonRecId.getBibliographicRecordId() );
         for( Integer libId : extLibraries ) {
-            enqueueRecord( new RecordId( commonRecId.getId(), libId ) );
+            enqueueRecord( new RecordId( commonRecId.getBibliographicRecordId(), libId ) );
         }
     }
     

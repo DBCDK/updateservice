@@ -6,6 +6,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class UpdaterLibraryLocalRecordTest {
         
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v1.xml" );
-        when( rawRepoDAO.fetchRecord( rec.getId().getId(), rec.getId().getLibrary() ) ).thenReturn( rec );
+        when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         
         updater.updateRecord( recData );
         
@@ -81,7 +82,7 @@ public class UpdaterLibraryLocalRecordTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( rec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
         
         verify( rawRepoDAO, never() ).setRelationsFrom( null, null );        
@@ -116,8 +117,8 @@ public class UpdaterLibraryLocalRecordTest {
         updater.init();
         
         Record rec = RecordUtils.createRawRecord( "localrec_single_v1.xml" );
-        when( rawRepoDAO.recordExists( rec.getId().getId(), rec.getId().getLibrary() ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( rec.getId().getId(), rec.getId().getLibrary() ) ).thenReturn( rec );
+        when( rawRepoDAO.recordExists( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v2.xml" );
         updater.updateRecord( recData );
@@ -126,7 +127,7 @@ public class UpdaterLibraryLocalRecordTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( rec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
         verify( rawRepoDAO, never() ).setRelationsFrom( null, null );        

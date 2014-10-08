@@ -375,7 +375,7 @@ public class UpdateRecordIT {
             assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
             assertTrue( rawRepo.recordExists( "20611529", 700100 ) );
 
-            Set<Integer> localLibrariesSet = rawRepo.allLibrariesForId( "20611529" );
+            Set<Integer> localLibrariesSet = rawRepo.allAgenciesForBibliographicRecordId( "20611529" );
             assertEquals( 2, localLibrariesSet.size() );
             assertTrue( localLibrariesSet.contains( 700100 ) );
             assertTrue( localLibrariesSet.contains( 870970 ) );
