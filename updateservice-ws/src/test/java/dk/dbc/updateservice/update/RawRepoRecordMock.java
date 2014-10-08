@@ -4,6 +4,7 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+
 import java.util.Date;
 import java.util.Set;
 
@@ -20,9 +21,13 @@ public class RawRepoRecordMock implements Record {
     public RawRepoRecordMock() {
         this.id = null;
         this.content = null;
+        this.mimeType = null;
         this.created = null;
         this.modified = null;
-        this.original = false;        
+        this.original = false;
+        this.deleted = false;
+        this.enriched = false;
+        this.references = null;
     }
 
     public RawRepoRecordMock( String id, int library ) {
@@ -41,11 +46,6 @@ public class RawRepoRecordMock implements Record {
     public void setId( RecordId id ) {
         this.id = id;
     }
-
-    @Override
-    public boolean hasContent() {
-        return getContent() != null;
-    }
      
     @Override
     public byte[] getContent() {
@@ -57,7 +57,15 @@ public class RawRepoRecordMock implements Record {
         this.content = content;
     }
 
-    @Override
+    public String getMimeType() {
+		return mimeType;
+	}
+
+	public void setMimeType(String mimeType) {
+		this.mimeType = mimeType;
+	}
+
+	@Override
     public Date getCreated() {
         return created;
     }
@@ -86,6 +94,22 @@ public class RawRepoRecordMock implements Record {
         this.original = original;
     }
 
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+
+	public boolean isEnriched() {
+		return enriched;
+	}
+
+	public void setEnriched(boolean enriched) {
+		this.enriched = enriched;
+	}
+    
     public Set<RecordId> getReferences() {
         return references;
     }
@@ -100,8 +124,11 @@ public class RawRepoRecordMock implements Record {
     
     private RecordId id;
     private byte[] content;
+    private String mimeType;
     private Date created;
     private Date modified;
     private boolean original;
-    private Set<RecordId> references; 
+    private boolean deleted;
+    private boolean enriched;
+    private Set<RecordId> references;
 }

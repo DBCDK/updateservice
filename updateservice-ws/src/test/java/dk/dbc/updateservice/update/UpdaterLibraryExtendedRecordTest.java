@@ -9,6 +9,7 @@ import dk.dbc.rawrepo.RecordId;
 import java.util.HashSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -90,9 +91,9 @@ public class UpdaterLibraryExtendedRecordTest {
         
         Record rawDbcRec = RecordUtils.createRawRecord( dbcRec );
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
-        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getId(), rawDbcRec.getId().getLibrary() ) ).thenReturn( rawDbcRec );
-        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getId(), rawExtRec.getId().getLibrary() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
+        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
+        when( rawRepoDAO.recordExists( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( extRec );
         
@@ -104,14 +105,13 @@ public class UpdaterLibraryExtendedRecordTest {
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepoDAO ).saveRecord( argRecord.capture() );
         assertEquals( rawExtRec.getId(), argRecord.getValue().getId() );
-        assertTrue( argRecord.getValue().hasContent() );
+        assertNotNull( argRecord.getValue().getContent() );
         assertEquals( extRec, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
         final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) );                
+        references.add( new RecordId( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) );                
         verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
         verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId() );
-        //verify( rawRepoDAO ).enqueue( rawExtRec.getId(), Updater.PROVIDER, true, true );
     }
 
     /**
@@ -159,9 +159,9 @@ public class UpdaterLibraryExtendedRecordTest {
         
         Record rawDbcRec = RecordUtils.createRawRecord( dbcRec );
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
-        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getId(), rawDbcRec.getId().getLibrary() ) ).thenReturn( rawDbcRec );
-        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getId(), rawExtRec.getId().getLibrary() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
+        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
+        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
+        when( rawRepoDAO.recordExists( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( emptyRec );
         
@@ -169,20 +169,6 @@ public class UpdaterLibraryExtendedRecordTest {
         
         // Verify update calls
         verify( recordsHandler ).correctLibraryExtendedRecord( dbcRec, extRec );
-        
-        /*
-        ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
-        verify( rawRepoDAO ).saveRecord( argRecord.capture() );
-        assertEquals( rawExtRec.getId(), argRecord.getValue().getId() );
-        assertFalse( argRecord.getValue().hasContent() );
-        assertNull( argRecord.getValue().getContent() );
-
-        final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( rawExtRec.getId().getId(), RawRepoDAO.COMMON_LIBRARY ) );                
-        verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId() );
-        verify( rawRepoDAO ).enqueue( rawExtRec.getId(), Updater.PROVIDER, true, true );
-        */
     }
     
 }
