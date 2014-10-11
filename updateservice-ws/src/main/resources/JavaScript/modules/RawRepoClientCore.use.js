@@ -9,20 +9,19 @@
 
 //-----------------------------------------------------------------------------
 use( "Log" );
-use( "MarcFactory" );
 
 //-----------------------------------------------------------------------------
-EXPORTED_SYMBOLS = [ 'RawRepoCore' ];
+EXPORTED_SYMBOLS = [ 'RawRepoClientCore' ];
 
 //-----------------------------------------------------------------------------
-var RawRepoCore = function() {
+var RawRepoClientCore = function() {
     function recordExists( recordId, libraryNo ) {
-    	Log.trace( "Enter RawRepoCore.recordExists()" );
+    	Log.trace( "Enter RawRepoClientCore.recordExists()" );
     
     	try {
 	    	var result = new Packages.dk.dbc.updateservice.javascript.UpdaterRawRepo.recordExists( recordId, libraryNo );
 	    	
-	    	Log.trace( "Exit RawRepoCore.recordExists(): " + result );
+	    	Log.trace( "Exit RawRepoClientCore.recordExists(): " + result );
 	        return result;
     	}
     	catch( ex ) {
@@ -32,7 +31,7 @@ var RawRepoCore = function() {
     }
 
     function fetchRecord( recordId, libraryNo ) {
-    	Log.trace( "Enter RawRepoCore.fetchRecord()" );
+    	Log.trace( "Enter RawRepoClientCore.fetchRecord()" );
     
     	try {
     		var record = new Packages.dk.dbc.updateservice.javascript.UpdaterRawRepo.fetchRecord( recordId, libraryNo ); 
@@ -48,7 +47,7 @@ var RawRepoCore = function() {
 	    		result.append( field );
 	    	}
 	    	
-	    	Log.trace( "Exit RawRepoCore.fetchRecord(): " + result );
+	    	Log.trace( "Exit RawRepoClientCore.fetchRecord(): " + result );
 	        return result;
     	}
     	catch( ex ) {

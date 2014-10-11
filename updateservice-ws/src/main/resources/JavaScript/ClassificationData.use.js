@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
+use( "DanMarc2Converter" );
 use( "Marc" );
 use( "MarcClasses" );
-use( "MarcFactory" );
 use( "Log" );
 
 //-----------------------------------------------------------------------------
@@ -40,8 +40,8 @@ var ClassificationData = function() {
         };
         
         var selectFields = /038|039/;
-        if( __hasRecordChanged( MarcFactory.createSubRecord( oldMarc, selectFields ), 
-                                MarcFactory.createSubRecord( newMarc, selectFields ), __value ) ) {
+        if( __hasRecordChanged( __createSubRecord( oldMarc, selectFields ), 
+                                __createSubRecord( newMarc, selectFields ), __value ) ) {
             Log.info( "Exit - ClassificationData.hasClassificationsChanged(): true" );
             return true;
         }
@@ -153,6 +153,29 @@ var ClassificationData = function() {
         });
         
         Log.info( "Exit - ClassificationData.updateClassificationsInRecord(): " + result );
+        return result;
+    }
+    
+    /**
+     * Creates a Record from an existing record with all fields matching a 
+     * fieldmatcher.
+     * 
+     * @param {Record}        record       Input record.
+     * @param {RegExp|Object} fieldmatcher Field matcher.
+     * 
+     * @returns {Record} The new subset record.
+     */
+    function __createSubRecord( record, fieldmatcher ) {
+        Log.info( "Enter - ClassificationData.__createSubRecord()" );
+        Log.info( "    record: " + record );
+        Log.info( "    fieldmatcher: " + fieldmatcher );
+        var result = new Record;
+        
+        record.eachField( fieldmatcher, function( field ) { 
+            result.append( field ); 
+        } );
+        
+        Log.info( "Exit - ClassificationData.createSubRecord(): " + result );
         return result;
     }
     
