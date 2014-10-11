@@ -1,8 +1,8 @@
 //-----------------------------------------------------------------------------
+use( "DanMarc2Converter" );
 use( "ClassificationData" );
 use( "Log" );
 use( "Marc" );
-use( "MarcFactory" );
 
 //-----------------------------------------------------------------------------
 EXPORTED_SYMBOLS = [ 'UpdaterEntryPoint' ];
@@ -17,7 +17,7 @@ var UpdaterEntryPoint = function() {
      * @return {Boolean} true if classification data exists in the record, false otherwise.
      */
     function hasClassificationData( jsonMarc ) {
-        var marc = MarcFactory.createRecordFromJson( jsonMarc );
+        var marc = DanMarc2Converter.convertToDanMarc2( JSON.parse( jsonMarc ) );
         
         return ClassificationData.hasClassificationData( marc );
     }
@@ -31,8 +31,8 @@ var UpdaterEntryPoint = function() {
      * @return {Boolean} true if the classifications has changed, false otherwise.
      */
     function hasClassificationsChanged( oldRecord, newRecord ) {
-        var oldMarc = MarcFactory.createRecordFromJson( oldRecord );
-        var newMarc = MarcFactory.createRecordFromJson( newRecord );
+        var oldMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( oldRecord ) );
+        var newMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( newRecord ) );
 
         return ClassificationData.hasClassificationsChanged( oldMarc, newMarc );    
     }
@@ -46,7 +46,7 @@ var UpdaterEntryPoint = function() {
      * @return {String} A json with the new record.
      */
     function createLibraryExtendedRecord( dbcRecord, libraryId ) {
-        var dbcMarc = MarcFactory.createRecordFromJson( dbcRecord );
+        var dbcMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( dbcRecord ) );
         var result = new Record;
 
         var curDate = new Date();
@@ -65,7 +65,7 @@ var UpdaterEntryPoint = function() {
         idField.append( new Subfield( "f", "a" ) );
         result.append( idField );
 
-        return updateLibraryExtendedRecord( dbcRecord, MarcFactory.createJsonFromRecord( result ) );
+        return updateLibraryExtendedRecord( dbcRecord, JSON.stringify( DanMarc2Converter.convertFromDanMarc2( result ) ) );
     }
     
     /**
@@ -78,16 +78,16 @@ var UpdaterEntryPoint = function() {
      * @return {String} A json with the updated record.
      */
     function updateLibraryExtendedRecord( dbcRecord, libraryRecord ) {
-        var dbcMarc = MarcFactory.createRecordFromJson( dbcRecord );
-        var libraryMarc = MarcFactory.createRecordFromJson( libraryRecord );
+        var dbcMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( dbcRecord ) );
+        var libraryMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( libraryRecord ) );
 
-        return MarcFactory.createJsonFromRecord( ClassificationData.updateClassificationsInRecord( dbcMarc, libraryMarc ) );
+        return JSON.stringify( DanMarc2Converter.convertFromDanMarc2( ClassificationData.updateClassificationsInRecord( dbcMarc, libraryMarc ) ) );
     }
      
     function correctLibraryExtendedRecord( dbcRecord, libraryRecord ) {
         Log.info( "Enter - ClassificationData.__hasFieldChanged()" );
-        var dbcMarc = MarcFactory.createRecordFromJson( dbcRecord );
-        var libraryMarc = MarcFactory.createRecordFromJson( libraryRecord );
+        var dbcMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( dbcRecord ) );
+        var libraryMarc = DanMarc2Converter.convertToDanMarc2( JSON.parse( libraryRecord ) );
 
         Log.info( "    dbcMarc: " + dbcMarc );
         Log.info( "    libraryMarc: " + libraryMarc );
@@ -106,11 +106,11 @@ var UpdaterEntryPoint = function() {
         }
         
         if( libraryMarc.size() === 1 && libraryMarc.field( 0 ).name === "001" ) {
-            libraryMarc = new Record;
+            libraryMarc = new Record();
         }
 
         Log.info( "Exit - ClassificationData.correctLibraryExtendedRecord(): " + libraryMarc );
-        return MarcFactory.createJsonFromRecord( libraryMarc );
+        return JSON.stringify( DanMarc2Converter.convertFromDanMarc2( libraryMarc ) );
     }
     
     return {

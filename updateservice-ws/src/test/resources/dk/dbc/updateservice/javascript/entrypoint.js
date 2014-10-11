@@ -9,6 +9,7 @@ UnitTest.doTests = function() {
 
 // Include iScrum modules
 use( "ClassificationData_UnitTests" );
+use( "UpdaterEntryPoint" );
 
 // Including unittests modules
 

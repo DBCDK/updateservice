@@ -38,9 +38,13 @@ public class UpdaterRawRepo {
 	 * 
 	 * @return The record.
 	 * 
-	 * @throws UpdaterRawRepoException In case of errors.
+	 * @throws NamingException 
+	 * @throws SQLException 
+	 * @throws RawRepoException 
+	 * @throws UnsupportedEncodingException 
+	 * 
 	 */
-	public static MarcRecord fetchRecord( String recordId, int libraryNo ) throws UpdaterRawRepoException {
+	public static MarcRecord fetchRecord( String recordId, int libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
 		
 		MarcRecord result = null;
@@ -57,26 +61,6 @@ public class UpdaterRawRepo {
 			
 			return result;
 		}
-		catch( NamingException ex ) {
-			String msg = String.format( "Unable to lookup raw-repo database: %s", Updater.JNDI_JDBC_RAW_REPO_NAME );
-			logger.error( msg, ex );			
-			throw new UpdaterRawRepoException( msg, ex );
-		}
-		catch( SQLException ex ) {
-			String msg = String.format( "Unable to get connection from datasource: %s", Updater.JNDI_JDBC_RAW_REPO_NAME ); 
-			logger.error( msg, ex );
-			throw new UpdaterRawRepoException( msg, ex );
-		} 
-		catch( RawRepoException ex ) {
-			String msg = String.format( "Rawrepo error: %s", ex.getMessage() ); 
-			logger.error( msg, ex );
-			throw new UpdaterRawRepoException( msg, ex );
-		} 
-		catch( UnsupportedEncodingException ex ) {
-			String msg = String.format( "The record [%s:%s] can not be readed as marcxchange", recordId, libraryNo ); 
-			logger.error( msg, ex );
-			throw new UpdaterRawRepoException( msg, ex );
-		}
 		finally {
 			logger.exit( result );
 		}
@@ -91,9 +75,11 @@ public class UpdaterRawRepo {
 	 * @return <code>true</code> if the record exists, <code>false</code> 
 	 * 		   otherwise.
 	 * 
-	 * @throws UpdaterRawRepoException If an error occurred.
+	 * @throws NamingException 
+	 * @throws SQLException 
+	 * @throws RawRepoException 
 	 */
-	public static boolean recordExists( String recordId, int libraryNo ) throws UpdaterRawRepoException {
+	public static boolean recordExists( String recordId, int libraryNo ) throws SQLException, NamingException, RawRepoException {
 		logger.entry( recordId, libraryNo );
 		boolean result = false;
 		
@@ -103,21 +89,6 @@ public class UpdaterRawRepo {
 			result = rawRepoDAO.recordExists( recordId, libraryNo );			
 			
 			return result;
-		}
-		catch( NamingException ex ) {
-			String msg = String.format( "Unable to lookup raw-repo database: %s", Updater.JNDI_JDBC_RAW_REPO_NAME );
-			logger.error( msg, ex );			
-			throw new UpdaterRawRepoException( msg, ex );
-		}
-		catch( SQLException ex ) {
-			String msg = String.format( "Unable to get connection from datasource: %s", Updater.JNDI_JDBC_RAW_REPO_NAME ); 
-			logger.error( msg, ex );
-			throw new UpdaterRawRepoException( msg, ex );
-		} 
-		catch( RawRepoException ex ) {
-			String msg = String.format( "Rawrepo error: %s", ex.getMessage() ); 
-			logger.error( msg, ex );
-			throw new UpdaterRawRepoException( msg, ex );
 		}
 		finally {
 			logger.exit( result );

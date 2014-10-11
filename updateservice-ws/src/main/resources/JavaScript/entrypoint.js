@@ -1,7 +1,6 @@
 //-----------------------------------------------------------------------------
 use( "ClassificationData" );
 use( "Marc" );
-use( "MarcFactory" );
 use( "TemplateContainer" );
 use( "UpdaterEntryPoint" );
 use( "Validator" );
