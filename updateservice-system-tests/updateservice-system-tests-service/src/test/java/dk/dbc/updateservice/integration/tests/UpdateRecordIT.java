@@ -16,8 +16,10 @@ import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
 import dk.dbc.updateservice.integration.service.UpdateRecordResult;
 import dk.dbc.updateservice.integration.service.UpdateStatusEnum;
 import dk.dbc.updateservice.integration.service.ValidateEntry;
+
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -25,15 +27,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+
 import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.After;
 import org.junit.AfterClass;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.*;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.xml.sax.SAXException;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 //-----------------------------------------------------------------------------
 /**
@@ -53,6 +62,12 @@ public class UpdateRecordIT {
     
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
+        int serverPort = 12800;
+        String serverRootDir = Paths.get( "." ).toFile().getCanonicalPath() + "/src/test/resources/wiremock/solr";
+        
+        solrServer = new WireMockServer( wireMockConfig().port( serverPort ).withRootDirectory( serverRootDir ) );
+        solrServer.start();
+
         try (final Connection connection = newRawRepoConnection() ) {
             JDBCUtil.update( connection, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
             JDBCUtil.update( connection, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
@@ -61,6 +76,8 @@ public class UpdateRecordIT {
     
     @AfterClass
     public static void tearDownClass() throws ClassNotFoundException, SQLException, IOException {
+        solrServer.stop();
+
         try (final Connection conn = newRawRepoConnection() ) {        
             JDBCUtil.update( conn, "DELETE FROM queuerules");
             JDBCUtil.update( conn, "DELETE FROM queueworkers");
@@ -206,7 +223,33 @@ public class UpdateRecordIT {
     }
 
     @Test
-    public void testValidateRecordWithUpdatedRecordType() throws Exception {
+    public void testValidateRecordWithLookup() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        
+        request.setAgencyId( "870970" );        
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
+        Options options = new Options();
+        options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
+        request.setOptions( options );
+        request.setTrackingId( "testValidateRecordWithLookup" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_lookup_record.xml" ) );
+        
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+        
+        assertNotNull( response );
+        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
+        assertNotSame( 0, response.getValidateInstance().getValidateEntry().size() );
+
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+            
+            assertFalse( rawRepo.recordExists( "1 234 567 8", 870970 ) );
+        }
+    }
+    
+    @Test
+    public void testUpdateRecordWithNewRecordType() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         request.setAgencyId( "870970" );        
@@ -396,5 +439,6 @@ public class UpdateRecordIT {
         
         return conn;
     }
-    
+
+    private static WireMockServer solrServer;        
 }

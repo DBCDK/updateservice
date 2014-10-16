@@ -5,15 +5,19 @@ package dk.dbc.updateservice.javascript;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.Properties;
 
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import dk.dbc.iscrum.utils.IOUtils;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+
 import dk.dbc.iscrumjs.ejb.JSEngine;
 
 //-----------------------------------------------------------------------------
@@ -26,7 +30,21 @@ public class JavaScriptTest {
 	private static final XLogger logger = XLoggerFactory.getXLogger( JavaScriptTest.class );
 	private JSEngine jsEngine;
 	
-	@Before
+    @BeforeClass
+    public static void startWireMockServerAndLoadSettings() throws IOException {
+        int serverPort = 12100;
+        String serverRootDir = Paths.get( "." ).toFile().getCanonicalPath() + "/src/test/resources/wiremock/solr";
+        
+        solrServer = new WireMockServer( wireMockConfig().port( serverPort ).withRootDirectory( serverRootDir ) );
+        solrServer.start();
+    }
+    
+    @AfterClass
+    public static void stopWireMockServers() {
+        solrServer.stop();
+    }
+
+    @Before
 	public void initJSEngine() {
 		jsEngine = new JSEngine();
 		try {
@@ -45,4 +63,5 @@ public class JavaScriptTest {
 		assertEquals( 0.0, jsEngine.callEntryPoint( "main" ) );
 	}
 
+    private static WireMockServer solrServer;	
 }

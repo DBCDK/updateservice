@@ -11,6 +11,7 @@ import dk.dbc.updateservice.integration.service.Schema;
 import dk.dbc.updateservice.integration.service.SchemasStatusEnum;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -19,12 +20,15 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.AfterClass;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.*;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 //-----------------------------------------------------------------------------
 /**
@@ -36,6 +40,12 @@ public class ValidateSchemasIT {
     
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
+        int serverPort = 12800;
+        String serverRootDir = Paths.get( "." ).toFile().getCanonicalPath() + "/src/test/resources/wiremock/solr";
+        
+        solrServer = new WireMockServer( wireMockConfig().port( serverPort ).withRootDirectory( serverRootDir ) );
+        solrServer.start();
+
         try (final Connection connection = newRawRepoConnection() ) {
             JDBCUtil.update( connection, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
             JDBCUtil.update( connection, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
@@ -44,6 +54,8 @@ public class ValidateSchemasIT {
     
     @AfterClass
     public static void tearDownClass() throws ClassNotFoundException, SQLException, IOException {
+        solrServer.stop();
+
         try (final Connection conn = newRawRepoConnection() ) {        
             JDBCUtil.update( conn, "DELETE FROM queuerules");
             JDBCUtil.update( conn, "DELETE FROM queueworkers");
@@ -89,4 +101,6 @@ public class ValidateSchemasIT {
         
         return conn;
     }
+    
+    private static WireMockServer solrServer;    
 }

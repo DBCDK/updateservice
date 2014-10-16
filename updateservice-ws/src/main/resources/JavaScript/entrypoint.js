@@ -38,7 +38,7 @@ function checkTemplate( name ) {
  * 
  * @return {String} A json string with an array of validation errors.
  */
-function validateRecord( templateName, record ) {
+function validateRecord( templateName, record, settings ) {
     if( templateName === "dataio" ) {
         return JSON.stringify( [] );
     };
@@ -48,7 +48,7 @@ function validateRecord( templateName, record ) {
         return TemplateContainer.get( templateName ); 
     };
     
-    var result = Validator.validateRecord( rec, templateProvider );    
+    var result = Validator.validateRecord( rec, templateProvider, settings );    
     return JSON.stringify( result );
 }
 
