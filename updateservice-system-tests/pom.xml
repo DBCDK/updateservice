@@ -53,6 +53,10 @@
         <holdingitems.db.driver.version>${rawrepo.db.driver.version}</holdingitems.db.driver.version>
         <holdingitems.user.name>${rawrepo.user.name}</holdingitems.user.name>
         <holdingitems.user.passwd>${rawrepo.user.passwd}</holdingitems.user.passwd>
+        
+        <!-- Custom resources  -->
+        <custom.settings.jndi.name>updateservice/settings</custom.settings.jndi.name>
+        <custom.settings.solr.url>http://localhost:12800/solr/raw-repo-index</custom.settings.solr.url>
     </properties>
     
 </project>

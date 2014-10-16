@@ -3,20 +3,27 @@ package dk.dbc.updateservice.validate;
 
 //-----------------------------------------------------------------------------
 import com.google.gson.Gson;
+
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.Schema;
 import dk.dbc.updateservice.ws.ValidationError;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
+
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -95,8 +102,14 @@ public class Validator {
         logger.entry( validateSchema, record );
         List<ValidationError> result = new ArrayList<>();
 
+        if( settings != null ) {
+	        for( Entry<Object, Object> prop : settings.entrySet() ) {
+	        	logger.debug( "Property: {} -> {}", prop.getKey(), prop.getValue() );
+	        }
+        }
+        
         Gson gson = new Gson();
-        Object jsResult = jsProvider.callEntryPoint( "validateRecord", validateSchema, gson.toJson( record ) );
+        Object jsResult = jsProvider.callEntryPoint( "validateRecord", validateSchema, gson.toJson( record ), settings );
         logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
         
         ValidationError[] validationErrors = gson.fromJson( jsResult.toString(), ValidationError[].class );
@@ -133,9 +146,9 @@ public class Validator {
 
     private XLogger logger;
     
-    //!\name EJB's
-    //@{
     @EJB
     private JSEngine jsProvider;
-    //@}
+    
+    @Resource( lookup = "updateservice/settings" )
+    private Properties settings; 
 }
