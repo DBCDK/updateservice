@@ -3,7 +3,7 @@ package dk.dbc.updateservice.integration.tests;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.iscrum.records.MarcFactory;
+import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.IOUtils;
@@ -320,10 +320,9 @@ public class UpdateRecordIT {
             
             assertTrue( rawRepo.recordExists( id, library ) );
             String recContent = new String( rawRepo.fetchRecord( id, library ).getContent() );
-            List<MarcRecord> recs = new MarcFactory().createFromMarcXChange( new StringReader( recContent ) );
-            assertEquals( 1, recs.size() );
-            assertEquals( id, MarcReader.getRecordValue( recs.get( 0 ), "001", "a" ) );
-            assertEquals( String.valueOf( library ), MarcReader.getRecordValue( recs.get( 0 ), "001", "b" ) );
+            MarcRecord record = MarcConverter.convertFromMarcXChange( recContent );
+            assertEquals( id, MarcReader.getRecordValue( record, "001", "a" ) );
+            assertEquals( String.valueOf( library ), MarcReader.getRecordValue( record, "001", "b" ) );
         }
     }
 
