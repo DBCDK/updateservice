@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcFactory;
+import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import java.util.ArrayList;
@@ -143,16 +143,11 @@ public class UpdateRequestReader {
         }
         
         if( list != null ) {
-            MarcFactory marcFactory = new MarcFactory();
-            List<MarcRecord> records = new ArrayList<>();
             for ( Object o : list ) {
                 if ( o instanceof Node ) {
-                    records.addAll( marcFactory.createFromMarcXChange( new DOMSource( ( Node ) o ) ) );
+                    result = MarcConverter.createFromMarcXChange( new DOMSource( ( Node ) o ) );
+                    break;
                 }
-            }
-
-            if ( records.size() == 1 ) {
-                result = records.get( 0 );
             }
         }
         

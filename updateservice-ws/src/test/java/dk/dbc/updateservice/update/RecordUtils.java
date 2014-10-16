@@ -2,17 +2,21 @@
 package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcFactory;
+import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+
 import javax.xml.bind.JAXBException;
 
 //-----------------------------------------------------------------------------
@@ -38,8 +42,11 @@ public class RecordUtils {
      * @return 
      *      The record from the marcxchange document, if the document contains 
      *      exactly one record. The function returns null otherwise.
+     *      
+     * @throws IOException 
+     * @throws UnsupportedEncodingException 
      */
-    public static MarcRecord loadMarcRecord( String resName ) {
+    public static MarcRecord loadMarcRecord( String resName ) throws UnsupportedEncodingException, IOException {
         return loadMarcRecord( RecordUtils.class.getResourceAsStream( resName ) );
     }
     
@@ -51,16 +58,12 @@ public class RecordUtils {
      * @return 
      *      The record from the marcxchange document, if the document contains 
      *      exactly one record. The function returns null otherwise.
+     *      
+     * @throws IOException 
+     * @throws UnsupportedEncodingException 
      */
-    public static MarcRecord loadMarcRecord( InputStream is ) {
-        MarcFactory factory = new MarcFactory();
-        List<MarcRecord> records = factory.createFromMarcXChange( new InputStreamReader( is ) );
-        
-        if( records.size() != 1 ) {
-            return null;
-        }
-        
-        return records.get( 0 );
+    public static MarcRecord loadMarcRecord( InputStream is ) throws UnsupportedEncodingException, IOException {    	
+        return MarcConverter.convertFromMarcXChange( IOUtils.readAll( is, "UTF-8" ) );
     }
         
     public static Record createRawRecord( String recId, int libraryId ) {
@@ -89,7 +92,7 @@ public class RecordUtils {
         return result;
     }
     
-    public static Record createRawRecord( String resName ) throws JAXBException, UnsupportedEncodingException {                
+    public static Record createRawRecord( String resName ) throws JAXBException, IOException {                
         return createRawRecord( loadMarcRecord( resName ) );
     }
     

@@ -3,13 +3,14 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
-import dk.dbc.iscrum.records.MarcFactory;
+import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.iscrum.records.marcxchange.RecordType;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
@@ -324,16 +325,7 @@ public class Updater {
     }
     
     public MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
-        String recData = new String( bytes, "UTF-8" );
-
-        MarcFactory factory = new MarcFactory();
-        List<MarcRecord> records = factory.createFromMarcXChange( new StringReader( recData ) );
-        
-        if( records.size() != 1 ) {
-            return null;
-        }
-        
-        return records.get( 0 );
+        return MarcConverter.convertFromMarcXChange( new String( bytes, "UTF-8" ) );                
     }
     
     /**
@@ -353,11 +345,10 @@ public class Updater {
             return null;
         }
         
-        MarcXchangeFactory marcXchangeFactory = new MarcXchangeFactory();
-        CollectionType marcXchangeCollectionType = marcXchangeFactory.createMarcXchangeFromMarc( record );
+        RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc( record );
 
         ObjectFactory objectFactory = new ObjectFactory();
-        JAXBElement<CollectionType> jAXBElement = objectFactory.createCollection( marcXchangeCollectionType );
+        JAXBElement<RecordType> jAXBElement = objectFactory.createRecord( marcXchangeType );
         
         JAXBContext jc = JAXBContext.newInstance( CollectionType.class );
         Marshaller marshaller = jc.createMarshaller();
