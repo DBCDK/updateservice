@@ -13,10 +13,15 @@ Når servicen er deployet kan den tilgås via følgende:
 
 ### Resourcer
 
-Servicen har grundlæggende brug for 2 resourcer:
+Servicen bruger disse resourcer:
 
-* JDBC resource til råpostrepositoriet. Denne resource skal hedde **jdbc/updateservice/raw-repo**
-* JDBC resource til holding+ databasen. Denne resource skal hedde **jdbc/updateservice/holdingitems**
+* **jdbc/updateservice/raw-repo**: JDBC-resource til råpostrepositoriet. 
+* **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen.
+* **updateservice/settings**: Custom resource med ekstra settings.
+
+**updateservice/settings** skal være af typen *Properties* med følgende værdier:
+
+* *solr.url*: Angiver den fulde url til SOLR-indekset inkl. core.
 
 ### Logging
 
