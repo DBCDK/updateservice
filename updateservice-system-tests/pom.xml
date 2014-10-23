@@ -56,7 +56,10 @@
         
         <!-- Custom resources  -->
         <custom.settings.jndi.name>updateservice/settings</custom.settings.jndi.name>
-        <custom.settings.solr.url>http://localhost:12800/solr/raw-repo-index</custom.settings.solr.url>
+        <custom.settings.solr.port>12800</custom.settings.solr.port>
+        <custom.settings.solr.url>http://localhost:${custom.settings.solr.port}/solr/raw-repo-index</custom.settings.solr.url>
+        <custom.settings.forsrights.port>12900</custom.settings.forsrights.port>
+        <custom.settings.forsrights.url>http://localhost:${custom.settings.forsrights.port}</custom.settings.forsrights.url>
     </properties>
     
 </project>

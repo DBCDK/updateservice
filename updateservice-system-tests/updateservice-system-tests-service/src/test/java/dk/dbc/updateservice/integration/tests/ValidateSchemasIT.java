@@ -4,7 +4,9 @@ package dk.dbc.updateservice.integration.tests;
 //-----------------------------------------------------------------------------
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.iscrum.utils.IOUtils;
+import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
+import dk.dbc.updateservice.integration.service.Authentication;
 import dk.dbc.updateservice.integration.service.GetSchemasRequest;
 import dk.dbc.updateservice.integration.service.GetSchemasResult;
 import dk.dbc.updateservice.integration.service.Schema;
@@ -36,15 +38,14 @@ import com.github.tomakehurst.wiremock.WireMockServer;
  * @author stp
  */
 public class ValidateSchemasIT {
-    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-    
+    private static final String AUTH_OK_GROUP_ID = "010100";
+    private static final String AUTH_OK_USER_ID = "netpunkt";
+    private static final String AUTH_OK_PASSWD = "20Koster";
+
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
-        int serverPort = 12800;
-        String serverRootDir = Paths.get( "." ).toFile().getCanonicalPath() + "/src/test/resources/wiremock/solr";
-        
-        solrServer = new WireMockServer( wireMockConfig().port( serverPort ).withRootDirectory( serverRootDir ) );
-        solrServer.start();
+    	externWebServers = new ExternWebServers();
+    	externWebServers.startServers();
 
         try (final Connection connection = newRawRepoConnection() ) {
             JDBCUtil.update( connection, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
@@ -54,7 +55,7 @@ public class ValidateSchemasIT {
     
     @AfterClass
     public static void tearDownClass() throws ClassNotFoundException, SQLException, IOException {
-        solrServer.stop();
+    	externWebServers.stopServers();
 
         try (final Connection conn = newRawRepoConnection() ) {        
             JDBCUtil.update( conn, "DELETE FROM queuerules");
@@ -74,7 +75,14 @@ public class ValidateSchemasIT {
     @Test
     public void testGetValidateSchemas() throws IOException {
         GetSchemasRequest request = new GetSchemasRequest();
-        request.setAgencyId( "870970" );
+        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
+        
         request.setTrackingId( "trackingId" );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -102,5 +110,5 @@ public class ValidateSchemasIT {
         return conn;
     }
     
-    private static WireMockServer solrServer;    
+    private static ExternWebServers externWebServers;       
 }

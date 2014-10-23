@@ -84,6 +84,7 @@
 
 		<custom-resource factory-class="org.glassfish.resources.custom.factory.PropertiesFactory" res-type="java.util.Properties" jndi-name="${custom.settings.jndi.name}">
             <property name="solr.url" value="${custom.settings.solr.url}"></property>
+            <property name="forsrights.url" value="${custom.settings.forsrights.url}"></property>            
 		</custom-resource>
 
         <connector-connection-pool max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" resource-adapter-name="jmsra" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>

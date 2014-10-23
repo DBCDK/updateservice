@@ -18,14 +18,19 @@ import dk.dbc.oss.ns.catalogingupdate.SchemasStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
+
 import java.util.List;
+
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
+
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import com.sun.xml.ws.developer.SchemaValidation;
 
 //-----------------------------------------------------------------------------
 /**
@@ -52,6 +57,7 @@ import org.slf4j.ext.XLoggerFactory;
  * @author stp
  */
 @WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/catalogingUpdate.wsdl" )
+@SchemaValidation
 @Stateless
 public class UpdateService implements CatalogingUpdatePortType {
 

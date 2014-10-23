@@ -9,7 +9,9 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.updateservice.integration.BibliographicRecordFactory;
+import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
+import dk.dbc.updateservice.integration.service.Authentication;
 import dk.dbc.updateservice.integration.service.Options;
 import dk.dbc.updateservice.integration.service.UpdateOptionEnum;
 import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
@@ -57,17 +59,19 @@ public class UpdateRecordIT {
     private static final String BOOK_VOLUME_TEMPLATE_NAME = "us-bookvolume";
     private static final String BOOK_ASSOCIATED_TEMPLATE_NAME = "us-associated-book";
     
+    private static final String AUTH_OK_GROUP_ID = "010100";
+    private static final String AUTH_OK_USER_ID = "netpunkt";
+    private static final String AUTH_OK_PASSWD = "20Koster";
+    
+    
     public UpdateRecordIT() {        
     }
     
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
-        int serverPort = 12800;
-        String serverRootDir = Paths.get( "." ).toFile().getCanonicalPath() + "/src/test/resources/wiremock/solr";
-        
-        solrServer = new WireMockServer( wireMockConfig().port( serverPort ).withRootDirectory( serverRootDir ) );
-        solrServer.start();
-
+    	externWebServers = new ExternWebServers();
+    	externWebServers.startServers();
+    	
         try (final Connection connection = newRawRepoConnection() ) {
             JDBCUtil.update( connection, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
             JDBCUtil.update( connection, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
@@ -76,7 +80,7 @@ public class UpdateRecordIT {
     
     @AfterClass
     public static void tearDownClass() throws ClassNotFoundException, SQLException, IOException {
-        solrServer.stop();
+    	externWebServers.stopServers();
 
         try (final Connection conn = newRawRepoConnection() ) {        
             JDBCUtil.update( conn, "DELETE FROM queuerules");
@@ -97,9 +101,13 @@ public class UpdateRecordIT {
     public void testRecordWithInvalidValidateSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( "Unknown-Schema" );
-        request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
 
@@ -120,9 +128,13 @@ public class UpdateRecordIT {
     public void testRecordWithInvalidRecordSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordSchema( "Unknown-RecordSchema" );
@@ -144,9 +156,13 @@ public class UpdateRecordIT {
     public void testRecordWithInvalidRecordPacking() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "trackingId" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordPacking( "Unknown-RecordPacking" );
@@ -168,7 +184,12 @@ public class UpdateRecordIT {
     public void testValidateRecordWithFailure() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
@@ -194,7 +215,12 @@ public class UpdateRecordIT {
     public void testValidateRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
@@ -226,7 +252,12 @@ public class UpdateRecordIT {
     public void testValidateRecordWithLookup() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
@@ -252,9 +283,13 @@ public class UpdateRecordIT {
     public void testUpdateRecordWithNewRecordType() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "testValidateRecordWithUpdatedRecordType_singleRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_single_record.xml" ) );
         
@@ -273,7 +308,7 @@ public class UpdateRecordIT {
 
         request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_MAIN_TEMPLATE_NAME );
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
@@ -293,9 +328,13 @@ public class UpdateRecordIT {
     public void testUpdateSingleRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "testUpdateSingleRecordWithSuccess" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
         
@@ -330,9 +369,13 @@ public class UpdateRecordIT {
     public void testUpdateVolumeRecordWithUnknownParent() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_VOLUME_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "testUpdateVolumeRecordWithUnknownParent" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/volume_record.xml" ) );
         
@@ -364,9 +407,13 @@ public class UpdateRecordIT {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         // Update common record
-        request.setAgencyId( "870970" );        
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "testUpdateAssociatedRecord_CommonRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
         
@@ -391,9 +438,8 @@ public class UpdateRecordIT {
         
         // Update associated record
         request = new UpdateRecordRequest();
-        request.setAgencyId( "700100" );        
+        request.setAuthentication( auth );
         request.setSchemaName( BOOK_ASSOCIATED_TEMPLATE_NAME );
-        request.setOptions( new Options() );
         request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/associated_record.xml" ) );
         
@@ -439,5 +485,5 @@ public class UpdateRecordIT {
         return conn;
     }
 
-    private static WireMockServer solrServer;        
+    private static ExternWebServers externWebServers;       
 }
