@@ -22,6 +22,7 @@ Servicen bruger disse resourcer:
 **updateservice/settings** skal være af typen *Properties* med følgende værdier:
 
 * *solr.url*: Angiver den fulde url til SOLR-indekset inkl. core.
+* *forsrights.url*: Angiver den fulde url til forsrights webservicen.
 
 ### Logging
 

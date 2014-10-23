@@ -1,0 +1,20 @@
+{
+  "request" : {
+    "url" : "/",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalTo" : "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:for=\"http://oss.dbc.dk/ns/forsrights\">   <soapenv:Header/>   <soapenv:Body>      <for:forsRightsRequest>         <for:userIdAut>netpunkt</for:userIdAut>         <for:passwordAut>20Koster</for:passwordAut>      </for:forsRightsRequest>   </soapenv:Body></soapenv:Envelope>"
+    } ]
+  },
+  "response" : {
+    "status" : 400,
+    "bodyFileName" : "body-schema_error.xml",
+    "headers" : {
+      "Date" : "Wed, 22 Oct 2014 12:41:51 GMT",
+      "Server" : "Apache",
+      "Content-Length" : "455",
+      "Connection" : "close",
+      "Content-Type" : "text/xml; charset=\"utf-8\""
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "request" : {
+    "url" : "/",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalTo" : "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:for=\"http://oss.dbc.dk/ns/forsrights\">   <soapenv:Header/>   <soapenv:Body>      <for:forsRightsRequest>         <for:userIdAut>netpunkt</for:userIdAut>         <for:groupIdAut>010100</for:groupIdAut>         <for:passwordAut>20Koster</for:passwordAut>      </for:forsRightsRequest>   </soapenv:Body></soapenv:Envelope>"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-auth_ok.xml",
+    "headers" : {
+      "Date" : "Wed, 22 Oct 2014 12:38:32 GMT",
+      "Server" : "Apache",
+      "Content-Length" : "3970",
+      "Keep-Alive" : "timeout=15, max=100",
+      "Connection" : "Keep-Alive",
+      "Content-Type" : "text/xml"
+    }
+  }
+}
