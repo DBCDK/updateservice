@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cu:updateRecord xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
+  <cu:updateRecordRequest>
+    <cu:agencyId>123456</cu:agencyId>
+    <cu:schemaName>someUpdateSchema</cu:schemaName>
+    <cu:bibliographicRecord>
+      <cu:recordSchema>info:lc/xmlns/marcxchange-v1</cu:recordSchema>
+      <cu:recordPacking>xml</cu:recordPacking>
+      <cu:recordData><sometag>SomeMarcXChangeRecord</sometag></cu:recordData>
+    </cu:bibliographicRecord>
+    <!--Optional:-->
+    <cu:options>
+      <cu:option>validate_only</cu:option>
+    </cu:options>
+    <cu:trackingId>2014-04-03T02:49:26:514495:15147</cu:trackingId>
+  </cu:updateRecordRequest>
+</cu:updateRecord>

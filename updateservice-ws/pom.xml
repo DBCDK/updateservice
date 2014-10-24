@@ -154,8 +154,8 @@
                 <directory>src</directory>
                 <includes>
                     <include>jax-ws-catalog.xml</include>
-                    <include>wsdl/*.wsdl</include>
-                    <include>wsdl/*.xsd</include>
+                    <include>wsdl/update/*.wsdl</include>
+                    <include>wsdl/update/*.xsd</include>
                 </includes>
             </resource>
             <resource>
@@ -221,6 +221,7 @@
                             <wsdlFiles>
                                 <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
                             </wsdlFiles>
+                            <wsdlDirectory>${basedir}/src/wsdl/update</wsdlDirectory>
                             <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-catalogingUpdate</id>

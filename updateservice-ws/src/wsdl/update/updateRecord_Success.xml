@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<cu:updateRecordResponse xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
+  <cu:updateRecordResult>
+    <cu:updateStatus>ok</cu:updateStatus>
+  </cu:updateRecordResult>
+</cu:updateRecordResponse>
