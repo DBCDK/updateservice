@@ -1,0 +1,18 @@
+<pre>
+20141021: xsd: added authentication element to updateRecord and getSchemas - US 1332
+20140813: renamed all validateSchema to schema, since schemas for update and build are identical
+20140813: renamed validateSchema to schemaName in updateRecordRequest
+20140604: Removed bibliographicRecord from response
+20140523: remove open
+20140521: Refactor xsd and create new samples
+20140422: Added CDTOVUpdateRecord_Success and CDTOVUpdateRecord_Success_Record
+20140407: Removed nillable="true" from CDTOUpdateRecordResult::validateInstance,
+                                       CDTOUpdateStatusResult::bibliographicalRecord
+                                       CDTOUpdateStatusResult::processingMessage
+          since it produced on wrong types in java getters and setters
+20140402: openCatalogingUpdate.wsdl, openCatalogingUpdate.xsd and openCatalogingDTO.xsd
+          openCatalogingDTO.xsd is shared between validate, update and build
+          removed 2014.... from namespaces
+          Added trackingId to requests
+          DBC*xsd and DBC*wsdl are obsolete
+</pre>

@@ -56,7 +56,7 @@ import com.sun.xml.ws.developer.SchemaValidation;
  * 
  * @author stp
  */
-@WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/catalogingUpdate.wsdl" )
+@WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/update/catalogingUpdate.wsdl" )
 @SchemaValidation
 @Stateless
 public class UpdateService implements CatalogingUpdatePortType {

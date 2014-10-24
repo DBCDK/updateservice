@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<cu:getSchemasResponse xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
+  <cu:getSchemasResult>
+    <cu:schema>
+      <cu:schemaName>bog</cu:schemaName>
+      <cu:schemaInfo>schema for bog</cu:schemaInfo>
+    </cu:schema>
+    <cu:schema>
+      <cu:schemaName>ebog</cu:schemaName>
+    </cu:schema>
+    <cu:schemasStatus>ok</cu:schemasStatus>
+  </cu:getSchemasResult>
+</cu:getSchemasResponse>

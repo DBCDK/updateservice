@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<cu:updateRecordResponse xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
+  <cu:updateRecordResult>
+    <cu:updateStatus>validate_only</cu:updateStatus>
+    <cu:validateInstance>
+      <cu:validateEntry>
+        <cu:warningOrError>warning</cu:warningOrError>
+        <cu:urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.4d.htm#pgfId=1574948</cu:urlForDocumentation>
+        <cu:ordinalPositionOfField>12</cu:ordinalPositionOfField>
+        <cu:ordinalPositionOfSubField>-1</cu:ordinalPositionOfSubField>
+        <cu:message>Normalt gentages felt 505 ikke</cu:message>
+      </cu:validateEntry>
+    </cu:validateInstance>
+  </cu:updateRecordResult>
+</cu:updateRecordResponse>

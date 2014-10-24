@@ -1,0 +1,39 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cat="http://oss.dbc.dk/ns/catalogingUpdate">
+   <soapenv:Header/>
+   <soapenv:Body>
+      <cat:updateRecord>
+         <cat:updateRecordRequest>
+            <!--Optional:-->
+            <cat:authentication>
+               <cat:groupIdAut>?</cat:groupIdAut>
+               <cat:passwordAut>?</cat:passwordAut>
+               <cat:userIdAut>?</cat:userIdAut>
+            </cat:authentication>
+            <cat:agencyId>?</cat:agencyId>
+            <cat:schemaName>?</cat:schemaName>
+            <cat:bibliographicRecord>
+               <cat:recordSchema>?</cat:recordSchema>
+               <cat:recordPacking>?</cat:recordPacking>
+               <cat:recordData>
+                  e
+                  <!--You may enter ANY elements at this point-->
+                  gero
+               </cat:recordData>
+               <!--Optional:-->
+               <cat:extraRecordData>
+                  cum
+                  <!--You may enter ANY elements at this point-->
+                  sonoras
+               </cat:extraRecordData>
+            </cat:bibliographicRecord>
+            <!--Optional:-->
+            <cat:options>
+               <!--1 or more repetitions:-->
+               <cat:option>?</cat:option>
+            </cat:options>
+            <!--Optional:-->
+            <cat:trackingId>?</cat:trackingId>
+         </cat:updateRecordRequest>
+      </cat:updateRecord>
+   </soapenv:Body>
+</soapenv:Envelope>
