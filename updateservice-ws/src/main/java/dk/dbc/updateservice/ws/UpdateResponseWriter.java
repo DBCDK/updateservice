@@ -112,7 +112,16 @@ public class UpdateResponseWriter {
     public void setUpdateStatus( UpdateStatusEnum value ) {
         this.response.setUpdateStatus( value );
     }
-    
+
+    /**
+     * Sets an error in the response.
+     *
+     * @param error The error to set in the response.
+     */
+    public void setError( dk.dbc.oss.ns.catalogingupdate.Error error ) {
+        response.setError( error );
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------

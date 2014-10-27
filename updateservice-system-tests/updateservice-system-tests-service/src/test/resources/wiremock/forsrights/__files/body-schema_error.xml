@@ -1,9 +1,0 @@
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
-    <SOAP-ENV:Body>
-    <SOAP-ENV:Fault>
-    <faultcode>SOAP-ENV:Server</faultcode>
-    <faultstring>Error in request validation.
- Error: Element '{http://oss.dbc.dk/ns/forsrights}passwordAut': This element is not expected. Expected is ( {http://oss.dbc.dk/ns/forsrights}groupIdAut ). on line 1</faultstring>
-    </SOAP-ENV:Fault>
-    </SOAP-ENV:Body>
-    </SOAP-ENV:Envelope>

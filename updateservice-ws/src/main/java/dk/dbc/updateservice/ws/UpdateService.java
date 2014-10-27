@@ -5,16 +5,9 @@ package dk.dbc.updateservice.ws;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
-import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
-import dk.dbc.oss.ns.catalogingupdate.GetSchemasRequest;
-import dk.dbc.oss.ns.catalogingupdate.GetSchemasResult;
-import dk.dbc.oss.ns.catalogingupdate.Options;
-import dk.dbc.oss.ns.catalogingupdate.Schema;
-import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
-import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import dk.dbc.oss.ns.catalogingupdate.SchemasStatusEnum;
+import dk.dbc.oss.ns.catalogingupdate.*;
+import dk.dbc.oss.ns.catalogingupdate.Error;
+import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
@@ -84,10 +77,15 @@ public class UpdateService implements CatalogingUpdatePortType {
             MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
             
             logger.entry( updateRecordRequest );
-            
+
             UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
             UpdateResponseWriter writer = new UpdateResponseWriter();
-            
+
+            if( !authenticator.authenticateUser( reader.readUserId(), reader.readGroupId(), reader.readPassword() ) ) {
+                writer.setError( Error.AUTHENTICATION_ERROR );
+                return writer.getResponse();
+            }
+
             if( !validator.checkValidateSchema( reader.readSchemaName() ) ) {
                 logger.warn( "Unknown validate schema: {}", reader.readSchemaName() );
                 writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
@@ -204,7 +202,13 @@ public class UpdateService implements CatalogingUpdatePortType {
      * MDC constant for tackingId in the log files.
      */
     private static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
-    
+
+    /**
+     * EJB for authentication.
+     */
+    @EJB
+    Authenticator authenticator;
+
     /**
      * EJB for record validation.
      */

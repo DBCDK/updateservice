@@ -9,6 +9,7 @@ import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.Schema;
+import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.ValidationError;
 
 import java.io.IOException;
@@ -149,6 +150,6 @@ public class Validator {
     @EJB
     private JSEngine jsProvider;
     
-    @Resource( lookup = "updateservice/settings" )
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
     private Properties settings; 
 }

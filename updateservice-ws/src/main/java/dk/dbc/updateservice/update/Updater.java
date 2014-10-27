@@ -40,6 +40,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -421,7 +422,6 @@ public class Updater {
     /**
      * Links a record to another record in the rawrepo.
      * 
-     * @param rawRepo  rawrepo to use.
      * @param id       The id of the record to link from.
      * @param refer_id The id of the record to link to.
      * 
@@ -472,30 +472,20 @@ public class Updater {
      * service.
      */
     static final String PROVIDER = "opencataloging-update";
-       
-    /**
-     * Name of the JDBC resource that points to the rawrepo database.
-     */
-    public static final String JNDI_JDBC_RAW_REPO_NAME = "jdbc/updateservice/raw-repo";
 
-    /**
-     * Name of the JDBC resource that points to the holdingitems database.
-     */
-    private static final String JNDI_JDBC_HOLDINGITEMS_NAME = "jdbc/updateservice/holdingitems";
-    
     @EJB
     private JSEngine jsProvider;
     
     /**
      * Injected DataSource to access the rawrepo database.
      */
-    @Resource( lookup = JNDI_JDBC_RAW_REPO_NAME )
+    @Resource( lookup = JNDIResources.JDBC_RAW_REPO_NAME)
     private DataSource rawRepoDataSource;
     
     /**
      * Injected DataSource to access the holdingitems database.
      */
-    @Resource( lookup = JNDI_JDBC_HOLDINGITEMS_NAME )
+    @Resource( lookup = JNDIResources.JDBC_HOLDINGITEMS_NAME )
     private DataSource holdingItemsDataSource;
 
     /**

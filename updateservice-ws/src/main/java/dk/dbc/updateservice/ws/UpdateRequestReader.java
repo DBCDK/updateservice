@@ -5,7 +5,6 @@ package dk.dbc.updateservice.ws;
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
-import java.util.ArrayList;
 import java.util.List;
 import javax.xml.transform.dom.DOMSource;
 import org.slf4j.ext.XLogger;
@@ -53,7 +52,46 @@ public class UpdateRequestReader {
     //-------------------------------------------------------------------------
     //              Public interface
     //-------------------------------------------------------------------------
-    
+
+    /**
+     * Returns the user id in the request.
+     *
+     * @return The user id. Returns the empty string, if it can not be read.
+     */
+    public String readUserId() {
+        if( request.getAuthentication() != null ) {
+            return request.getAuthentication().getUserIdAut();
+        }
+
+        return "";
+    }
+
+    /**
+     * Returns the group id in the request.
+     *
+     * @return The group id. Returns the empty string, if it can not be read.
+     */
+    public String readGroupId() {
+        if( request.getAuthentication() != null ) {
+            return request.getAuthentication().getGroupIdAut();
+        }
+
+        return "";
+    }
+
+    /**
+     * Returns the user's password in the request.
+     *
+     * @return The user's password. Returns the empty string, if it can not be read.
+     */
+    public String readPassword() {
+        if( request.getAuthentication() != null ) {
+            return request.getAuthentication().getPasswordAut();
+        }
+
+        return "";
+    }
+
     /**
      * Checks if the request contains a valid record packing.
      * <p>
@@ -71,7 +109,7 @@ public class UpdateRequestReader {
             result = request.getBibliographicRecord().getRecordPacking().equals( RECORD_PACKING_XML );
         }
         else {
-            logger.warn( "Unable to record packing from request: {}", request.toString() );
+            logger.warn( "Unable to record packing from request" );
         }
         
         return result;
@@ -94,7 +132,7 @@ public class UpdateRequestReader {
             result = request.getBibliographicRecord().getRecordSchema().equals( RECORD_SCHEMA_MARCXCHANGE_1_1 );
         }
         else {
-            logger.warn( "Unable to record schema from request: {}", request.toString() );
+            logger.warn( "Unable to record schema from request" );
         }
         
         return result;
@@ -115,7 +153,7 @@ public class UpdateRequestReader {
             result = request.getSchemaName();
         }
         else {
-            logger.warn( "Unable to validate schema from request: {}", request.toString() );
+            logger.warn( "Unable to validate schema from request" );
         }
         
         return result;
@@ -139,7 +177,7 @@ public class UpdateRequestReader {
             list = request.getBibliographicRecord().getRecordData().getContent();
         }
         else {
-            logger.warn(  "Unable to read record from request: {}", request.toString() );
+            logger.warn(  "Unable to read record from request" );
         }
         
         if( list != null ) {
