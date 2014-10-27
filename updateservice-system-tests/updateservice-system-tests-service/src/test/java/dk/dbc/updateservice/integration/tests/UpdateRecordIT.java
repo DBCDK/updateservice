@@ -12,6 +12,7 @@ import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.Authentication;
+import dk.dbc.updateservice.integration.service.Error;
 import dk.dbc.updateservice.integration.service.Options;
 import dk.dbc.updateservice.integration.service.UpdateOptionEnum;
 import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
@@ -62,7 +63,8 @@ public class UpdateRecordIT {
     private static final String AUTH_OK_GROUP_ID = "010100";
     private static final String AUTH_OK_USER_ID = "netpunkt";
     private static final String AUTH_OK_PASSWD = "20Koster";
-    
+    private static final String AUTH_BAD_PASSWD = "wrong_passwd";
+
     
     public UpdateRecordIT() {        
     }
@@ -97,15 +99,42 @@ public class UpdateRecordIT {
         }
     }
 
-    @Test( expected = javax.xml.ws.WebServiceException.class )
-    public void testRecordWithInvalidValidateSchema() throws Exception {
+    @Test
+    public void testRecordWithBadAuthentication() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
         auth.setGroupIdAut( AUTH_OK_GROUP_ID );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
+        auth.setPasswordAut( AUTH_BAD_PASSWD );
         
+        request.setAuthentication( auth );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
+        request.setTrackingId( "testRecordWithBadAuthentication" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
+
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+
+        assertNotNull( response );
+        assertEquals( Error.AUTHENTICATION_ERROR, response.getError() );
+
+        try( final Connection connection = newRawRepoConnection() ) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+
+            assertFalse( rawRepo.recordExists( "20611529", 870970 ) );
+        }
+    }
+
+    @Test( expected = javax.xml.ws.WebServiceException.class )
+    public void testRecordWithInvalidValidateSchema() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+
         request.setAuthentication( auth );
         request.setSchemaName( "Unknown-Schema" );
         request.setTrackingId( "trackingId" );
@@ -123,7 +152,7 @@ public class UpdateRecordIT {
             assertFalse( rawRepo.recordExists( "1 234 567 8", 870970 ) );
         }
     }
-    
+
     @Test
     public void testRecordWithInvalidRecordSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();

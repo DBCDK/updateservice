@@ -3,7 +3,7 @@
     "url" : "/",
     "method" : "POST",
     "bodyPatterns" : [ {
-      "equalTo" : "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:for=\"http://oss.dbc.dk/ns/forsrights\">   <soapenv:Header/>   <soapenv:Body>      <for:forsRightsRequest>         <for:userIdAut>netpunkt</for:userIdAut>         <for:groupIdAut>010100</for:groupIdAut>         <for:passwordAut>wrong_passwd</for:passwordAut>      </for:forsRightsRequest>   </soapenv:Body></soapenv:Envelope>"
+      "equalTo" : "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body><forsRightsRequest xmlns=\"http://oss.dbc.dk/ns/forsrights\"><userIdAut>netpunkt</userIdAut><groupIdAut>010100</groupIdAut><passwordAut>wrong_passwd</passwordAut></forsRightsRequest></S:Body></S:Envelope>"
     } ]
   },
   "response" : {

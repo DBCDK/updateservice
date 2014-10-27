@@ -227,6 +227,21 @@
                         <id>wsimport-generate-catalogingUpdate</id>
                         <phase>generate-sources</phase>
                     </execution>
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <wsdlFiles>
+                                <wsdlFile>forsrights.wsdl</wsdlFile>
+                            </wsdlFiles>
+                            <wsdlDirectory>${basedir}/src/wsdl/forsrights</wsdlDirectory>
+                            <packageName>dk.dbc.forsrights.service</packageName>
+                            <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
+                        </configuration>
+                        <id>wsimport-generate-forsrights</id>
+                        <phase>generate-sources</phase>
+                    </execution>
                 </executions>
                 <dependencies>
                     <dependency>

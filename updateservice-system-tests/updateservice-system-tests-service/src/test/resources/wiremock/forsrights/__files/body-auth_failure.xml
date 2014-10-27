@@ -1,9 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-	xmlns:fr="http://oss.dbc.dk/ns/forsrights" xmlns="http://oss.dbc.dk/ns/forsrights">
-	<SOAP-ENV:Body>
-		<fr:forsRightsResponse>
-			<fr:error>user_not_found</fr:error>
-		</fr:forsRightsResponse>
-	</SOAP-ENV:Body>
-</SOAP-ENV:Envelope>
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:fr="http://oss.dbc.dk/ns/forsrights" xmlns="http://oss.dbc.dk/ns/forsrights"><SOAP-ENV:Body><fr:forsRightsResponse><fr:error>user_not_found</fr:error></fr:forsRightsResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>

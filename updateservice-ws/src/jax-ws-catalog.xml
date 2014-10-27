@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="system">
-    <system systemId="https://svn.dbc.dk/repos/WSContracts/catalogingUpdate/trunk/catalogingUpdate.wsdl" uri="wsdl/update/catalogingUpdate.wsdl"/>
-    <system systemId="https://svn.dbc.dk/repos/WSContracts/catalogingUpdate/trunk/catalogingUpdate.xsd" uri="wsdl/update/catalogingUpdate.xsd"/>
+    <!-- WSDL for UpdateService -->
+    <system systemId="https://svn.dbc.dk/repos/updateservice/trunk/updateservice-ws/src/wsdl/update/catalogingUpdate.wsdl" uri="wsdl/update/catalogingUpdate.wsdl"/>
+    <system systemId="https://svn.dbc.dk/repos/updateservice/trunk/updateservice-ws/src/wsdl/update/catalogingUpdate.xsd" uri="wsdl/update/catalogingUpdate.xsd"/>
+
+    <!-- WSDL for Forsrights -->
+    <system systemId="http://forsrights.addi.dk/1.2/forsrights.wsdl" uri="wsdl/forsrights/forsrights.wsdl"/>
+    <system systemId="http://forsrights.addi.dk/1.2/forsrights.xsd" uri="wsdl/forsrights/forsrights.xsd"/>
 </catalog>
