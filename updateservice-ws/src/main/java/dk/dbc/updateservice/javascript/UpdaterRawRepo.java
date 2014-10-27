@@ -10,6 +10,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -108,7 +109,7 @@ public class UpdaterRawRepo {
 	 */
 	private static Connection getConnection() throws NamingException, SQLException {
 		InitialContext ctx = new InitialContext();
-		DataSource ds = (DataSource) ctx.lookup( Updater.JNDI_JDBC_RAW_REPO_NAME );
+		DataSource ds = (DataSource) ctx.lookup( JNDIResources.JDBC_RAW_REPO_NAME );
 		
 		return ds.getConnection();
 	}
