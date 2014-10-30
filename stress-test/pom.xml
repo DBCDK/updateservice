@@ -26,7 +26,7 @@
         <glassfish.home>${glassfish.basedir}/${container.id}</glassfish.home>
         <glassfish.domain.dir>${glassfish.home}/glassfish/domains/domain1</glassfish.domain.dir>
 
-        <logback.logdir>${glassfish.basedir}/logs</logback.logdir>
+        <logback.logdir>${project.build.directory}/logs</logback.logdir>
         <logback.logfile>${basedir}/../logback.xml</logback.logfile>
 
         <!-- Glassfish port 130XX -->
