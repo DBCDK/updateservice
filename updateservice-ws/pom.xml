@@ -156,6 +156,8 @@
                     <include>jax-ws-catalog.xml</include>
                     <include>wsdl/update/*.wsdl</include>
                     <include>wsdl/update/*.xsd</include>
+                    <include>wsdl/forsrights/*.wsdl</include>
+                    <include>wsdl/forsrights/*.xsd</include>
                 </includes>
             </resource>
             <resource>
@@ -222,6 +224,7 @@
                                 <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
                             </wsdlFiles>
                             <wsdlDirectory>${basedir}/src/wsdl/update</wsdlDirectory>
+                            <wsdlLocation>META-INF/wsdl/update/catalogingUpdate.wsdl</wsdlLocation>
                             <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-catalogingUpdate</id>
@@ -235,6 +238,7 @@
                             <wsdlFiles>
                                 <wsdlFile>forsrights.wsdl</wsdlFile>
                             </wsdlFiles>
+                            <wsdlLocation>META-INF/wsdl/forsrights/forsrights.wsdl</wsdlLocation>
                             <wsdlDirectory>${basedir}/src/wsdl/forsrights</wsdlDirectory>
                             <packageName>dk.dbc.forsrights.service</packageName>
                             <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
