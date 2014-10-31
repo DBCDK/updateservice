@@ -78,9 +78,9 @@
       <xs:documentation xml:lang="en">Parameters used for authentication purposes</xs:documentation>
     </xs:annotation>
     <xs:sequence>
-      <xs:element ref="tns:groupIdAut" minOccurs="1" maxOccurs="1"/>
-      <xs:element ref="tns:passwordAut" minOccurs="1" maxOccurs="1"/>
-      <xs:element ref="tns:userIdAut" minOccurs="1" maxOccurs="1"/>
+      <xs:element ref="tns:groupIdAut" />
+      <xs:element ref="tns:passwordAut" />
+      <xs:element ref="tns:userIdAut" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="BibliographicRecord" type="tns:BibliographicRecord"/>
