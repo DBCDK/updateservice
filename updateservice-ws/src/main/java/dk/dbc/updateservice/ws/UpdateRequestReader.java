@@ -59,11 +59,19 @@ public class UpdateRequestReader {
      * @return The user id. Returns the empty string, if it can not be read.
      */
     public String readUserId() {
-        if( request.getAuthentication() != null ) {
-            return request.getAuthentication().getUserIdAut();
-        }
+        logger.entry();
+        String result = "";
 
-        return "";
+        try {
+            if (request.getAuthentication() != null) {
+                result = request.getAuthentication().getUserIdAut();
+            }
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
     }
 
     /**
@@ -72,11 +80,18 @@ public class UpdateRequestReader {
      * @return The group id. Returns the empty string, if it can not be read.
      */
     public String readGroupId() {
-        if( request.getAuthentication() != null ) {
-            return request.getAuthentication().getGroupIdAut();
-        }
+        logger.entry();
+        String result = "";
 
-        return "";
+        try {
+            if( request.getAuthentication() != null ) {
+                result = request.getAuthentication().getGroupIdAut();
+            }
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
     }
 
     /**
@@ -85,11 +100,20 @@ public class UpdateRequestReader {
      * @return The user's password. Returns the empty string, if it can not be read.
      */
     public String readPassword() {
-        if( request.getAuthentication() != null ) {
-            return request.getAuthentication().getPasswordAut();
-        }
+        logger.entry();
+        String result = "****";
 
-        return "";
+        try {
+            if( request.getAuthentication() != null ) {
+                return request.getAuthentication().getPasswordAut();
+            }
+
+            result = "";
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
     }
 
     /**
@@ -104,15 +128,19 @@ public class UpdateRequestReader {
     public boolean isRecordPackingValid() {
         logger.entry();
         
-        boolean result = false;        
-        if( request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordPacking() != null ) {
-            result = request.getBibliographicRecord().getRecordPacking().equals( RECORD_PACKING_XML );
+        boolean result = false;
+        try {
+            if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordPacking() != null) {
+                result = request.getBibliographicRecord().getRecordPacking().equals(RECORD_PACKING_XML);
+            } else {
+                logger.warn("Unable to record packing from request");
+            }
+
+            return result;
         }
-        else {
-            logger.warn( "Unable to record packing from request" );
+        finally {
+            logger.exit( result );
         }
-        
-        return result;
     }
     
     /**
@@ -128,14 +156,18 @@ public class UpdateRequestReader {
         logger.entry();
         
         boolean result = false;
-        if( request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordSchema() != null ) {
-            result = request.getBibliographicRecord().getRecordSchema().equals( RECORD_SCHEMA_MARCXCHANGE_1_1 );
+        try {
+            if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordSchema() != null) {
+                result = request.getBibliographicRecord().getRecordSchema().equals(RECORD_SCHEMA_MARCXCHANGE_1_1);
+            } else {
+                logger.warn("Unable to record schema from request");
+            }
+
+            return result;
         }
-        else {
-            logger.warn( "Unable to record schema from request" );
+        finally {
+            logger.exit( result );
         }
-        
-        return result;
     }
 
     /**
@@ -149,14 +181,18 @@ public class UpdateRequestReader {
         logger.entry();
         
         String result = "";
-        if( request != null ) {
-            result = request.getSchemaName();
+        try {
+            if (request != null) {
+                result = request.getSchemaName();
+            } else {
+                logger.warn("Unable to validate schema from request");
+            }
+
+            return result;
         }
-        else {
-            logger.warn( "Unable to validate schema from request" );
+        finally {
+            logger.exit( result );
         }
-        
-        return result;
     }
 
     /**
@@ -172,25 +208,28 @@ public class UpdateRequestReader {
         logger.entry();
         MarcRecord result = null;
         List<Object> list = null;
-        
-        if( request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordData() != null ) {
-            list = request.getBibliographicRecord().getRecordData().getContent();
-        }
-        else {
-            logger.warn(  "Unable to read record from request" );
-        }
-        
-        if( list != null ) {
-            for ( Object o : list ) {
-                if ( o instanceof Node ) {
-                    result = MarcConverter.createFromMarcXChange( new DOMSource( ( Node ) o ) );
-                    break;
+
+        try {
+            if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordData() != null) {
+                list = request.getBibliographicRecord().getRecordData().getContent();
+            } else {
+                logger.warn("Unable to read record from request");
+            }
+
+            if (list != null) {
+                for (Object o : list) {
+                    if (o instanceof Node) {
+                        result = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                        break;
+                    }
                 }
             }
+
+            return result;
         }
-        
-        logger.exit( result );
-        return result;
+        finally {
+            logger.exit( result );
+        }
     }
     
     //-------------------------------------------------------------------------

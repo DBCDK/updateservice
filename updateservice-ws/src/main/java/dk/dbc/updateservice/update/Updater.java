@@ -64,6 +64,9 @@ public class Updater {
      */
     public Updater() {
         this( null, null, null );
+
+        logger.entry();
+        logger.exit();
     }
     
     /**
@@ -83,9 +86,13 @@ public class Updater {
      * 
      */
     public Updater( RawRepoDAO rawRepoDAO, HoldingsItemsDAO holdingItemsDAO, LibraryRecordsHandler recordsHandler ) {
+        logger.entry( rawRepoDAO, holdingItemsDAO, recordsHandler );
+
         this.rawRepoDAO = rawRepoDAO;
         this.holdingItemsDAO = holdingItemsDAO;
         this.recordsHandler = recordsHandler;
+
+        logger.exit();
     }
     
     //-------------------------------------------------------------------------
