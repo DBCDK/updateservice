@@ -64,44 +64,47 @@ public class UpdateResponseWriter {
      */
     public void addValidateResults( List<ValidationError> valErrors ) {
         logger.entry( valErrors );
-        
-        if( !valErrors.isEmpty() ) {
-            ValidateInstance instance = new ValidateInstance();
-            for( ValidationError err : valErrors ) {
-                ValidateEntry entry = new ValidateEntry();
-                
-                HashMap<String, Object> params = err.getParams();
-                Object value;
-                
-                entry.setWarningOrError( ValidateWarningOrErrorEnum.ERROR );
-                
-                value = params.get( "url" );
-                if( value != null ) {
-                    entry.setUrlForDocumentation( value.toString() );
+
+        try {
+            if (!valErrors.isEmpty()) {
+                ValidateInstance instance = new ValidateInstance();
+                for (ValidationError err : valErrors) {
+                    ValidateEntry entry = new ValidateEntry();
+
+                    HashMap<String, Object> params = err.getParams();
+                    Object value;
+
+                    entry.setWarningOrError(ValidateWarningOrErrorEnum.ERROR);
+
+                    value = params.get("url");
+                    if (value != null) {
+                        entry.setUrlForDocumentation(value.toString());
+                    }
+
+                    value = params.get("message");
+                    if (value != null) {
+                        entry.setMessage(value.toString());
+                    }
+
+                    value = params.get("fieldno");
+                    if (value != null) {
+                        entry.setOrdinalPositionOfField(new BigDecimal(value.toString()).toBigInteger());
+                    }
+
+                    value = params.get("subfieldno");
+                    if (value != null) {
+                        entry.setOrdinalPositionOfSubField(new BigDecimal(value.toString()).toBigInteger());
+                    }
+
+                    instance.getValidateEntry().add(entry);
                 }
-                
-                value = params.get( "message" );
-                if( value != null ) {
-                    entry.setMessage( value.toString() );
-                }
-                
-                value = params.get( "fieldno" );
-                if( value != null ) {
-                    entry.setOrdinalPositionOfField( new BigDecimal( value.toString() ).toBigInteger() );
-                }
-                
-                value = params.get( "subfieldno" );
-                if( value != null ) {
-                    entry.setOrdinalPositionOfSubField( new BigDecimal( value.toString() ).toBigInteger() );
-                }
-                
-                instance.getValidateEntry().add( entry );
+
+                this.response.setValidateInstance(instance);
             }
-            
-            this.response.setValidateInstance( instance );
         }
-        
-        logger.exit();
+        finally {
+            logger.exit();
+        }
     }
     
     /**
@@ -110,7 +113,9 @@ public class UpdateResponseWriter {
      * @param value The update status.
      */
     public void setUpdateStatus( UpdateStatusEnum value ) {
+        logger.entry();
         this.response.setUpdateStatus( value );
+        logger.exit();
     }
 
     /**
@@ -119,7 +124,9 @@ public class UpdateResponseWriter {
      * @param error The error to set in the response.
      */
     public void setError( dk.dbc.oss.ns.catalogingupdate.Error error ) {
+        logger.entry();
         response.setError( error );
+        logger.exit();
     }
 
     //-------------------------------------------------------------------------

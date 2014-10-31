@@ -21,10 +21,6 @@ public class LibraryRecordsHandler {
     //-------------------------------------------------------------------------
     //              Constructors
     //-------------------------------------------------------------------------
-    
-    public LibraryRecordsHandler() {        
-        this( null );
-    }
 
     public LibraryRecordsHandler( JSEngine jsEngine ) {
         this.jsEngine = jsEngine;

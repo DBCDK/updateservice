@@ -75,7 +75,7 @@ public class UpdateService implements CatalogingUpdatePortType {
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
-            
+
             logger.entry( updateRecordRequest );
 
             UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
@@ -92,11 +92,11 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
             else if( !reader.isRecordSchemaValid() ) {
                 logger.warn( "Unknown record schema: {}", updateRecordRequest.getBibliographicRecord().getRecordSchema() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );                
+                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
             }
             else if( !reader.isRecordPackingValid() ) {
                 logger.warn( "Unknown record packing: {}", updateRecordRequest.getBibliographicRecord().getRecordPacking() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );                
+                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
             }
             else {
                 MarcRecord record = reader.readRecord();
@@ -105,7 +105,7 @@ public class UpdateService implements CatalogingUpdatePortType {
 
                 logger.info( "Validate record [{}|{}]", recId, libId );
                 List<ValidationError> valErrors = validator.validateRecord( reader.readSchemaName(), record );
-                
+
                 writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
                 if( !valErrors.isEmpty() ) {
                     writer.addValidateResults( valErrors );
@@ -114,13 +114,13 @@ public class UpdateService implements CatalogingUpdatePortType {
                 else {
                     Options options = updateRecordRequest.getOptions();
                     boolean doUpdate = true;
-                    
+
                     if( options != null && options.getOption() != null ) {
                         if( options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY ) ) {
                             doUpdate = false;
                         }
                     }
-                    
+
                     if( doUpdate ) {
                         try {
                             writer.setUpdateStatus( UpdateStatusEnum.OK );
@@ -132,10 +132,10 @@ public class UpdateService implements CatalogingUpdatePortType {
                             writer.setUpdateStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
                             logger.error( "Update error: {}", ex  );
                         }
-                    }                    
-                }          
+                    }
+                }
             }
-                        
+
             logger.exit( writer.getResponse() );
             return writer.getResponse();
         }
@@ -177,7 +177,6 @@ public class UpdateService implements CatalogingUpdatePortType {
             response.setSchemasStatus( SchemasStatusEnum.OK );
             response.getSchema().addAll( names );
                         
-            logger.exit();
             return response;
         } 
         catch( EJBException ex ) {
@@ -185,6 +184,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             throw ex;
         }
         finally {
+            logger.exit();
             MDC.remove( TRACKING_ID_LOG_CONTEXT );
         }
     }

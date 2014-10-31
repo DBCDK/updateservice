@@ -27,9 +27,16 @@ public class ForsService {
 	 * @param endpoint The endpoint to the forsrights service.
 	 */
 	public ForsService( String endpoint ) {
-        this.endpoint = endpoint;
-        this.services = new ForsRightsService();
-        this.callerProxy = getAndConfigureUpdateProxy();
+        logger.entry();
+
+        try {
+            this.endpoint = endpoint;
+            this.services = new ForsRightsService();
+            this.callerProxy = getAndConfigureUpdateProxy();
+        }
+        finally {
+            logger.exit();
+        }
 	}
 
 	/**
@@ -42,7 +49,7 @@ public class ForsService {
 	 * @return A response from forsrights.
 	 */
 	public ForsRightsResponse forsRights( String userId, String groupId, String passwd ) {
-        logger.entry( userId, groupId, passwd );
+        logger.entry( userId, groupId, "****" );
 
         try {
             ForsRightsRequest request = new ForsRightsRequest();
@@ -68,15 +75,22 @@ public class ForsService {
     //-------------------------------------------------------------------------
 
 	private ForsRightsPortType getAndConfigureUpdateProxy() {
-		ForsRightsPortType port = this.services.getForsRightsPortType();
-        BindingProvider proxy = (BindingProvider)port;
-        
-        proxy.getRequestContext().put( BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint );
+        logger.entry();
 
-        proxy.getRequestContext().put( "com.sun.xml.ws.connect.timeout", CONNECT_TIMEOUT_DEFAULT_IN_MS );
-        proxy.getRequestContext().put( "com.sun.xml.ws.request.timeout", REQUEST_TIMEOUT_DEFAULT_IN_MS );
+        try {
+            ForsRightsPortType port = this.services.getForsRightsPortType();
+            BindingProvider proxy = (BindingProvider) port;
 
-        return port;
+            proxy.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
+
+            proxy.getRequestContext().put("com.sun.xml.ws.connect.timeout", CONNECT_TIMEOUT_DEFAULT_IN_MS);
+            proxy.getRequestContext().put("com.sun.xml.ws.request.timeout", REQUEST_TIMEOUT_DEFAULT_IN_MS);
+
+            return port;
+        }
+        finally {
+            logger.exit();
+        }
     }
 	
     //-------------------------------------------------------------------------
