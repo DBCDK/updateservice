@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
+import javax.ejb.Stateful;
 import javax.ejb.Stateless;
 
 import org.slf4j.ext.XLogger;
@@ -33,7 +34,7 @@ import org.slf4j.ext.XLoggerFactory;
  *
  * @author stp
  */
-@Stateless
+@Stateful
 @LocalBean
 public class Validator {
     //-------------------------------------------------------------------------
@@ -45,16 +46,23 @@ public class Validator {
     @PostConstruct
     public void init() {
         logger = XLoggerFactory.getXLogger( this.getClass() );
-        logger.info( "Classpath: {}", System.getProperty( "classpath" ) );
+        logger.entry();
 
-        if ( jsProvider != null ) {
-            try {
-                jsProvider.initialize( IOUtils.loadProperties( Validator.class.getClassLoader(),
-                        ";", "dk/dbc/updateservice/ws/settings.properties",
-                        "javascript/iscrum/settings.properties" ) );
-            } catch ( IOException | IllegalArgumentException ex ) {
-                logger.catching( XLogger.Level.WARN, ex );
+        try {
+            logger.info("Classpath: {}", System.getProperty("classpath"));
+
+            if (jsProvider != null) {
+                try {
+                    jsProvider.initialize(IOUtils.loadProperties(Validator.class.getClassLoader(),
+                            ";", "dk/dbc/updateservice/ws/settings.properties",
+                            "javascript/iscrum/settings.properties"));
+                } catch (IOException | IllegalArgumentException ex) {
+                    logger.catching(XLogger.Level.WARN, ex);
+                }
             }
+        }
+        finally {
+            logger.exit();
         }
     }
     //@}

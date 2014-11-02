@@ -178,7 +178,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             response.getSchema().addAll( names );
                         
             return response;
-        } 
+        }
         catch( EJBException ex ) {
             logger.error( "Got EJBException: {}", ex.getCause() );
             throw ex;
