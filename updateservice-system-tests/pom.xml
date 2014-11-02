@@ -49,7 +49,7 @@
         <rawrepo.user.name>${user.name}</rawrepo.user.name>
         <rawrepo.user.passwd>${user.name}</rawrepo.user.passwd>
 
-        <holdingitems.db.name>holdingitems</holdingitems.db.name>
+        <holdingitems.db.name>holdingsitems</holdingitems.db.name>
         <holdingitems.db.driver.version>${rawrepo.db.driver.version}</holdingitems.db.driver.version>
         <holdingitems.user.name>${rawrepo.user.name}</holdingitems.user.name>
         <holdingitems.user.passwd>${rawrepo.user.passwd}</holdingitems.user.passwd>
