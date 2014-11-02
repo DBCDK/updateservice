@@ -33,6 +33,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
+import javax.ejb.Stateful;
 import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -52,7 +53,7 @@ import org.slf4j.ext.XLoggerFactory;
  * 
  * @author stp
  */
-@Stateless
+@Stateful
 @LocalBean
 public class Updater {
     //-------------------------------------------------------------------------

@@ -10,6 +10,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.LocalBean;
+import javax.ejb.Stateful;
 import javax.ejb.Stateless;
 import java.util.Properties;
 
@@ -17,7 +18,7 @@ import java.util.Properties;
 /**
  * EJB to authenticate users against the forsrights service.
  */
-@Stateless
+@Stateful
 @LocalBean
 public class Authenticator {
     //-------------------------------------------------------------------------
