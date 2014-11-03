@@ -140,11 +140,15 @@ public class UpdateService implements CatalogingUpdatePortType {
             return writer.getResponse();
         }
         catch( EJBException ex ) {
-            logger.error( "Got EJBException: {}", ex.getCause() );
+            logger.error( "Catched EJB exception: {}", ex.getCause() );
             throw ex;
         }
-        catch( IllegalArgumentException | JavaScriptException ex ) {
-            logger.error( "Got exception: {}", ex );
+        catch( JavaScriptException ex ) {
+            logger.error( "Catched javascript exception: {}", ex );
+            throw new EJBException( ex );
+        }
+        catch( RuntimeException ex ) {
+            logger.error( "Catched runtime exception: {}", ex );
             throw new EJBException( ex );
         }
         finally {
@@ -179,8 +183,8 @@ public class UpdateService implements CatalogingUpdatePortType {
                         
             return response;
         }
-        catch( EJBException ex ) {
-            logger.error( "Got EJBException: {}", ex.getCause() );
+        catch( RuntimeException ex ) {
+            logger.error( "Catched runtime exception: {}", ex.getCause() );
             throw ex;
         }
         finally {
