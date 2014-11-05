@@ -27,6 +27,9 @@ Servicen bruger disse resourcer:
 med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan updateservice ikke håndterer.
 * *auth.product.name*: Angiver navnet på det produkt, som forsrights skal returnerer for at brugeren har adgang til 
 at bruge denne webservice. 
+* *auth.use.ip*: Angiver om klientens IP-adresse skal sendes videre til forsrights webservice ved authentikation af 
+brugere. Angives værdien *True* sendes IP-adressen med. Hvis settingen indeholder en anden værdi eller hvis den er 
+helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 
 ### Logging
 
