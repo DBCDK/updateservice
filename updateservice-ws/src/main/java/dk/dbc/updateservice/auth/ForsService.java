@@ -39,26 +39,51 @@ public class ForsService {
         }
 	}
 
-	/**
-	 * Calls the forsrights 
-	 * 
-	 * @param userId  User id.
-	 * @param groupId Group id.
-	 * @param passwd  Password.
-	 * 
-	 * @return A response from forsrights.
-	 */
-	public ForsRightsResponse forsRights( String userId, String groupId, String passwd ) {
+    /**
+     * Calls the forsrights
+     *
+     * @param userId  User id.
+     * @param groupId Group id.
+     * @param passwd  Password.
+     *
+     * @return A response from forsrights.
+     */
+    public ForsRightsResponse forsRights( String userId, String groupId, String passwd ) {
         logger.entry( userId, groupId, "****" );
 
         try {
-            ForsRightsRequest request = new ForsRightsRequest();
-            request.setUserIdAut( userId );
-            request.setGroupIdAut( groupId );
-            request.setPasswordAut( passwd );
+            ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
 
             logger.debug( "Sending request to {}", this.endpoint );
+            return this.callerProxy.forsRights( request );
+        }
+        catch( Exception ex ) {
+            logger.error( "Got exception: {}", ex );
+            throw ex;
+        }
+        finally {
+            logger.exit();
+        }
+    }
 
+	/**
+	 * Calls the forsrights with an IP address.
+	 * 
+	 * @param userId    User id.
+	 * @param groupId   Group id.
+	 * @param passwd    Password.
+     * @param ipAddress IP-address from the caller of this web service.
+	 * 
+	 * @return A response from forsrights.
+	 */
+	public ForsRightsResponse forsRightsWithIp( String userId, String groupId, String passwd, String ipAddress ) {
+        logger.entry( userId, groupId, "****" );
+
+        try {
+            ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
+            request.setIpAddress( ipAddress );
+
+            logger.debug( "Sending request to {}", this.endpoint );
             return this.callerProxy.forsRights( request );
         }
         catch( Exception ex ) {
@@ -87,6 +112,22 @@ public class ForsService {
             proxy.getRequestContext().put("com.sun.xml.ws.request.timeout", REQUEST_TIMEOUT_DEFAULT_IN_MS);
 
             return port;
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    private ForsRightsRequest createUserRequest( String userId, String groupId, String passwd ) {
+        logger.entry( userId, groupId, "****" );
+
+        try {
+            ForsRightsRequest request = new ForsRightsRequest();
+            request.setUserIdAut( userId );
+            request.setGroupIdAut( groupId );
+            request.setPasswordAut( passwd );
+
+            return request;
         }
         finally {
             logger.exit();

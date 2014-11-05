@@ -24,5 +24,6 @@ public class JNDIResources {
     public static final String SOLR_URL_KEY = "solr.url";
     public static final String FORSRIGHTS_URL_KEY = "forsrights.url";
     public static final String AUTH_PRODUCT_NAME_KEY = "auth.product.name";
+    public static final String AUTH_USE_IP_KEY = "auth.use.ip";
 
 }
