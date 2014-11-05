@@ -12,12 +12,18 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
 
+import java.util.Enumeration;
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
+import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
 
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
@@ -78,10 +84,12 @@ public class UpdateService implements CatalogingUpdatePortType {
 
             logger.entry( updateRecordRequest );
 
+            logRequest();
+
             UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
             UpdateResponseWriter writer = new UpdateResponseWriter();
 
-            if( !authenticator.authenticateUser( reader.readUserId(), reader.readGroupId(), reader.readPassword() ) ) {
+            if( !authenticator.authenticateUser( wsContext, reader.readUserId(), reader.readGroupId(), reader.readPassword() ) ) {
                 writer.setError( Error.AUTHENTICATION_ERROR );
                 return writer.getResponse();
             }
@@ -192,7 +200,32 @@ public class UpdateService implements CatalogingUpdatePortType {
             MDC.remove( TRACKING_ID_LOG_CONTEXT );
         }
     }
-    
+
+    private void logRequest() {
+        MessageContext mc = wsContext.getMessageContext();
+        HttpServletRequest req = (HttpServletRequest)mc.get( MessageContext.SERVLET_REQUEST );
+
+        logger.info( "REQUEST:" );
+        logger.info( "======================================" );
+        logger.info( "Auth type: {}", req.getAuthType() );
+        logger.info( "Context path: {}", req.getContextPath() );
+        logger.info( "Content type: {}", req.getContentType() );
+        logger.info( "Content length: {}", req.getContentLengthLong() );
+        logger.info( "URI: {}", req.getRequestURI() );
+        logger.info( "Client address: {}", req.getRemoteAddr() );
+        logger.info( "Client host: {}", req.getRemoteHost() );
+        logger.info( "Client port: {}", req.getRemotePort() );
+        logger.info( "Headers" );
+        logger.info( "--------------------------------------" );
+        Enumeration<String> headerNames = req.getHeaderNames();
+        while( headerNames.hasMoreElements() ) {
+            String name = headerNames.nextElement();
+            logger.info( "{}: {}", name, req.getHeader( name ) );
+        }
+        logger.info( "======================================" );
+
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
@@ -206,6 +239,9 @@ public class UpdateService implements CatalogingUpdatePortType {
      * MDC constant for tackingId in the log files.
      */
     private static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
+
+    @Resource
+    WebServiceContext wsContext;
 
     /**
      * EJB for authentication.

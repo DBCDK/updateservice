@@ -61,6 +61,7 @@
         <custom.settings.forsrights.port>12900</custom.settings.forsrights.port>
         <custom.settings.forsrights.url>http://localhost:${custom.settings.forsrights.port}</custom.settings.forsrights.url>
         <custom.settings.auth.product.name>netpunkt.dk</custom.settings.auth.product.name>
+        <custom.settings.auth.use.ip>True</custom.settings.auth.use.ip>
     </properties>
     
 </project>

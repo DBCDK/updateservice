@@ -37,5 +37,12 @@ public class UpdateResponseWriterTest {
         instance = new UpdateResponseWriter();
         instance.addValidateResults( valErrors );
     }
-    
+
+    @Test
+    public void testBoolean() {
+        assertEquals( "true", Boolean.toString( true ) );
+        assertEquals( "false", Boolean.toString( false ) );
+        assertTrue( Boolean.valueOf( "True" ) );
+        assertFalse( Boolean.valueOf( "False" ) );
+    }
 }
