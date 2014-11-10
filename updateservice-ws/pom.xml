@@ -30,7 +30,7 @@
             <url>http://mavenrepo.dbc.dk/content/groups/public</url>
         </repository>
     </repositories>
-  
+
     <dependencies>
         <!-- ************************************************************* -->
         <!-- Java EE                                                       -->
@@ -101,7 +101,7 @@
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.2.4</version>
-        </dependency>                
+        </dependency>
 
         <!-- ************************************************************* -->
         <!-- Logging                                                       -->
@@ -120,7 +120,7 @@
 
         <!-- ************************************************************* -->
         <!-- JUnit                                                         -->
-        <!-- ************************************************************* -->        
+        <!-- ************************************************************* -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -261,6 +261,9 @@
                     <extension>true</extension>
                     <catalog>${basedir}/src/jax-ws-catalog.xml</catalog>
                     <target>2.0</target>
+                    <vmArgs>
+                        <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                    </vmArgs>
                 </configuration>
             </plugin>
         </plugins>
