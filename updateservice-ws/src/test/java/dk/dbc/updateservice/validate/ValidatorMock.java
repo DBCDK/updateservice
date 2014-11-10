@@ -17,25 +17,24 @@ public class ValidatorMock extends Validator {
     public ValidatorMock() {
         super();
     }
-    
+
     @Override
-    public void init() {        
+    public void init() {
         setLogger( XLoggerFactory.getXLogger( this.getClass() ) );
     }
-    
+
     public static Validator newInstance( String scriptResource ) throws IOException {
         Validator service = new ValidatorMock();
-        
+
         Properties props = IOUtils.loadProperties( ";", "dk/dbc/updateservice/ws/settings.properties",
                                                         "javascript/iscrum/settings.properties" );
         props.setProperty( "entryresource", scriptResource );
 
         JSEngine bean = new JSEngine();
-        bean.init();
         bean.initialize( props );
         service.setJavaScriptProvider( bean );
         service.init();
-        
+
         return service;
     }
 }

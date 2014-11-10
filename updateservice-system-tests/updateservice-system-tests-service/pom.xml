@@ -6,19 +6,19 @@
         <artifactId>updateservice-system-tests</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
-    
+
     <artifactId>updateservice-system-tests-service</artifactId>
     <packaging>jar</packaging>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
-        
+
         <container.id>glassfish4</container.id>
         <container.version>4.0</container.version>
         <container.http.port>${container.http1.port}</container.http.port>
-        
+
         <rawrepo.host>localhost</rawrepo.host>
         <rawrepo.version>1.0-SNAPSHOT</rawrepo.version>
         <rawrepo.schema.remote>https://svn.dbc.dk/repos/rawrepo-commons/trunk/access/schema/rawrepo.sql</rawrepo.schema.remote>
@@ -35,10 +35,10 @@
     <repositories>
         <repository>
             <id>mavenrepo.dbc.dk</id>
-            <url>http://mavenrepo.dbc.dk/content/groups/public</url>            
+            <url>http://mavenrepo.dbc.dk/content/groups/public</url>
         </repository>
     </repositories>
-    
+
     <pluginRepositories>
         <pluginRepository>
             <id>mavenrepo.dbc.dk</id>
@@ -122,16 +122,16 @@
             <version>1.0.13</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>    
+    </dependencies>
 
     <build>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <filtering>true</filtering>                
+                <filtering>true</filtering>
             </resource>
         </resources>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -220,7 +220,7 @@
                 </systemPropertyVariables>
               </configuration>
             </plugin>
-           
+
             <plugin>
                 <groupId>org.jvnet.jax-ws-commons</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
@@ -255,6 +255,9 @@
                     <verbose>true</verbose>
                     <extension>true</extension>
                     <catalog>${basedir}/src/jax-ws-catalog.xml</catalog>
+                    <vmArgs>
+                        <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                    </vmArgs>
                 </configuration>
             </plugin>
             <plugin>
