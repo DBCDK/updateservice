@@ -5,11 +5,16 @@ package dk.dbc.updateservice.javascript;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -27,8 +32,6 @@ import dk.dbc.updateservice.update.Updater;
  * @author stp
  */
 public class UpdaterRawRepo {
-	private static final XLogger logger = XLoggerFactory.getXLogger( UpdaterRawRepo.class );
-
 	/**
 	 * Fetch a record from the rawrepo.
 	 * 
@@ -45,14 +48,14 @@ public class UpdaterRawRepo {
 	 * @throws UnsupportedEncodingException 
 	 * 
 	 */
-	public static MarcRecord fetchRecord( String recordId, int libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
+	public static MarcRecord fetchRecord( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
 		
 		MarcRecord result = null;
 		try( Connection con = getConnection() ) {			
-			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance( con );
+			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
 
-			Record record = rawRepoDAO.fetchRecord( recordId, libraryNo );
+			Record record = rawRepoDAO.fetchRecord( recordId, Integer.valueOf( libraryNo ) );
 			if( record.getContent() == null ) {
 				result = new MarcRecord();
 			}
@@ -80,15 +83,37 @@ public class UpdaterRawRepo {
 	 * @throws SQLException 
 	 * @throws RawRepoException 
 	 */
-	public static boolean recordExists( String recordId, int libraryNo ) throws SQLException, NamingException, RawRepoException {
+	public static Boolean recordExists( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException {
 		logger.entry( recordId, libraryNo );
 		boolean result = false;
 		
 		try( Connection con = getConnection() ) {			
-			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance( con );
+			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
 			
-			result = rawRepoDAO.recordExists( recordId, libraryNo );			
+			result = rawRepoDAO.recordExists( recordId, Integer.valueOf( libraryNo ) );
 			
+			return result;
+		}
+		finally {
+			logger.exit( result );
+		}
+	}
+
+	public static List<MarcRecord> getRelationsChildren( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
+		logger.entry( recordId, libraryNo );
+		List<MarcRecord> result = null;
+
+		try( Connection con = getConnection() ) {
+			result = new ArrayList<>();
+
+			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
+			Set<RecordId> records = rawRepoDAO.getRelationsChildren( new RecordId( recordId, Integer.valueOf( libraryNo ) ) );
+			Iterator<RecordId> iterator = records.iterator();
+			while( iterator.hasNext() ) {
+				RecordId rawRepoRecordId = iterator.next();
+				result.add( fetchRecord( rawRepoRecordId.getBibliographicRecordId(), String.valueOf(rawRepoRecordId.getAgencyId())) );
+			}
+
 			return result;
 		}
 		finally {
@@ -113,4 +138,7 @@ public class UpdaterRawRepo {
 		
 		return ds.getConnection();
 	}
+
+	private static final XLogger logger = XLoggerFactory.getXLogger( UpdaterRawRepo.class );
+
 }
