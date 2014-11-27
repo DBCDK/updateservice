@@ -510,5 +510,7 @@ UnitTest.addFixture( "ClassificationData.__stripValue", function() {
     Assert.equalValue( "", ClassificationData.__stripValue( " " ), "" ); 
     Assert.equalValue( "", ClassificationData.__stripValue( "[" ), "" ); 
     Assert.equalValue( "", ClassificationData.__stripValue( "]" ), "" ); 
-    Assert.equalValue( "", ClassificationData.__stripValue( String.fromCharCode( 0xA4 ) ), "" ); 
+    Assert.equalValue( "", ClassificationData.__stripValue( String.fromCharCode( 0xA4 ) ), "" );
+
+    var date = new Date();
 } );

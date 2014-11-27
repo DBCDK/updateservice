@@ -97,7 +97,8 @@ public class UpdaterCommonRecordNoHoldingsTest {
         Record rec = RecordUtils.createRawRecord( "20611529", 870970 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
         when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( true );
+        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         
         updater.updateRecord( recData );
@@ -142,12 +143,15 @@ public class UpdaterCommonRecordNoHoldingsTest {
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         HashSet<Integer> localLibraries = new HashSet<>();
         localLibraries.add( 700100 );
-        
+
+        MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
+
         when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
-        when( rawRepoDAO.allAgenciesForBibliographicRecordId( "20611529" ) ).thenReturn( localLibraries );
-        when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        
-        updater.updateRecord( RecordUtils.loadMarcRecord( "dbcrec_single.xml" ) );
+        when( rawRepoDAO.allAgenciesForBibliographicRecordId("20611529") ).thenReturn( localLibraries );
+        when( rawRepoDAO.fetchRecord(rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId()) ).thenReturn( rec );
+        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+
+        updater.updateRecord( recData );
     }
     
     /**
@@ -175,17 +179,20 @@ public class UpdaterCommonRecordNoHoldingsTest {
     public void testCreateVolumeRecord_WithUnknownParent() throws Exception {
         Updater updater = new Updater( rawRepoDAO, holdingsItemsDAO, recordsHandler );
         updater.init();
-        
+
+        MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_volume.xml" );
+
         Record rec = RecordUtils.createRawRecord( "58442895", 870970 );
         when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
+        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         
         final HashSet<RecordId> references = new HashSet<>();
         references.add( new RecordId( "58442615", 870970 ) );        
         doThrow( new RawRepoException() ).when( rawRepoDAO ).setRelationsFrom( rec.getId(), references ); 
         
-        updater.updateRecord( RecordUtils.loadMarcRecord( "dbcrec_volume.xml" ) );
+        updater.updateRecord( recData );
     }
 
     /**
@@ -223,7 +230,8 @@ public class UpdaterCommonRecordNoHoldingsTest {
         Record rec = RecordUtils.createRawRecord( "58442895", 870970 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_volume.xml" );
         when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
+        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         when( rawRepoDAO.recordExists( "58442615", 870970 ) ).thenReturn( true );
         
@@ -276,20 +284,22 @@ public class UpdaterCommonRecordNoHoldingsTest {
     public void testUpdateSingleRecord_WithExtendedRecord() throws Exception {
         Updater updater = new Updater( rawRepoDAO, holdingsItemsDAO, recordsHandler );
         updater.init();
-        
+
+        MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single_v1.xml" );
+
         Record commonRec = RecordUtils.createRawRecord( RecordUtils.loadMarcRecord( "dbcrec_single.xml" ) );
         Record extRec = RecordUtils.createRawRecord( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
         Set<Integer> extLibraries = new HashSet<>();
         extLibraries.add( 700100 );
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn(new HashSet<Integer>());
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
+        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepoDAO.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
         when( rawRepoDAO.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
         when( rawRepoDAO.recordExists( extRec.getId().getBibliographicRecordId(), extRec.getId().getAgencyId() ) ).thenReturn( true );
         when( rawRepoDAO.fetchRecord( extRec.getId().getBibliographicRecordId(), extRec.getId().getAgencyId() ) ).thenReturn( extRec );
         when( rawRepoDAO.allAgenciesForBibliographicRecordId( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( extLibraries );
         
-        MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single_v1.xml" );
         updater.updateRecord( recData );
         
         // Verify calls to RawRepoDAO

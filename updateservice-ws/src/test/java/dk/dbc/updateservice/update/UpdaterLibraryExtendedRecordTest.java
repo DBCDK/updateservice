@@ -93,10 +93,11 @@ public class UpdaterLibraryExtendedRecordTest {
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
         when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
         when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( extRec );
-        
+        when( rawRepoDAO.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
+        when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( extRec );
+        when( recordsHandler.updateRecordForUpdate( extRec ) ).thenReturn( extRec );
+
         updater.updateRecord( extRec );
         
         // Verify update calls
@@ -161,10 +162,11 @@ public class UpdaterLibraryExtendedRecordTest {
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
         when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
         when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) ).thenReturn( true );
-        when( recordsHandler.hasClassificationsChanged( any( MarcRecord.class ), any( MarcRecord.class ) ) ).thenReturn( false );
-        when( recordsHandler.correctLibraryExtendedRecord( dbcRec, extRec ) ).thenReturn( emptyRec );
-        
+        when( rawRepoDAO.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
+        when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( emptyRec );
+        when( recordsHandler.updateRecordForUpdate(extRec) ).thenReturn( extRec );
+
         updater.updateRecord( extRec );
         
         // Verify update calls
