@@ -75,6 +75,7 @@ public class UpdaterLibraryLocalRecordTest {
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v1.xml" );
         when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
+        when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
         
         updater.updateRecord( recData );
         
@@ -117,10 +118,12 @@ public class UpdaterLibraryLocalRecordTest {
         updater.init();
         
         Record rec = RecordUtils.createRawRecord( "localrec_single_v1.xml" );
+        MarcRecord recData = RecordUtils.loadMarcRecord("localrec_single_v2.xml");
+
         when( rawRepoDAO.recordExists( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( true );
-        when( rawRepoDAO.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        
-        MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v2.xml" );
+        when( rawRepoDAO.fetchRecord(rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId()) ).thenReturn( rec );
+        when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
+
         updater.updateRecord( recData );
         
         // Verify calls to RawRepoDAO

@@ -112,13 +112,37 @@ var UpdaterEntryPoint = function() {
         Log.info( "Exit - ClassificationData.correctLibraryExtendedRecord(): " + libraryMarc );
         return JSON.stringify( DanMarc2Converter.convertFromDanMarc2( libraryMarc ) );
     }
-    
+
+    /**
+     * Changes the records content when it is being updated.
+     *
+     * @param {String}   dbcRecord The DBC record as a json.
+     *
+     * @returns {String} A json with the new record content.
+     */
+    function changeUpdateRecordForUpdate( dbcRecord ) {
+        var marc = DanMarc2Converter.convertToDanMarc2( JSON.parse( dbcRecord ) );
+
+        if( !marc.existField( /001/ ) ) {
+            return dbcRecord;
+        }
+
+        var date = new Date();
+        var dateStr = StringUtil.sprintf( "%4s%2s%2s%2s%2s%2s",
+                                          date.getFullYear(), date.getMonth() + 1, date.getDate(),
+                                          date.getHours(), date.getMinutes(), date.getSeconds() ).replace( " ", "0" );
+
+        marc.field( "001" ).append( "c", dateStr, true );
+        return JSON.stringify( DanMarc2Converter.convertFromDanMarc2( marc ) );
+    }
+
     return {
         'hasClassificationData': hasClassificationData,
         'hasClassificationsChanged': hasClassificationsChanged,
         'createLibraryExtendedRecord': createLibraryExtendedRecord,
         'updateLibraryExtendedRecord': updateLibraryExtendedRecord,
-        'correctLibraryExtendedRecord': correctLibraryExtendedRecord
+        'correctLibraryExtendedRecord': correctLibraryExtendedRecord,
+        'changeUpdateRecordForUpdate': changeUpdateRecordForUpdate
     };
 
 }();

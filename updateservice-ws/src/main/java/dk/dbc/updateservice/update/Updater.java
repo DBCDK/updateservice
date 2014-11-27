@@ -160,6 +160,8 @@ public class Updater {
         logger.entry( record );
         
         try {
+            record = recordsHandler.updateRecordForUpdate( record );
+
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
 
@@ -180,8 +182,9 @@ public class Updater {
             logger.error( "Update error: " + ex.getMessage(), ex );
             throw new UpdateException( ex.getMessage(), ex );
         }
-        
-        logger.exit();
+        finally {
+            logger.exit();
+        }
     }
     
     void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {

@@ -100,3 +100,7 @@ function updateLibraryExtendedRecord( dbcRecord, libraryRecord ) {
 function correctLibraryExtendedRecord( dbcRecord, libraryRecord ) {
     return UpdaterEntryPoint.correctLibraryExtendedRecord( dbcRecord, libraryRecord );    
 }
+
+function changeUpdateRecordForUpdate( dbcRecord ) {
+    return UpdaterEntryPoint.changeUpdateRecordForUpdate( dbcRecord );
+}

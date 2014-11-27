@@ -187,6 +187,35 @@ public class LibraryRecordsHandler {
 
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "correctLibraryExtendedRecord" ) );        
     }
+
+    public MarcRecord updateRecordForUpdate( MarcRecord dbcRecord ) throws JavaScriptException {
+        logger.entry( dbcRecord );
+
+        MarcRecord result = null;
+        try {
+            Gson gson = new Gson();
+            Object jsResult;
+
+            try {
+                jsResult = jsEngine.callEntryPoint( "changeUpdateRecordForUpdate", gson.toJson( dbcRecord ) );
+            } catch ( IllegalStateException ex ) {
+                logger.error( "Error when executing JavaScript function: changeUpdateRecordForUpdate", ex );
+                jsResult = false;
+            }
+
+            logger.debug("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+
+            if ( jsResult instanceof String ) {
+                result = ( gson.fromJson( jsResult.toString(), MarcRecord.class ) );
+                return result;
+            }
+
+            throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "changeUpdateRecordForUpdate" ) );
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
     
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
 
