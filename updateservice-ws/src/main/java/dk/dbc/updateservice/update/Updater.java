@@ -182,6 +182,9 @@ public class Updater {
             logger.error( "Update error: " + ex.getMessage(), ex );
             throw new UpdateException( ex.getMessage(), ex );
         }
+        catch( NumberFormatException ex ) {
+            throw new UpdateException( "Delfelt 001b skal indeholde et gyldigt tal", ex );
+        }
         finally {
             logger.exit();
         }
@@ -189,144 +192,163 @@ public class Updater {
     
     void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         logger.entry( record );
-        
-        String recId = MarcReader.getRecordValue( record, "001", "a" );
-        int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
-        
-        logger.info(  "Record id: [{}:{}]", recId, libraryId );
-        logger.info(  "Parent Record id: {}", parentId );
-        
-        // Fetch ids of local libraries for recId.
-        // Note: We remove RawRepoDAO.COMMON_LIBRARY from the set because the interface
-        // 		 returns *all* libraries and not only local libraries.
-        Set<Integer> localLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId( recId );
-        localLibraries.remove( RawRepoDAO.COMMON_LIBRARY );
-        logger.info(  "Local libraries: {}", localLibraries );
-        
-        if( !rawRepoDAO.recordExists( recId, libraryId ) && !localLibraries.isEmpty() ) {
-            logger.error( "Try to update common record [{}:{}], but local records exists: {}",
-                          recId, libraryId, recId, localLibraries );
-            throw new UpdateException( String.format( "It is not posible to update a common record when local records exists: {}", localLibraries ) );
-        }
-        
-        MarcRecord oldRecord = null;
-        if( rawRepoDAO.recordExists( recId, libraryId ) ) {
-            Record rawRecord = rawRepoDAO.fetchRecord( recId, libraryId );
-            if( rawRecord.getContent() != null ) {
-                oldRecord = decodeRecord( rawRecord.getContent() );
+
+        try {
+            String recId = MarcReader.getRecordValue(record, "001", "a");
+            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            String parentId = MarcReader.getRecordValue(record, "014", "a");
+
+            logger.info("Record id: [{}:{}]", recId, libraryId);
+            logger.info("Parent Record id: {}", parentId);
+
+            // Fetch ids of local libraries for recId.
+            // Note: We remove RawRepoDAO.COMMON_LIBRARY from the set because the interface
+            // 		 returns *all* libraries and not only local libraries.
+            Set<Integer> localLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId(recId);
+            localLibraries.remove(RawRepoDAO.COMMON_LIBRARY);
+            logger.info("Local libraries: {}", localLibraries);
+
+            if (!rawRepoDAO.recordExists(recId, libraryId) && !localLibraries.isEmpty()) {
+                logger.error("Try to update common record [{}:{}], but local records exists: {}",
+                        recId, libraryId, recId, localLibraries);
+                throw new UpdateException(String.format( "Det er ikke muligt at opdatere en fællespost med eksisterende lokalposter: %s", localLibraries ) );
             }
-        }
-        
-        if( oldRecord == null ) {
-            oldRecord = new MarcRecord();
-            oldRecord.setFields(  new ArrayList<MarcField>() );
-        }
-        
-        logger.info( "Current record in rawrepo:\n{}", oldRecord.toString() );
-        logger.info( "Saves record:\n{}", record.toString() );
-        saveRecord( encodeRecord( record ), recId, libraryId, parentId );
-        
-        if( recordsHandler.hasClassificationData( oldRecord ) && recordsHandler.hasClassificationData( record ) ) {
-            if( recordsHandler.hasClassificationsChanged( oldRecord, record ) ) {
-                logger.info(  "Classifications was changed for common record [{}:{}]", recId, libraryId );
-                Set<Integer> holdingsLibraries = holdingItemsDAO.getAgenciesThatHasHoldingsFor( recId );
-                for( Integer id : holdingsLibraries ) {
-                    logger.info(  "Local library for record: {}", id );
-                    if( rawRepoDAO.recordExists( recId, id ) ) {
-                        Record extRecord = rawRepoDAO.fetchRecord( recId, id );
-                        MarcRecord extRecordData = decodeRecord( extRecord.getContent() );
-                        if( !recordsHandler.hasClassificationData( extRecordData ) ) {
-                            logger.info( "Update classifications for extended library record: [{}:{}]", recId, id );
-                            updateLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, decodeRecord( extRecord.getContent() ) );
+
+            MarcRecord oldRecord = null;
+            if (rawRepoDAO.recordExists(recId, libraryId)) {
+                Record rawRecord = rawRepoDAO.fetchRecord(recId, libraryId);
+                if (rawRecord.getContent() != null) {
+                    oldRecord = decodeRecord(rawRecord.getContent());
+                }
+            }
+
+            if (oldRecord == null) {
+                oldRecord = new MarcRecord();
+                oldRecord.setFields(new ArrayList<MarcField>());
+            }
+
+            logger.info("Current record in rawrepo:\n{}", oldRecord.toString());
+            logger.info("Saves record:\n{}", record.toString());
+            saveRecord(encodeRecord(record), recId, libraryId, parentId);
+
+            if (recordsHandler.hasClassificationData(oldRecord) && recordsHandler.hasClassificationData(record)) {
+                if (recordsHandler.hasClassificationsChanged(oldRecord, record)) {
+                    logger.info("Classifications was changed for common record [{}:{}]", recId, libraryId);
+                    Set<Integer> holdingsLibraries = holdingItemsDAO.getAgenciesThatHasHoldingsFor(recId);
+                    for (Integer id : holdingsLibraries) {
+                        logger.info("Local library for record: {}", id);
+                        if (rawRepoDAO.recordExists(recId, id)) {
+                            Record extRecord = rawRepoDAO.fetchRecord(recId, id);
+                            MarcRecord extRecordData = decodeRecord(extRecord.getContent());
+                            if (!recordsHandler.hasClassificationData(extRecordData)) {
+                                logger.info("Update classifications for extended library record: [{}:{}]", recId, id);
+                                updateLibraryExtendedRecord(rawRepoDAO.fetchRecord(recId, libraryId), oldRecord, decodeRecord(extRecord.getContent()));
+                            } else {
+                                logger.info("Extended library record, [{}:{}], has its own classifications. Record not updated.", recId, id);
+                                enqueueRecord(extRecord.getId());
+                            }
+                        } else {
+                            logger.info("Create new extended library record: [{}:{}].", recId, id);
+                            createLibraryExtendedRecord(rawRepoDAO.fetchRecord(recId, libraryId), oldRecord, id);
                         }
-                        else {
-                            logger.info( "Extended library record, [{}:{}], has its own classifications. Record not updated.", recId, id );
-                            enqueueRecord( extRecord.getId() );                        
-                        }
-                    }
-                    else {
-                        logger.info( "Create new extended library record: [{}:{}].", recId, id );
-                        createLibraryExtendedRecord( rawRepoDAO.fetchRecord( recId, libraryId ), oldRecord, id );
                     }
                 }
             }
+            enqueueExtendedRecords(new RecordId(recId, libraryId));
         }
-        enqueueExtendedRecords( new RecordId( recId, libraryId ) );
-        
-        logger.exit();
+        catch( NumberFormatException ex ) {
+            throw new UpdateException( "Delfelt 001b indeholder ikke et gyldigt tal", ex );
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     void updateLibraryLocalRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, RawRepoException {
-        String recId = MarcReader.getRecordValue( record, "001", "a" );
-        int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
-        
-        saveRecord( encodeRecord( record ), recId, libraryId, parentId );        
+        try {
+            logger.entry( record );
+
+            String recId = MarcReader.getRecordValue(record, "001", "a");
+            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            String parentId = MarcReader.getRecordValue(record, "014", "a");
+
+            saveRecord(encodeRecord(record), recId, libraryId, parentId);
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
-        logger.entry( commonRecord, oldCommonRecordData, libraryId );
-        MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord( oldCommonRecordData, libraryId );
-        
-        String recId = MarcReader.getRecordValue( extRecord, "001", "a" );
-        logger.info( "Record id: [{}:{}]", recId, libraryId );
-        
-        logger.info(  "Save new library extended record:\n{}", extRecord );
-        saveRecord( encodeRecord( extRecord ), recId, libraryId, "" );
-        enqueueRecord( new RecordId( recId, libraryId ) );
-        
-        logger.exit();
+        try {
+            logger.entry(commonRecord, oldCommonRecordData, libraryId);
+            MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord(oldCommonRecordData, libraryId);
+
+            String recId = MarcReader.getRecordValue(extRecord, "001", "a");
+            logger.info("Record id: [{}:{}]", recId, libraryId);
+
+            logger.info("Save new library extended record:\n{}", extRecord);
+            saveRecord(encodeRecord(extRecord), recId, libraryId, "");
+            enqueueRecord(new RecordId(recId, libraryId));
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
-        logger.entry( commonRecord, oldCommonRecordData, record );
-        MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord( oldCommonRecordData, record );
-        
-        String recId = MarcReader.getRecordValue( record, "001", "a" );
-        int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
-        
-        logger.info( "Record id: [{}:{}]", recId, libraryId );
-        logger.info( "Parent Record id: {}", parentId );
-        logger.info( "Original library extended record:\n{}", record );
-        logger.info( "Overwrite existing library extended record:\n{}", extRecord );
-        saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
-        enqueueRecord( new RecordId( recId, libraryId ) );
+        try {
+            logger.entry(commonRecord, oldCommonRecordData, record);
+            MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord(oldCommonRecordData, record);
 
-        logger.exit();
+            String recId = MarcReader.getRecordValue(record, "001", "a");
+            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            String parentId = MarcReader.getRecordValue(record, "014", "a");
+
+            logger.info("Record id: [{}:{}]", recId, libraryId);
+            logger.info("Parent Record id: {}", parentId);
+            logger.info("Original library extended record:\n{}", record);
+            logger.info("Overwrite existing library extended record:\n{}", extRecord);
+            saveRecord(encodeRecord(extRecord), recId, libraryId, parentId);
+            enqueueRecord(new RecordId(recId, libraryId));
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, JavaScriptException, SQLException, UpdateException, JAXBException, RawRepoException {
-        logger.entry( commonRecord, record );
-        MarcRecord extRecord = record;
-        
-        if( commonRecord.getContent() != null ) {
-            MarcRecord commonRecData = decodeRecord( commonRecord.getContent() );
-            extRecord = recordsHandler.correctLibraryExtendedRecord( commonRecData, record );
-        }
-        
-        String recId = MarcReader.getRecordValue( record, "001", "a" );
-        int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+        try {
+            logger.entry(commonRecord, record);
+            MarcRecord extRecord = record;
 
-        logger.info( "Record id: [{}:{}]", recId, libraryId );
-        logger.info( "Parent Record id: {}", parentId );
-        logger.info( "Original library extended record:\n{}", record );
-
-        if( extRecord.getFields().isEmpty() ) {
-            logger.info( "Overwrite existing library extended record: Empty!" );
-            if( rawRepoDAO.recordExists( recId, libraryId ) ) {
-                saveRecord( null, recId, libraryId, parentId );
+            if (commonRecord.getContent() != null) {
+                MarcRecord commonRecData = decodeRecord(commonRecord.getContent());
+                extRecord = recordsHandler.correctLibraryExtendedRecord(commonRecData, record);
             }
-        }
-        else {
-            logger.info( "Overwrite existing library extended record:\n{}", extRecord );
-            saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
-        }
-        enqueueRecord( new RecordId( recId, libraryId ) );
 
-        logger.exit();
+            String recId = MarcReader.getRecordValue(record, "001", "a");
+            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            String parentId = MarcReader.getRecordValue(record, "014", "a");
+
+            logger.info("Record id: [{}:{}]", recId, libraryId);
+            logger.info("Parent Record id: {}", parentId);
+            logger.info("Original library extended record:\n{}", record);
+
+            if (extRecord.getFields().isEmpty()) {
+                logger.info("Overwrite existing library extended record: Empty!");
+                if (rawRepoDAO.recordExists(recId, libraryId)) {
+                    saveRecord(null, recId, libraryId, parentId);
+                }
+            } else {
+                logger.info("Overwrite existing library extended record:\n{}", extRecord);
+                saveRecord(encodeRecord(extRecord), recId, libraryId, parentId);
+            }
+            enqueueRecord(new RecordId(recId, libraryId));
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     public MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
@@ -344,29 +366,35 @@ public class Updater {
      * @throws UnsupportedEncodingException if the record can not be encoded in UTF-8
      */
     byte[] encodeRecord( MarcRecord record ) throws JAXBException, UnsupportedEncodingException {
-        logger.entry( record );
-        
-        if( record.getFields().isEmpty() ) {
-            return null;
-        }
-        
-        RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc( record );
+        byte[] result = null;
 
-        ObjectFactory objectFactory = new ObjectFactory();
-        JAXBElement<RecordType> jAXBElement = objectFactory.createRecord( marcXchangeType );
-        
-        JAXBContext jc = JAXBContext.newInstance( CollectionType.class );
-        Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty( Marshaller.JAXB_SCHEMA_LOCATION, "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd" );
-        
-        StringWriter recData = new StringWriter();        
-        marshaller.marshal( jAXBElement, recData );
-        
-        logger.info(  "Marshelled record: {}", recData.toString() );
-        byte[] result = recData.toString().getBytes( "UTF-8" );
-        
-        logger.exit( result );
-        return result;
+        try {
+            logger.entry(record);
+
+            if (record.getFields().isEmpty()) {
+                return null;
+            }
+
+            RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
+
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXchangeType);
+
+            JAXBContext jc = JAXBContext.newInstance(CollectionType.class);
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd");
+
+            StringWriter recData = new StringWriter();
+            marshaller.marshal(jAXBElement, recData);
+
+            logger.info("Marshelled record: {}", recData.toString());
+            result = recData.toString().getBytes("UTF-8");
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
     }
           
     /**
@@ -383,44 +411,47 @@ public class Updater {
      * @throws RawRepoException 
      */
     private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException, RawRepoException {
-        logger.entry( content, recId, libraryId, parentId );
-                
-        if( content == null ) {
-            if( !rawRepoDAO.recordExists( recId, libraryId ) ) {
-                String err = String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recId, libraryId );
-                logger.warn( err );
-                throw new UpdateException( err );
+        try {
+            logger.entry(content, recId, libraryId, parentId);
+
+            if (content == null) {
+                if (!rawRepoDAO.recordExists(recId, libraryId)) {
+                    String err = String.format("Record [%s|%s] can not be deleted, because it does not exist.", recId, libraryId);
+                    logger.warn(err);
+                    throw new UpdateException(err);
+                }
+
+                logger.info("Deleting record [{}:{}]", recId, libraryId);
+                rawRepoDAO.deleteRecord(new RecordId(recId, libraryId));
+                return;
             }
 
-            logger.info( "Deleting record [{}:{}]", recId, libraryId );
-            rawRepoDAO.deleteRecord( new RecordId( recId, libraryId ) );
-            return;
-        }
-        
-        if( !parentId.isEmpty() && !rawRepoDAO.recordExists( parentId, libraryId ) ) {
-            String err = String.format( "Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId );
-            logger.warn( err );
-            throw new UpdateException( err );
-        }
-        
-        final Record rawRepoRecord = rawRepoDAO.fetchRecord( recId, libraryId );
-        rawRepoRecord.setContent( content );
-        rawRepoDAO.saveRecord( rawRepoRecord );
+            if (!parentId.isEmpty() && !rawRepoDAO.recordExists(parentId, libraryId)) {
+                String err = String.format("Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId);
+                logger.warn(err);
+                throw new UpdateException(err);
+            }
 
-        if( RawRepoDAO.COMMON_LIBRARY == libraryId ) {
-            if( !parentId.isEmpty() ) {
-                linkToRecord( rawRepoRecord.getId(), new RecordId( parentId, libraryId ) );
+            final Record rawRepoRecord = rawRepoDAO.fetchRecord(recId, libraryId);
+            rawRepoRecord.setContent(content);
+            rawRepoDAO.saveRecord(rawRepoRecord);
+
+            if (RawRepoDAO.COMMON_LIBRARY == libraryId) {
+                if (!parentId.isEmpty()) {
+                    linkToRecord(rawRepoRecord.getId(), new RecordId(parentId, libraryId));
+                }
+            } else {
+                if (rawRepoDAO.recordExists(recId, RawRepoDAO.COMMON_LIBRARY)) {
+                    logger.info("Linker record [{}] -> [{}]", rawRepoRecord.getId(), new RecordId(recId, RawRepoDAO.COMMON_LIBRARY));
+                    linkToRecord(rawRepoRecord.getId(), new RecordId(recId, RawRepoDAO.COMMON_LIBRARY));
+                }
             }
+
+            rawRepoDAO.changedRecord(PROVIDER, rawRepoRecord.getId());
         }
-        else {
-            if( rawRepoDAO.recordExists( recId, RawRepoDAO.COMMON_LIBRARY ) ) {
-                logger.info( "Linker record [{}] -> [{}]", rawRepoRecord.getId(), new RecordId( recId, RawRepoDAO.COMMON_LIBRARY ) );
-                linkToRecord( rawRepoRecord.getId(), new RecordId( recId, RawRepoDAO.COMMON_LIBRARY ) );
-            }
+        finally {
+            logger.exit();
         }
-                
-        rawRepoDAO.changedRecord( PROVIDER, rawRepoRecord.getId() );
-        logger.exit();
     }
     
     /**
@@ -433,23 +464,39 @@ public class Updater {
      * @throws RawRepoException 
      */
     private void linkToRecord( RecordId id, RecordId refer_id ) throws SQLException, RawRepoException {
-        final HashSet<RecordId> references = new HashSet<>();
-        references.add( refer_id );
-        rawRepoDAO.setRelationsFrom( id, references );
+        try {
+            logger.entry(id, refer_id);
+
+            final HashSet<RecordId> references = new HashSet<>();
+            references.add(refer_id);
+            rawRepoDAO.setRelationsFrom(id, references);
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     private void enqueueRecord( RecordId id ) throws SQLException {
-        logger.entry( id );
-        
-        logger.info(  "Enqueue record: [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId() );
-        //rawRepoDAO.enqueue( id, PROVIDER, true, true );
-        logger.exit();
+        try {
+            logger.entry(id);
+            logger.info("Enqueue record: [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId());
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     private void enqueueExtendedRecords( RecordId commonRecId ) throws SQLException, RawRepoException {
-        Set<Integer> extLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId( commonRecId.getBibliographicRecordId() );
-        for( Integer libId : extLibraries ) {
-            enqueueRecord( new RecordId( commonRecId.getBibliographicRecordId(), libId ) );
+        try {
+            logger.entry(commonRecId);
+
+            Set<Integer> extLibraries = rawRepoDAO.allAgenciesForBibliographicRecordId(commonRecId.getBibliographicRecordId());
+            for (Integer libId : extLibraries) {
+                enqueueRecord(new RecordId(commonRecId.getBibliographicRecordId(), libId));
+            }
+        }
+        finally {
+            logger.exit();
         }
     }
     

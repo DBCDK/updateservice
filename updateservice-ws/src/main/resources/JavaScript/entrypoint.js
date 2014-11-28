@@ -27,7 +27,16 @@ function getValidateSchemas() {
  * @return {Boolean} true if the template exists, false otherwise.
  */
 function checkTemplate( name ) {
-    return name === "dataio" || TemplateContainer.get( name ) !== undefined;
+    Log.trace( StringUtil.sprintf( "Enter - checkTemplate( '%s' )", name ) );
+
+    var result = null;
+    try {
+        result = name === "dataio" || TemplateContainer.getUnoptimized( name ) !== undefined;
+        return result;
+    }
+    finally {
+        Log.trace( "Exit - checkTemplate(): " + result );
+    }
 }
 
 /**
@@ -39,17 +48,28 @@ function checkTemplate( name ) {
  * @return {String} A json string with an array of validation errors.
  */
 function validateRecord( templateName, record, settings ) {
-    if( templateName === "dataio" ) {
-        return JSON.stringify( [] );
-    };
-    
-    var rec = JSON.parse( record );
-    var templateProvider = function() { 
-        return TemplateContainer.get( templateName ); 
-    };
-    
-    var result = Validator.validateRecord( rec, templateProvider, settings );    
-    return JSON.stringify( result );
+    Log.trace( "Enter - validateRecord()" );
+
+    try {
+        var rec = JSON.parse( record );
+        var templateProvider = function () {
+            return TemplateContainer.get(templateName);
+        };
+
+        var result = null;
+
+        try {
+            result = Validator.validateRecord( rec, templateProvider, settings );
+        }
+        catch( ex ) {
+            result = [ ValidateErrors.recordError( "", StringUtil.sprintf( "Systemfejl ved validering: %s", ex ) ) ];
+        }
+
+        return JSON.stringify( result );
+    }
+    finally {
+        Log.trace( "Exit - validateRecord()" );
+    }
 }
 
 //-----------------------------------------------------------------------------

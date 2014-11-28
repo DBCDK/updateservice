@@ -12,7 +12,9 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
 
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.Resource;
@@ -79,15 +81,15 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @Override
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
+        logger.entry( updateRecordRequest );
+        UpdateResponseWriter writer = new UpdateResponseWriter();
+
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
-
-            logger.entry( updateRecordRequest );
 
             logRequest();
 
             UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
-            UpdateResponseWriter writer = new UpdateResponseWriter();
 
             if( !authenticator.authenticateUser( wsContext, reader.readUserId(), reader.readGroupId(), reader.readPassword() ) ) {
                 writer.setError( Error.AUTHENTICATION_ERROR );
@@ -112,7 +114,15 @@ public class UpdateService implements CatalogingUpdatePortType {
                 String libId = MarcReader.getRecordValue( record, "001", "b" );
 
                 logger.info( "Validate record [{}|{}]", recId, libId );
-                List<ValidationError> valErrors = validator.validateRecord( reader.readSchemaName(), record );
+                List<ValidationError> valErrors;
+                try {
+                    valErrors = validator.validateRecord( reader.readSchemaName(), record );
+                }
+                catch( EJBException ex ) {
+                    logger.warn( "Exception doing validation: {}", ex );
+                    writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
+                    return writer.getResponse();
+                }
 
                 writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
                 if( !valErrors.isEmpty() ) {
@@ -137,30 +147,29 @@ public class UpdateService implements CatalogingUpdatePortType {
                             updater.updateRecord( record );
                         }
                         catch( UpdateException ex ) {
-                            writer.setUpdateStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-                            logger.error( "Update error: {}", ex  );
+                            logger.warn( "Exception doing update: {}", ex);
+                            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
+                            return writer.getResponse();
                         }
                     }
                 }
             }
 
-            logger.exit( writer.getResponse() );
             return writer.getResponse();
         }
         catch( EJBException ex ) {
-            logger.error( "Catched EJB exception: {}", ex.getCause() );
-            throw ex;
+            logger.error( "Caught EJB Exception: {}", ex.getCause() );
+            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
+            return writer.getResponse();
         }
-        catch( JavaScriptException ex ) {
-            logger.error( "Catched javascript exception: {}", ex );
-            throw new EJBException( ex );
-        }
-        catch( RuntimeException ex ) {
-            logger.error( "Catched runtime exception: {}", ex );
-            throw new EJBException( ex );
+        catch( Exception ex ) {
+            logger.error( "Caught javascript exception: {}", ex );
+            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
+            return writer.getResponse();
         }
         finally {
-            MDC.remove( TRACKING_ID_LOG_CONTEXT );
+            MDC.remove( TRACKING_ID_LOG_CONTEXT);
+            logger.exit( writer.getResponse() );
         }
     }
 
@@ -186,13 +195,13 @@ public class UpdateService implements CatalogingUpdatePortType {
             List<Schema> names = validator.getValidateSchemas();
             
             GetSchemasResult response = new GetSchemasResult();
-            response.setSchemasStatus( SchemasStatusEnum.OK );
+            response.setSchemasStatus(SchemasStatusEnum.OK);
             response.getSchema().addAll( names );
                         
             return response;
         }
         catch( RuntimeException ex ) {
-            logger.error( "Catched runtime exception: {}", ex.getCause() );
+            logger.error( "Caught runtime exception: {}", ex.getCause() );
             throw ex;
         }
         finally {
@@ -224,6 +233,25 @@ public class UpdateService implements CatalogingUpdatePortType {
         }
         logger.info( "======================================" );
 
+    }
+
+    private UpdateResponseWriter convertUpdateErrorToResponse( Exception ex, UpdateStatusEnum status ) {
+        Throwable throwable = ex;
+        while( throwable != null && throwable.getClass().getPackage().getName().startsWith( "javax.ejb" ) ) {
+            throwable = throwable.getCause();
+        }
+
+        UpdateResponseWriter writer = new UpdateResponseWriter();
+        writer.setUpdateStatus( status );
+
+        ValidationError valError = new ValidationError();
+        HashMap<String, Object> map = new HashMap<>();
+        map.put( "message", throwable.getMessage() );
+        valError.setParams( map );
+
+        writer.addValidateResults( Arrays.asList( valError ) );
+
+        return writer;
     }
 
     //-------------------------------------------------------------------------
