@@ -8,6 +8,7 @@ import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.*;
 import dk.dbc.oss.ns.catalogingupdate.Error;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
@@ -96,65 +97,83 @@ public class UpdateService implements CatalogingUpdatePortType {
                 return writer.getResponse();
             }
 
-            if( !validator.checkValidateSchema( reader.readSchemaName() ) ) {
-                logger.warn( "Unknown validate schema: {}", reader.readSchemaName() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-            }
-            else if( !reader.isRecordSchemaValid() ) {
-                logger.warn( "Unknown record schema: {}", updateRecordRequest.getBibliographicRecord().getRecordSchema() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-            }
-            else if( !reader.isRecordPackingValid() ) {
-                logger.warn( "Unknown record packing: {}", updateRecordRequest.getBibliographicRecord().getRecordPacking() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-            }
-            else {
-                MarcRecord record = reader.readRecord();
-                String recId = MarcReader.getRecordValue( record, "001", "a" );
-                String libId = MarcReader.getRecordValue( record, "001", "b" );
+            try {
+                if (!validator.checkValidateSchema(reader.readSchemaName())) {
+                    logger.warn("Unknown validate schema: {}", reader.readSchemaName());
+                    writer.setUpdateStatus(UpdateStatusEnum.FAILED_INVALID_SCHEMA);
 
-                logger.info( "Validate record [{}|{}]", recId, libId );
-                List<ValidationError> valErrors;
-                try {
-                    valErrors = validator.validateRecord( reader.readSchemaName(), record );
-                }
-                catch( EJBException ex ) {
-                    logger.warn( "Exception doing validation: {}", ex );
-                    writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
                     return writer.getResponse();
                 }
+            }
+            catch( JavaScriptException ex ) {
+                logger.warn( "Exception doing checking validate schema: {}", ex );
+                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+                return writer.getResponse();
+            }
 
-                writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
-                if( !valErrors.isEmpty() ) {
-                    writer.addValidateResults( valErrors );
-                    writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
-                }
-                else {
-                    Options options = updateRecordRequest.getOptions();
-                    boolean doUpdate = true;
+            if( !reader.isRecordSchemaValid() ) {
+                logger.warn( "Unknown record schema: {}", updateRecordRequest.getBibliographicRecord().getRecordSchema() );
+                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+                return writer.getResponse();
+            }
 
-                    if( options != null && options.getOption() != null ) {
-                        if( options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY ) ) {
-                            doUpdate = false;
-                        }
+            if( !reader.isRecordPackingValid() ) {
+                logger.warn( "Unknown record packing: {}", updateRecordRequest.getBibliographicRecord().getRecordPacking() );
+                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+                return writer.getResponse();
+            }
+
+            MarcRecord record = reader.readRecord();
+            String recId = MarcReader.getRecordValue( record, "001", "a" );
+            String libId = MarcReader.getRecordValue( record, "001", "b" );
+
+            logger.info( "Validate record [{}|{}]", recId, libId );
+            List<ValidationError> valErrors;
+            try {
+                valErrors = validator.validateRecord( reader.readSchemaName(), record );
+            }
+            catch( EJBException ex ) {
+                logger.warn( "Exception doing validation: {}", ex );
+                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
+                return writer.getResponse();
+            }
+
+            writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
+            if( !valErrors.isEmpty() ) {
+                writer.addValidateResults( valErrors );
+                writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
+            }
+            else {
+                Options options = updateRecordRequest.getOptions();
+                boolean doUpdate = true;
+
+                if( options != null && options.getOption() != null ) {
+                    if( options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY ) ) {
+                        doUpdate = false;
                     }
+                }
 
-                    if( doUpdate ) {
-                        try {
-                            writer.setUpdateStatus( UpdateStatusEnum.OK );
+                if( doUpdate ) {
+                    try {
+                        writer.setUpdateStatus( UpdateStatusEnum.OK );
 
-                            logger.info( "Updating record [{}|{}]", recId, libId );
-                            updater.updateRecord( record );
-                        }
-                        catch( UpdateException ex ) {
-                            logger.warn( "Exception doing update: {}", ex);
-                            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-                            return writer.getResponse();
-                        }
+                        logger.info( "Updating record [{}|{}]", recId, libId );
+                        updater.updateRecord( record );
+                    }
+                    catch( UpdateException ex ) {
+                        logger.warn( "Exception doing update: {}", ex);
+                        writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
+                        return writer.getResponse();
                     }
                 }
             }
 
+            return writer.getResponse();
+        }
+        catch( AuthenticatorException ex ) {
+            logger.error( "Caught Authenticator Exception: {}", ex.getCause() );
+            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.OK );
+            writer.setError( Error.AUTHENTICATION_ERROR );
             return writer.getResponse();
         }
         catch( EJBException ex ) {
@@ -198,6 +217,14 @@ public class UpdateService implements CatalogingUpdatePortType {
             response.setSchemasStatus(SchemasStatusEnum.OK);
             response.getSchema().addAll( names );
                         
+            return response;
+        }
+        catch( JavaScriptException ex ) {
+            logger.error( "Caught JavaScript exception: {}", ex.getCause() );
+
+            GetSchemasResult response = new GetSchemasResult();
+            response.setSchemasStatus(SchemasStatusEnum.FAILED_INTERNAL_ERROR);
+
             return response;
         }
         catch( RuntimeException ex ) {

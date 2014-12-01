@@ -83,7 +83,7 @@ public class ValidateSchemasIT {
         
         request.setAuthentication( auth );
         
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testGetValidateSchemas" );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
         GetSchemasResult response = caller.getSchemas( request );
