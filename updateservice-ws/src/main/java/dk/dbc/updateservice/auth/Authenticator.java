@@ -38,7 +38,7 @@ public class Authenticator {
      * @return <code>true</code> if the user is authenticated, <code>false</code>
      *         otherwise.
      */
-    public boolean authenticateUser( WebServiceContext wsContext, String userId, String groupId, String passwd ) {
+    public boolean authenticateUser( WebServiceContext wsContext, String userId, String groupId, String passwd ) throws AuthenticatorException {
         logger.entry( userId, groupId, "****" );
 
         boolean result = false;
@@ -82,6 +82,9 @@ public class Authenticator {
             }
 
             return result;
+        }
+        catch( RuntimeException ex ) {
+            throw new AuthenticatorException( ex.getMessage(), ex );
         }
         finally {
             logger.exit( result );

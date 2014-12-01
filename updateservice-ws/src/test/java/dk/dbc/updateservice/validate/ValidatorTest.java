@@ -29,7 +29,7 @@ public class ValidatorTest {
     //!\name Validation of a record
     //@{
     @Test
-    public void testValidate_SingleRecordOK() throws IOException {
+    public void testValidate_SingleRecordOK() throws Exception {
         Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "record_ok.js" );
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
 
@@ -38,7 +38,7 @@ public class ValidatorTest {
     }
 
     @Test
-    public void testValidate_JSValidationErrors() throws IOException {
+    public void testValidate_JSValidationErrors() throws Exception {
         Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "record_error.js" );
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
 
@@ -50,8 +50,8 @@ public class ValidatorTest {
         assertEquals( "http://url.dbc.dk/path/doc.html", err.getParams().get( "url" ).toString() );
     }
 
-    @Test( expected = org.mozilla.javascript.JavaScriptException.class )
-    public void testValidate_JSException() throws IOException {
+    @Test( expected = JavaScriptException.class )
+    public void testValidate_JSException() throws Exception {
         Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_exception.js" );
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
     }
@@ -60,13 +60,13 @@ public class ValidatorTest {
     //!\name Validate schema
     //@{
     @Test
-    public void testValidate_ValidateSchemaNotFound() throws IOException, JavaScriptException {
+    public void testValidate_ValidateSchemaNotFound() throws Exception {
         Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_schema_not_found.js" );
         assertFalse( ejb.checkValidateSchema( "bog" ) );
     }
 
     @Test( expected = JavaScriptException.class )
-    public void testValidate_ValidateSchemaWrongResultTypeFromJS() throws IOException, JavaScriptException {
+    public void testValidate_ValidateSchemaWrongResultTypeFromJS() throws Exception {
         Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_schema_wrong_result_type.js" );
         assertFalse( ejb.checkValidateSchema( "bog" ) );
     }

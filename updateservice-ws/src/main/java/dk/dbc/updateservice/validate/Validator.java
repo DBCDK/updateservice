@@ -91,7 +91,7 @@ public class Validator {
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate" ) );
     }
     
-    public List<Schema> getValidateSchemas() {
+    public List<Schema> getValidateSchemas() throws JavaScriptException {
         logger.entry();
         List<Schema> result = new ArrayList<>();
 
@@ -107,7 +107,7 @@ public class Validator {
         return result;
     }
 
-    public List<ValidationError> validateRecord( String validateSchema, MarcRecord record ) {
+    public List<ValidationError> validateRecord( String validateSchema, MarcRecord record ) throws JavaScriptException {
         logger.entry( validateSchema, record );
         List<ValidationError> result = new ArrayList<>();
 

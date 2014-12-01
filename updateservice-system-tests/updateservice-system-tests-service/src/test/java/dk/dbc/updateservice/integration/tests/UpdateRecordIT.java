@@ -11,14 +11,7 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
-import dk.dbc.updateservice.integration.service.Authentication;
-import dk.dbc.updateservice.integration.service.Error;
-import dk.dbc.updateservice.integration.service.Options;
-import dk.dbc.updateservice.integration.service.UpdateOptionEnum;
-import dk.dbc.updateservice.integration.service.UpdateRecordRequest;
-import dk.dbc.updateservice.integration.service.UpdateRecordResult;
-import dk.dbc.updateservice.integration.service.UpdateStatusEnum;
-import dk.dbc.updateservice.integration.service.ValidateEntry;
+import dk.dbc.updateservice.integration.service.*;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -33,6 +26,7 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import dk.dbc.updateservice.integration.service.Error;
 import org.junit.After;
 import org.junit.AfterClass;
 
@@ -126,7 +120,7 @@ public class UpdateRecordIT {
         }
     }
 
-    @Test( expected = javax.xml.ws.WebServiceException.class )
+    @Test
     public void testRecordWithInvalidValidateSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
 
@@ -137,7 +131,7 @@ public class UpdateRecordIT {
 
         request.setAuthentication( auth );
         request.setSchemaName( "Unknown-Schema" );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testRecordWithInvalidValidateSchema" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
 
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -164,7 +158,7 @@ public class UpdateRecordIT {
         
         request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testRecordWithInvalidRecordSchema" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordSchema( "Unknown-RecordSchema" );
         
@@ -192,7 +186,7 @@ public class UpdateRecordIT {
         
         request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testRecordWithInvalidRecordPacking" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordPacking( "Unknown-RecordPacking" );
         
@@ -223,7 +217,7 @@ public class UpdateRecordIT {
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
         request.setOptions( options );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testValidateRecordWithFailure" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -254,7 +248,7 @@ public class UpdateRecordIT {
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
         request.setOptions( options );
-        request.setTrackingId( "trackingId" );
+        request.setTrackingId( "testValidateRecordWithSuccess" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_record.xml" ) );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -412,14 +406,15 @@ public class UpdateRecordIT {
         UpdateRecordResult response = caller.updateRecord( request );
         
         assertNotNull( response );
-        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
-            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
-        {
-            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
-            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
-        }
         assertEquals( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, response.getUpdateStatus() );
-        assertNull( response.getValidateInstance() );
+        assertNotNull(response.getValidateInstance());
+        assertNotNull( response.getValidateInstance().getValidateEntry());
+        assertEquals(1, response.getValidateInstance().getValidateEntry().size());
+        ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, entry.getWarningOrError() );
+        assertNull( entry.getOrdinalPositionOfField() );
+        assertNull( entry.getOrdinalPositionOfSubField() );
+        assertNotSame( "", entry.getMessage() );
 
         try (final Connection connection = newRawRepoConnection()) {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
