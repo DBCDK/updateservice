@@ -8,6 +8,7 @@ UnitTest.doTests = function() {
 };
 
 // Include iScrum modules
+use( "AuthenticatorEntryPointTests" );
 use( "ClassificationData_UnitTests" );
 use( "UpdaterEntryPoint" );
 

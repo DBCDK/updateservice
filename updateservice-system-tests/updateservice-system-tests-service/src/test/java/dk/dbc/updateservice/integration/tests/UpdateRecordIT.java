@@ -209,7 +209,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -240,7 +240,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -277,7 +277,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -308,7 +308,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -353,7 +353,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -394,7 +394,7 @@ public class UpdateRecordIT {
         
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -435,7 +435,7 @@ public class UpdateRecordIT {
 
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
 
         request.setAuthentication( auth );
@@ -476,7 +476,7 @@ public class UpdateRecordIT {
 
         auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
 
         request.setAuthentication( auth );
@@ -517,7 +517,7 @@ public class UpdateRecordIT {
 
         auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
 
         request.setAuthentication( auth );
@@ -540,7 +540,7 @@ public class UpdateRecordIT {
         // Update common record
         Authentication auth = new Authentication();
         auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( AUTH_OK_GROUP_ID );
+        auth.setGroupIdAut( "870970" );
         auth.setPasswordAut( AUTH_OK_PASSWD );
         
         request.setAuthentication( auth );
@@ -569,6 +569,7 @@ public class UpdateRecordIT {
         
         // Update associated record
         request = new UpdateRecordRequest();
+        auth.setGroupIdAut( "010100" );
         request.setAuthentication( auth );
         request.setSchemaName( BOOK_ASSOCIATED_TEMPLATE_NAME );
         request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
@@ -592,15 +593,16 @@ public class UpdateRecordIT {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
             
             assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
-            assertTrue( rawRepo.recordExists( "20611529", 700100 ) );
+            assertTrue( rawRepo.recordExists( "20611529", 10100 ) );
 
             Set<Integer> localLibrariesSet = rawRepo.allAgenciesForBibliographicRecordId( "20611529" );
             assertEquals( 2, localLibrariesSet.size() );
-            assertTrue( localLibrariesSet.contains( 700100 ) );
+            assertTrue( localLibrariesSet.contains( 10100 ) );
             assertTrue( localLibrariesSet.contains( 870970 ) );
             
             Iterator<Integer> iterator = localLibrariesSet.iterator();
-            assertEquals( 700100, iterator.next().longValue() );
+            assertEquals( 870970, iterator.next().longValue() );
+            assertEquals( 10100, iterator.next().longValue() );
         }
     }
     

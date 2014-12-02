@@ -58,7 +58,7 @@ public class ForsService {
             return this.callerProxy.forsRights( request );
         }
         catch( Exception ex ) {
-            logger.error( "Got exception: {}", ex );
+            logger.error( "ForsService.forsRights: Caught exception: ", ex );
             throw ex;
         }
         finally {
@@ -87,7 +87,7 @@ public class ForsService {
             return this.callerProxy.forsRights( request );
         }
         catch( Exception ex ) {
-            logger.error( "Got exception: {}", ex );
+            logger.error( "ForsService.forsRightsWithIp: Caught exception: ", ex );
             throw ex;
         }
         finally {

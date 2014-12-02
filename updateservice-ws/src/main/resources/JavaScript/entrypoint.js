@@ -1,9 +1,18 @@
 //-----------------------------------------------------------------------------
+use( "AuthenticatorEntryPoint" );
 use( "ClassificationData" );
 use( "Marc" );
 use( "TemplateContainer" );
 use( "UpdaterEntryPoint" );
 use( "Validator" );
+
+//-----------------------------------------------------------------------------
+//                  Entry points for authenticator EJB
+//-----------------------------------------------------------------------------
+
+function authenticateRecord( record, userId, groupId ) {
+    return AuthenticatorEntryPoint.authenticateRecord( record, userId, groupId );
+}
 
 //-----------------------------------------------------------------------------
 //                  Entry points for validator EJB
