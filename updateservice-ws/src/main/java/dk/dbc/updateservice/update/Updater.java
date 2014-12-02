@@ -163,7 +163,7 @@ public class Updater {
             record = recordsHandler.updateRecordForUpdate( record );
 
             String recId = MarcReader.getRecordValue( record, "001", "a" );
-            int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ) );
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
             if( libraryId == RawRepoDAO.COMMON_LIBRARY ) {
                 updateCommonRecord( record );
@@ -195,7 +195,7 @@ public class Updater {
 
         try {
             String recId = MarcReader.getRecordValue(record, "001", "a");
-            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
             logger.info("Record id: [{}:{}]", recId, libraryId);
@@ -269,7 +269,7 @@ public class Updater {
             logger.entry( record );
 
             String recId = MarcReader.getRecordValue(record, "001", "a");
-            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
             saveRecord(encodeRecord(record), recId, libraryId, parentId);
@@ -302,7 +302,7 @@ public class Updater {
             MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord(oldCommonRecordData, record);
 
             String recId = MarcReader.getRecordValue(record, "001", "a");
-            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
             logger.info("Record id: [{}:{}]", recId, libraryId);
@@ -328,7 +328,7 @@ public class Updater {
             }
 
             String recId = MarcReader.getRecordValue(record, "001", "a");
-            int libraryId = Integer.parseInt(MarcReader.getRecordValue(record, "001", "b"));
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
             logger.info("Record id: [{}:{}]", recId, libraryId);

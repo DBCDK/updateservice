@@ -2,19 +2,27 @@
 package dk.dbc.updateservice.auth;
 
 //-----------------------------------------------------------------------------
+import com.google.gson.Gson;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.Ressource;
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.IOUtils;
+import dk.dbc.iscrumjs.ejb.JSEngine;
+import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateful;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
+import java.io.IOException;
 import java.util.Properties;
 
 //-----------------------------------------------------------------------------
@@ -24,6 +32,35 @@ import java.util.Properties;
 @Stateful
 @LocalBean
 public class Authenticator {
+    //-------------------------------------------------------------------------
+    //              Java EE
+    //-------------------------------------------------------------------------
+
+    //!\name Construction
+    //@{
+    @PostConstruct
+    public void init() {
+        logger.entry();
+
+        try {
+            logger.info("Classpath: {}", System.getProperty("classpath"));
+
+            if (jsProvider != null) {
+                try {
+                    jsProvider.initialize(IOUtils.loadProperties(Authenticator.class.getClassLoader(),
+                            ";", "dk/dbc/updateservice/ws/settings.properties",
+                            "javascript/iscrum/settings.properties"));
+                } catch (IOException | IllegalArgumentException ex) {
+                    logger.catching(XLogger.Level.WARN, ex);
+                }
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+    //@}
+
     //-------------------------------------------------------------------------
     //              Business logic
     //-------------------------------------------------------------------------
@@ -84,11 +121,32 @@ public class Authenticator {
             return result;
         }
         catch( RuntimeException ex ) {
+            logger.error( "Caught exception:", ex );
             throw new AuthenticatorException( ex.getMessage(), ex );
         }
         finally {
             logger.exit( result );
         }
+    }
+
+    public boolean authenticateRecord( MarcRecord record, String userId, String groupId ) throws JavaScriptException {
+        logger.entry( record, userId, groupId );
+        Object jsResult;
+        try {
+            jsResult = jsProvider.callEntryPoint( "authenticateRecord", new Gson().toJson( record ), userId, groupId );
+        } catch ( IllegalStateException ex ) {
+            logger.error( "Error when executing JavaScript to check the validate schema.", ex);
+            jsResult = false;
+        }
+
+        logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
+
+        if ( jsResult instanceof Boolean ) {
+            logger.exit();
+            return ( ( Boolean ) jsResult );
+        }
+
+        throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate" ) );
     }
 
     //-------------------------------------------------------------------------
@@ -102,4 +160,7 @@ public class Authenticator {
      */
     @Resource( lookup = JNDIResources.SETTINGS_NAME )
     private Properties settings;
+
+    @EJB
+    private JSEngine jsProvider;
 }

@@ -124,6 +124,11 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
 
             MarcRecord record = reader.readRecord();
+            if( !authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() ) ) {
+                writer.setError( Error.AUTHENTICATION_ERROR );
+                return writer.getResponse();
+            }
+
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             String libId = MarcReader.getRecordValue( record, "001", "b" );
 
@@ -171,13 +176,13 @@ public class UpdateService implements CatalogingUpdatePortType {
             return writer.getResponse();
         }
         catch( AuthenticatorException ex ) {
-            logger.error( "Caught Authenticator Exception: {}", ex.getCause() );
-            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.OK );
+            logger.error( "Caught Authenticator Exception: {}", ex );
+            writer = new UpdateResponseWriter();
             writer.setError( Error.AUTHENTICATION_ERROR );
             return writer.getResponse();
         }
         catch( EJBException ex ) {
-            logger.error( "Caught EJB Exception: {}", ex.getCause() );
+            logger.error( "Caught EJB Exception: {}", ex );
             writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
             return writer.getResponse();
         }
