@@ -4,6 +4,7 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -19,6 +20,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import static org.mockito.Matchers.any;
 import org.mockito.Mock;
+
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -121,14 +124,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify calls to create extended record
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );
     
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
-        //rawRepoOrder.verify( rawRepoDAO, never() ).enqueue( any( RecordId.class ), any( String.class ), any( Boolean.class ), any( Boolean.class ) );
+        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ), eq( MarcXChangeMimeType.MARCXCHANGE ) );
     }
 
     /**
@@ -194,12 +196,12 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify that an extended record is *not* created.
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
+        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ), eq( MarcXChangeMimeType.MARCXCHANGE ) );
     }
 
     /**
@@ -267,12 +269,12 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify that an extended record is *not* updated.
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );    
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
+        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ), eq( MarcXChangeMimeType.MARCXCHANGE ) );
     }
 
     /**
@@ -338,13 +340,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify calls to create extended record
         rawRepoOrder.verify( rawRepoDAO, never() ).saveRecord( any( Record.class ) );
     
         rawRepoOrder.verify( rawRepoDAO, never() ).setRelationsFrom( any( RecordId.class ), any( HashSet.class ) );
-        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ) );
+        rawRepoOrder.verify( rawRepoDAO, never() ).changedRecord( any( String.class ), any( RecordId.class ), eq( MarcXChangeMimeType.MARCXCHANGE ) );
     }
     
     /**
@@ -418,7 +420,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify calls to create extended record
         rawRepoOrder.verify( rawRepoDAO ).saveRecord( argRecord.capture() );
@@ -428,7 +430,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         final HashSet<RecordId> references = new HashSet<>();
         references.add( new RecordId( extRecord.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) );
         rawRepoOrder.verify( rawRepoDAO ).setRelationsFrom( extRecord.getId(), references );
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, extRecord.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, extRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /**
@@ -505,7 +507,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify calls to create extended record
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );
@@ -587,7 +589,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
 
         // Verify calls to create extended record
         rawRepoOrder.verify( recordsHandler ).hasClassificationData( extRecData );

@@ -4,6 +4,7 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -111,7 +112,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         verify( rawRepoDAO, never() ).setRelationsFrom( null, null );        
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId() );
+        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /**
@@ -248,7 +249,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         references.add( new RecordId( "58442615", 870970 ) );                
         verify( rawRepoDAO ).setRelationsFrom( rec.getId(), references );
         
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId() );
+        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
     
     /**
@@ -311,7 +312,6 @@ public class UpdaterCommonRecordNoHoldingsTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
         
-        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId() );
-        //rawRepoOrder.verify( rawRepoDAO ).enqueue( extRec.getId(), Updater.PROVIDER, true, true );
+        rawRepoOrder.verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 }

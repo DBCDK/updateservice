@@ -14,6 +14,7 @@ import dk.dbc.iscrum.records.marcxchange.RecordType;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -422,7 +423,9 @@ public class Updater {
                 }
 
                 logger.info("Deleting record [{}:{}]", recId, libraryId);
-                rawRepoDAO.deleteRecord(new RecordId(recId, libraryId));
+                Record record = rawRepoDAO.fetchRecord( recId, libraryId );
+                record.setDeleted( true );
+                rawRepoDAO.saveRecord( record );
                 return;
             }
 
@@ -447,7 +450,7 @@ public class Updater {
                 }
             }
 
-            rawRepoDAO.changedRecord(PROVIDER, rawRepoRecord.getId());
+            rawRepoDAO.changedRecord( PROVIDER, rawRepoRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
         }
         finally {
             logger.exit();
