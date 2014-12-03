@@ -3,6 +3,7 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
+import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcReader;
@@ -127,7 +128,7 @@ public class Updater {
             try {
                 holdingItemsDAO = HoldingsItemsDAO.newInstance( holdingItemsDataSource.getConnection() );
             }
-            catch( ClassNotFoundException | SQLException ex ) {
+            catch( HoldingsItemsException | SQLException ex ) {
                 logger.error( "Unable to initialize the holdingsitems database source", ex );
             }
         }
@@ -259,6 +260,9 @@ public class Updater {
         }
         catch( NumberFormatException ex ) {
             throw new UpdateException( "Delfelt 001b indeholder ikke et gyldigt tal", ex );
+        }
+        catch( HoldingsItemsException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             logger.exit();
