@@ -3,6 +3,7 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import static org.junit.Assert.assertEquals;
@@ -87,7 +88,7 @@ public class UpdaterLibraryLocalRecordTest {
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
         
         verify( rawRepoDAO, never() ).setRelationsFrom( null, null );        
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId() );
+        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /**
@@ -133,7 +134,7 @@ public class UpdaterLibraryLocalRecordTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
-        verify( rawRepoDAO, never() ).setRelationsFrom( null, null );        
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId() );
+        verify( rawRepoDAO, never() ).setRelationsFrom( null, null );
+        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 }

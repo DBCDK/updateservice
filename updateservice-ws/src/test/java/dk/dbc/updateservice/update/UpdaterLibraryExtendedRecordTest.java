@@ -3,6 +3,7 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -112,7 +113,7 @@ public class UpdaterLibraryExtendedRecordTest {
         final HashSet<RecordId> references = new HashSet<>();
         references.add( new RecordId( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) );                
         verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId() );
+        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /**
