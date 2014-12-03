@@ -13,6 +13,11 @@ var AuthenticatorEntryPoint = function() {
         Log.trace( "Enter - AuthenticatorEntryPoint.authenticateRecord()" );
 
         try {
+            // DBC login can update any record
+            if( groupId === "010100" ) {
+                return true;
+            }
+
             var marc = DanMarc2Converter.convertToDanMarc2( JSON.parse( record ) );
             var libId = marc.getValue(/001/, /b/);
 
