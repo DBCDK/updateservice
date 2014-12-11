@@ -3,7 +3,7 @@
     "url" : "/",
     "method" : "POST",
     "bodyPatterns" : [ {
-      "equalTo" : "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body><forsRightsRequest xmlns=\"http://oss.dbc.dk/ns/forsrights\"><userIdAut>netpunkt</userIdAut><groupIdAut>010100</groupIdAut><passwordAut>20Koster</passwordAut><ipAddress>127.0.0.1</ipAddress></forsRightsRequest></S:Body></S:Envelope>"
+      "equalTo" : "<?xml version='1.0' encoding='UTF-8'?><S:Envelope xmlns:S=\"http://schemas.xmlsoap.org/soap/envelope/\"><S:Body><forsRightsRequest xmlns=\"http://oss.dbc.dk/ns/forsrights\"><userIdAut>netpunkt</userIdAut><groupIdAut>010100</groupIdAut><passwordAut>20Koster</passwordAut><ipAddress>127.12.14.16</ipAddress></forsRightsRequest></S:Body></S:Envelope>"
     } ]
   },
   "response" : {

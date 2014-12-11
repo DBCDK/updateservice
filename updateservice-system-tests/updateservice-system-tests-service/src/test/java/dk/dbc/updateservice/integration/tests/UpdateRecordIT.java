@@ -2,6 +2,7 @@
 package dk.dbc.updateservice.integration.tests;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcReader;
@@ -12,34 +13,24 @@ import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.*;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.xml.parsers.ParserConfigurationException;
-
 import dk.dbc.updateservice.integration.service.Error;
 import org.junit.After;
 import org.junit.AfterClass;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.junit.Assert.*;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-import org.xml.sax.SAXException;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -59,7 +50,10 @@ public class UpdateRecordIT {
     private static final String AUTH_OK_PASSWD = "20Koster";
     private static final String AUTH_BAD_PASSWD = "wrong_passwd";
 
-    
+    private static final String X_FORWARDED_FOR_HEADER = "x-forwarded-for";
+    private static final String X_FORWARDED_HOST_HEADER = "x-forwarded-host";
+    private static final String X_FORWARDED_SERVER_HEADER = "x-forwarded-server";
+
     public UpdateRecordIT() {        
     }
     
@@ -134,7 +128,12 @@ public class UpdateRecordIT {
         request.setTrackingId( "testRecordWithInvalidValidateSchema" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
 
-        UpdateServiceCaller caller = new UpdateServiceCaller();
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
         UpdateRecordResult response = caller.updateRecord( request );
 
         assertNotNull( response );
@@ -161,8 +160,13 @@ public class UpdateRecordIT {
         request.setTrackingId( "testRecordWithInvalidRecordSchema" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordSchema( "Unknown-RecordSchema" );
-        
-        UpdateServiceCaller caller = new UpdateServiceCaller();
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put(X_FORWARDED_FOR_HEADER, Collections.singletonList("127.12.14.16, 127.37.185.18"));
+        headers.put(X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put(X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
         UpdateRecordResult response = caller.updateRecord( request );
         
         assertNotNull( response );
@@ -189,8 +193,13 @@ public class UpdateRecordIT {
         request.setTrackingId( "testRecordWithInvalidRecordPacking" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/record_validate_failure.xml" ) );
         request.getBibliographicRecord().setRecordPacking( "Unknown-RecordPacking" );
-        
-        UpdateServiceCaller caller = new UpdateServiceCaller();
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
         UpdateRecordResult response = caller.updateRecord( request );
         
         assertNotNull( response );
@@ -574,8 +583,13 @@ public class UpdateRecordIT {
         request.setSchemaName( BOOK_ASSOCIATED_TEMPLATE_NAME );
         request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/associated_record.xml" ) );
-        
-        caller = new UpdateServiceCaller();
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        caller = new UpdateServiceCaller( headers );
         response = caller.updateRecord( request );
 
         // Check volume record is updated.
@@ -597,12 +611,8 @@ public class UpdateRecordIT {
 
             Set<Integer> localLibrariesSet = rawRepo.allAgenciesForBibliographicRecordId( "20611529" );
             assertEquals( 2, localLibrariesSet.size() );
-            assertTrue( localLibrariesSet.contains( 10100 ) );
-            assertTrue( localLibrariesSet.contains( 870970 ) );
-            
-            Iterator<Integer> iterator = localLibrariesSet.iterator();
-            assertEquals( 870970, iterator.next().longValue() );
-            assertEquals( 10100, iterator.next().longValue() );
+            assertTrue(localLibrariesSet.contains(10100));
+            assertTrue(localLibrariesSet.contains(870970));
         }
     }
     
