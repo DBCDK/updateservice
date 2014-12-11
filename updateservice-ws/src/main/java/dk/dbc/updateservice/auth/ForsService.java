@@ -1,14 +1,14 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.auth;
 
-import javax.xml.ws.BindingProvider;
-
 import dk.dbc.forsrights.service.ForsRightsPortType;
 import dk.dbc.forsrights.service.ForsRightsRequest;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.ForsRightsService;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import javax.xml.ws.BindingProvider;
 
 //-----------------------------------------------------------------------------
 /**
@@ -77,7 +77,7 @@ public class ForsService {
 	 * @return A response from forsrights.
 	 */
 	public ForsRightsResponse forsRightsWithIp( String userId, String groupId, String passwd, String ipAddress ) {
-        logger.entry( userId, groupId, "****" );
+        logger.entry( userId, groupId, "****", ipAddress );
 
         try {
             ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
