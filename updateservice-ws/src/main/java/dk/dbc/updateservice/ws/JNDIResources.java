@@ -13,7 +13,8 @@ public class JNDIResources {
     //              JDBC Resources
     //-------------------------------------------------------------------------
 
-    public static final String JDBC_RAW_REPO_NAME = "jdbc/updateservice/raw-repo";
+    public static final String JDBC_RAW_REPO_READONLY_NAME = "jdbc/updateservice/raw-repo-readonly";
+    public static final String JDBC_RAW_REPO_WRITABLE_NAME = "jdbc/updateservice/raw-repo-writable";
     public static final String JDBC_HOLDINGITEMS_NAME = "jdbc/updateservice/holdingitems";
 
     //-------------------------------------------------------------------------

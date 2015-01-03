@@ -2,8 +2,7 @@
 package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.holdingsitems.HoldingsItemsDAO;
-import dk.dbc.rawrepo.RawRepoDAO;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -25,10 +24,10 @@ public class UpdaterTest {
     }
     
     @Mock
-    RawRepoDAO rawRepoDAO;
+    RawRepo rawRepo;
     
     @Mock
-    HoldingsItemsDAO holdingsItemsDAO;
+    HoldingsItems holdingsItems;
     
     @Mock
     LibraryRecordsHandler recordsHandler;
@@ -64,7 +63,7 @@ public class UpdaterTest {
      */
     @Test( expected = NullPointerException.class )
     public void testUpdateRecord_NullRecord() throws Exception {
-        Updater updater = new Updater( rawRepoDAO, holdingsItemsDAO, recordsHandler );
+        Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
         updater.init();
         updater.updateRecord( null );
     }

@@ -2,25 +2,23 @@
 package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
-import java.util.HashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import static org.mockito.Matchers.any;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
 
 //-----------------------------------------------------------------------------
 /**
@@ -37,7 +35,7 @@ public class UpdaterLibraryExtendedRecordTest {
     }
     
     @Mock
-    RawRepoDAO rawRepoDAO;
+    RawRepo rawRepo;
         
     @Mock
     LibraryRecordsHandler recordsHandler;
@@ -84,7 +82,7 @@ public class UpdaterLibraryExtendedRecordTest {
      */
     @Test
     public void testCreateRecord_WithClassificationData() throws Exception {
-        Updater updater = new Updater( rawRepoDAO, null, recordsHandler );
+        Updater updater = new Updater( rawRepo, null, recordsHandler );
         updater.init();
         
         MarcRecord dbcRec = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
@@ -92,9 +90,9 @@ public class UpdaterLibraryExtendedRecordTest {
         
         Record rawDbcRec = RecordUtils.createRawRecord( dbcRec );
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
-        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
-        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( rawRepo.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
+        when( rawRepo.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
+        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( extRec );
         when( recordsHandler.updateRecordForUpdate( extRec ) ).thenReturn( extRec );
@@ -105,15 +103,12 @@ public class UpdaterLibraryExtendedRecordTest {
         verify( recordsHandler ).correctLibraryExtendedRecord( dbcRec, extRec );
         
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
-        verify( rawRepoDAO ).saveRecord( argRecord.capture() );
+        verify( rawRepo ).saveRecord( argRecord.capture(), eq( "" ) );
         assertEquals( rawExtRec.getId(), argRecord.getValue().getId() );
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( extRec, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
-        final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY ) );                
-        verify( rawRepoDAO ).setRelationsFrom( rawExtRec.getId(), references );
-        verify( rawRepoDAO ).changedRecord( Updater.PROVIDER, rawExtRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
+        verify( rawRepo ).changedRecord( Updater.PROVIDER, rawExtRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /**
@@ -152,7 +147,7 @@ public class UpdaterLibraryExtendedRecordTest {
      */
     @Test
     public void testCreateRecord_WithNoClassificationData() throws Exception {
-        Updater updater = new Updater( rawRepoDAO, null, recordsHandler );
+        Updater updater = new Updater( rawRepo, null, recordsHandler );
         updater.init();
         
         MarcRecord dbcRec = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
@@ -161,9 +156,9 @@ public class UpdaterLibraryExtendedRecordTest {
         
         Record rawDbcRec = RecordUtils.createRawRecord( dbcRec );
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
-        when( rawRepoDAO.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
-        when( rawRepoDAO.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepoDAO.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( rawRepo.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
+        when( rawRepo.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
+        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( emptyRec );
         when( recordsHandler.updateRecordForUpdate(extRec) ).thenReturn( extRec );

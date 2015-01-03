@@ -39,6 +39,9 @@ fi
 echo "Try to setup postgresql"
 $PG_HOME/bin/initdb -D $BASEDIR/home/postgresql-cluster -A trust --locale=da_DK.UTF-8
 
+echo "Copy configuration"
+cp $BASEDIR/postgresql.conf $BASEDIR/home/postgresql-cluster/.
+
 echo "Try to start postgresql"
 $PG_HOME/bin/pg_ctl start -w -D $BASEDIR/home/postgresql-cluster -l $BASEDIR/home/postgresql.log -o "-h $PG_HOST -p $PG_PORT"  
 

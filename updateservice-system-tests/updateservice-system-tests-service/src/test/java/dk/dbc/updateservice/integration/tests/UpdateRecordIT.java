@@ -322,7 +322,7 @@ public class UpdateRecordIT {
         
         request.setAuthentication( auth );
         request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setTrackingId( "testValidateRecordWithUpdatedRecordType_singleRecord" );
+        request.setTrackingId( "testUpdateRecordWithNewRecordType_singleRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_single_record.xml" ) );
         
         UpdateServiceCaller caller = new UpdateServiceCaller();
@@ -345,7 +345,7 @@ public class UpdateRecordIT {
         Options options = new Options();
         options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
         request.setOptions( options );
-        request.setTrackingId( "testValidateRecordWithUpdatedRecordType_mainRecord" );
+        request.setTrackingId( "testUpdateRecordWithNewRecordType_mainRecord" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_main_record.xml" ) );
         
         caller = new UpdateServiceCaller();

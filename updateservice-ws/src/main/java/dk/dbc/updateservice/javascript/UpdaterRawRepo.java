@@ -2,6 +2,20 @@
 package dk.dbc.updateservice.javascript;
 
 //-----------------------------------------------------------------------------
+
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.rawrepo.RawRepoDAO;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.update.Updater;
+import dk.dbc.updateservice.ws.JNDIResources;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -9,21 +23,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
-import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.ws.JNDIResources;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.updateservice.update.Updater;
 
 //-----------------------------------------------------------------------------
 /**
@@ -134,7 +133,7 @@ public class UpdaterRawRepo {
 	 */
 	private static Connection getConnection() throws NamingException, SQLException {
 		InitialContext ctx = new InitialContext();
-		DataSource ds = (DataSource) ctx.lookup( JNDIResources.JDBC_RAW_REPO_NAME );
+		DataSource ds = (DataSource) ctx.lookup( JNDIResources.JDBC_RAW_REPO_READONLY_NAME );
 		
 		return ds.getConnection();
 	}

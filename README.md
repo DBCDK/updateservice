@@ -16,8 +16,11 @@ Når servicen er deployet kan den tilgås via følgende:
 
 Servicen bruger disse resourcer:
 
-* **jdbc/updateservice/raw-repo**: JDBC-resource til råpostrepositoriet. 
-* **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen.
+* **jdbc/updateservice/raw-repo-readonly**: Readonly JDBC-resource til råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
+* **jdbc/updateservice/raw-repo-writable**: Skrivbar JDBC-resource til råpostrepositoriet. Denne resource skal være
+transaktionssikker, da den bruges til at ændre råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.xa.PGXADataSource*.
+* **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen. UpdateService læser kun fra denne database,
+så resourcen behøver ikke være transaktionssikker. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
 * **updateservice/settings**: Custom resource med ekstra settings.
 
 **updateservice/settings** skal være af typen *Properties* med følgende værdier:
