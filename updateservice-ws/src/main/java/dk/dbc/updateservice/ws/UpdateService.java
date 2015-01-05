@@ -2,6 +2,8 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
+import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
@@ -12,11 +14,9 @@ import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
-
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
+import org.slf4j.MDC;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -24,15 +24,12 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
-
-import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
-import com.sun.xml.ws.developer.SchemaValidation;
+import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
 
 //-----------------------------------------------------------------------------
 /**
@@ -124,8 +121,19 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
 
             MarcRecord record = reader.readRecord();
-            if( !authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() ) ) {
-                writer.setError( Error.AUTHENTICATION_ERROR );
+            List<ValidationError> authErrors;
+            try {
+                authErrors = authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() );
+            }
+            catch( EJBException ex ) {
+                logger.warn( "Exception doing authentication: {}", ex );
+                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
+                return writer.getResponse();
+            }
+
+            if( !authErrors.isEmpty() ) {
+                writer.addValidateResults( authErrors );
+                writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
                 return writer.getResponse();
             }
 
