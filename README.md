@@ -34,6 +34,11 @@ at bruge denne webservice.
 brugere. Angives værdien *True* sendes IP-adressen med. Hvis settingen indeholder en anden værdi eller hvis den er 
 helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 
+#### PostgreSQL
+
+For at JDBC-forbindelserne virker med transaktioner skal featuren *prepared_transactions* være aktiveret i PostgreSQL.
+Ellers vil transaktioner blive afbrudt når UpdateService forsøger at opdaterer en post i råpostrepositoriet.
+
 ### Logging
 
 Til logning af diverse beskeder anvendes logback. Servicen 2 system properties til det:
