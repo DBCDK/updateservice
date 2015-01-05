@@ -11,6 +11,7 @@ import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrumjs.ejb.JSEngine;
 import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.ws.ValidationError;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -23,8 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Properties;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -128,24 +128,37 @@ public class Authenticator {
         }
     }
 
-    public boolean authenticateRecord( MarcRecord record, String userId, String groupId ) throws JavaScriptException {
+    public List<ValidationError> authenticateRecord( MarcRecord record, String userId, String groupId ) throws JavaScriptException {
         logger.entry( record, userId, groupId );
-        Object jsResult;
+        List<ValidationError> result = new ArrayList<>();
+
         try {
-            jsResult = jsProvider.callEntryPoint( "authenticateRecord", new Gson().toJson( record ), userId, groupId );
-        } catch ( IllegalStateException ex ) {
-            logger.error( "Error when executing JavaScript to check the validate schema.", ex);
-            jsResult = false;
+            Object jsResult;
+            try {
+                jsResult = jsProvider.callEntryPoint( "authenticateRecord", new Gson().toJson( record ), userId, groupId );
+            }
+            catch( IllegalStateException ex ) {
+                logger.error( "Error when executing JavaScript to authenticate the record", ex );
+                jsResult = "";
+            }
+
+            logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
+
+            if( jsResult instanceof String ) {
+                Gson gson = new Gson();
+                ValidationError[] validationErrors = gson.fromJson( jsResult.toString(), ValidationError[].class );
+
+                result.addAll( Arrays.asList( validationErrors ) );
+                logger.trace( "Number of errors: {}", result.size() );
+
+                return result;
+            }
+
+            throw new JavaScriptException( String.format( "The JavaScript function %s must return a String value.", "authenticateRecord" ) );
         }
-
-        logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
-
-        if ( jsResult instanceof Boolean ) {
-            logger.exit();
-            return ( ( Boolean ) jsResult );
+        finally {
+            logger.exit( result );
         }
-
-        throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate" ) );
     }
 
     //-------------------------------------------------------------------------

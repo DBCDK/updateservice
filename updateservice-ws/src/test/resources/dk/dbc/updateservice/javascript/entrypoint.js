@@ -10,6 +10,8 @@ UnitTest.doTests = function() {
 // Include iScrum modules
 use( "AuthenticatorEntryPointTests" );
 use( "ClassificationData_UnitTests" );
+use( "DBCAuthenticatorTests" );
+use( "FBSAuthenticatorTests" );
 use( "UpdaterEntryPoint" );
 
 // Including unittests modules

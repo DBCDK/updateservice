@@ -1,5 +1,7 @@
 //-----------------------------------------------------------------------------
 use( "DanMarc2Converter" );
+use( "DBCAuthenticator" );
+use( "FBSAuthenticator" );
 use( "Marc" );
 use( "MarcClasses" );
 use( "Log" );
@@ -9,24 +11,25 @@ EXPORTED_SYMBOLS = [ 'AuthenticatorEntryPoint' ];
 
 //-----------------------------------------------------------------------------
 var AuthenticatorEntryPoint = function() {
+    var authenticators = [
+        DBCAuthenticator,
+        FBSAuthenticator
+    ];
+
     function authenticateRecord( record, userId, groupId ) {
         Log.trace( "Enter - AuthenticatorEntryPoint.authenticateRecord()" );
 
         try {
-            // DBC login can update any record
-            if( groupId === "010100" ) {
-                return true;
-            }
-
             var marc = DanMarc2Converter.convertToDanMarc2( JSON.parse( record ) );
-            var libId = marc.getValue(/001/, /b/);
 
-            if( libId === groupId ) {
-                return true;
+            for( var i = 0; i < authenticators.length; i++ ) {
+                var authenticator = authenticators[ i ];
+                if( authenticator.canAuthenticate( marc, userId, groupId ) === true ) {
+                    return JSON.stringify( authenticator.authenticateRecord( marc, userId, groupId ) );
+                }
             }
 
-            Log.debug( "Try to update/delete non local record: ", libId, " !== ", groupId );
-            return false;
+            return JSON.stringify( [ ValidateErrors.recordError( "", "Der eksistere ikke en authenticator for denne post eller bruger." ) ] );
         }
         finally {
             Log.trace( "Exit - AuthenticatorEntryPoint.authenticateRecord()" );

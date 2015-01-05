@@ -115,6 +115,37 @@ public class UpdateRecordIT {
     }
 
     @Test
+    public void testRecordWithWrongAuthenticationRights() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( "700400" );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+
+        request.setAuthentication( auth );
+        request.setSchemaName( BOOK_TEMPLATE_NAME );
+        request.setTrackingId( "testRecordWithWrongAuthenticationRights" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/wrong_auth_rights_record.xml" ) );
+
+        UpdateServiceCaller caller = new UpdateServiceCaller();
+        UpdateRecordResult response = caller.updateRecord( request );
+
+        assertNotNull( response );
+        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
+        assertNotNull( response.getValidateInstance() );
+        assertNotNull( response.getValidateInstance().getValidateEntry() );
+        assertEquals( 1, response.getValidateInstance().getValidateEntry().size() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 0 ).getMessage() );
+
+        try( final Connection connection = newRawRepoConnection() ) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+
+            assertFalse( rawRepo.recordExists( "20611529", 870970 ) );
+        }
+    }
+
+    @Test
     public void testRecordWithInvalidValidateSchema() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
 
