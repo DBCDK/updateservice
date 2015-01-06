@@ -71,12 +71,16 @@ var FBSAuthenticator = function() {
             var agencyId = record.getValue( /001/, /b/ );
 
             if( !RawRepoClient.recordExists( recId, agencyId ) ) {
+                if( record.matchValue( /996/, /a/, RegExp( groupId ) ) ) {
+                    return [];
+                }
+
                 return [ValidateErrors.recordError("", StringUtil.sprintf("Brugeren '%s' har ikke ret til at oprette posten '%s'", groupId, recId))];
             }
 
             var curRecord = RawRepoClient.fetchRecord( recId, agencyId );
             var curOwner = curRecord.getValue( /996/, /a/ );
-            if( curOwner !== "RET" ) {
+            if( !( curOwner === "RET" || AGENCY_IDS.indexOf( curOwner ) > -1 ) ) {
                 return [ValidateErrors.recordError("", StringUtil.sprintf("Brugeren '%s' har ikke ret til at opdatere posten '%s'", groupId, recId))];
             }
 
