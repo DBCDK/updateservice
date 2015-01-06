@@ -40,5 +40,5 @@ UnitTest.addFixture( "AuthenticatorEntryPoint.authenticateRecord", function() {
 
     Assert.equalValue( "Unknown library",
                        AuthenticatorEntryPoint.authenticateRecord( JSON.stringify( record ), "netpunkt", "999900" ),
-                       JSON.stringify( [ ValidateErrors.recordError( "", "Der eksistere ikke en authenticator for denne post eller bruger." ) ] ) );
+                       JSON.stringify( [ ValidateErrors.recordError( "", "Der eksisterer ikke en authenticator for denne post eller bruger." ) ] ) );
 } );
