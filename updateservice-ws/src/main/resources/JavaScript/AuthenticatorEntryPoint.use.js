@@ -29,7 +29,7 @@ var AuthenticatorEntryPoint = function() {
                 }
             }
 
-            return JSON.stringify( [ ValidateErrors.recordError( "", "Der eksistere ikke en authenticator for denne post eller bruger." ) ] );
+            return JSON.stringify( [ ValidateErrors.recordError( "", "Der eksisterer ikke en authenticator for denne post eller bruger." ) ] );
         }
         finally {
             Log.trace( "Exit - AuthenticatorEntryPoint.authenticateRecord()" );
