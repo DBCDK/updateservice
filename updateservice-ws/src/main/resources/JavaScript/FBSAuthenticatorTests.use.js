@@ -31,7 +31,26 @@ UnitTest.addFixture( "FBSAuthenticator.authenticateRecord", function() {
                        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
                        [ ValidateErrors.recordError( "", "Brugeren '700400' har ikke ret til at oprette posten '1 234 567 8'" ) ] );
 
-    RawRepoClientCore.clear();
+    record = new Record();
+    record.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 700400"
+    );
+    Assert.equalValue( "Creation of common FBS-record",
+                       FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
+                       [] );
+
+    record = new Record();
+    record.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 800400"
+    );
+    Assert.equalValue( "Creation of common FBS-record for other library",
+                       FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
+                       [ ValidateErrors.recordError( "", "Brugeren '700400' har ikke ret til at oprette posten '1 234 567 8'" ) ] );
+
     curRecord = new Record();
     curRecord.fromString(
         "001 00 *a 1 234 567 8 *b 870970\n" +
@@ -48,8 +67,8 @@ UnitTest.addFixture( "FBSAuthenticator.authenticateRecord", function() {
     Assert.equalValue( "Update of common record: 996a_c !== RET",
                        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
                        [ ValidateErrors.recordError( "", "Brugeren '700400' har ikke ret til at opdatere posten '1 234 567 8'" ) ] );
-
     RawRepoClientCore.clear();
+
     curRecord = new Record();
     curRecord.fromString(
         "001 00 *a 1 234 567 8 *b 870970\n" +
@@ -66,8 +85,8 @@ UnitTest.addFixture( "FBSAuthenticator.authenticateRecord", function() {
     Assert.equalValue( "Update of common record: 996a_c == RET, but no 996a_n",
                        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
                        [ ValidateErrors.recordError( "", "Brugeren '700400' har ikke ret til at opdatere posten '1 234 567 8' for andre biblioteker end '700400'" ) ] );
-
     RawRepoClientCore.clear();
+
     curRecord = new Record();
     curRecord.fromString(
         "001 00 *a 1 234 567 8 *b 870970\n" +
@@ -85,8 +104,8 @@ UnitTest.addFixture( "FBSAuthenticator.authenticateRecord", function() {
     Assert.equalValue( "Update of common record: 996a_c == RET, but 996a_n !== 700400",
                        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
                        [ ValidateErrors.recordError( "", "Brugeren '700400' har ikke ret til at opdatere posten '1 234 567 8' for andre biblioteker end '700400'" ) ] );
-
     RawRepoClientCore.clear();
+
     curRecord = new Record();
     curRecord.fromString(
         "001 00 *a 1 234 567 8 *b 870970\n" +
@@ -104,4 +123,43 @@ UnitTest.addFixture( "FBSAuthenticator.authenticateRecord", function() {
     Assert.equalValue( "Update of common record: 996a_c == RET and 996a_n === 700400",
                        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
                        [] );
+    RawRepoClientCore.clear();
+
+    curRecord = new Record();
+    curRecord.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 700400\n"
+    );
+    RawRepoClientCore.addRecord( curRecord );
+
+    record = new Record();
+    record.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 700400\n"
+    );
+    Assert.equalValue( "Update of common FBS-record: 996a_c == 700400 and 996a_n === 700400",
+        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
+        [] );
+    RawRepoClientCore.clear();
+
+    curRecord = new Record();
+    curRecord.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 716100\n"
+    );
+    RawRepoClientCore.addRecord( curRecord );
+
+    record = new Record();
+    record.fromString(
+        "001 00 *a 1 234 567 8 *b 870970\n" +
+        "004 00 *a e *r n\n" +
+        "996 00 *a 700400\n"
+    );
+    Assert.equalValue( "Update of common FBS-record: 996a_c == 716100 and 996a_n === 700400",
+        FBSAuthenticator.authenticateRecord( record, "netpunkt", "700400" ),
+        [] );
+    RawRepoClientCore.clear();
 } );
