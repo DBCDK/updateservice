@@ -34,12 +34,12 @@ import java.util.List;
 //-----------------------------------------------------------------------------
 /**
  * Implements the Update web service.
- * <p/>
+ *
  * The web services uses 3 EJB's to implement its functionality:
  * <dl>
  *  <dt>Validator</dt>
  *  <dd>
- *      Validates a record by using an JavaScript engine. This EJB also has 
+ *      Validates a record by using an JavaScript engine. This EJB also has
  *      the responsibility to return a list of valid validation schemes.
  *  </dd>
  *  <dt>Updater</dt>
@@ -50,9 +50,9 @@ import java.util.List;
  *  <dd>EJB to execute JavaScript.</dd>
  * </dl>
  * Graphically it looks like this:
- * <p/>
- * <img src="doc-files/ejbs.png" />
- * 
+ *
+ * <img src="doc-files/ejbs.png" alt="ejbs.png">
+ *
  * @author stp
  */
 @WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/update/catalogingUpdate.wsdl" )
@@ -69,12 +69,12 @@ public class UpdateService implements CatalogingUpdatePortType {
      *  <li>Validation and update of the record</li>
      * </ol>
      * The actual operation is specified in the request by {@link Options}
-     * 
+     *
      * @param updateRecordRequest The request.
-     * 
+     *
      * @return Returns an instance of UpdateRecordResult with the status of the
      *         status and result of the update.
-     * 
+     *
      * @throws EJBException in the case of an error.
      */
     @Override
@@ -207,29 +207,29 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     /**
      * WS operation to return a list of validation schemes.
-     * <p>
-     * The actual lookup of validation schemes is done by the Validator EJB 
-     * ({@link Validator#getValidateSchemas())
-     * 
+     *
+     * The actual lookup of validation schemes is done by the Validator EJB
+     * ({@link Validator#getValidateSchemas ()})
+     *
      * @param getValidateSchemasRequest The request.
-     * 
+     *
      * @return Returns an instance of GetValidateSchemasResult with the list of
      *         validation schemes.
-     * 
+     *
      * @throws EJBException In case of an error.
      */
     @Override
     public GetSchemasResult getSchemas( GetSchemasRequest getValidateSchemasRequest ) {
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId() );
-            
+
             logger.entry( getValidateSchemasRequest );
             List<Schema> names = validator.getValidateSchemas();
-            
+
             GetSchemasResult response = new GetSchemasResult();
             response.setSchemasStatus(SchemasStatusEnum.OK);
             response.getSchema().addAll( names );
-                        
+
             return response;
         }
         catch( JavaScriptException ex ) {
@@ -302,7 +302,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      * Logger instance to write entries to the log files.
      */
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-    
+
     /**
      * MDC constant for tackingId in the log files.
      */
@@ -322,7 +322,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @EJB
     Validator validator;
-    
+
     /**
      * EJB to update records in rawrepo.
      */

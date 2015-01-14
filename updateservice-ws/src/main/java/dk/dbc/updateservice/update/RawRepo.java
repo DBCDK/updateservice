@@ -143,8 +143,8 @@ public class RawRepo {
      * <p>
      * If the record does not exist in the RawRepo then it will be created.
      *
-     * @param recId
-     * @param agencyId
+     * @param recId String
+     * @param agencyId Integer
      *
      * @return The RawRepo record.
      *
@@ -187,7 +187,7 @@ public class RawRepo {
      *
      * @return The RawRepo record.
      *
-     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
+     * @throws UnsupportedOperationException UnsupportedOperationException
      */
     public Record fetchCommonRecord( MarcRecord record ) {
         throw new UnsupportedOperationException( "Not implementated yet!" );

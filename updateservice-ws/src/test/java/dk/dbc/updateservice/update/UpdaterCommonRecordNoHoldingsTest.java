@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 //-----------------------------------------------------------------------------
 /**
  * Testing of update of common records, that do not have any holdings.
- * 
+ *
  * @author stp
  */
 public class UpdaterCommonRecordNoHoldingsTest {
@@ -36,28 +36,28 @@ public class UpdaterCommonRecordNoHoldingsTest {
 
     public UpdaterCommonRecordNoHoldingsTest() {
     }
-    
+
     @Mock
     RawRepo rawRepo;
-    
+
     @Mock
     HoldingsItems holdingsItems;
-    
+
     @Mock
     LibraryRecordsHandler recordsHandler;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-    }    
-    
+    }
+
     //-------------------------------------------------------------------------
     //              Tests of updateRecord arguments
     //-------------------------------------------------------------------------
-   
-    /**
+
+    /*
      * Create a new single record with no local record.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -72,23 +72,23 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *          The record is created in the rawrepo.
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void testCreateSingleRecord() throws Exception {
         Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
         updater.init();
-        
+
         Record rec = RecordUtils.createRawRecord( "20611529", 870970 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( true );
         when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        
+
         updater.updateRecord( recData );
-        
+
         // Verify calls to RawRepoDAO
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepo ).saveRecord( argRecord.capture(), eq( "" ) );
@@ -99,9 +99,9 @@ public class UpdaterCommonRecordNoHoldingsTest {
         verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
-    /**
+    /*
      * Create a new single record with an existing local record.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -109,7 +109,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
-     *          Create a new common single record with the same id as the 
+     *          Create a new common single record with the same id as the
      *          local record.
      *      </dd>
      *      <dt>Then</dt>
@@ -117,14 +117,14 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *          Throw UpdateException.
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
-     */    
+     *
+     * @throws Exception
+     */
     @Test( expected = UpdateException.class )
     public void testCreateSingleRecord_WithLocalRecord() throws Exception {
         Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
         updater.init();
-        
+
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         HashSet<Integer> localLibraries = new HashSet<>();
         localLibraries.add( 700100 );
@@ -138,11 +138,11 @@ public class UpdaterCommonRecordNoHoldingsTest {
 
         updater.updateRecord( recData );
     }
-    
-    /**
-     * Try to create a volume record that points to a main record, that does 
+
+    /*
+     * Try to create a volume record that points to a main record, that does
      * not exist.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -157,8 +157,8 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *          Throw UpdateException.
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test( expected = UpdateException.class )
     public void testCreateVolumeRecord_WithUnknownParent() throws Exception {
@@ -172,18 +172,18 @@ public class UpdaterCommonRecordNoHoldingsTest {
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        
+
         final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( "58442615", 870970 ) );        
+        references.add( new RecordId( "58442615", 870970 ) );
         doThrow( new UpdateException() ).when( rawRepo ).saveRecord( rec, "58442615" );
-        
+
         updater.updateRecord( recData );
     }
 
-    /**
-     * Create a new volume record in a rawrepo, that points to an existing 
+    /*
+     * Create a new volume record in a rawrepo, that points to an existing
      * main record.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -198,20 +198,20 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *          <ol>
      *              <li>The volume record is stored in rawrepo</li>
      *              <li>
-     *                  There is a relation from the main record to the volume 
+     *                  There is a relation from the main record to the volume
      *                  record
      *              </li>
      *          </ol>
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void testCreateVolumeRecord_WithValidParent() throws Exception {
         Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
         updater.init();
-        
+
         Record rec = RecordUtils.createRawRecord( "58442895", 870970 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_volume.xml" );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
@@ -219,9 +219,9 @@ public class UpdaterCommonRecordNoHoldingsTest {
         when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         when( rawRepo.recordExists( "58442615", 870970 ) ).thenReturn( true );
-        
+
         updater.updateRecord( recData );
-        
+
         // Verify calls to RawRepoDAO
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepo ).saveRecord( argRecord.capture(), eq( "58442615" ) );
@@ -230,15 +230,15 @@ public class UpdaterCommonRecordNoHoldingsTest {
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         final HashSet<RecordId> references = new HashSet<>();
-        references.add( new RecordId( "58442615", 870970 ) );                
+        references.add( new RecordId( "58442615", 870970 ) );
         verify( rawRepo ).saveRecord( rec, "58442615" );
-        
+
         verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
-    
-    /**
+
+    /*
      * Update an existing single record with existing extended records.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -262,9 +262,9 @@ public class UpdaterCommonRecordNoHoldingsTest {
      *          </ol>
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
-     */    
+     *
+     * @throws Exception
+     */
     @Test
     public void testUpdateSingleRecord_WithExtendedRecord() throws Exception {
         Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
@@ -286,7 +286,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         when( rawRepo.agenciesForRecord( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( extLibraries );
 
         updater.updateRecord( recData );
-        
+
         // Verify calls to RawRepoDAO
         InOrder rawRepoOrder = inOrder( rawRepo );
 
@@ -295,7 +295,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         assertEquals( commonRec.getId(), argRecord.getValue().getId() );
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
-        
+
         rawRepoOrder.verify( rawRepo ).changedRecord( Updater.PROVIDER, commonRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 }

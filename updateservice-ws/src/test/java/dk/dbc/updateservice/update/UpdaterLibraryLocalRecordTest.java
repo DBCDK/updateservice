@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 //-----------------------------------------------------------------------------
 /**
  * Tests the Updater EJB for updates of local library records.
- * 
+ *
  * @author stp
  */
 public class UpdaterLibraryLocalRecordTest {
@@ -31,25 +31,25 @@ public class UpdaterLibraryLocalRecordTest {
 
     public UpdaterLibraryLocalRecordTest() {
     }
-    
+
     @Mock
     RawRepo rawRepo;
-        
+
     @Mock
     LibraryRecordsHandler recordsHandler;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-    }    
-    
+    }
+
     //-------------------------------------------------------------------------
     //              Test methods
     //-------------------------------------------------------------------------
 
-    /**
+    /*
      * Creation of a new local library record.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -57,7 +57,7 @@ public class UpdaterLibraryLocalRecordTest {
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
-     *          Update a single local library record that does not exist in 
+     *          Update a single local library record that does not exist in
      *          the rawrepo (create new record).
      *      </dd>
      *      <dt>Then</dt>
@@ -65,35 +65,35 @@ public class UpdaterLibraryLocalRecordTest {
      *          The record is added to the rawrepo.
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void testCreateSingleRecord() throws Exception {
         Updater updater = new Updater( rawRepo, null, recordsHandler );
         updater.init();
-        
+
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v1.xml" );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
-        
+
         updater.updateRecord( recData );
-        
+
         // Verify calls to rawRepo
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepo ).saveRecord( argRecord.capture(), eq( "" ) );
         assertEquals( rec.getId(), argRecord.getValue().getId() );
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
-        
+
         //verify( rawRepo, never() ).setRelationsFrom( null, null );
         verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
-    /**
+    /*
      * Update of an existing local library record.
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -101,23 +101,23 @@ public class UpdaterLibraryLocalRecordTest {
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
-     *          Update a single local library record, <code>r2</code>, with the same id as 
+     *          Update a single local library record, <code>r2</code>, with the same id as
      *          <code>r1</code>, but with bibliographic changes.
      *      </dd>
      *      <dt>Then</dt>
      *      <dd>
-     *          The content of <code>r1</code> is overwrited by the content of 
+     *          The content of <code>r1</code> is overwrited by the content of
      *          <code>r2</code>
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test
     public void testUpdateSingleRecord() throws Exception {
         Updater updater = new Updater( rawRepo, null, recordsHandler );
         updater.init();
-        
+
         Record rec = RecordUtils.createRawRecord( "localrec_single_v1.xml" );
         MarcRecord recData = RecordUtils.loadMarcRecord("localrec_single_v2.xml");
 
@@ -126,7 +126,7 @@ public class UpdaterLibraryLocalRecordTest {
         when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
 
         updater.updateRecord( recData );
-        
+
         // Verify calls to rawRepo
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
         verify( rawRepo ).saveRecord( argRecord.capture(), eq( "" ) );

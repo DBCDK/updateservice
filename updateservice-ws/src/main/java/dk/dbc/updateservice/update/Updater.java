@@ -36,9 +36,8 @@ import java.util.Set;
 //-----------------------------------------------------------------------------
 /**
  * EJB to update a record in the rawrepo database.
- * <p>
- * 
- * 
+ *
+ *
  * @author stp
  */
 @Stateful
@@ -54,35 +53,35 @@ public class Updater {
     public Updater() {
         this( null, null, null );
     }
-    
+
     /**
      * Constructs with a rawRepo.
-     * 
+     *
      * <dl>
      *      <dt>Note</dt>
      *      <dd>
-     *          This constructor is added to "inject" a rawRepo from 
+     *          This constructor is added to "inject" a rawRepo from
      *          unit tests.
      *      </dd>
      * </dl>
-     * 
+     *
      * @param rawRepo      The rawRepo to "inject".
      * @param holdingsItems The holdingsItems to "inject".
      * @param recordsHandler  The records handler to use.
-     * 
+     *
      */
     public Updater( RawRepo rawRepo, HoldingsItems holdingsItems, LibraryRecordsHandler recordsHandler ) {
         this.rawRepo = rawRepo;
         this.holdingsItems = holdingsItems;
         this.recordsHandler = recordsHandler;
     }
-    
+
     //-------------------------------------------------------------------------
     //              Java EE
     //-------------------------------------------------------------------------
 
     /**
-     * Initialization of the EJB after it has been created by the JavaEE 
+     * Initialization of the EJB after it has been created by the JavaEE
      * container.
      * <p>
      * It simply initialize the XLogger instance for logging.
@@ -108,17 +107,17 @@ public class Updater {
     //-------------------------------------------------------------------------
     //              Business logic
     //-------------------------------------------------------------------------
-    
+
     /**
      * Updates the record in rawrepo.
-     * 
+     *
      * @param record The record to update.
-     * 
+     *
      * @throws UpdateException thrown in case the business errors. For instance a parent record does not exist.
      */
     public void updateRecord( MarcRecord record ) throws UpdateException {
         logger.entry( record );
-        
+
         try {
             record = recordsHandler.updateRecordForUpdate( record );
 
@@ -149,7 +148,7 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         logger.entry( record );
 
@@ -223,7 +222,7 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     void updateLibraryLocalRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, RawRepoException {
         try {
             logger.entry( record );
@@ -238,7 +237,7 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
         try {
             logger.entry(commonRecord, oldCommonRecordData, libraryId);
@@ -310,18 +309,18 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     public MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
-        return MarcConverter.convertFromMarcXChange( new String( bytes, "UTF-8" ) );                
+        return MarcConverter.convertFromMarcXChange( new String( bytes, "UTF-8" ) );
     }
-    
+
     /**
      * Encodes the record as marcxchange.
-     * 
+     *
      * @param record The record to encode.
-     * 
+     *
      * @return The encoded record as a sequence of bytes.
-     * 
+     *
      * @throws JAXBException if the record can not be encoded in marcxchange.
      * @throws UnsupportedEncodingException if the record can not be encoded in UTF-8
      */
@@ -356,19 +355,18 @@ public class Updater {
             logger.exit( result );
         }
     }
-          
+
     /**
      * Saves the record in a rawrepo.
-     * 
-     * @param rawRepo   The rawrepo to use.
+     *
      * @param content   The encoded content of the record.
      * @param recId     The id from the record.
      * @param libraryId The library number from the record.
      * @param parentId  The parent id to any parent record, from the record.
-     * 
+     *
      * @throws SQLException JDBC errors.
      * @throws UpdateException if a parent record does not exist.
-     * @throws RawRepoException 
+     * @throws RawRepoException RawRepoException
      */
     private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException, RawRepoException {
         try {
@@ -418,15 +416,15 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     /**
      * Links a record to another record in the rawrepo.
-     * 
+     *
      * @param id       The id of the record to link from.
      * @param refer_id The id of the record to link to.
-     * 
+     *
      * @throws SQLException JDBC errors.
-     * @throws RawRepoException 
+     * @throws RawRepoException RawRepoException
      */
     private void linkToRecord( RecordId id, RecordId refer_id ) throws SQLException, RawRepoException {
         try {
@@ -440,7 +438,7 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     private void enqueueRecord( RecordId id ) throws SQLException {
         try {
             logger.entry(id);
@@ -450,7 +448,7 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     private void enqueueExtendedRecords( RecordId commonRecId ) throws UpdateException, SQLException {
         try {
             logger.entry(commonRecId);
@@ -464,11 +462,11 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
     //------------------------------------------------------------------------
     //              Testing
     //------------------------------------------------------------------------
-    
+
     public void setLogger( XLogger logger ) {
         this.logger = logger;
     }
@@ -480,11 +478,11 @@ public class Updater {
     /**
      * Logger instance to write entries to the log files.
      */
-    private XLogger logger;    
+    private XLogger logger;
 
     /**
-     * Rawrepo requires a provider name for the service that changes its 
-     * content. This constant defines the provider name for the update web 
+     * Rawrepo requires a provider name for the service that changes its
+     * content. This constant defines the provider name for the update web
      * service.
      */
     static final String PROVIDER = "opencataloging-update";
@@ -497,13 +495,13 @@ public class Updater {
 
     @EJB
     private HoldingsItems holdingsItems;
-    
+
     /**
      * Injected DataSource to access the rawrepo database.
      */
     //@Resource( lookup = JNDIResources.JDBC_RAW_REPO_NAME)
     //private DataSource rawRepoDataSource;
-    
+
     /**
      * Injected DataSource to access the holdingitems database.
      */
@@ -514,7 +512,7 @@ public class Updater {
      * Class instance of the rawrepo to use.
      */
     //private rawRepo rawRepo;
-    
+
     /**
      * Class instance of the holdingsitems DAO to use.
      */

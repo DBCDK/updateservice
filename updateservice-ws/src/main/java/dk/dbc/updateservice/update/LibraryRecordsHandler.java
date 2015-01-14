@@ -11,10 +11,10 @@ import org.slf4j.ext.XLoggerFactory;
 
 //-----------------------------------------------------------------------------
 /**
- * Class to manipulate library records for a local library. Local records and 
+ * Class to manipulate library records for a local library. Local records and
  * local extended records.
  * <p>
- * 
+ *
  * @author stp
  */
 public class LibraryRecordsHandler {
@@ -32,13 +32,13 @@ public class LibraryRecordsHandler {
 
     /**
      * Tests if a record contains any classification data.
-     * 
+     *
      * @param record The record.
-     * 
-     * @return <code>true</code> if classifications where found, 
+     *
+     * @return <code>true</code> if classifications where found,
      *         <code>false</code> otherwise.
-     * 
-     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException
+     *
+     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException dk.dbc.iscrumjs.ejb.JavaScriptException
      */
     public boolean hasClassificationData( MarcRecord record ) throws JavaScriptException {
         logger.entry( record );
@@ -60,20 +60,20 @@ public class LibraryRecordsHandler {
 
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "hasClassificationData" ) );
     }
-    
+
     /**
      * Tests if the classifications has changed between 2 records.
      * <p>
      * This method is mainly used to checks for changes between 2 versions of
      * the same record.
-     * 
+     *
      * @param oldRecord The old record.
      * @param newRecord The new record.
-     * 
-     * @return <code>true</code> if there is changes in the classifications, 
+     *
+     * @return <code>true</code> if there is changes in the classifications,
      *         <code>false</code> otherwise.
-     * 
-     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException
+     *
+     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException dk.dbc.iscrumjs.ejb.JavaScriptException
      */
     public boolean hasClassificationsChanged( MarcRecord oldRecord, MarcRecord newRecord ) throws JavaScriptException {
         logger.entry( oldRecord, newRecord );
@@ -97,23 +97,23 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * Creates an extended library record based on the bibliographic 
+     * Creates an extended library record based on the bibliographic
      * classification elements of the record from DBC
-     * 
+     *
      * @param dbcRecord The record from DBC.
-     * @param libraryId The library id for the library, that the extended 
+     * @param libraryId The library id for the library, that the extended
      *                  record will be created for.
-     * 
-     * @return Returns the library record after it has been updated. 
+     *
+     * @return Returns the library record after it has been updated.
      *         <code>libraryRecord</code> may have changed.
-     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException
+     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException dk.dbc.iscrumjs.ejb.JavaScriptException
      */
     public MarcRecord createLibraryExtendedRecord( MarcRecord dbcRecord, int libraryId ) throws JavaScriptException {
         logger.entry( dbcRecord, libraryId );
 
         Object jsResult;
         Gson gson = new Gson();
-        
+
         try {
             jsResult = jsEngine.callEntryPoint( "createLibraryExtendedRecord", gson.toJson( dbcRecord ), libraryId );
         } catch ( IllegalStateException ex ) {
@@ -130,24 +130,24 @@ public class LibraryRecordsHandler {
 
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "createLibraryExtendedRecord" ) );
     }
-    
+
     /**
-     * This method updates an extended library record based on the bibliographic 
+     * This method updates an extended library record based on the bibliographic
      * classification elements of the record from DBC
-     * 
+     *
      * @param dbcRecord     The record from DBC.
      * @param libraryRecord The library extended record.
-     * 
-     * @return Returns the library record after it has been updated. 
+     *
+     * @return Returns the library record after it has been updated.
      *         <code>libraryRecord</code> may have changed.
-     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException
+     * @throws dk.dbc.iscrumjs.ejb.JavaScriptException dk.dbc.iscrumjs.ejb.JavaScriptException
      */
     public MarcRecord updateLibraryExtendedRecord( MarcRecord dbcRecord, MarcRecord libraryRecord ) throws JavaScriptException {
         logger.entry( dbcRecord, libraryRecord );
 
         Object jsResult;
         Gson gson = new Gson();
-        
+
         try {
             jsResult = jsEngine.callEntryPoint( "updateLibraryExtendedRecord", gson.toJson( dbcRecord ), gson.toJson( libraryRecord ) );
         } catch ( IllegalStateException ex ) {
@@ -164,13 +164,13 @@ public class LibraryRecordsHandler {
 
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "updateLibraryExtendedRecord" ) );
     }
-    
+
     public MarcRecord correctLibraryExtendedRecord( MarcRecord dbcRecord, MarcRecord libraryRecord ) throws JavaScriptException {
         logger.entry( dbcRecord, libraryRecord );
 
         Object jsResult;
         Gson gson = new Gson();
-        
+
         try {
             jsResult = jsEngine.callEntryPoint( "correctLibraryExtendedRecord", gson.toJson( dbcRecord ), gson.toJson( libraryRecord ) );
         } catch ( IllegalStateException ex ) {
@@ -185,7 +185,7 @@ public class LibraryRecordsHandler {
             return ( gson.fromJson( jsResult.toString(), MarcRecord.class ) );
         }
 
-        throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "correctLibraryExtendedRecord" ) );        
+        throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "correctLibraryExtendedRecord" ) );
     }
 
     public MarcRecord updateRecordForUpdate( MarcRecord dbcRecord ) throws JavaScriptException {
@@ -216,7 +216,7 @@ public class LibraryRecordsHandler {
             logger.exit( result );
         }
     }
-    
+
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
 
     private JSEngine jsEngine;
