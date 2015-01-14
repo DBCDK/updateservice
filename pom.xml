@@ -17,7 +17,7 @@
         <maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
         <maven.site.plugin.version>3.4</maven.site.plugin.version>
         <maven.project.info.plugin.version>2.7</maven.project.info.plugin.version>
-        <maven.javadoc.plugin.version>2.10.1</maven.javadoc.plugin.version>
+        <maven.javadoc.plugin.version>2.9.1</maven.javadoc.plugin.version>
     </properties>
 
     <repositories>
