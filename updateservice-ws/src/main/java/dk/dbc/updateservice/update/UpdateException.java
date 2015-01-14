@@ -3,18 +3,18 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 /**
- * @brief Exception type to report update errors back to the ws ejb.
- * 
+ * Exception type to report update errors back to the ws ejb.
+ *
  * The purpose of this exception is to convert update errors to a valid
- * SOAP response. This is done by catching this exception type in 
+ * SOAP response. This is done by catching this exception type in
  * UpdateService.
- * 
+ *
  * @author stp
  */
 public class UpdateException extends Exception {
 
     /**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 1L;
 

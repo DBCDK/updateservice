@@ -40,7 +40,7 @@ public class Validator {
     //-------------------------------------------------------------------------
     //              Java EE
     //-------------------------------------------------------------------------
-    
+
     //!\name Construction
     //@{
     @PostConstruct
@@ -90,7 +90,7 @@ public class Validator {
 
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate" ) );
     }
-    
+
     public List<Schema> getValidateSchemas() throws JavaScriptException {
         logger.entry();
         List<Schema> result = new ArrayList<>();
@@ -98,11 +98,11 @@ public class Validator {
         Gson gson = new Gson();
         Object jsResult = jsProvider.callEntryPoint( "getValidateSchemas" );
         logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
-        
+
         Schema[] names = gson.fromJson( jsResult.toString(), Schema[].class );
         result.addAll( Arrays.asList( names ) );
         logger.trace( "Number of templates: {}", result.size() );
-        
+
         logger.exit( result );
         return result;
     }
@@ -116,27 +116,27 @@ public class Validator {
 	        	logger.debug( "Property: {} -> {}", prop.getKey(), prop.getValue() );
 	        }
         }
-        
+
         Gson gson = new Gson();
         Object jsResult = jsProvider.callEntryPoint( "validateRecord", validateSchema, gson.toJson( record ), settings );
         logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
-        
+
         ValidationError[] validationErrors = gson.fromJson( jsResult.toString(), ValidationError[].class );
         result.addAll( Arrays.asList( validationErrors ) );
         logger.trace( "Number of errors: {}", result.size() );
-        
+
         logger.exit( result );
         return result;
     }
-    
+
     //------------------------------------------------------------------------
     //              Testing
     //------------------------------------------------------------------------
-    
+
     //!\name Operations used for testing
     //@{
     /**
-     * @brief Test properties. Properties that are only used by JUnit to set the
+     * Test properties. Properties that are only used by JUnit to set the
      * instance of members that is injected by the Java EE Container.
      * @param logger Logger to use for this run
      */
@@ -154,10 +154,10 @@ public class Validator {
     //-------------------------------------------------------------------------
 
     private XLogger logger;
-    
+
     @EJB
     private JSEngine jsProvider;
-    
+
     @Resource( lookup = JNDIResources.SETTINGS_NAME )
-    private Properties settings; 
+    private Properties settings;
 }

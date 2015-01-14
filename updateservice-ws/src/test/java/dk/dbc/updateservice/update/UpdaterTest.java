@@ -10,9 +10,9 @@ import org.mockito.MockitoAnnotations;
 
 //-----------------------------------------------------------------------------
 /**
- * Tests the Updater EJB for code mistakes like NullPointerException, 
+ * Tests the Updater EJB for code mistakes like NullPointerException,
  * IlligalArgumentException, etc.
- * 
+ *
  * @author stp
  */
 public class UpdaterTest {
@@ -22,28 +22,28 @@ public class UpdaterTest {
 
     public UpdaterTest() {
     }
-    
+
     @Mock
     RawRepo rawRepo;
-    
+
     @Mock
     HoldingsItems holdingsItems;
-    
+
     @Mock
     LibraryRecordsHandler recordsHandler;
 
     @Before
     public void setUp() throws Exception {
         MockitoAnnotations.initMocks(this);
-    }    
-    
+    }
+
     //-------------------------------------------------------------------------
     //              Tests of updateRecord arguments
     //-------------------------------------------------------------------------
 
-    /**
+    /*
      * Update of a null record
-     * 
+     *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
@@ -58,8 +58,8 @@ public class UpdaterTest {
      *          Throw NullPointerException.
      *      </dd>
      * </dl>
-     * 
-     * @throws Exception 
+     *
+     * @throws Exception
      */
     @Test( expected = NullPointerException.class )
     public void testUpdateRecord_NullRecord() throws Exception {
@@ -67,5 +67,5 @@ public class UpdaterTest {
         updater.init();
         updater.updateRecord( null );
     }
-        
+
 }

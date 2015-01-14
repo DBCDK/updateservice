@@ -69,12 +69,14 @@ public class Authenticator {
     /**
      * Calls the forsrights service and checks if the user has the proper rights.
      *
-     * @param userId  User id.
-     * @param groupId Group id.
-     * @param passwd  Users password.
+     * @param wsContext WebServiceContext
+     * @param userId    User id
+     * @param groupId   Group id
+     * @param passwd    Users password
      *
      * @return <code>true</code> if the user is authenticated, <code>false</code>
      *         otherwise.
+     * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser( WebServiceContext wsContext, String userId, String groupId, String passwd ) throws AuthenticatorException {
         logger.entry( userId, groupId, "****" );

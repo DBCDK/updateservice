@@ -1,64 +1,90 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>dk.dbc</groupId>
     <artifactId>updateservice</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    
+
     <name>updateservice</name>
-    
+
     <properties>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.source.level>1.7</java.source.level>
+        <java.target.level>1.7</java.target.level>
+        <maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
+        <maven.site.plugin.version>3.4</maven.site.plugin.version>
+        <maven.project.info.plugin.version>2.7</maven.project.info.plugin.version>
+        <maven.javadoc.plugin.version>2.10.1</maven.javadoc.plugin.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>mavenrepo.dbc.dk</id>
+            <url>http://mavenrepo.dbc.dk/content/groups/public</url>
+        </repository>
+    </repositories>
 
     <modules>
         <module>updateservice-app</module>
         <module>updateservice-ws</module>
         <module>updateservice-system-tests</module>
     </modules>
-        
+
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.0</version>
+                    <version>${maven.site.plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.0</version>
+                <version>${maven.site.plugin.version}</version>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
                     <show>private</show>
+                    <sourceFileExcludes>
+                        <exclude>dk/dbc/oss/ns/catalogingupdate/*</exclude>
+                        <exclude>dk/dbc/updateservice/integration/service/*</exclude>
+                        <exclude>dk/dbc/forsrights/service/*</exclude>
+                        <exclude>dk/dbc/oss/ns/catalogingupdate/service/*</exclude>
+                    </sourceFileExcludes>
                 </configuration>
-            </plugin>            
-        </plugins>        
+            </plugin>
+        </plugins>
     </build>
-    
+
     <reporting>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
                     <show>private</show>
+                    <sourceFileExcludes>
+                        <exclude>dk/dbc/oss/ns/catalogingupdate/*</exclude>
+                        <exclude>dk/dbc/updateservice/integration/service/*</exclude>
+                        <exclude>dk/dbc/forsrights/service/*</exclude>
+                        <exclude>dk/dbc/oss/ns/catalogingupdate/service/*</exclude>
+                    </sourceFileExcludes>
                 </configuration>
             </plugin>
-        </plugins>        
+        </plugins>
 
         <outputDirectory>${report.outputDirectory}</outputDirectory>
     </reporting>

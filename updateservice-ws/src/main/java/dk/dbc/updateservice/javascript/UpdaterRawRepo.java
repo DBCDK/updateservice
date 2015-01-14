@@ -27,31 +27,30 @@ import java.util.Set;
 //-----------------------------------------------------------------------------
 /**
  * This class exports a RawRepo instance to the JavaScript environment.
- * 
+ *
  * @author stp
  */
 public class UpdaterRawRepo {
 	/**
 	 * Fetch a record from the rawrepo.
-	 * 
+	 *
 	 * If the record does not exist, it is created.
-	 * 
+	 *
 	 * @param recordId  The record id from 001a to identify the record.
 	 * @param libraryNo The library no from 001b to identify the record.
-	 * 
+	 *
 	 * @return The record.
-	 * 
-	 * @throws NamingException 
-	 * @throws SQLException 
-	 * @throws RawRepoException 
-	 * @throws UnsupportedEncodingException 
-	 * 
+	 *
+	 * @throws NamingException NamingException
+	 * @throws SQLException SQLException
+	 * @throws RawRepoException RawRepoException
+	 * @throws UnsupportedEncodingException UnsupportedEncodingException
 	 */
 	public static MarcRecord fetchRecord( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
-		
+
 		MarcRecord result = null;
-		try( Connection con = getConnection() ) {			
+		try( Connection con = getConnection() ) {
 			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
 
 			Record record = rawRepoDAO.fetchRecord( recordId, Integer.valueOf( libraryNo ) );
@@ -61,7 +60,7 @@ public class UpdaterRawRepo {
 			else {
 				result = new Updater().decodeRecord( record.getContent() );
 			}
-			
+
 			return result;
 		}
 		finally {
@@ -71,26 +70,26 @@ public class UpdaterRawRepo {
 
 	/**
 	 * Checks if a record exists in the rawrepo.
-	 * 
+	 *
 	 * @param recordId  The record id from 001a to identify the record.
 	 * @param libraryNo The library no from 001b to identify the record.
-	 * 
-	 * @return <code>true</code> if the record exists, <code>false</code> 
+	 *
+	 * @return <code>true</code> if the record exists, <code>false</code>
 	 * 		   otherwise.
-	 * 
-	 * @throws NamingException 
-	 * @throws SQLException 
-	 * @throws RawRepoException 
+	 *
+	 * @throws NamingException NamingException
+	 * @throws SQLException SQLException
+	 * @throws RawRepoException RawRepoException
 	 */
 	public static Boolean recordExists( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException {
 		logger.entry( recordId, libraryNo );
 		boolean result = false;
-		
-		try( Connection con = getConnection() ) {			
+
+		try( Connection con = getConnection() ) {
 			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
-			
+
 			result = rawRepoDAO.recordExists( recordId, Integer.valueOf( libraryNo ) );
-			
+
 			return result;
 		}
 		finally {
@@ -98,6 +97,17 @@ public class UpdaterRawRepo {
 		}
 	}
 
+	/**
+	 * List of MarcRecords
+	 *
+	 * @param recordId String
+	 * @param libraryNo String
+	 * @return List of MarcRecords
+	 * @throws SQLException SQLException
+	 * @throws NamingException NamingException
+	 * @throws RawRepoException RawRepoException
+	 * @throws UnsupportedEncodingException UnsupportedEncodingException
+	 */
 	public static List<MarcRecord> getRelationsChildren( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
 		List<MarcRecord> result = null;
@@ -122,19 +132,19 @@ public class UpdaterRawRepo {
 
 	/**
 	 * Lookup a sql connection for the rawrepo database from the Java EE container.
-	 * 
+	 *
 	 * Remember to close the connection, when you are done using it.
-	 * 
+	 *
 	 * @return The SQL connection.
-	 * 
-	 * @throws NamingException Throwned if the datasource can not be looked up in 
+	 *
+	 * @throws NamingException Throwned if the datasource can not be looked up in
 	 * 						   the container.
 	 * @throws SQLException	   Throwned if the datasource can not open a connection.
 	 */
 	private static Connection getConnection() throws NamingException, SQLException {
 		InitialContext ctx = new InitialContext();
 		DataSource ds = (DataSource) ctx.lookup( JNDIResources.JDBC_RAW_REPO_READONLY_NAME );
-		
+
 		return ds.getConnection();
 	}
 
