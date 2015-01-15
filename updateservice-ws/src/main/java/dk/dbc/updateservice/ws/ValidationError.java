@@ -2,6 +2,8 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -72,7 +74,7 @@ public class ValidationError {
      * The properties are initialized with "empty" values.
      */
     public ValidationError() {
-        this.type = "";
+        this.type = ValidateWarningOrErrorEnum.ERROR;
         this.params = new HashMap<>();
     }
 
@@ -80,11 +82,11 @@ public class ValidationError {
     //              Public
     //-------------------------------------------------------------------------
 
-    public String getType() {
+    public ValidateWarningOrErrorEnum getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType( ValidateWarningOrErrorEnum type ) {
         this.type = type;
     }
 
@@ -129,7 +131,7 @@ public class ValidationError {
      * 
      * For historical reasons, a type is a classification of an validation error.
      */
-    private String type;
+    private ValidateWarningOrErrorEnum type;
     
     /**
      * Map of extra parameters to the validation type.

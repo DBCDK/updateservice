@@ -265,7 +265,17 @@ public class UpdateRecordIT {
         
         assertNotNull( response );
         assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertNotSame( 0, response.getValidateInstance().getValidateEntry().size() );
+        assertEquals( 5, response.getValidateInstance().getValidateEntry().size() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 0 ).getMessage() );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 0 ).getWarningOrError() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 1 ).getMessage() );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 1 ).getWarningOrError() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 2 ).getMessage() );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 2 ).getWarningOrError() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 3 ).getMessage() );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 3 ).getWarningOrError() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 4 ).getMessage() );
+        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 4 ).getWarningOrError() );
 
         try (final Connection connection = newRawRepoConnection()) {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );

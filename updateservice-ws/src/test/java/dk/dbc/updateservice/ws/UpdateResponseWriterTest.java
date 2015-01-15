@@ -2,11 +2,15 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
+import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import static org.junit.Assert.*;
-import org.junit.Test;
 
 //-----------------------------------------------------------------------------
 /**
@@ -25,7 +29,7 @@ public class UpdateResponseWriterTest {
         instance.addValidateResults( valErrors );
 
         ValidationError err = new ValidationError();
-        err.setType( "type" );
+        err.setType( ValidateWarningOrErrorEnum.ERROR );
         HashMap<String, Object> params = new HashMap<>();
         params.put( "url", "url" );
         params.put( "message", "message" );

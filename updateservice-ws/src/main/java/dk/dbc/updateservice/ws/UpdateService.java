@@ -152,8 +152,15 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
 
             writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
-            if( !valErrors.isEmpty() ) {
-                writer.addValidateResults( valErrors );
+            writer.addValidateResults( valErrors );
+            boolean hasValErrors = false;
+            for( ValidationError err: valErrors ) {
+                if( err.getType() == ValidateWarningOrErrorEnum.ERROR ) {
+                    hasValErrors = true;
+                    break;
+                }
+            }
+            if( hasValErrors ) {
                 writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
             }
             else {
