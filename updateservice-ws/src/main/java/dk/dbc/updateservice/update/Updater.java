@@ -432,7 +432,6 @@ public class Updater {
 
             final HashSet<RecordId> references = new HashSet<>();
             references.add(refer_id);
-            //rawRepo.setRelationsFrom(id, references);
         }
         finally {
             logger.exit();
@@ -496,26 +495,5 @@ public class Updater {
     @EJB
     private HoldingsItems holdingsItems;
 
-    /**
-     * Injected DataSource to access the rawrepo database.
-     */
-    //@Resource( lookup = JNDIResources.JDBC_RAW_REPO_NAME)
-    //private DataSource rawRepoDataSource;
-
-    /**
-     * Injected DataSource to access the holdingitems database.
-     */
-    //@Resource( lookup = JNDIResources.JDBC_HOLDINGITEMS_NAME )
-    //private DataSource holdingItemsDataSource;
-
-    /**
-     * Class instance of the rawrepo to use.
-     */
-    //private rawRepo rawRepo;
-
-    /**
-     * Class instance of the holdingsitems DAO to use.
-     */
-    //private HoldingsItemsDAO holdingItemsDAO;
     private LibraryRecordsHandler recordsHandler;
 }

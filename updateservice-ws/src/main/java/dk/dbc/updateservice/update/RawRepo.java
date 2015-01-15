@@ -319,10 +319,10 @@ public class RawRepo {
      * @throws UnsupportedEncodingException if the record can not be encoded in UTF-8
      */
     public byte[] encodeRecord( MarcRecord record ) throws JAXBException, UnsupportedEncodingException {
+        logger.entry( record );
         byte[] result = null;
 
         try {
-            logger.entry( record );
 
             if( record.getFields().isEmpty() ) {
                 return null;
