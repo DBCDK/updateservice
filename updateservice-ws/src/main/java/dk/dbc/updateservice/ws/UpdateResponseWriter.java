@@ -2,16 +2,17 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
 import dk.dbc.oss.ns.catalogingupdate.ValidateInstance;
-import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 //-----------------------------------------------------------------------------
 /**
@@ -74,7 +75,7 @@ public class UpdateResponseWriter {
                     HashMap<String, Object> params = err.getParams();
                     Object value;
 
-                    entry.setWarningOrError(ValidateWarningOrErrorEnum.ERROR);
+                    entry.setWarningOrError( err.getType() );
 
                     value = params.get("url");
                     if (value != null) {

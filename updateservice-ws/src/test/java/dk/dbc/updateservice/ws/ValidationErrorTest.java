@@ -2,20 +2,23 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.HashMap;
-import java.util.Map;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
-//-----------------------------------------------------------------------------
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 /**
  *
  * @author stp
  */
 public class ValidationErrorTest {
-    
+
     public ValidationErrorTest() {
     }
     
