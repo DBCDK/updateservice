@@ -2,13 +2,14 @@
 <configuration debug="true">
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <file>target/updateservice-ws-test.log</file>
+        <append>false</append>
 
         <encoder>
             <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="debug">
+    <root level="trace">
         <appender-ref ref="FILE" />
     </root>
 </configuration>

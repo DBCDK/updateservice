@@ -25,7 +25,7 @@ UnitTest.addFixture( "DBCAuthenticator.authenticateRecord", function() {
     curRecord.fromString(
         "001 00 *a 1 234 567 8 *b 870970\n" +
         "004 00 *a e *r n\n" +
-        "996 00 *a 700300"
+        "s10 00 *a 700300"
     );
     RawRepoClientCore.addRecord( curRecord );
 
@@ -35,7 +35,7 @@ UnitTest.addFixture( "DBCAuthenticator.authenticateRecord", function() {
         "004 00 *a e *r n\n" +
         "996 00 *a 700300"
     );
-    Assert.equalValue( "Update of common record: 996c_n == 996a_n",
+    Assert.equalValue( "Update of common record: s10a == 996a",
                        DBCAuthenticator.authenticateRecord( record, "netpunkt", "010100" ),
                        [] );
     RawRepoClientCore.clear();

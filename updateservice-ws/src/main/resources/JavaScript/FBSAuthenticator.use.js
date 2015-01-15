@@ -1,5 +1,6 @@
 //-----------------------------------------------------------------------------
 use( "Log" );
+use( "NoteAndSubjectExtentionsHandler" );
 use( "RawRepoClient" );
 use( "ValidateErrors" );
 
@@ -7,6 +8,13 @@ use( "ValidateErrors" );
 EXPORTED_SYMBOLS = [ 'FBSAuthenticator' ];
 
 //-----------------------------------------------------------------------------
+/**
+ * Module to authenticate and change records for update when they are updated
+ * by an user from a FBS library.
+ *
+ * @namespace
+ * @name FBSAuthenticator
+ */
 var FBSAuthenticator = function() {
     var AGENCY_IDS = [
         "700400", "710100", "714700", "715100", "715300", "715500",
@@ -27,6 +35,19 @@ var FBSAuthenticator = function() {
     ];
     var COMMON_AGENCYID = "870970";
 
+    /**
+     * Checks if this record can be authenticated by this authenticator.
+     *
+     * It simply checks if groupId contains a FBS agency id.
+     *
+     * @param record Record - Not used.
+     * @param userId User id - Not used.
+     * @param groupId Group id.
+     *
+     * @returns {Boolean} True / False.
+     *
+     * @name FBSAuthenticator#canAuthenticate
+     */
     function canAuthenticate( record, userId, groupId ) {
         Log.trace( "Enter - FBSAuthenticator.canAuthenticate()" );
 
@@ -41,6 +62,18 @@ var FBSAuthenticator = function() {
         }
     }
 
+    /**
+     * Authenticates a record.
+     *
+     * @param record Record
+     * @param userId User id - not used.
+     * @param groupId Group id.
+     *
+     * @returns {Array} Array of authentication errors. We use the same structure
+     *                  as for validation errors.
+     *
+     * @name FBSAuthenticator#authenticateRecord
+     */
     function authenticateRecord( record, userId, groupId ) {
         Log.trace( "Enter - FBSAuthenticator.authenticateRecord()" );
 
@@ -63,6 +96,20 @@ var FBSAuthenticator = function() {
         }
     }
 
+    /**
+     * Helper function.
+     *
+     * Handles the special case then a FBS library updates a common DBC record.
+     *
+     * @param record Record
+     * @param groupId Group id.
+     *
+     * @returns {Array} Array of authentication errors. We use the same structure
+     *                  as for validation errors.
+     *
+     * @private
+     * @name FBSAuthenticator#__authenticateCommonRecord
+     */
     function __authenticateCommonRecord( record, groupId ) {
         Log.trace( "Enter - FBSAuthenticator.__authenticateCommonRecord()" );
 
@@ -79,26 +126,45 @@ var FBSAuthenticator = function() {
             }
 
             var curRecord = RawRepoClient.fetchRecord( recId, agencyId );
-            var curOwner = curRecord.getValue( /996/, /a/ );
+            var curOwner = curRecord.getValue( /s10/, /a/ );
             if( !( curOwner === "RET" || AGENCY_IDS.indexOf( curOwner ) > -1 ) ) {
+                Log.info( "Authentication error. Current owner: ", curOwner, " Agency: ", groupId );
                 return [ValidateErrors.recordError("", StringUtil.sprintf("Brugeren '%s' har ikke ret til at opdatere posten '%s'", groupId, recId))];
             }
 
             var newOwner = record.getValue( /996/, /a/ );
             if( newOwner !== groupId ) {
+                Log.info( "Owner has changed: ", curOwner, " !== ", newOwner );
                 return [ValidateErrors.recordError("", StringUtil.sprintf("Brugeren '%s' har ikke ret til at opdatere posten '%s' for andre biblioteker end '%s'", groupId, recId, groupId ))];
             }
 
-            return [];
+            return NoteAndSubjectExtentionsHandler.authenticateExtentions( record, groupId );
         }
         finally {
             Log.trace( "Exit - FBSAuthenticator.__authenticateCommonRecord()" );
         }
     }
 
+    /**
+     * Changes the content of a record for update.
+     *
+     * @param record Record
+     * @param userId User id - not used.
+     * @param groupId Group id - not used.
+     *
+     * @returns {Record} A new record with the new content.
+     *
+     * @name DBCAuthenticator#changeUpdateRecordForUpdate
+     */
+    function changeUpdateRecordForUpdate( record, userId, groupId ) {
+        record = NoteAndSubjectExtentionsHandler.changeUpdateRecordForUpdate( record, userId, groupId );
+        return RawRepoMerge.mergeRawRepoRecord( record );
+    }
+    
     return {
         'canAuthenticate': canAuthenticate,
-        'authenticateRecord': authenticateRecord
+        'authenticateRecord': authenticateRecord,
+        'changeUpdateRecordForUpdate': changeUpdateRecordForUpdate
     }
 
 }();

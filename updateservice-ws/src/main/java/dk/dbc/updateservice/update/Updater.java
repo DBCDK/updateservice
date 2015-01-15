@@ -115,11 +115,11 @@ public class Updater {
      *
      * @throws UpdateException thrown in case the business errors. For instance a parent record does not exist.
      */
-    public void updateRecord( MarcRecord record ) throws UpdateException {
+    public void updateRecord( MarcRecord record, String userId, String groupId ) throws UpdateException {
         logger.entry( record );
 
         try {
-            record = recordsHandler.updateRecordForUpdate( record );
+            record = recordsHandler.updateRecordForUpdate( record, userId, groupId );
 
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
