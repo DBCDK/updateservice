@@ -65,7 +65,7 @@ public class UpdaterTest {
     public void testUpdateRecord_NullRecord() throws Exception {
         Updater updater = new Updater( rawRepo, holdingsItems, recordsHandler );
         updater.init();
-        updater.updateRecord( null );
+        updater.updateRecord( null, "", "" );
     }
 
 }

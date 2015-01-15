@@ -76,9 +76,9 @@ public class UpdaterLibraryLocalRecordTest {
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v1.xml" );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate( recData, "", "" ) ).thenReturn( recData );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to rawRepo
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );
@@ -123,9 +123,9 @@ public class UpdaterLibraryLocalRecordTest {
 
         when( rawRepo.recordExists( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( true );
         when( rawRepo.fetchRecord(rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId()) ).thenReturn( rec );
-        when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate( recData, "", "" ) ).thenReturn( recData );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to rawRepo
         ArgumentCaptor<Record> argRecord = ArgumentCaptor.forClass( Record.class );

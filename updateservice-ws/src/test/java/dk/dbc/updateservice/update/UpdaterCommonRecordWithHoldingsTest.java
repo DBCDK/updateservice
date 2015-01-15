@@ -102,13 +102,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( rawRepo.recordExists(commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId()) ).thenReturn( false );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.createLibraryExtendedRecord(oldCommonRecData, extRecord.getId().getAgencyId()) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
-        when( recordsHandler.updateRecordForUpdate( recData ) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate( recData, "", "" ) ).thenReturn( recData );
 
         Set<Integer> items = new HashSet<>();
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo );
@@ -169,7 +169,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
         when( rawRepo.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
         when( rawRepo.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
@@ -179,7 +179,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo );
@@ -240,7 +240,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
         when( rawRepo.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
         when( rawRepo.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
@@ -251,7 +251,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo, recordsHandler );
@@ -311,7 +311,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
 
         when( recordsHandler.hasClassificationData( oldCommonRecData ) ).thenReturn( false );
         when( recordsHandler.hasClassificationData( recData ) ).thenReturn( true );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
         when( rawRepo.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
         when( rawRepo.fetchRecord( extRecord.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( extRecord );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
@@ -321,7 +321,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo );
@@ -394,13 +394,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( rawRepo.recordExists(commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId()) ).thenReturn( true );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( false );
         when( recordsHandler.createLibraryExtendedRecord(oldCommonRecData, extRecord.getId().getAgencyId()) ).thenReturn( RecordUtils.loadMarcRecord( "extrec_single.xml" ) );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
 
         Set<Integer> items = new HashSet<>();
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo );
@@ -480,13 +480,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( rawRepo.recordExists(commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId()) ).thenReturn( true );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData(extRecData) ).thenReturn( true );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
 
         Set<Integer> items = new HashSet<>();
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo, recordsHandler );
@@ -562,13 +562,13 @@ public class UpdaterCommonRecordWithHoldingsTest {
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), extRecord.getId().getAgencyId() ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData(extRecData) ).thenReturn( false );
         when( recordsHandler.updateLibraryExtendedRecord(oldCommonRecData, extRecData) ).thenReturn( extRecData );
-        when( recordsHandler.updateRecordForUpdate(recData) ).thenReturn( recData );
+        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
 
         Set<Integer> items = new HashSet<>();
         items.add( extRecord.getId().getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( commonRec.getId().getBibliographicRecordId() ) ).thenReturn( items );
 
-        updater.updateRecord( recData );
+        updater.updateRecord( recData, "", "" );
 
         // Verify calls to update common record
         InOrder rawRepoOrder = inOrder( rawRepo, recordsHandler );

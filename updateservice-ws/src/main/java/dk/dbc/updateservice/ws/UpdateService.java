@@ -171,7 +171,7 @@ public class UpdateService implements CatalogingUpdatePortType {
                         writer.setUpdateStatus( UpdateStatusEnum.OK );
 
                         logger.info( "Updating record [{}|{}]", recId, libId );
-                        updater.updateRecord( record );
+                        updater.updateRecord( record, reader.readUserId(), reader.readGroupId() );
                     }
                     catch( UpdateException ex ) {
                         logger.warn( "Exception doing update: {}", ex);

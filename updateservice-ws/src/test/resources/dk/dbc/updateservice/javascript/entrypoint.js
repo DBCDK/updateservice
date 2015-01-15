@@ -12,6 +12,8 @@ use( "AuthenticatorEntryPointTests" );
 use( "ClassificationData_UnitTests" );
 use( "DBCAuthenticatorTests" );
 use( "FBSAuthenticatorTests" );
+use( "RawRepoMergerTests" );
+use( "NoteAndSubjectExtentionsHandlerTests" );
 use( "UpdaterEntryPoint" );
 
 // Including unittests modules

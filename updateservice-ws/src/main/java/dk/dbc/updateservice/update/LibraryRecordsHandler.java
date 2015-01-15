@@ -188,7 +188,7 @@ public class LibraryRecordsHandler {
         throw new JavaScriptException( String.format( "The JavaScript function %s must return a boolean value.", "correctLibraryExtendedRecord" ) );
     }
 
-    public MarcRecord updateRecordForUpdate( MarcRecord dbcRecord ) throws JavaScriptException {
+    public MarcRecord updateRecordForUpdate( MarcRecord dbcRecord, String userId, String groupId ) throws JavaScriptException {
         logger.entry( dbcRecord );
 
         MarcRecord result = null;
@@ -197,7 +197,7 @@ public class LibraryRecordsHandler {
             Object jsResult;
 
             try {
-                jsResult = jsEngine.callEntryPoint( "changeUpdateRecordForUpdate", gson.toJson( dbcRecord ) );
+                jsResult = jsEngine.callEntryPoint( "changeUpdateRecordForUpdate", gson.toJson( dbcRecord ), userId, groupId );
             } catch ( IllegalStateException ex ) {
                 logger.error( "Error when executing JavaScript function: changeUpdateRecordForUpdate", ex );
                 jsResult = false;

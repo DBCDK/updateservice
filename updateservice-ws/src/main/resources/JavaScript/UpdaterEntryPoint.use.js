@@ -1,4 +1,5 @@
 //-----------------------------------------------------------------------------
+use( "AuthenticatorEntryPoint" );
 use( "DanMarc2Converter" );
 use( "ClassificationData" );
 use( "Log" );
@@ -8,6 +9,13 @@ use( "Marc" );
 EXPORTED_SYMBOLS = [ 'UpdaterEntryPoint' ];
 
 //-----------------------------------------------------------------------------
+/**
+ * Module to contain entry points for the update API between Java and
+ * JavaScript.
+ *
+ * @namespace
+ * @name AuthenticatorEntryPoint
+ */
 var UpdaterEntryPoint = function() {
     /**
      * Checks if a record contains any classification data
@@ -120,7 +128,7 @@ var UpdaterEntryPoint = function() {
      *
      * @returns {String} A json with the new record content.
      */
-    function changeUpdateRecordForUpdate( dbcRecord ) {
+    function changeUpdateRecordForUpdate( dbcRecord, userId, groupId ) {
         var marc = DanMarc2Converter.convertToDanMarc2( JSON.parse( dbcRecord ) );
 
         if( !marc.existField( /001/ ) ) {
@@ -133,6 +141,8 @@ var UpdaterEntryPoint = function() {
                                           date.getHours(), date.getMinutes(), date.getSeconds() ).replace( " ", "0" );
 
         marc.field( "001" ).append( "c", dateStr, true );
+        marc = AuthenticatorEntryPoint.changeUpdateRecordForUpdate( marc, userId, groupId );
+
         return JSON.stringify( DanMarc2Converter.convertFromDanMarc2( marc ) );
     }
 
