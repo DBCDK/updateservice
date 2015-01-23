@@ -3,65 +3,38 @@ package dk.dbc.updateservice.auth;
 
 //-----------------------------------------------------------------------------
 
-import com.google.gson.Gson;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.Ressource;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.iscrumjs.ejb.JSEngine;
-import dk.dbc.iscrumjs.ejb.JavaScriptException;
+import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.ValidationError;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
-import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
  * EJB to authenticate users against the forsrights service.
  */
-@Stateful
+@Stateless
 @LocalBean
 public class Authenticator {
-    //-------------------------------------------------------------------------
-    //              Java EE
-    //-------------------------------------------------------------------------
-
-    //!\name Construction
-    //@{
-    @PostConstruct
-    public void init() {
-        logger.entry();
-
-        try {
-            logger.info("Classpath: {}", System.getProperty("classpath"));
-
-            if (jsProvider != null) {
-                try {
-                    jsProvider.initialize(IOUtils.loadProperties(Authenticator.class.getClassLoader(),
-                            ";", "dk/dbc/updateservice/ws/settings.properties",
-                            "javascript/iscrum/settings.properties"));
-                } catch (IOException | IllegalArgumentException ex) {
-                    logger.catching(XLogger.Level.WARN, ex);
-                }
-            }
-        }
-        finally {
-            logger.exit();
-        }
-    }
-    //@}
-
     //-------------------------------------------------------------------------
     //              Business logic
     //-------------------------------------------------------------------------
@@ -130,33 +103,29 @@ public class Authenticator {
         }
     }
 
-    public List<ValidationError> authenticateRecord( MarcRecord record, String userId, String groupId ) throws JavaScriptException {
+    public List<ValidationError> authenticateRecord( MarcRecord record, String userId, String groupId ) throws ScripterException {
         logger.entry( record, userId, groupId );
+
         List<ValidationError> result = new ArrayList<>();
-
         try {
-            Object jsResult;
-            try {
-                jsResult = jsProvider.callEntryPoint( "authenticateRecord", new Gson().toJson( record ), userId, groupId );
-            }
-            catch( IllegalStateException ex ) {
-                logger.error( "Error when executing JavaScript to authenticate the record", ex );
-                jsResult = "";
-            }
+            ObjectMapper mapper = new ObjectMapper();
+            Object jsResult = scripter.callMethod( "auth.js", "authenticateRecord", mapper.writeValueAsString( record ), userId, groupId);
 
-            logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
+            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if( jsResult instanceof String ) {
-                Gson gson = new Gson();
-                ValidationError[] validationErrors = gson.fromJson( jsResult.toString(), ValidationError[].class );
+                List<ValidationError> validationErrors = mapper.readValue( jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType( List.class, ValidationError.class ) );
 
-                result.addAll( Arrays.asList( validationErrors ) );
+                result.addAll( validationErrors );
                 logger.trace( "Number of errors: {}", result.size() );
 
                 return result;
             }
 
-            throw new JavaScriptException( String.format( "The JavaScript function %s must return a String value.", "authenticateRecord" ) );
+            throw new ScripterException( String.format( "The JavaScript function %s must return a String value.", "authenticateRecord" ) );
+        }
+        catch( IOException ex ) {
+            throw new ScripterException( ex.getMessage(), ex );
         }
         finally {
             logger.exit( result );
@@ -225,5 +194,5 @@ public class Authenticator {
     private Properties settings;
 
     @EJB
-    private JSEngine jsProvider;
+    private Scripter scripter;
 }

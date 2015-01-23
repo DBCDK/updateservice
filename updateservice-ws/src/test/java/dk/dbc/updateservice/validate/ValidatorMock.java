@@ -2,11 +2,10 @@
 package dk.dbc.updateservice.validate;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.iscrumjs.ejb.JSEngine;
+
+import dk.dbc.updateservice.javascript.Scripter;
+
 import java.io.IOException;
-import java.util.Properties;
-import org.slf4j.ext.XLoggerFactory;
 
 //-----------------------------------------------------------------------------
 /**
@@ -18,22 +17,11 @@ public class ValidatorMock extends Validator {
         super();
     }
 
-    @Override
-    public void init() {
-        setLogger( XLoggerFactory.getXLogger( this.getClass() ) );
-    }
-
     public static Validator newInstance( String scriptResource ) throws IOException {
         Validator service = new ValidatorMock();
 
-        Properties props = IOUtils.loadProperties( ";", "dk/dbc/updateservice/ws/settings.properties",
-                                                        "javascript/iscrum/settings.properties" );
-        props.setProperty( "entryresource", scriptResource );
-
-        JSEngine bean = new JSEngine();
-        bean.initialize( props );
-        service.setJavaScriptProvider( bean );
-        service.init();
+        Scripter scripter = new Scripter();
+        // service.setScripter( scripter );
 
         return service;
     }

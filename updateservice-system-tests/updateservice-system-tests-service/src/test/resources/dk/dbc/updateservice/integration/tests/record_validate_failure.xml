@@ -18,6 +18,9 @@
             <marcx:subfield code="a">e</marcx:subfield>
             <marcx:subfield code="r">n</marcx:subfield>
         </marcx:datafield>
+        <marcx:datafield tag="tst" ind1="0" ind2="0">
+            <marcx:subfield code="t">validate_error</marcx:subfield>
+        </marcx:datafield>
     </marcx:record>
 
 </marcx:collection>

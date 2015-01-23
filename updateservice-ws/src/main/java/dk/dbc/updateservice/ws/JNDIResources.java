@@ -27,4 +27,6 @@ public class JNDIResources {
     public static final String AUTH_PRODUCT_NAME_KEY = "auth.product.name";
     public static final String AUTH_USE_IP_KEY = "auth.use.ip";
 
+    public static final String JAVASCRIPT_BASEDIR_KEY = "javascript.basedir";
+    public static final String JAVASCRIPT_INSTALL_NAME_KEY = "javascript.install.name";
 }

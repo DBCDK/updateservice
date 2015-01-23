@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>dk.dbc</groupId>
-        <artifactId>updateservice</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-    
+
+    <groupId>dk.dbc</groupId>
     <artifactId>updateservice-system-tests</artifactId>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     
     <modules>
@@ -62,6 +59,8 @@
         <custom.settings.forsrights.url>http://localhost:${custom.settings.forsrights.port}</custom.settings.forsrights.url>
         <custom.settings.auth.product.name>netpunkt.dk</custom.settings.auth.product.name>
         <custom.settings.auth.use.ip>True</custom.settings.auth.use.ip>
+        <custom.settings.javascript.basedir>${basedir}/../updateservice-system-tests-service/opencat-business</custom.settings.javascript.basedir>
+        <custom.settings.javascript.install.name>system-tests</custom.settings.javascript.install.name>
     </properties>
     
 </project>
