@@ -7,7 +7,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
     
-    <artifactId>updateservice-system-tests-glassfish</artifactId>
+    <artifactId>updateservice-system-tests-servers</artifactId>
     <packaging>jar</packaging>
     
     <properties>

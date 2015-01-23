@@ -265,17 +265,9 @@ public class UpdateRecordIT {
         
         assertNotNull( response );
         assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertEquals( 5, response.getValidateInstance().getValidateEntry().size() );
+        assertEquals( 1, response.getValidateInstance().getValidateEntry().size() );
         assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 0 ).getMessage() );
         assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 0 ).getWarningOrError() );
-        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 1 ).getMessage() );
-        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 1 ).getWarningOrError() );
-        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 2 ).getMessage() );
-        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 2 ).getWarningOrError() );
-        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 3 ).getMessage() );
-        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 3 ).getWarningOrError() );
-        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 4 ).getMessage() );
-        assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 4 ).getWarningOrError() );
 
         try (final Connection connection = newRawRepoConnection()) {
             final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
@@ -321,82 +313,6 @@ public class UpdateRecordIT {
         }
     }
 
-    @Test
-    public void testValidateRecordWithLookup() throws Exception {
-        UpdateRecordRequest request = new UpdateRecordRequest();
-        
-        Authentication auth = new Authentication();
-        auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( "870970" );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
-        
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_TEMPLATE_NAME );
-        Options options = new Options();
-        options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
-        request.setOptions( options );
-        request.setTrackingId( "testValidateRecordWithLookup" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/single_lookup_record.xml" ) );
-        
-        UpdateServiceCaller caller = new UpdateServiceCaller();
-        UpdateRecordResult response = caller.updateRecord( request );
-        
-        assertNotNull( response );
-        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertNotSame( 0, response.getValidateInstance().getValidateEntry().size() );
-
-        try (final Connection connection = newRawRepoConnection()) {
-            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
-            
-            assertFalse( rawRepo.recordExists( "1 234 567 8", 870970 ) );
-        }
-    }
-    
-    @Test
-    public void testUpdateRecordWithNewRecordType() throws Exception {
-        UpdateRecordRequest request = new UpdateRecordRequest();
-        
-        Authentication auth = new Authentication();
-        auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( "870970" );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
-        
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_TEMPLATE_NAME );
-        request.setTrackingId( "testUpdateRecordWithNewRecordType_singleRecord" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_single_record.xml" ) );
-        
-        UpdateServiceCaller caller = new UpdateServiceCaller();
-        UpdateRecordResult response = caller.updateRecord( request );
-        
-        assertNotNull( response );
-        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null && 
-            !response.getValidateInstance().getValidateEntry().isEmpty() ) 
-        {
-            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
-            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
-        }
-        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
-        assertNull( response.getValidateInstance() );
-
-        request = new UpdateRecordRequest();
-        
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_MAIN_TEMPLATE_NAME );
-        Options options = new Options();
-        options.getOption().add( UpdateOptionEnum.VALIDATE_ONLY );
-        request.setOptions( options );
-        request.setTrackingId( "testUpdateRecordWithNewRecordType_mainRecord" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/change_rectype_main_record.xml" ) );
-        
-        caller = new UpdateServiceCaller();
-        response = caller.updateRecord( request );
-        
-        assertNotNull( response );
-        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertNotSame( 0, response.getValidateInstance().getValidateEntry().size() );
-    }
-    
     @Test
     public void testUpdateSingleRecordWithSuccess() throws Exception {
         UpdateRecordRequest request = new UpdateRecordRequest();
@@ -474,113 +390,6 @@ public class UpdateRecordIT {
             
             assertFalse( rawRepo.recordExists( id, library ) );
         }
-    }
-
-    @Test
-    public void testUpdateMainRecordWithConflictingSubfieldInVolumne() throws Exception {
-        /******************************************************************************
-         * First we update a main record, so we can update a volumne attach to it.
-         */
-        UpdateRecordRequest request = new UpdateRecordRequest();
-
-        Authentication auth = new Authentication();
-        auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( "870970" );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
-
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_MAIN_TEMPLATE_NAME );
-        request.setTrackingId( "testUpdateMainRecordWithConflictingSubfieldInVolumne_MainRecordOk" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/main_record.xml" ) );
-
-        UpdateServiceCaller caller = new UpdateServiceCaller();
-        UpdateRecordResult response = caller.updateRecord( request );
-
-        assertNotNull( response );
-        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null &&
-            !response.getValidateInstance().getValidateEntry().isEmpty() )
-        {
-            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
-            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
-        }
-        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
-        assertNull( response.getValidateInstance() );
-
-        try (final Connection connection = newRawRepoConnection()) {
-            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
-
-            String id = "58442615";
-            int library = 870970;
-
-            assertTrue( rawRepo.recordExists( id, library ) );
-            String recContent = new String( rawRepo.fetchRecord( id, library ).getContent() );
-            MarcRecord record = MarcConverter.convertFromMarcXChange( recContent );
-            assertEquals( id, MarcReader.getRecordValue( record, "001", "a" ) );
-            assertEquals( String.valueOf( library ), MarcReader.getRecordValue( record, "001", "b" ) );
-        }
-
-        /******************************************************************************
-         * Now we update a volumne record as a child of the main record.
-         */
-        request = new UpdateRecordRequest();
-
-        auth = new Authentication();
-        auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( "870970" );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
-
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_VOLUME_TEMPLATE_NAME );
-        request.setTrackingId( "testUpdateMainRecordWithConflictingSubfieldInVolumne_VolumneRecord" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/volume_record.xml" ) );
-
-        caller = new UpdateServiceCaller();
-        response = caller.updateRecord( request );
-
-        assertNotNull( response );
-        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null &&
-                !response.getValidateInstance().getValidateEntry().isEmpty() )
-        {
-            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
-            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
-        }
-        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
-        assertNull( response.getValidateInstance() );
-
-        try (final Connection connection = newRawRepoConnection()) {
-            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
-
-            String id = "58442895";
-            int library = 870970;
-
-            assertTrue( rawRepo.recordExists( id, library ) );
-            String recContent = new String( rawRepo.fetchRecord( id, library ).getContent() );
-            MarcRecord record = MarcConverter.convertFromMarcXChange( recContent );
-            assertEquals( id, MarcReader.getRecordValue( record, "001", "a" ) );
-            assertEquals( String.valueOf( library ), MarcReader.getRecordValue( record, "001", "b" ) );
-        }
-
-        /******************************************************************************
-         * Now we update the main record again and expects an validation error.
-         */
-        request = new UpdateRecordRequest();
-
-        auth = new Authentication();
-        auth.setUserIdAut( AUTH_OK_USER_ID );
-        auth.setGroupIdAut( "870970" );
-        auth.setPasswordAut( AUTH_OK_PASSWD );
-
-        request.setAuthentication( auth );
-        request.setSchemaName( BOOK_MAIN_TEMPLATE_NAME );
-        request.setTrackingId( "testUpdateMainRecordWithConflictingSubfieldInVolumne_MainRecordFailure" );
-        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/main_record.xml" ) );
-
-        caller = new UpdateServiceCaller();
-        response = caller.updateRecord( request );
-
-        assertNotNull( response );
-        assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertNotSame(0, response.getValidateInstance().getValidateEntry().size());
     }
 
     @Test

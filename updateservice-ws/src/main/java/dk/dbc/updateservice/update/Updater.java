@@ -7,25 +7,23 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.iscrum.records.marcxchange.RecordType;
-import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.iscrumjs.ejb.JSEngine;
-import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.javascript.ScripterException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
-import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
@@ -40,7 +38,7 @@ import java.util.Set;
  *
  * @author stp
  */
-@Stateful
+@Stateless
 @LocalBean
 public class Updater {
     //-------------------------------------------------------------------------
@@ -91,16 +89,7 @@ public class Updater {
         logger = XLoggerFactory.getXLogger( this.getClass() );
 
         if( recordsHandler == null ) {
-            if ( jsProvider != null ) {
-                try {
-                    jsProvider.initialize( IOUtils.loadProperties( Updater.class.getClassLoader(),
-                            ";", "dk/dbc/updateservice/ws/settings.properties",
-                            "javascript/iscrum/settings.properties" ) );
-                } catch ( IOException | IllegalArgumentException ex ) {
-                    logger.catching( XLogger.Level.WARN, ex );
-                }
-            }
-            this.recordsHandler = new LibraryRecordsHandler( jsProvider );
+            this.recordsHandler = new LibraryRecordsHandler( scripter, "updater.js" );
         }
     }
 
@@ -137,7 +126,7 @@ public class Updater {
                 }
             }
         }
-        catch( RawRepoException | SQLException | JAXBException | UnsupportedEncodingException | JavaScriptException ex ) {
+        catch( RawRepoException | SQLException | JAXBException | UnsupportedEncodingException | ScripterException ex ) {
             logger.error( "Update error: " + ex.getMessage(), ex );
             throw new UpdateException( ex.getMessage(), ex );
         }
@@ -148,8 +137,8 @@ public class Updater {
             logger.exit();
         }
     }
-
-    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
+    
+    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
         logger.entry( record );
 
         try {
@@ -237,8 +226,8 @@ public class Updater {
             logger.exit();
         }
     }
-
-    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
+    
+    void createLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, int libraryId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
         try {
             logger.entry(commonRecord, oldCommonRecordData, libraryId);
             MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord(oldCommonRecordData, libraryId);
@@ -255,7 +244,7 @@ public class Updater {
         }
     }
 
-    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, JavaScriptException, RawRepoException {
+    void updateLibraryExtendedRecord( Record commonRecord, MarcRecord oldCommonRecordData, MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
         try {
             logger.entry(commonRecord, oldCommonRecordData, record);
             MarcRecord extRecord = recordsHandler.updateLibraryExtendedRecord(oldCommonRecordData, record);
@@ -276,7 +265,7 @@ public class Updater {
         }
     }
 
-    void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, JavaScriptException, SQLException, UpdateException, JAXBException, RawRepoException {
+    void saveLibraryExtendedRecord( Record commonRecord, MarcRecord record ) throws UnsupportedEncodingException, ScripterException, SQLException, UpdateException, JAXBException, RawRepoException {
         try {
             logger.entry(commonRecord, record);
             MarcRecord extRecord = record;
@@ -487,8 +476,8 @@ public class Updater {
     static final String PROVIDER = "opencataloging-update";
 
     @EJB
-    private JSEngine jsProvider;
-
+    private Scripter scripter;
+    
     @EJB
     private RawRepo rawRepo;
 

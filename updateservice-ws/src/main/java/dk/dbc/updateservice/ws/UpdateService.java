@@ -6,11 +6,11 @@ package dk.dbc.updateservice.ws;
 import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrumjs.ejb.JavaScriptException;
 import dk.dbc.oss.ns.catalogingupdate.*;
 import dk.dbc.oss.ns.catalogingupdate.Error;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.auth.AuthenticatorException;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
@@ -102,7 +102,7 @@ public class UpdateService implements CatalogingUpdatePortType {
                     return writer.getResponse();
                 }
             }
-            catch( JavaScriptException ex ) {
+            catch( ScripterException ex ) {
                 logger.warn( "Exception doing checking validate schema: {}", ex );
                 writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_INVALID_SCHEMA );
                 return writer.getResponse();
@@ -239,7 +239,7 @@ public class UpdateService implements CatalogingUpdatePortType {
 
             return response;
         }
-        catch( JavaScriptException ex ) {
+        catch( ScripterException ex ) {
             logger.error( "Caught JavaScript exception: {}", ex.getCause() );
 
             GetSchemasResult response = new GetSchemasResult();

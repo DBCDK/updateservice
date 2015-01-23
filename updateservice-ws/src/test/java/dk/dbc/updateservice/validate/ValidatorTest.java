@@ -2,15 +2,26 @@
 package dk.dbc.updateservice.validate;
 
 //-----------------------------------------------------------------------------
-import com.google.gson.Gson;
+
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.iscrumjs.ejb.JavaScriptException;
+import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.ValidationError;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
+
 import static org.junit.Assert.*;
-import org.junit.Test;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
 //-----------------------------------------------------------------------------
 /**
@@ -18,8 +29,15 @@ import org.junit.Test;
  * @author stp
  */
 public class ValidatorTest {
+    @Mock
+    Scripter scripter;
 
     public ValidatorTest() {
+    }
+
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.initMocks( this );
     }
 
     //-------------------------------------------------------------------------
@@ -30,7 +48,10 @@ public class ValidatorTest {
     //@{
     @Test
     public void testValidate_SingleRecordOK() throws Exception {
-        Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "record_ok.js" );
+        Validator ejb = new Validator( scripter, new Properties() );
+
+        when(scripter.callMethod( eq( "validator.js" ), eq( "validateRecord" ), eq( "bog" ), any(String.class), any(Properties.class) ) ).thenReturn("[]");
+
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
 
         assertNotNull( errors );
@@ -39,7 +60,17 @@ public class ValidatorTest {
 
     @Test
     public void testValidate_JSValidationErrors() throws Exception {
-        Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "record_error.js" );
+        Validator ejb = new Validator( scripter, new Properties() );
+
+        when(scripter.callMethod( eq( "validator.js" ), eq( "validateRecord" ), eq( "bog" ), any(String.class), any(Properties.class) ) ).thenReturn( "[\n" +
+                "        {\n" +
+                "            \"type\": \"ERROR\",\n" +
+                "            \"params\": {\n" +
+                "                \"url\": \"http://url.dbc.dk/path/doc.html\",\n" +
+                "                \"message\": \"Problemer med posten.\"\n" +
+                "            }\n" +
+                "        }\n" +
+                "    ]" );
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
 
         assertNotNull( errors );
@@ -50,9 +81,11 @@ public class ValidatorTest {
         assertEquals( "http://url.dbc.dk/path/doc.html", err.getParams().get( "url" ).toString() );
     }
 
-    @Test( expected = JavaScriptException.class )
+    @Test( expected = ScripterException.class )
     public void testValidate_JSException() throws Exception {
-        Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_exception.js" );
+        Validator ejb = new Validator( scripter, new Properties() );
+
+        when(scripter.callMethod( eq( "validator.js" ), eq( "validateRecord" ), eq( "bog" ), any(String.class), any(Properties.class) ) ).thenThrow( new ScripterException( "message" ) );
         List<ValidationError> errors = ejb.validateRecord( "bog", loadRecord( "single_record.json" ) );
     }
     //@}
@@ -61,13 +94,9 @@ public class ValidatorTest {
     //@{
     @Test
     public void testValidate_ValidateSchemaNotFound() throws Exception {
-        Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_schema_not_found.js" );
-        assertFalse( ejb.checkValidateSchema( "bog" ) );
-    }
+        Validator ejb = new Validator( scripter, new Properties() );
 
-    @Test( expected = JavaScriptException.class )
-    public void testValidate_ValidateSchemaWrongResultTypeFromJS() throws Exception {
-        Validator ejb = ValidatorMock.newInstance( JS_RESOURCE_PATH + "validate_schema_wrong_result_type.js" );
+        when(scripter.callMethod( eq( "validator.js" ), eq( "checkTemplate" ), eq( "bog" ), any(Properties.class) ) ).thenReturn( false );
         assertFalse( ejb.checkValidateSchema( "bog" ) );
     }
     //@}
@@ -75,8 +104,8 @@ public class ValidatorTest {
     //!\name Helpers
     //@{
     private MarcRecord loadRecord( String jsonResource ) throws IOException {
-        Gson gson = new Gson();
-        return gson.fromJson( IOUtils.readAll( JSON_RESOURCE_PATH + jsonResource ), MarcRecord.class );
+        ObjectMapper mapper = new ObjectMapper();
+        return mapper.readValue( IOUtils.readAll( JSON_RESOURCE_PATH + jsonResource ), MarcRecord.class );
     }
     //@}
     

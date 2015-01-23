@@ -105,6 +105,8 @@
             <property name="forsrights.url" value="${custom.settings.forsrights.url}"></property>
             <property name="auth.product.name" value="${custom.settings.auth.product.name}" />
             <property name="auth.use.ip" value="${custom.settings.auth.use.ip}" />
+            <property name="javascript.basedir" value="${custom.settings.javascript.basedir}" />
+            <property name="javascript.install.name" value="${custom.settings.javascript.install.name}" />
 		</custom-resource>
 
         <connector-connection-pool max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" resource-adapter-name="jmsra" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
