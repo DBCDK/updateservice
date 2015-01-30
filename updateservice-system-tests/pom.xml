@@ -6,13 +6,16 @@
     <artifactId>updateservice-system-tests</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    
+
     <modules>
         <module>updateservice-system-tests-service</module>
     </modules>
-    
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.slf4j-ext.plugin.version>1.7.7</maven.slf4j-ext.plugin.version>
+        <maven.logback-classic.plugin.version>1.1.2</maven.logback-classic.plugin.version>
 
         <container.id>glassfish4</container.id>
         <container.version>4.0</container.version>
@@ -37,10 +40,10 @@
         <jmx.port>13214</jmx.port>
         <jms.services.port>13215</jms.services.port>
         <jms.provider.port>13216</jms.provider.port>
-        
-        <!-- OSGi port 1322X -->        
+
+        <!-- OSGi port 1322X -->
         <osgi.shell.telnet.port>13221</osgi.shell.telnet.port>
-    
+
         <rawrepo.db.name>rawrepo</rawrepo.db.name>
         <rawrepo.db.driver.version>9.3-1101-jdbc41</rawrepo.db.driver.version>
         <rawrepo.user.name>${user.name}</rawrepo.user.name>
@@ -50,7 +53,7 @@
         <holdingitems.db.driver.version>${rawrepo.db.driver.version}</holdingitems.db.driver.version>
         <holdingitems.user.name>${rawrepo.user.name}</holdingitems.user.name>
         <holdingitems.user.passwd>${rawrepo.user.passwd}</holdingitems.user.passwd>
-        
+
         <!-- Custom resources  -->
         <custom.settings.jndi.name>updateservice/settings</custom.settings.jndi.name>
         <custom.settings.solr.port>12800</custom.settings.solr.port>
@@ -62,5 +65,5 @@
         <custom.settings.javascript.basedir>${basedir}/../updateservice-system-tests-service/opencat-business</custom.settings.javascript.basedir>
         <custom.settings.javascript.install.name>system-tests</custom.settings.javascript.install.name>
     </properties>
-    
+
 </project>
