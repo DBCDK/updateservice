@@ -18,6 +18,8 @@
         <maven.site.plugin.version>3.4</maven.site.plugin.version>
         <maven.project.info.plugin.version>2.7</maven.project.info.plugin.version>
         <maven.javadoc.plugin.version>2.9.1</maven.javadoc.plugin.version>
+        <maven.slf4j-ext.plugin.version>1.7.7</maven.slf4j-ext.plugin.version>
+        <maven.logback-classic.plugin.version>1.1.2</maven.logback-classic.plugin.version>
     </properties>
 
     <repositories>
@@ -30,6 +32,7 @@
     <modules>
         <module>updateservice-app</module>
         <module>updateservice-ws</module>
+        <module>updateservice-log</module>
         <module>updateservice-system-tests</module>
     </modules>
 

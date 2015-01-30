@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true" scan="true" scanPeriod="1 minutes">
+  <insertFromJNDI env-entry-name="update-log/logback" as="logbackConfiguration"/>
+
+  <include url="${logbackConfiguration}"/>
+</configuration>
+

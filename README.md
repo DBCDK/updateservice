@@ -12,7 +12,12 @@ Når servicen er deployet kan den tilgås via følgende:
 * SOAP-operationer: http://&lt;server&gt;:&lt;port&gt;/CatalogingUpdateServices/UpdateService
 * WSDL: http://&lt;server&gt;:&lt;port&gt;/CatalogingUpdateServices/UpdateService?wsdl
 
-### Resourcer
+### System properties
+
+Servicen bruger følgende properties:
+* **UPDATE_LOGBACK_FILENAME**: Bruges af logback til at definere den fulde sti samt filnavn på log filen ekslusiv suffix. Kunne f.eks. være /home/thl/gf-logs/update
+
+### JNDI Resourcer
 
 Servicen bruger disse resourcer:
 
@@ -21,6 +26,7 @@ Servicen bruger disse resourcer:
 transaktionssikker, da den bruges til at ændre råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.xa.PGXADataSource*.
 * **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen. UpdateService læser kun fra denne database,
 så resourcen behøver ikke være transaktionssikker. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
+* **update-log/logback**: Indeholder en url til logback configureringen. kunne f.eks. være file:///home/thl/gf-logs/update-logback-include.xml
 * **updateservice/settings**: Custom resource med ekstra settings.
 
 **updateservice/settings** skal være af typen *Properties* med følgende værdier:

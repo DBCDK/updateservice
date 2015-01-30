@@ -109,6 +109,10 @@
             <property name="javascript.install.name" value="${custom.settings.javascript.install.name}" />
 		</custom-resource>
 
+        <custom-resource factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory" res-type="java.lang.String" jndi-name="${logback.jndi.name}">
+            <property name="value" value="${logback.logfile}"></property>
+        </custom-resource>
+
         <connector-connection-pool max-pool-size="250" steady-pool-size="1" name="jms/__defaultConnectionFactory-Connection-Pool" resource-adapter-name="jmsra" connection-definition-name="javax.jms.ConnectionFactory"></connector-connection-pool>
         <connector-resource pool-name="jms/__defaultConnectionFactory-Connection-Pool" jndi-name="jms/__defaultConnectionFactory" object-type="system-all-req"></connector-resource>
         <managed-scheduled-executor-service jndi-name="concurrent/__defaultManagedScheduledExecutorService" object-type="system-all"></managed-scheduled-executor-service>
@@ -125,6 +129,7 @@
             <resource-ref ref="jdbc/updateservice/raw-repo-writable"></resource-ref>
             <resource-ref ref="jdbc/updateservice/holdingitems"></resource-ref>
             <resource-ref ref="${custom.settings.jndi.name}"></resource-ref>
+            <resource-ref ref="${logback.jndi.name}"></resource-ref>
             <resource-ref ref="jms/__defaultConnectionFactory"></resource-ref>
             <resource-ref ref="concurrent/__defaultManagedScheduledExecutorService"></resource-ref>
             <resource-ref ref="concurrent/__defaultManagedExecutorService"></resource-ref>
@@ -137,8 +142,7 @@
     </nodes>
     <configs>
         <config name="server-config">
-            <system-property name="LOGDIR" value="${logback.logdir}"></system-property>
-            <system-property name="logback.configurationFile" value="${logback.logfile}"></system-property>
+            <system-property name="UPDATE_LOGBACK_FILENAME" value="${logback.logdir}"></system-property>
             <system-property description="Port Number that JMS Service will listen for remote clients connection." name="JMS_PROVIDER_PORT" value="${jms.services.port}"></system-property>
             <http-service>
                 <access-log></access-log>

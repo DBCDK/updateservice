@@ -112,14 +112,14 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-ext</artifactId>
-            <version>1.7.5</version>
+            <version>${maven.slf4j-ext.plugin.version}</version>
             <type>jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.0.13</version>
+            <version>${maven.logback-classic.plugin.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
