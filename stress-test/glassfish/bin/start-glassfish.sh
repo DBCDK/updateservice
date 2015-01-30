@@ -7,7 +7,7 @@ GLASSFISH_HOME=$BASEDIR/home/glassfish4
 ./clean-glassfish.sh
 
 # Unpack Glassfish distribution
-unzip $BASEDIR/glassfish-4.0.zip -d $BASEDIR/home
+unzip -q $BASEDIR/glassfish-4.0.zip -d $BASEDIR/home
 
 # Setup preinstalled domain "domain1"
 pwd
