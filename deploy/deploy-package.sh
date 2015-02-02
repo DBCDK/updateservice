@@ -9,4 +9,4 @@ cp ../../updateservice-system-tests/updateservice-system-tests-servers/glassfish
 cp ../../updateservice-app/target/*.ear .
 cd ..
 
-tar -c -j updateservice-1.0.0 > updateservice-1.0.0.tgz
+tar -c -z updateservice-1.0.0 > updateservice-1.0.0.tgz

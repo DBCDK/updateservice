@@ -29,8 +29,8 @@
         <glassfish.domain.dir>${glassfish.home}/glassfish/domains/domain1</glassfish.domain.dir>
 
         <!-- Logback setup -->
-        <logback.logdir>${glassfish.basedir}/logs/updateservice</logback.logdir>
-        <logback.logfile>file://${basedir}/../../update-logback-include.xml</logback.logfile>
+        <logback.logdir>${basedir}/target/logs/updateservice</logback.logdir>
+        <logback.logfile>file://${basedir}/../update-logback-include.xml</logback.logfile>
         <logback.jndi.name>update-log/logback</logback.jndi.name>
 
         <!-- Glassfish port 130XX -->
