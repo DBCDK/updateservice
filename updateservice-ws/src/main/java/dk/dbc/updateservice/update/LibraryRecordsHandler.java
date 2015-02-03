@@ -7,10 +7,12 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 //-----------------------------------------------------------------------------
 /**
@@ -219,30 +221,30 @@ public class LibraryRecordsHandler {
         }
     }
 
-    public MarcRecord updateRecordForUpdate( MarcRecord dbcRecord, String userId, String groupId ) throws ScripterException {
+    public List<MarcRecord> recordDataForRawRepo( MarcRecord dbcRecord, String userId, String groupId ) throws ScripterException {
         logger.entry( dbcRecord );
 
-        MarcRecord result = null;
+        List<MarcRecord> result = null;
         try {
             Object jsResult;
             ObjectMapper mapper = new ObjectMapper();
             String jsonDbcRecord = mapper.writeValueAsString( dbcRecord );
 
             try {
-                jsResult = scripter.callMethod( fileName, "changeUpdateRecordForUpdate", jsonDbcRecord, userId, groupId );
+                jsResult = scripter.callMethod( fileName, "recordDataForRawRepo", jsonDbcRecord, userId, groupId );
             } catch ( IllegalStateException ex ) {
-                logger.error( "Error when executing JavaScript function: changeUpdateRecordForUpdate", ex );
+                logger.error( "Error when executing JavaScript function: recordDataForRawRepo", ex );
                 jsResult = false;
             }
 
             logger.debug("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if ( jsResult instanceof String ) {
-                result = mapper.readValue(jsResult.toString(), MarcRecord.class);
+                result = mapper.readValue( jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType( List.class, MarcRecord.class ) );
                 return result;
             }
 
-            throw new ScripterException( "The JavaScript function %s must return a String value.", "changeUpdateRecordForUpdate" );
+            throw new ScripterException( "The JavaScript function %s must return a String value.", "recordDataForRawRepo" );
         }
         catch( IOException ex ) {
             throw new ScripterException( "Error when executing JavaScript function: changeUpdateRecordForUpdate", ex );
