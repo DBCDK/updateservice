@@ -13,6 +13,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -95,7 +97,7 @@ public class UpdaterLibraryExtendedRecordTest {
         when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( extRec );
-        when( recordsHandler.updateRecordForUpdate( extRec, "", "" ) ).thenReturn( extRec );
+        when( recordsHandler.recordDataForRawRepo( extRec, "", "" ) ).thenReturn( Arrays.asList( extRec ) );
 
         updater.updateRecord( extRec, "", "" );
 
@@ -161,7 +163,7 @@ public class UpdaterLibraryExtendedRecordTest {
         when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( emptyRec );
-        when( recordsHandler.updateRecordForUpdate(extRec, "", "") ).thenReturn( extRec );
+        when( recordsHandler.recordDataForRawRepo(extRec, "", "") ).thenReturn( Arrays.asList( extRec ) );
 
         updater.updateRecord( extRec, "", "" );
 

@@ -12,6 +12,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.eq;
@@ -76,7 +78,7 @@ public class UpdaterLibraryLocalRecordTest {
         Record rec = RecordUtils.createRawRecord( "20611529", 700100 );
         MarcRecord recData = RecordUtils.loadMarcRecord( "localrec_single_v1.xml" );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
-        when( recordsHandler.updateRecordForUpdate( recData, "", "" ) ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
 
         updater.updateRecord( recData, "", "" );
 
@@ -123,7 +125,7 @@ public class UpdaterLibraryLocalRecordTest {
 
         when( rawRepo.recordExists( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( true );
         when( rawRepo.fetchRecord(rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId()) ).thenReturn( rec );
-        when( recordsHandler.updateRecordForUpdate( recData, "", "" ) ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
 
         updater.updateRecord( recData, "", "" );
 

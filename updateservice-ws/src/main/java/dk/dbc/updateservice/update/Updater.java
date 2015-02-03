@@ -108,21 +108,25 @@ public class Updater {
         logger.entry( record );
 
         try {
-            record = recordsHandler.updateRecordForUpdate( record, userId, groupId );
-
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
-            int libraryId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-
-            if( libraryId == RawRepo.COMMON_LIBRARY ) {
-                updateCommonRecord( record );
+            if( record == null ) {
+                throw new NullPointerException( "record can not be (null)" );
             }
-            else {
-                if( rawRepo.recordExists( recId, rawRepo.COMMON_LIBRARY ) ) {
-                    Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.COMMON_LIBRARY );
-                    saveLibraryExtendedRecord( commonRecord, record );
+
+            for( MarcRecord rec : recordsHandler.recordDataForRawRepo( record, userId, groupId ) ) {
+                String recId = MarcReader.getRecordValue( rec, "001", "a" );
+                int libraryId = Integer.parseInt( MarcReader.getRecordValue( rec, "001", "b" ), 10 );
+
+                if( libraryId == RawRepo.COMMON_LIBRARY ) {
+                    updateCommonRecord( rec );
                 }
                 else {
-                    updateLibraryLocalRecord( record );
+                    if( rawRepo.recordExists( recId, rawRepo.COMMON_LIBRARY ) ) {
+                        Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.COMMON_LIBRARY );
+                        saveLibraryExtendedRecord( commonRecord, rec );
+                    }
+                    else {
+                        updateLibraryLocalRecord( rec );
+                    }
                 }
             }
         }
@@ -370,6 +374,7 @@ public class Updater {
 
                 logger.info("Deleting record [{}:{}]", recId, libraryId);
                 Record record = rawRepo.fetchRecord( recId, libraryId );
+                record.setMimeType( mimeTypeForRecord( record ) );
                 record.setDeleted( true );
                 rawRepo.saveRecord( record, parentId );
                 return;
@@ -382,27 +387,39 @@ public class Updater {
             }
 
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, libraryId);
-            rawRepoRecord.setContent(content);
+            rawRepoRecord.setContent( content );
+            rawRepoRecord.setMimeType( mimeTypeForRecord( rawRepoRecord ) );
             rawRepo.saveRecord( rawRepoRecord, parentId );
-
-            /*
-             * Moved to rawRepo.saveRecord( ... ).
-            if (rawRepo.COMMON_LIBRARY == libraryId) {
-                if (!parentId.isEmpty()) {
-                    linkToRecord(rawRepoRecord.getId(), new RecordId(parentId, libraryId));
-                }
-            } else {
-                if (rawRepo.recordExists(recId, rawRepo.COMMON_LIBRARY)) {
-                    logger.info("Linker record [{}] -> [{}]", rawRepoRecord.getId(), new RecordId(recId, rawRepo.COMMON_LIBRARY));
-                    linkToRecord(rawRepoRecord.getId(), new RecordId(recId, rawRepo.COMMON_LIBRARY));
-                }
-            }
-            */
 
             rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
         }
         finally {
             logger.exit();
+        }
+    }
+
+    private String mimeTypeForRecord( final Record rawRepoRecord ) throws UpdateException {
+        logger.entry( rawRepoRecord );
+
+        String result = "";
+        try {
+            RecordId recId = rawRepoRecord.getId();
+            if( recId.getAgencyId() == RawRepo.COMMON_LIBRARY ) {
+                result = MarcXChangeMimeType.MARCXCHANGE;
+            }
+            else {
+                if( rawRepo.recordExists( recId.getBibliographicRecordId(), rawRepo.COMMON_LIBRARY ) ) {
+                    result = MarcXChangeMimeType.ENRICHMENT;
+                }
+                else {
+                    result = MarcXChangeMimeType.DECENTRAL;
+                }
+            }
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
         }
     }
 

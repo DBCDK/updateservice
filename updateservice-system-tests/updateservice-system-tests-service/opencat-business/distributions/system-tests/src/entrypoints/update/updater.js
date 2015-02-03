@@ -18,6 +18,6 @@ function correctLibraryExtendedRecord( dbcRecord, libraryRecord ) {
     return libraryRecord;
 }
 
-function changeUpdateRecordForUpdate( dbcRecord, userId, groupId ) {
-    return dbcRecord;
+function recordDataForRawRepo( dbcRecord, userId, groupId ) {
+    return "[" + dbcRecord + "]";
 }

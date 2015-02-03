@@ -14,6 +14,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,7 +85,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_single.xml" );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( true );
-        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
 
         updater.updateRecord( recData, "", "" );
@@ -134,7 +135,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
         when( rawRepo.agenciesForRecord( "20611529") ).thenReturn( localLibraries );
         when( rawRepo.fetchRecord(rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId()) ).thenReturn( rec );
-        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
 
         updater.updateRecord( recData, "", "" );
     }
@@ -170,7 +171,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         Record rec = RecordUtils.createRawRecord( "58442895", 870970 );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
-        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
 
         final HashSet<RecordId> references = new HashSet<>();
@@ -216,7 +217,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         MarcRecord recData = RecordUtils.loadMarcRecord( "dbcrec_volume.xml" );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn( new HashSet<Integer>() );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
-        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
         when( rawRepo.fetchRecord( rec.getId().getBibliographicRecordId(), rec.getId().getAgencyId() ) ).thenReturn( rec );
         when( rawRepo.recordExists( "58442615", 870970 ) ).thenReturn( true );
 
@@ -278,7 +279,7 @@ public class UpdaterCommonRecordNoHoldingsTest {
         extLibraries.add( 700100 );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( any( String.class) ) ).thenReturn(new HashSet<Integer>());
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
-        when( recordsHandler.updateRecordForUpdate(recData, "", "") ).thenReturn( recData );
+        when( recordsHandler.recordDataForRawRepo( recData, "", "" ) ).thenReturn( Arrays.asList( recData ) );
         when( rawRepo.recordExists( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( true );
         when( rawRepo.fetchRecord( commonRec.getId().getBibliographicRecordId(), commonRec.getId().getAgencyId() ) ).thenReturn( commonRec );
         when( rawRepo.recordExists( extRec.getId().getBibliographicRecordId(), extRec.getId().getAgencyId() ) ).thenReturn( true );
