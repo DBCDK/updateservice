@@ -41,15 +41,18 @@ public class Scripter {
     //-------------------------------------------------------------------------
 
     /**
+     * Calls a function in a JavaScript environment and returns the result.
+     * <p/>
+     * The JavaScript environment is created and cached by the filename.
      *
+     * @param fileName   JavaScript file to load in the environment.
+     * @param methodName Name of the function to call.
+     * @param args       Arguments to the function.
      *
-     * @param fileName
-     * @param methodName
-     * @param args
+     * @return The result of the JavaScript function.
      *
-     * @return
-     *
-     * @throws ScripterException
+     * @throws ScripterException Encapsulate any exception from Rhino or is throwned
+     *         in case of an error. For instance if the file can not be loaded.
      */
     public Object callMethod( String fileName, String methodName, Object... args ) throws ScripterException {
         logger.entry( fileName, methodName, args );
