@@ -5,6 +5,7 @@ import dk.dbc.forsrights.service.ForsRightsPortType;
 import dk.dbc.forsrights.service.ForsRightsRequest;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.ForsRightsService;
+import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -54,10 +55,11 @@ public class ForsService {
         try {
             ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
 
-            logger.debug( "Sending request to {}", this.endpoint );
+            bizLogger.info( "Authenticating user {}/{} against forsright at {}", userId, groupId, this.endpoint );
             return this.callerProxy.forsRights( request );
         }
         catch( Exception ex ) {
+            bizLogger.error( "ForsRights error: {}", ex.getMessage() );
             logger.error( "ForsService.forsRights: Caught exception: ", ex );
             throw ex;
         }
@@ -83,11 +85,12 @@ public class ForsService {
             ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
             request.setIpAddress( ipAddress );
 
-            logger.debug( "Sending request to {}", this.endpoint );
+            bizLogger.info( "Authenticating user {}/{} with ip-address {} against forsright at {}", userId, groupId, ipAddress, this.endpoint );
             return this.callerProxy.forsRights( request );
         }
         catch( Exception ex ) {
-            logger.error( "ForsService.forsRightsWithIp: Caught exception: ", ex );
+            bizLogger.error( "ForsRights error: {}", ex.getMessage() );
+            logger.error( "ForsService.forsRights: Caught exception: ", ex );
             throw ex;
         }
         finally {
@@ -139,6 +142,7 @@ public class ForsService {
     //-------------------------------------------------------------------------
 
     private static final XLogger logger = XLoggerFactory.getXLogger( ForsService.class );
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes

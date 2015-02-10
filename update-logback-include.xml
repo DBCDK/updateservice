@@ -9,52 +9,73 @@
         </encoder>
     </appender>
 
+    <timestamp key="curDate" datePattern="yyyyMMdd"/>
 
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${UPDATE_LOGBACK_FILENAME}.log</file>
-        <append>true</append>
-        <prudent>true</prudent>
 
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${UPDATE_LOGBACK_FILENAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <!-- or whenever the file size reaches nnMB -->
-                <maxFileSize>200MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
-        </rollingPolicy>
-
-        <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
+    <appender name="FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>trackingId</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="FILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}.log</file>
+                <append>true</append>
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>%date %level [%thread] %logger{35} [%file:%line] - %msg%n</pattern>
+                </layout>
+            </appender>
+        </sift>
     </appender>
 
-    <appender name="ERRFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${UPDATE_LOGBACK_FILENAME}.log</file>
-        <append>true</append>
-        <prudent>true</prudent>
+    <appender name="BIZFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>trackingId</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="BIZFILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-biz.log</file>
+                <append>true</append>
 
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>WARN</level>
-        </filter>
+                <filter class="dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter" />
 
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- daily rollover -->
-            <fileNamePattern>${UPDATE_LOGBACK_FILENAME}-warn-err.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <!-- or whenever the file size reaches nnMB -->
-                <maxFileSize>200MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
-        </rollingPolicy>
+                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                    <level>INFO</level>
+                </filter>
 
-        <encoder>
-            <pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</pattern>
-        </encoder>
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>%date{HH:mm:ss.SSS} %level - %msg%n</pattern>
+                </layout>
+            </appender>
+        </sift>
+    </appender>
+
+    <appender name="ERRFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+        <discriminator>
+            <key>trackingId</key>
+            <defaultValue>unknown</defaultValue>
+        </discriminator>
+        <sift>
+            <appender name="ERRFILE-${trackingId}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-warn-err.log</file>
+                <append>true</append>
+
+                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                    <level>WARN</level>
+                </filter>
+
+                <layout class="ch.qos.logback.classic.PatternLayout">
+                    <pattern>%date %level [%thread] %logger{35} [%file:%line] - %msg%n</pattern>
+                </layout>
+            </appender>
+        </sift>
     </appender>
 
     <root level="TRACE">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
-        <appender-ref ref="ERRFILE" />
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="BIZFILE"/>
+        <appender-ref ref="ERRFILE"/>
     </root>
 </included>

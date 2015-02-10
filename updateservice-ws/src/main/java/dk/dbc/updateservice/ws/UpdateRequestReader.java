@@ -2,14 +2,18 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.oss.ns.catalogingupdate.Options;
+import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
-import java.util.List;
-import javax.xml.transform.dom.DOMSource;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
+
+import javax.xml.transform.dom.DOMSource;
+import java.util.List;
 
 //-----------------------------------------------------------------------------
 /**
@@ -168,6 +172,16 @@ public class UpdateRequestReader {
         finally {
             logger.exit( result );
         }
+    }
+
+    public boolean hasValidationOnlyOption() {
+        Options options = request.getOptions();
+
+        if( options != null && options.getOption() != null ) {
+            return options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY );
+        }
+
+        return false;
     }
 
     /**

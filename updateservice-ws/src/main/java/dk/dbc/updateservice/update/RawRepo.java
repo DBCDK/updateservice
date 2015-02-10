@@ -9,6 +9,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -263,6 +264,7 @@ public class RawRepo {
         try( Connection conn = dataSourceWriter.getConnection() ) {
             RawRepoDAO dao = createDAO( conn );
 
+
             dao.saveRecord( record );
 
             if( COMMON_LIBRARY == record.getId().getAgencyId() ) {
@@ -402,6 +404,7 @@ public class RawRepo {
      * Logger instance to write entries to the log files.
      */
     private static XLogger logger = XLoggerFactory.getXLogger( RawRepo.class );
+    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     /**
      * Injected DataSource to read from the rawrepo database.
