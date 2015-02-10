@@ -2,7 +2,9 @@
 package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+import org.slf4j.ext.XLogger;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -120,8 +122,17 @@ public class ValidationError {
             return false;
         }
         return true;
-    }    
-    
+    }
+
+    public void writeLog( XLogger logger ) {
+        if( getType() == ValidateWarningOrErrorEnum.WARNING ) {
+            logger.warn( getParams().toString() );
+        }
+        else {
+            logger.error( getParams().toString() );
+        }
+    }
+
     //-------------------------------------------------------------------------
     //              Private
     //-------------------------------------------------------------------------

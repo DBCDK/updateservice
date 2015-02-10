@@ -7,6 +7,7 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.iscrum.records.marcxchange.RecordType;
+import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -174,13 +175,18 @@ public class Updater {
                 }
             }
 
-            if (oldRecord == null) {
+            if ( oldRecord == null ) {
                 oldRecord = new MarcRecord();
                 oldRecord.setFields(new ArrayList<MarcField>());
             }
 
-            logger.info("Current record in rawrepo:\n{}", oldRecord.toString());
-            logger.info("Saves record:\n{}", record.toString());
+            if( oldRecord.getFields().isEmpty() ) {
+                bizLogger.info( "Save new common record:\n{}", record.toString() );
+            }
+            else {
+                bizLogger.info( "Overwriting common existing record. Old record:\n{}\nNew record:\n{}",
+                                oldRecord.toString(), record.toString() );
+            }
             saveRecord(encodeRecord(record), recId, libraryId, parentId);
 
             if (recordsHandler.hasClassificationData(oldRecord) && recordsHandler.hasClassificationData(record)) {
@@ -224,6 +230,16 @@ public class Updater {
             int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
+            if( !rawRepo.recordExists( recId, libraryId ) ) {
+                bizLogger.info( "Creating new local record:\n{}", record.toString() );
+            }
+            else {
+                Record rawRecord = rawRepo.fetchRecord( recId, libraryId );
+                MarcRecord oldRecord = decodeRecord( rawRecord.getContent() );
+                bizLogger.info( "Overwriting existing local record. Old record:\n{}\nNew record:\n{}",
+                                oldRecord.toString(), record.toString() );
+            }
+
             saveRecord(encodeRecord(record), recId, libraryId, parentId);
         }
         finally {
@@ -237,9 +253,9 @@ public class Updater {
             MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord(oldCommonRecordData, libraryId);
 
             String recId = MarcReader.getRecordValue(extRecord, "001", "a");
-            logger.info("Record id: [{}:{}]", recId, libraryId);
 
-            logger.info("Save new library extended record:\n{}", extRecord);
+            bizLogger.info( "Creating new enrichment record for library {}:\n{}", libraryId, extRecord.toString() );
+
             saveRecord(encodeRecord(extRecord), recId, libraryId, "");
             enqueueRecord(new RecordId(recId, libraryId));
         }
@@ -257,10 +273,11 @@ public class Updater {
             int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
             String parentId = MarcReader.getRecordValue(record, "014", "a");
 
-            logger.info("Record id: [{}:{}]", recId, libraryId);
-            logger.info("Parent Record id: {}", parentId);
-            logger.info("Original library extended record:\n{}", record);
-            logger.info("Overwrite existing library extended record:\n{}", extRecord);
+            Record rawRecord = rawRepo.fetchRecord( recId, libraryId );
+            MarcRecord oldRecord = decodeRecord( rawRecord.getContent() );
+            bizLogger.info( "Overwriting existing enrichment record. Old record:\n{}\nNew record:\n{}",
+                            oldRecord.toString(), extRecord.toString() );
+
             saveRecord(encodeRecord(extRecord), recId, libraryId, parentId);
             enqueueRecord(new RecordId(recId, libraryId));
         }
@@ -288,13 +305,22 @@ public class Updater {
             logger.info("Original library extended record:\n{}", record);
 
             if (extRecord.getFields().isEmpty()) {
-                logger.info("Overwrite existing library extended record: Empty!");
                 if (rawRepo.recordExists(recId, libraryId)) {
+                    bizLogger.info( "Deleting existing library extended record because its empty");
                     saveRecord(null, recId, libraryId, parentId);
                 }
-            } else {
-                logger.info("Overwrite existing library extended record:\n{}", extRecord);
-                saveRecord(encodeRecord(extRecord), recId, libraryId, parentId);
+            }
+            else {
+                if( rawRepo.recordExists( recId, libraryId ) ) {
+                    Record rawRecord = rawRepo.fetchRecord( recId, libraryId );
+                    MarcRecord oldRecord = decodeRecord( rawRecord.getContent() );
+                    bizLogger.info( "Overwriting existing enrichment record. Old record:\n{}\nNew record:\n{}",
+                            oldRecord.toString(), extRecord.toString() );
+                }
+                else {
+                    bizLogger.info( "Creating new enrichment record:\n{}", extRecord.toString() );
+                }
+                saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
             }
             enqueueRecord(new RecordId(recId, libraryId));
         }
@@ -372,17 +398,19 @@ public class Updater {
                     throw new UpdateException(err);
                 }
 
-                logger.info("Deleting record [{}:{}]", recId, libraryId);
+                bizLogger.info( "Deleting record [{}:{}]", recId, libraryId );
                 Record record = rawRepo.fetchRecord( recId, libraryId );
                 record.setMimeType( mimeTypeForRecord( record ) );
                 record.setDeleted( true );
+
+                bizLogger.info( "Mimetype for record: {}", record.getMimeType() );
                 rawRepo.saveRecord( record, parentId );
                 return;
             }
 
             if (!parentId.isEmpty() && !rawRepo.recordExists(parentId, libraryId)) {
                 String err = String.format("Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId);
-                logger.warn(err);
+                bizLogger.warn( err );
                 throw new UpdateException(err);
             }
 
@@ -484,6 +512,7 @@ public class Updater {
      * Logger instance to write entries to the log files.
      */
     private XLogger logger;
+    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     /**
      * Rawrepo requires a provider name for the service that changes its
