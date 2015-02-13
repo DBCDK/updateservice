@@ -103,5 +103,8 @@
             <marcx:subfield code="0"/>
             <marcx:subfield code="s">psykisk syge</marcx:subfield>
         </marcx:datafield>
+        <marcx:datafield ind1="0" ind2="0" tag="996">
+            <marcx:subfield code="a">870970</marcx:subfield>
+        </marcx:datafield>
     </marcx:record>
 </marcx:collection>

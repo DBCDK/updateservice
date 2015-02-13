@@ -63,7 +63,7 @@
         <custom.settings.auth.product.name>netpunkt.dk</custom.settings.auth.product.name>
         <custom.settings.auth.use.ip>True</custom.settings.auth.use.ip>
         <custom.settings.javascript.basedir>${basedir}/../updateservice-system-tests-service/opencat-business</custom.settings.javascript.basedir>
-        <custom.settings.javascript.install.name>system-tests</custom.settings.javascript.install.name>
+        <custom.settings.javascript.install.name>updateservice-system-tests</custom.settings.javascript.install.name>
     </properties>
 
 </project>

@@ -40,12 +40,13 @@ import static org.junit.Assert.*;
 public class UpdateRecordIT {
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
 
-    private static final String BOOK_TEMPLATE_NAME = "us-book";
-    private static final String BOOK_MAIN_TEMPLATE_NAME = "us-bookmain";
-    private static final String BOOK_VOLUME_TEMPLATE_NAME = "us-bookvolume";
-    private static final String BOOK_ASSOCIATED_TEMPLATE_NAME = "us-associated-book";
+    private static final String BOOK_TEMPLATE_NAME = "bog";
+    private static final String BOOK_MAIN_TEMPLATE_NAME = "boghoved";
+    private static final String BOOK_VOLUME_TEMPLATE_NAME = "bogbind";
+    private static final String BOOK_ASSOCIATED_TEMPLATE_NAME = "enrichment";
     
     private static final String AUTH_OK_GROUP_ID = "010100";
+    private static final String AUTH_FBS_GROUP_ID = "700400";
     private static final String AUTH_OK_USER_ID = "netpunkt";
     private static final String AUTH_OK_PASSWD = "20Koster";
     private static final String AUTH_BAD_PASSWD = "wrong_passwd";
@@ -128,7 +129,12 @@ public class UpdateRecordIT {
         request.setTrackingId( "testRecordWithWrongAuthenticationRights" );
         request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/wrong_auth_rights_record.xml" ) );
 
-        UpdateServiceCaller caller = new UpdateServiceCaller();
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
         UpdateRecordResult response = caller.updateRecord( request );
 
         assertNotNull( response );
@@ -265,8 +271,14 @@ public class UpdateRecordIT {
         
         assertNotNull( response );
         assertEquals( UpdateStatusEnum.VALIDATION_ERROR, response.getUpdateStatus() );
-        assertEquals( 1, response.getValidateInstance().getValidateEntry().size() );
+        assertEquals( 7, response.getValidateInstance().getValidateEntry().size() );
         assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 0 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 1 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 2 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 3 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 4 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 5 ).getMessage() );
+        assertNotSame( "", response.getValidateInstance().getValidateEntry().get( 6 ).getMessage() );
         assertEquals( ValidateWarningOrErrorEnum.ERROR, response.getValidateInstance().getValidateEntry().get( 0 ).getWarningOrError() );
 
         try (final Connection connection = newRawRepoConnection()) {
@@ -428,7 +440,7 @@ public class UpdateRecordIT {
         
         // Update associated record
         request = new UpdateRecordRequest();
-        auth.setGroupIdAut( "010100" );
+        auth.setGroupIdAut( AUTH_FBS_GROUP_ID );
         request.setAuthentication( auth );
         request.setSchemaName( BOOK_ASSOCIATED_TEMPLATE_NAME );
         request.setTrackingId( "testUpdateAssociatedRecord_AssocRecord" );
@@ -460,9 +472,10 @@ public class UpdateRecordIT {
             assertTrue( rawRepo.recordExists( "20611529", 10100 ) );
 
             Set<Integer> localLibrariesSet = rawRepo.allAgenciesForBibliographicRecordId( "20611529" );
-            assertEquals( 2, localLibrariesSet.size() );
-            assertTrue(localLibrariesSet.contains(10100));
-            assertTrue(localLibrariesSet.contains(870970));
+            assertEquals( 3, localLibrariesSet.size() );
+            assertTrue( localLibrariesSet.contains( 10100 ) );
+            assertTrue(localLibrariesSet.contains( 870970 ) );
+            assertTrue(localLibrariesSet.contains( 700400 ) );
         }
     }
     
