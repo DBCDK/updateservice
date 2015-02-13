@@ -478,7 +478,55 @@ public class UpdateRecordIT {
             assertTrue(localLibrariesSet.contains( 700400 ) );
         }
     }
-    
+
+    @Test
+    public void testBugSiblings() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( "010100" );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+
+        request.setAuthentication( auth );
+        request.setSchemaName( "dbc" );
+        request.setTrackingId( "testBugSiblings" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/bug_siblings_common_record.xml" ) );
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
+        UpdateRecordResult response = caller.updateRecord( request );
+        response = caller.updateRecord( request );
+
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null &&
+                !response.getValidateInstance().getValidateEntry().isEmpty() )
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+
+            String id = "82646078";
+            int library = 870970;
+
+            assertTrue( rawRepo.recordExists( id, library ) );
+            String recContent = new String( rawRepo.fetchRecord( id, library ).getContent() );
+            MarcRecord record = MarcConverter.convertFromMarcXChange( recContent );
+            assertEquals( id, MarcReader.getRecordValue( record, "001", "a" ) );
+            assertEquals( String.valueOf( library ), MarcReader.getRecordValue( record, "001", "b" ) );
+        }
+
+    }
+
     private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
         Properties settings = IOUtils.loadProperties( UpdateRecordIT.class.getClassLoader(), "settings.properties" );
 

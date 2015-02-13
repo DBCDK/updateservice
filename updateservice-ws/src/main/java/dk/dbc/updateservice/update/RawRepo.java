@@ -306,6 +306,24 @@ public class RawRepo {
         }
     }
 
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    public void purgeRecord( RecordId recordId ) throws UpdateException {
+        logger.entry( recordId );
+
+        try( Connection conn = dataSourceWriter.getConnection() ) {
+            RawRepoDAO dao = createDAO( conn );
+
+            dao.purgeRecord( recordId );
+        }
+        catch( RawRepoException | SQLException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     public MarcRecord decodeRecord( byte[] bytes ) throws UnsupportedEncodingException {
         return MarcConverter.convertFromMarcXChange( new String( bytes, "UTF-8" ) );
     }
