@@ -399,12 +399,7 @@ public class Updater {
                 }
 
                 bizLogger.info( "Deleting record [{}:{}]", recId, libraryId );
-                Record record = rawRepo.fetchRecord( recId, libraryId );
-                record.setMimeType( mimeTypeForRecord( record ) );
-                record.setDeleted( true );
-
-                bizLogger.info( "Mimetype for record: {}", record.getMimeType() );
-                rawRepo.saveRecord( record, parentId );
+                rawRepo.purgeRecord( new RecordId( recId, libraryId ) );
                 return;
             }
 
