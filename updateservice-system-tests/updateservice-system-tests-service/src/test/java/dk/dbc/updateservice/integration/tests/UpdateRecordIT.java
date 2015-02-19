@@ -527,6 +527,49 @@ public class UpdateRecordIT {
 
     }
 
+    @Test
+    public void testBugFBSLibraryCreatesCommonRecord() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+
+        Authentication auth = new Authentication();
+        auth.setUserIdAut( AUTH_OK_USER_ID );
+        auth.setGroupIdAut( AUTH_FBS_GROUP_ID );
+        auth.setPasswordAut( AUTH_OK_PASSWD );
+
+        request.setAuthentication( auth );
+        request.setSchemaName( "bog" );
+        request.setTrackingId( "testBugFBSLibraryCreatesCommonRecord" );
+        request.setBibliographicRecord( BibliographicRecordFactory.loadResource( "tests/fbs_common_record.xml" ) );
+
+        HashMap<String, Object> headers = new HashMap<>();
+        headers.put( X_FORWARDED_FOR_HEADER, Collections.singletonList( "127.12.14.16, 127.37.185.18" ) );
+        headers.put( X_FORWARDED_HOST_HEADER, Collections.singletonList("oss-services.dbc.dk, oss-services.dbc.dk"));
+        headers.put( X_FORWARDED_SERVER_HEADER, Collections.singletonList("oss-services.dbc.dk, update.osssvc.beweb.dbc.dk"));
+
+        UpdateServiceCaller caller = new UpdateServiceCaller( headers );
+        UpdateRecordResult response = caller.updateRecord( request );
+        response = caller.updateRecord( request );
+
+        assertNotNull( response );
+        if( response.getValidateInstance() != null && response.getValidateInstance().getValidateEntry() != null &&
+                !response.getValidateInstance().getValidateEntry().isEmpty() )
+        {
+            ValidateEntry entry = response.getValidateInstance().getValidateEntry().get( 0 );
+            assertEquals( "", String.format( "%s: %s", entry.getOrdinalPositionOfField(), entry.getMessage() ) );
+        }
+        assertEquals( UpdateStatusEnum.OK, response.getUpdateStatus() );
+        assertNull( response.getValidateInstance() );
+
+        try (final Connection connection = newRawRepoConnection()) {
+            final RawRepoDAO rawRepo = RawRepoDAO.newInstance( connection );
+
+            assertTrue( rawRepo.recordExists( "20611529", 870970 ) );
+            assertFalse( rawRepo.recordExists( "20611529", 10100 ) );
+            assertFalse( rawRepo.recordExists( "20611529", Integer.valueOf( AUTH_FBS_GROUP_ID, 10 ) ) );
+        }
+
+    }
+
     private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
         Properties settings = IOUtils.loadProperties( UpdateRecordIT.class.getClassLoader(), "settings.properties" );
 
