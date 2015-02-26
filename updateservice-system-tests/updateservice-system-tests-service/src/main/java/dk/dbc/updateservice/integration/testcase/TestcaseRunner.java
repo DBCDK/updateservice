@@ -1,9 +1,6 @@
 package dk.dbc.updateservice.integration.testcase;
 
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcReader;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.rawrepo.RawRepoDAO;
@@ -14,6 +11,7 @@ import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.*;
+import dk.dbc.updateservice.update.RawRepo;
 import junit.framework.Assert;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -26,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
@@ -37,6 +36,43 @@ import static org.junit.Assert.*;
 public class TestcaseRunner {
     public TestcaseRunner( File dir ) {
         this.dir = dir;
+    }
+
+    public Record saveRecord( RawRepoDAO dao, String filename, String mimetype ) throws IOException, RawRepoException, JAXBException {
+        logger.entry();
+
+        try {
+            MarcRecord record = loadRecord( filename );
+            RecordId recId = getRecordId( record );
+
+            Record newRecord = dao.fetchRecord( recId.getBibliographicRecordId(), recId.getAgencyId() );
+            newRecord.setDeleted( false );
+            newRecord.setMimeType( mimetype );
+            newRecord.setContent( new RawRepo().encodeRecord( record ) );
+            dao.saveRecord( newRecord );
+
+            return newRecord;
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void linkSibling( RawRepoDAO dao, String commonFilename, String enrichmentFilename ) throws IOException, RawRepoException, JAXBException {
+        logger.entry();
+
+        try {
+            MarcRecord commonRecord = loadRecord( commonFilename );
+            MarcRecord enrichmentRecord = loadRecord( enrichmentFilename );
+
+            final HashSet<RecordId> references = new HashSet<>();
+            references.add( getRecordId( commonRecord ) );
+
+            dao.setRelationsFrom( getRecordId( enrichmentRecord ), references );
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     public UpdateRecordResult sendRequest() throws IOException, JAXBException, SAXException, ParserConfigurationException {
@@ -125,7 +161,40 @@ public class TestcaseRunner {
             assertFalse( rawRecord.isDeleted() );
             assertEquals( mimetype, rawRecord.getMimeType() );
             assertNotNull( rawRecord.getContent() );
-            assertEquals( marcRecord, MarcConverter.convertFromMarcXChange( new String( rawRecord.getContent(), "UTF-8" ) ) );
+
+            MarcRecord rawRepoMarcRecord = MarcConverter.convertFromMarcXChange( new String( rawRecord.getContent(), "UTF-8" ) );
+            if( marcRecord.getFields().size() != rawRepoMarcRecord.getFields().size() ) {
+                // We use assertEquals of the two records to display the entire content for comparison when the
+                // number of fields differ. It will hopefully make it easier to debug.
+                assertEquals( "Number of fields differ: ", marcRecord.toString(), rawRepoMarcRecord.toString() );
+            }
+
+            for( int i = 0; i < marcRecord.getFields().size(); i++ ) {
+                MarcField expected = marcRecord.getFields().get( i );
+                MarcField actual = rawRepoMarcRecord.getFields().get( i );
+
+                if( expected.getName().equals( "001" ) ) {
+                    assertEquals( "Compare field name of 001", expected.getName(), actual.getName() );
+                    assertEquals( "Compare indicator of 001", expected.getIndicator(), actual.getIndicator() );
+
+                    for( int k = 0; k < expected.getSubfields().size(); k++ ) {
+                        MarcSubField expectedSubField = expected.getSubfields().get( k );
+
+                        if( expectedSubField.getName().equals( "c" ) ) {
+                            continue;
+                        }
+                        if( expectedSubField.getName().equals( "d" ) ) {
+                            continue;
+                        }
+
+                        MarcSubField actualSubField = actual.getSubfields().get( k );
+                        assertEquals( "Compare 001" + expectedSubField.getName(), expectedSubField.toString(), actualSubField.toString() );
+                    }
+                }
+                else {
+                    assertEquals( "Compare field " + expected.getName(), expected.toString(), actual.toString() );
+                }
+            }
         }
         catch( IOException | RawRepoException ex ) {
             String message = String.format( "Unable to check record '%s': %s", filename, ex.getMessage() );

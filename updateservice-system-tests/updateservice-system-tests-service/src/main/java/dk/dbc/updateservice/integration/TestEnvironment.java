@@ -52,7 +52,7 @@ public class TestEnvironment {
         Connection conn = DriverManager.getConnection(
                 String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), settings.getProperty( "rawrepo.dbname" ) ),
                 settings.getProperty( "rawrepo.user.name" ), settings.getProperty( "rawrepo.user.passwd" ) );
-        conn.setAutoCommit( true );
+        conn.setAutoCommit( false );
 
         return conn;
     }
