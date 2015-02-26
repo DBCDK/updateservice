@@ -6,6 +6,8 @@ import dk.dbc.updateservice.integration.TestEnvironment;
 import dk.dbc.updateservice.integration.service.UpdateRecordResult;
 import dk.dbc.updateservice.integration.testcase.TestcaseRunner;
 import org.junit.*;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -21,17 +23,38 @@ public class DBCCommonRecordsIT {
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException, IOException {
-        new TestEnvironment( TEST_ENVIR_NAME ).initRawRepoDatabase();
+        logger.entry();
+
+        try {
+            new TestEnvironment( TEST_ENVIR_NAME ).initRawRepoDatabase();
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     @AfterClass
     public static void tearDownClass() throws IOException, SQLException, ClassNotFoundException {
-        new TestEnvironment( TEST_ENVIR_NAME ).resetRawRepoDatabase();
+        logger.entry();
+
+        try {
+            new TestEnvironment( TEST_ENVIR_NAME ).resetRawRepoDatabase();
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     @After
     public void clearRawRepo() throws SQLException, ClassNotFoundException, IOException {
-        testEnvironment.clearRawRepoRecords();
+        logger.entry();
+
+        try {
+            testEnvironment.clearRawRepoRecords();
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     /**
@@ -60,17 +83,24 @@ public class DBCCommonRecordsIT {
      */
     @Test
     public void testNewSingleRecord() throws Exception {
-        TestcaseRunner runner = testEnvironment.createTestcase( "tc-01" );
-        UpdateRecordResult response = runner.sendRequest();
+        logger.entry();
 
-        runner.checkResponseForUpdateIsOk( response );
+        try {
+            TestcaseRunner runner = testEnvironment.createTestcase( "tc-01" );
+            UpdateRecordResult response = runner.sendRequest();
 
-        try( Connection conn = testEnvironment.newRawRepoConnection() ) {
-            RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+            runner.checkResponseForUpdateIsOk( response );
 
-            runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
-            runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
-            runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
+            }
+        }
+        finally {
+            logger.exit();
         }
     }
 
@@ -100,35 +130,44 @@ public class DBCCommonRecordsIT {
      */
     @Test
     public void testUpdateSingleRecord() throws Exception {
-        TestcaseRunner runner = testEnvironment.createTestcase( "tc-02" );
+        logger.entry();
 
-        try( Connection conn = testEnvironment.newRawRepoConnection() ) {
-            try {
+        try {
+            TestcaseRunner runner = testEnvironment.createTestcase( "tc-02" );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                try {
+                    RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                    runner.saveRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                    runner.saveRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                    runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+
+                    conn.commit();
+                }
+                catch( SQLException ex ) {
+                    conn.rollback();
+                    Assert.fail( "Unable to setup records in rawrepo: " + ex.getMessage() );
+                }
+            }
+
+            UpdateRecordResult response = runner.sendRequest();
+            runner.checkResponseForUpdateIsOk( response );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
                 RawRepoDAO dao = RawRepoDAO.newInstance( conn );
 
-                runner.saveRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
-                runner.saveRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
-                runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
-
-                conn.commit();
-            }
-            catch( SQLException ex ) {
-                conn.rollback();
-                Assert.fail( "Unable to setup records in rawrepo: " + ex.getMessage() );
+                runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
             }
         }
-
-        UpdateRecordResult response = runner.sendRequest();
-        runner.checkResponseForUpdateIsOk( response );
-
-        try( Connection conn = testEnvironment.newRawRepoConnection() ) {
-            RawRepoDAO dao = RawRepoDAO.newInstance( conn );
-
-            runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
-            runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
-            runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
+        finally {
+            logger.exit();
         }
     }
+
+    private static XLogger logger = XLoggerFactory.getXLogger( DBCCommonRecordsIT.class );
 
     private static String TEST_ENVIR_NAME = "dbc/common_records";
     private TestEnvironment testEnvironment;

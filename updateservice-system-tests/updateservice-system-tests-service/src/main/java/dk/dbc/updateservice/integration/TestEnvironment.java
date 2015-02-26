@@ -2,6 +2,8 @@ package dk.dbc.updateservice.integration;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.updateservice.integration.testcase.TestcaseRunner;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,23 +29,47 @@ public class TestEnvironment {
 
     public void initRawRepoDatabase() throws SQLException, IOException, ClassNotFoundException {
         try (final Connection conn = newRawRepoConnection() ) {
-            JDBCUtil.update( conn, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
-            JDBCUtil.update( conn, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
+            try {
+                JDBCUtil.update( conn, "INSERT INTO queueworkers(worker) VALUES(?)", "fbssync");
+                JDBCUtil.update( conn, "INSERT INTO queuerules(provider, worker, changed, leaf) VALUES(?, ?, ?, ?)", "opencataloging-update", "fbssync", "Y", "A");
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
         }
     }
 
     public void resetRawRepoDatabase() throws SQLException, IOException, ClassNotFoundException {
         try (final Connection conn = newRawRepoConnection()) {
-            JDBCUtil.update( conn, "DELETE FROM queuerules");
-            JDBCUtil.update( conn, "DELETE FROM queueworkers");
+            try {
+                JDBCUtil.update( conn, "DELETE FROM queuerules");
+                JDBCUtil.update( conn, "DELETE FROM queueworkers");
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
         }
     }
 
     public void clearRawRepoRecords() throws SQLException, IOException, ClassNotFoundException {
         try (final Connection conn = newRawRepoConnection()) {
-            JDBCUtil.update( conn, "DELETE FROM relations" );
-            JDBCUtil.update( conn, "DELETE FROM records" );
-            JDBCUtil.update( conn, "DELETE FROM queue" );
+            try {
+                JDBCUtil.update( conn, "DELETE FROM relations" );
+                JDBCUtil.update( conn, "DELETE FROM records" );
+                JDBCUtil.update( conn, "DELETE FROM queue" );
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
         }
     }
 
@@ -63,6 +89,8 @@ public class TestEnvironment {
 
         return settings;
     }
+
+    private static XLogger logger = XLoggerFactory.getXLogger( TestEnvironment.class );
 
     private File dir;
     Properties settings;
