@@ -101,6 +101,15 @@
         </dependency>
 
         <!-- ************************************************************* -->
+        <!-- UpdateService                                                 -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>updateservice-ws</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
         <!-- Logging                                                       -->
         <!-- ************************************************************* -->
         <dependency>
