@@ -113,19 +113,28 @@ public class Updater {
                 throw new NullPointerException( "record can not be (null)" );
             }
 
+            bizLogger.info( "Split record into records to be created or updated" );
+
             for( MarcRecord rec : recordsHandler.recordDataForRawRepo( record, userId, groupId ) ) {
                 String recId = MarcReader.getRecordValue( rec, "001", "a" );
                 int libraryId = Integer.parseInt( MarcReader.getRecordValue( rec, "001", "b" ), 10 );
 
-                if( libraryId == RawRepo.COMMON_LIBRARY ) {
+                bizLogger.info( "Begin to handle record [{}:{}]", recId, libraryId );
+
+                if( libraryId == rawRepo.COMMON_LIBRARY ) {
+                    bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );
                     updateCommonRecord( rec );
                 }
                 else {
                     if( rawRepo.recordExists( recId, rawRepo.COMMON_LIBRARY ) ) {
+                        bizLogger.info( "Common record exist [{}:{}]", recId, rawRepo.COMMON_LIBRARY );
+                        bizLogger.info( "Creates/updates enrichment record: {}", MarcXChangeMimeType.ENRICHMENT );
                         Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.COMMON_LIBRARY );
                         saveLibraryExtendedRecord( commonRecord, rec );
                     }
                     else {
+                        bizLogger.info( "Common record does not exist [{}:{}]", recId, rawRepo.COMMON_LIBRARY );
+                        bizLogger.info( "Creates/updates local record: {}", MarcXChangeMimeType.DECENTRAL );
                         updateLibraryLocalRecord( rec );
                     }
                 }
@@ -309,6 +318,9 @@ public class Updater {
                     bizLogger.info( "Deleting existing library extended record because its empty");
                     saveRecord(null, recId, libraryId, parentId);
                 }
+                else {
+                    bizLogger.info( "Does not create enrichment record bacause it is empty: [{}:{}]", recId, libraryId );
+                }
             }
             else {
                 if( rawRepo.recordExists( recId, libraryId ) ) {
@@ -412,9 +424,11 @@ public class Updater {
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, libraryId);
             rawRepoRecord.setContent( content );
             rawRepoRecord.setMimeType( mimeTypeForRecord( rawRepoRecord ) );
+            rawRepoRecord.setDeleted( false );
             rawRepo.saveRecord( rawRepoRecord, parentId );
+            bizLogger.info( "Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId() );
 
-            rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
+            rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId(), rawRepoRecord.getMimeType() );
         }
         finally {
             logger.exit();
@@ -432,6 +446,7 @@ public class Updater {
             }
             else {
                 if( rawRepo.recordExists( recId.getBibliographicRecordId(), rawRepo.COMMON_LIBRARY ) ) {
+                    logger.debug( "Common record exist [{}:{}]", recId.getBibliographicRecordId(), rawRepo.COMMON_LIBRARY );
                     result = MarcXChangeMimeType.ENRICHMENT;
                 }
                 else {

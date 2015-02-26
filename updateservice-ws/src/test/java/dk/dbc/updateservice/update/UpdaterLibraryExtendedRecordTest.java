@@ -4,8 +4,6 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.Record;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +92,7 @@ public class UpdaterLibraryExtendedRecordTest {
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
         when( rawRepo.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
         when( rawRepo.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), 870970) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( extRec );
         when( recordsHandler.recordDataForRawRepo( extRec, "", "" ) ).thenReturn( Arrays.asList( extRec ) );
@@ -110,7 +108,7 @@ public class UpdaterLibraryExtendedRecordTest {
         assertNotNull( argRecord.getValue().getContent() );
         assertEquals( extRec, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
-        verify( rawRepo ).changedRecord( Updater.PROVIDER, rawExtRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
+        //verify( rawRepo ).changedRecord( Updater.PROVIDER, rawExtRec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /*
@@ -160,7 +158,7 @@ public class UpdaterLibraryExtendedRecordTest {
         Record rawExtRec = RecordUtils.createRawRecord( "20611529", 700100 );
         when( rawRepo.fetchRecord( rawDbcRec.getId().getBibliographicRecordId(), rawDbcRec.getId().getAgencyId() ) ).thenReturn( rawDbcRec );
         when( rawRepo.fetchRecord( rawExtRec.getId().getBibliographicRecordId(), rawExtRec.getId().getAgencyId() ) ).thenReturn( rawExtRec );
-        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), RawRepoDAO.COMMON_LIBRARY) ).thenReturn( true );
+        when( rawRepo.recordExists(rawExtRec.getId().getBibliographicRecordId(), 870970) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged(any(MarcRecord.class), any(MarcRecord.class)) ).thenReturn( false );
         when( recordsHandler.correctLibraryExtendedRecord(dbcRec, extRec) ).thenReturn( emptyRec );
         when( recordsHandler.recordDataForRawRepo(extRec, "", "") ).thenReturn( Arrays.asList( extRec ) );

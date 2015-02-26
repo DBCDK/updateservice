@@ -2,13 +2,16 @@
 package dk.dbc.updateservice.integration;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.updateservice.integration.service.BibliographicRecord;
-import java.io.IOException;
-import javax.xml.parsers.ParserConfigurationException;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+
+import static org.junit.Assert.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -22,6 +25,7 @@ public class BibliographicRecordFactoryTest {
 
     @Test
     public void testLoadResource() throws ParserConfigurationException, SAXException, IOException {
+        assertNotNull( getClass().getResourceAsStream( "/settings.properties" ) );
         BibliographicRecord record = BibliographicRecordFactory.loadResource( "single_record.xml" );
         
         assertNotNull( record );
