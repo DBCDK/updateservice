@@ -2,42 +2,31 @@
 package dk.dbc.updateservice.integration.tests;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.integration.ExternWebServers;
 import dk.dbc.updateservice.integration.UpdateServiceCaller;
-import dk.dbc.updateservice.integration.service.Authentication;
-import dk.dbc.updateservice.integration.service.GetSchemasRequest;
-import dk.dbc.updateservice.integration.service.GetSchemasResult;
-import dk.dbc.updateservice.integration.service.Schema;
-import dk.dbc.updateservice.integration.service.SchemasStatusEnum;
+import dk.dbc.updateservice.integration.service.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.junit.After;
-import org.junit.AfterClass;
-
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.Assert.*;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
-import com.github.tomakehurst.wiremock.WireMockServer;
 
 //-----------------------------------------------------------------------------
 /**
  *
  * @author stp
  */
-public class ValidateSchemasIT {
+public class ValidateSchemas {
     private static final String AUTH_OK_GROUP_ID = "010100";
     private static final String AUTH_OK_USER_ID = "netpunkt";
     private static final String AUTH_OK_PASSWD = "20Koster";
@@ -99,7 +88,7 @@ public class ValidateSchemasIT {
     }
 
     private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
-        Properties settings = IOUtils.loadProperties( ValidateSchemasIT.class.getClassLoader(), "settings.properties" );
+        Properties settings = IOUtils.loadProperties( ValidateSchemas.class.getClassLoader(), "settings.properties" );
 
         Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
         Connection conn = DriverManager.getConnection(

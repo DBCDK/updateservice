@@ -257,7 +257,7 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record, String parentId ) throws UpdateException {
         logger.entry( record );
 
@@ -288,7 +288,7 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void changedRecord( String provider, RecordId recId, String mimetype ) throws UpdateException {
         logger.entry( provider, recId, mimetype );
 
@@ -412,7 +412,7 @@ public class RawRepo {
     //              Constants
     //-------------------------------------------------------------------------
 
-    public static final Integer COMMON_LIBRARY = RawRepoDAO.COMMON_LIBRARY;
+    public static final Integer COMMON_LIBRARY = 870970;
 
     //-------------------------------------------------------------------------
     //              Members

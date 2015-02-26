@@ -421,7 +421,7 @@ public class UpdaterCommonRecordWithHoldingsTest {
 
         final HashSet<RecordId> references = new HashSet<>();
         references.add( new RecordId( extRecord.getId().getBibliographicRecordId(), RawRepo.COMMON_LIBRARY ) );
-        rawRepoOrder.verify( rawRepo ).changedRecord( Updater.PROVIDER, extRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
+        //rawRepoOrder.verify( rawRepo ).changedRecord( Updater.PROVIDER, extRecord.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /*

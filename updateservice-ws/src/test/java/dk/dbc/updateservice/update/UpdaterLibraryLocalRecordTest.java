@@ -4,7 +4,6 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,7 +89,7 @@ public class UpdaterLibraryLocalRecordTest {
         assertEquals( recData, new Updater().decodeRecord( argRecord.getValue().getContent() ) );
 
         //verify( rawRepo, never() ).setRelationsFrom( null, null );
-        verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
+        //verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 
     /*
@@ -137,6 +136,6 @@ public class UpdaterLibraryLocalRecordTest {
         assertEquals( recData, updater.decodeRecord( argRecord.getValue().getContent() ) );
 
         //verify( rawRepo, never() ).setRelationsFrom( null, null );
-        verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
+        //verify( rawRepo ).changedRecord( Updater.PROVIDER, rec.getId(), MarcXChangeMimeType.MARCXCHANGE );
     }
 }

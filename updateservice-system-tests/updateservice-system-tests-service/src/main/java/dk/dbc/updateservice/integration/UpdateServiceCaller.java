@@ -5,6 +5,8 @@ package dk.dbc.updateservice.integration;
 
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.integration.service.*;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.handler.MessageContext;
@@ -23,14 +25,22 @@ public class UpdateServiceCaller {
 
     public UpdateServiceCaller( Map<String, Object> headers ) throws IOException {
         Properties settings = IOUtils.loadProperties( getClass().getClassLoader(), "settings.properties" );
-        
+
         this.endpoint = String.format( "http://%s:%s/%s", settings.getProperty( "service.host" ), settings.getProperty( "service.port" ), settings.getProperty( "service.endpoint.path" ) );
         this.services = new CatalogingUpdateServices();
         this.callerProxy = getAndConfigureUpdateProxy( headers );
     }
     
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
-        return this.callerProxy.updateRecord( updateRecordRequest );
+        logger.entry();
+
+        try {
+            logger.debug( "endpoint: {}", endpoint );
+            return this.callerProxy.updateRecord( updateRecordRequest );
+        }
+        finally {
+            logger.exit();
+        }
     }
     
     public GetSchemasResult getSchemas( GetSchemasRequest request ) {
@@ -52,7 +62,8 @@ public class UpdateServiceCaller {
 
         return port;
     }
-    
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateServiceCaller.class );
     private static final long CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
     private static final long REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes
 

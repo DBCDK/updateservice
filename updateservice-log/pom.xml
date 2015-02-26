@@ -10,7 +10,7 @@
     <artifactId>updateservice-log</artifactId>
     <packaging>jar</packaging>
 
-    <name>buildservice-log</name>
+    <name>updateservice-log</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

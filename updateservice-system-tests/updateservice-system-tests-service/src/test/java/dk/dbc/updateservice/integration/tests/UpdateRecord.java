@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
  *
  * @author stp
  */
-public class UpdateRecordIT {
+public class UpdateRecord {
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
 
     private static final String BOOK_TEMPLATE_NAME = "bog";
@@ -55,7 +55,7 @@ public class UpdateRecordIT {
     private static final String X_FORWARDED_HOST_HEADER = "x-forwarded-host";
     private static final String X_FORWARDED_SERVER_HEADER = "x-forwarded-server";
 
-    public UpdateRecordIT() {        
+    public UpdateRecord() {
     }
     
     @BeforeClass
@@ -571,7 +571,7 @@ public class UpdateRecordIT {
     }
 
     private static Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
-        Properties settings = IOUtils.loadProperties( UpdateRecordIT.class.getClassLoader(), "settings.properties" );
+        Properties settings = IOUtils.loadProperties( UpdateRecord.class.getClassLoader(), "settings.properties" );
 
         Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
         Connection conn = DriverManager.getConnection(
