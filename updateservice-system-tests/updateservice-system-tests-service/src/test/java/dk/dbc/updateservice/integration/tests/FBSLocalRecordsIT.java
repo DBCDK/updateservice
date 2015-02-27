@@ -14,10 +14,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
- * Created by stp on 25/02/15.
+ * Created by stp on 27/02/15.
  */
-public class DBCCommonRecordsIT {
-    public DBCCommonRecordsIT() throws IOException {
+public class FBSLocalRecordsIT {
+    public FBSLocalRecordsIT() throws IOException {
         this.testEnvironment = new TestEnvironment( TEST_ENVIR_NAME );
     }
 
@@ -58,82 +58,32 @@ public class DBCCommonRecordsIT {
     }
 
     /**
-     * Create a new single record.
+     * Creates a new local record in a rawrepo with existing records.
      *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
-     *          An empty rawrepo
+     *          Rawrepo with common and DBC enrichment record.
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
-     *          Create a new single record.
+     *          Create a new local record.
      *      </dd>
      *      <dt>Then</dt>
      *      <dd>
-     *          The record is splited into 2 records:
-     *          <ul>
-     *              <li>A common record with dm2 fields</li>
-     *              <li>A DBC enrichment record with DBC fields.</li>
-     *          </ul>
+     *          The new record is added but not linked to the common record. The common record and
+     *          DBC enrichment record is not changed.
      *      </dd>
      * </dl>
      *
      * @throws Exception
      */
     @Test
-    public void testNewSingleRecord() throws Exception {
+    public void testNewRecord() throws Exception {
         logger.entry();
 
         try {
             TestcaseRunner runner = testEnvironment.createTestcase( "tc-01" );
-            UpdateRecordResult response = runner.sendRequest();
-
-            runner.checkResponseForUpdateIsOk( response );
-
-            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
-                RawRepoDAO dao = RawRepoDAO.newInstance( conn );
-
-                runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
-                runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
-                runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
-            }
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    /**
-     * Update an existing single record.
-     *
-     * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Rawrepo with common and enrichment record for the existing record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update the existing record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          The record is splited into 2 records:
-     *          <ul>
-     *              <li>A common record with dm2 fields</li>
-     *              <li>A DBC enrichment record with DBC fields.</li>
-     *          </ul>
-     *      </dd>
-     * </dl>
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testUpdateSingleRecord() throws Exception {
-        logger.entry();
-
-        try {
-            TestcaseRunner runner = testEnvironment.createTestcase( "tc-02" );
 
             try( Connection conn = testEnvironment.newRawRepoConnection() ) {
                 try {
@@ -157,9 +107,12 @@ public class DBCCommonRecordsIT {
             try( Connection conn = testEnvironment.newRawRepoConnection() ) {
                 RawRepoDAO dao = RawRepoDAO.newInstance( conn );
 
-                runner.checkRawRepoRecord( dao, "result-common.marc", MarcXChangeMimeType.MARCXCHANGE );
-                runner.checkRawRepoRecord( dao, "result-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
-                runner.checkRawRepoSibling( dao, "result-common.marc", "result-dbc-enrichment.marc" );
+                runner.checkRawRepoRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                runner.checkRawRepoRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+
+                runner.checkRawRepoRecord( dao, "request.marc", MarcXChangeMimeType.DECENTRAL );
+                runner.checkRawRepoNoSibling( dao, "rawrepo-common.marc", "request.marc" );
             }
         }
         finally {
@@ -167,8 +120,8 @@ public class DBCCommonRecordsIT {
         }
     }
 
-    private static XLogger logger = XLoggerFactory.getXLogger( DBCCommonRecordsIT.class );
+    private static XLogger logger = XLoggerFactory.getXLogger( FBSLocalRecordsIT.class );
 
-    private static String TEST_ENVIR_NAME = "dbc/common_records";
+    private static String TEST_ENVIR_NAME = "fbs/local_records";
     private TestEnvironment testEnvironment;
 }

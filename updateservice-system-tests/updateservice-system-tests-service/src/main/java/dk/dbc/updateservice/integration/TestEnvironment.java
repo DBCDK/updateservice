@@ -18,13 +18,25 @@ import java.util.Properties;
 public class TestEnvironment {
     public TestEnvironment( String dirName ) throws IOException {
         this.settings = loadSettings();
+        this.dirName = dirName;
         this.dir = new File( settings.getProperty( "opencat.business.basedir" ) + "/" +
                              settings.getProperty( "opencat.business.installname.basedir" ) + "/" +
                              settings.getProperty( "opencat.business.testcases.dirname" ) + "/" + dirName );
     }
 
-    public TestcaseRunner createTestcase( String dirName ) throws IOException {
-        return new TestcaseRunner( new File( dir.getCanonicalPath() + "/" + dirName ) );
+    public TestcaseRunner createTestcase( String testcaseDirName ) throws IOException {
+        logger.entry();
+
+        try {
+            String trackingId = this.dirName + "/" + testcaseDirName;
+            trackingId = trackingId.replaceAll( "(/)", "_" );
+            logger.debug( "Tracking id for new testcase: {}", trackingId );
+
+            return new TestcaseRunner( new File( dir.getCanonicalPath() + "/" + testcaseDirName ), trackingId );
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     public void initRawRepoDatabase() throws SQLException, IOException, ClassNotFoundException {
@@ -93,5 +105,6 @@ public class TestEnvironment {
     private static XLogger logger = XLoggerFactory.getXLogger( TestEnvironment.class );
 
     private File dir;
+    private String dirName;
     Properties settings;
 }
