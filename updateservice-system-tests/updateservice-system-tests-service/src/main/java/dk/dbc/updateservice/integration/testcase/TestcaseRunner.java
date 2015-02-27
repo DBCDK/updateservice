@@ -34,8 +34,9 @@ import static org.junit.Assert.*;
  * Created by stp on 24/02/15.
  */
 public class TestcaseRunner {
-    public TestcaseRunner( File dir ) {
+    public TestcaseRunner( File dir, String trackingId ) {
         this.dir = dir;
+        this.trackingId = trackingId;
     }
 
     public Record saveRecord( RawRepoDAO dao, String filename, String mimetype ) throws IOException, RawRepoException, JAXBException {
@@ -58,21 +59,29 @@ public class TestcaseRunner {
         }
     }
 
-    public void linkSibling( RawRepoDAO dao, String commonFilename, String enrichmentFilename ) throws IOException, RawRepoException, JAXBException {
+    public void linkRecord( RawRepoDAO dao, String fromFilename, String toFilename ) throws IOException, RawRepoException, JAXBException {
         logger.entry();
 
         try {
-            MarcRecord commonRecord = loadRecord( commonFilename );
-            MarcRecord enrichmentRecord = loadRecord( enrichmentFilename );
+            MarcRecord fromRecord = loadRecord( fromFilename );
+            MarcRecord toRecord = loadRecord( toFilename );
 
             final HashSet<RecordId> references = new HashSet<>();
-            references.add( getRecordId( commonRecord ) );
+            references.add( getRecordId( toRecord ) );
 
-            dao.setRelationsFrom( getRecordId( enrichmentRecord ), references );
+            dao.setRelationsFrom( getRecordId( fromRecord ), references );
         }
         finally {
             logger.exit();
         }
+    }
+
+    public void linkSibling( RawRepoDAO dao, String commonFilename, String enrichmentFilename ) throws IOException, RawRepoException, JAXBException {
+        linkRecord( dao, enrichmentFilename, commonFilename );
+    }
+
+    public void linkChildren( RawRepoDAO dao, String mainFilename, String volumeFilename ) throws IOException, RawRepoException, JAXBException {
+        linkRecord( dao, volumeFilename, mainFilename );
     }
 
     public UpdateRecordResult sendRequest() throws IOException, JAXBException, SAXException, ParserConfigurationException {
@@ -94,7 +103,7 @@ public class TestcaseRunner {
 
                 request.setAuthentication( auth );
                 request.setSchemaName( config.getTemplateName() );
-                request.setTrackingId( dir.getName() );
+                request.setTrackingId( trackingId );
 
                 File recordFile = new File( dir.getCanonicalPath() + "/request.marc" );
                 request.setBibliographicRecord( BibliographicRecordFactory.loadMarcRecordInLineFormat( recordFile ) );
@@ -164,9 +173,9 @@ public class TestcaseRunner {
 
             MarcRecord rawRepoMarcRecord = MarcConverter.convertFromMarcXChange( new String( rawRecord.getContent(), "UTF-8" ) );
             if( marcRecord.getFields().size() != rawRepoMarcRecord.getFields().size() ) {
-                // We use assertEquals of the two records to display the entire content for comparison when the
-                // number of fields differ. It will hopefully make it easier to debug.
-                assertEquals( "Number of fields differ: ", marcRecord.toString(), rawRepoMarcRecord.toString() );
+                String message = String.format( "Number of fields differ. Expected record:\n%s\nActual record:\n%s",
+                                                marcRecord.toString(), rawRepoMarcRecord.toString() );
+                fail( message );
             }
 
             for( int i = 0; i < marcRecord.getFields().size(); i++ ) {
@@ -231,11 +240,62 @@ public class TestcaseRunner {
         }
     }
 
+    public void checkRawRepoNoSibling( RawRepoDAO dao, String fromFilename, String toFilename ) {
+        logger.entry();
+
+        try {
+            MarcRecord fromRecord = loadRecord( fromFilename );
+            MarcRecord toRecord = loadRecord( toFilename );
+
+            logger.info( "From record: {}", getRecordId( fromRecord ) );
+            logger.info( "To record: {}", getRecordId( toRecord ) );
+
+            Set<RecordId> siblings = dao.getRelationsSiblingsToMe( getRecordId( fromRecord ) );
+            logger.info( "Siblings: {}", siblings );
+
+            assertFalse( siblings.contains( getRecordId( toRecord ) ) );
+        }
+        catch( IOException | RawRepoException ex ) {
+            String message = String.format( "Unable to check links: %s", ex.getMessage() );
+            Assert.fail( message );
+            logger.error( message, ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void checkRawRepoChildren( RawRepoDAO dao, String mainFilename, String volumeFilename ) {
+        logger.entry();
+
+        try {
+            MarcRecord mainRecord = loadRecord( mainFilename );
+            MarcRecord volumeRecord = loadRecord( volumeFilename );
+
+            logger.info( "Main record: {}", getRecordId( mainRecord ) );
+            logger.info( "Volume record: {}", getRecordId( volumeRecord ) );
+
+            Set<RecordId> children = dao.getRelationsChildren( getRecordId( mainRecord ) );
+            logger.info( "Children: {}", children );
+
+            assertTrue( children.contains( getRecordId( volumeRecord ) ) );
+        }
+        catch( IOException | RawRepoException ex ) {
+            String message = String.format( "Unable to check links: %s", ex.getMessage() );
+            Assert.fail( message );
+            logger.error( message, ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     private TestcaseConfig loadConfig() {
         String filename;
 
         try {
             filename = dir.getCanonicalPath() + "/tc.json";
+            logger.debug( "Using config file: {}", filename );
             return Json.decode( new File( filename ), TestcaseConfig.class );
         }
         catch( IOException ex ) {
@@ -250,6 +310,7 @@ public class TestcaseRunner {
 
         try {
             File file = new File( dir.getCanonicalPath() + "/" + filename );
+            logger.debug( "Loading record file: {}", file.getCanonicalPath() );
             InputStream stream = new FileInputStream( file );
 
             return MarcRecordFactory.readRecord( IOUtils.readAll( stream, "UTF-8" ) );
@@ -280,4 +341,5 @@ public class TestcaseRunner {
     private static final String X_FORWARDED_SERVER_HEADER = "x-forwarded-server";
 
     private File dir;
+    private String trackingId;
 }
