@@ -52,10 +52,38 @@ public class TestEnvironment {
                 logger.error( ex.getMessage(), ex );
             }
         }
+
+        try (final Connection conn = newHoldingsConnection() ) {
+            try {
+                JDBCUtil.update( conn, "INSERT INTO queueworkers (worker) VALUES(?)", "solr-sync");
+                JDBCUtil.update( conn, "INSERT INTO queueworkers (worker) VALUES(?)", "lokreg-sync");
+                JDBCUtil.update( conn, "INSERT INTO queuerules (provider, worker) VALUES(?, ?)", "holdings-items-update", "solr-sync" );
+                JDBCUtil.update( conn, "INSERT INTO queuerules (provider, worker) VALUES(?, ?)", "holdings-items-update", "lokreg-sync" );
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
+        }
     }
 
     public void resetRawRepoDatabase() throws SQLException, IOException, ClassNotFoundException {
         try (final Connection conn = newRawRepoConnection()) {
+            try {
+                JDBCUtil.update( conn, "DELETE FROM queuerules");
+                JDBCUtil.update( conn, "DELETE FROM queueworkers");
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
+        }
+
+        try (final Connection conn = newHoldingsConnection() ) {
             try {
                 JDBCUtil.update( conn, "DELETE FROM queuerules");
                 JDBCUtil.update( conn, "DELETE FROM queueworkers");
@@ -83,13 +111,46 @@ public class TestEnvironment {
                 logger.error( ex.getMessage(), ex );
             }
         }
+
+        try (final Connection conn = newHoldingsConnection()) {
+            try {
+                JDBCUtil.update( conn, "DELETE FROM holdingsitemsitem" );
+                JDBCUtil.update( conn, "DELETE FROM holdingsitemscollection" );
+
+                conn.commit();
+            }
+            catch( SQLException ex ) {
+                conn.rollback();
+                logger.error( ex.getMessage(), ex );
+            }
+        }
     }
 
     public Connection newRawRepoConnection() throws ClassNotFoundException, SQLException, IOException {
         Class.forName( settings.getProperty( "rawrepo.jdbc.driver" ) );
-        Connection conn = DriverManager.getConnection(
-                String.format( settings.getProperty( "rawrepo.jdbc.conn" ), settings.getProperty( "rawrepo.host" ), settings.getProperty( "rawrepo.port" ), settings.getProperty( "rawrepo.dbname" ) ),
-                settings.getProperty( "rawrepo.user.name" ), settings.getProperty( "rawrepo.user.passwd" ) );
+        String connString = String.format( settings.getProperty( "rawrepo.jdbc.conn" ),
+                                           settings.getProperty( "rawrepo.host" ),
+                                           settings.getProperty( "rawrepo.port" ),
+                                           settings.getProperty( "rawrepo.dbname" ) );
+
+        Connection conn = DriverManager.getConnection( connString,
+                                                       settings.getProperty( "rawrepo.user.name" ),
+                                                       settings.getProperty( "rawrepo.user.passwd" ) );
+        conn.setAutoCommit( false );
+
+        return conn;
+    }
+
+    public Connection newHoldingsConnection() throws ClassNotFoundException, SQLException, IOException {
+        Class.forName( settings.getProperty( "holdingitems.jdbc.driver" ) );
+        String connString = String.format( settings.getProperty( "holdingitems.jdbc.conn" ),
+                                           settings.getProperty( "holdingitems.host" ),
+                                           settings.getProperty( "holdingitems.port" ),
+                                           settings.getProperty( "holdingitems.dbname" ) );
+
+        Connection conn = DriverManager.getConnection( connString,
+                                                       settings.getProperty( "holdingitems.user.name" ),
+                                                       settings.getProperty( "holdingitems.user.passwd" ) );
         conn.setAutoCommit( false );
 
         return conn;

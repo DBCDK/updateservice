@@ -1,5 +1,8 @@
 package dk.dbc.updateservice.integration.testcase;
 
+import dk.dbc.holdingsitems.HoldingsItemsDAO;
+import dk.dbc.holdingsitems.HoldingsItemsException;
+import dk.dbc.holdingsitems.RecordCollection;
 import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.json.Json;
@@ -25,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static junit.framework.Assert.assertEquals;
@@ -82,6 +86,22 @@ public class TestcaseRunner {
 
     public void linkChildren( RawRepoDAO dao, String mainFilename, String volumeFilename ) throws IOException, RawRepoException, JAXBException {
         linkRecord( dao, volumeFilename, mainFilename );
+    }
+
+    public void addHoldings( HoldingsItemsDAO dao, String recordFilename, List<Integer> agencies ) throws IOException, HoldingsItemsException {
+        logger.entry();
+
+        try {
+            RecordId recordId = getRecordId( loadRecord( recordFilename ) );
+
+            for( Integer agencyId : agencies ) {
+                RecordCollection collection = new RecordCollection( recordId.getBibliographicRecordId(), agencyId, "issue", dao );
+                collection.save();
+            }
+        }
+        finally {
+            logger.exit();
+        }
     }
 
     public UpdateRecordResult sendRequest() throws IOException, JAXBException, SAXException, ParserConfigurationException {
@@ -207,6 +227,25 @@ public class TestcaseRunner {
         }
         catch( IOException | RawRepoException ex ) {
             String message = String.format( "Unable to check record '%s': %s", filename, ex.getMessage() );
+            Assert.fail( message );
+            logger.error( message, ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void checkRawRecordDoesNotExist( RawRepoDAO dao, String recordFilename, Integer agency ) {
+        logger.entry();
+
+        RecordId recordId = null;
+        try {
+            recordId = getRecordId( loadRecord( recordFilename ) );
+
+            assertFalse( dao.recordExists( recordId.getBibliographicRecordId(), agency ) );
+        }
+        catch( IOException | RawRepoException ex ) {
+            String message = String.format( "Unable to check record [%s:%s] does not exist: %s", recordId.getBibliographicRecordId(), agency, ex.getMessage() );
             Assert.fail( message );
             logger.error( message, ex );
         }
