@@ -235,6 +235,34 @@ public class TestcaseRunner {
         }
     }
 
+    public void checkRawRepoRecordIsDeleted( RawRepoDAO dao, String recordFilename, String mimetype ) throws IOException, RawRepoException {
+        logger.entry();
+
+        try {
+            RecordId recordId = getRecordId( loadRecord( recordFilename ) );
+            assertTrue( dao.recordExistsMabyDeleted( recordId.getBibliographicRecordId(), recordId.getAgencyId() ) );
+
+            Record rawRepoRecord = dao.fetchRecord( recordId.getBibliographicRecordId(), recordId.getAgencyId() );
+            assertTrue( rawRepoRecord.isDeleted() );
+            assertEquals( mimetype, rawRepoRecord.getMimeType() );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void checkRawRecordDoesNotExist( RawRepoDAO dao, String recordFilename ) throws IOException {
+        logger.entry();
+
+        try {
+            RecordId recordId = getRecordId( loadRecord( recordFilename ) );
+            checkRawRecordDoesNotExist( dao, recordFilename, recordId.getAgencyId() );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     public void checkRawRecordDoesNotExist( RawRepoDAO dao, String recordFilename, Integer agency ) {
         logger.entry();
 

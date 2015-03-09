@@ -264,18 +264,22 @@ public class RawRepo {
         try( Connection conn = dataSourceWriter.getConnection() ) {
             RawRepoDAO dao = createDAO( conn );
 
-
+            if( record.isDeleted() ) {
+                dao.setRelationsFrom( record.getId(), new HashSet<RecordId>() );
+            }
             dao.saveRecord( record );
 
-            if( COMMON_LIBRARY == record.getId().getAgencyId() ) {
-                if (!parentId.isEmpty()) {
-                    linkToRecord( dao, record.getId(), new RecordId( parentId, record.getId().getAgencyId() ) );
+            if( !record.isDeleted() ) {
+                if( COMMON_LIBRARY == record.getId().getAgencyId() ) {
+                    if (!parentId.isEmpty()) {
+                        linkToRecord( dao, record.getId(), new RecordId( parentId, record.getId().getAgencyId() ) );
+                    }
                 }
-            }
-            else {
-                if ( recordExists( record.getId().getBibliographicRecordId(), COMMON_LIBRARY)) {
-                    logger.info("Linker record [{}] -> [{}]", record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
-                    linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
+                else {
+                    if ( recordExists( record.getId().getBibliographicRecordId(), COMMON_LIBRARY)) {
+                        logger.info("Linker record [{}] -> [{}]", record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
+                        linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
+                    }
                 }
             }
         }

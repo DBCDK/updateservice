@@ -411,7 +411,10 @@ public class Updater {
                 }
 
                 bizLogger.info( "Deleting record [{}:{}]", recId, libraryId );
-                rawRepo.purgeRecord( new RecordId( recId, libraryId ) );
+
+                final Record rawRepoRecord = rawRepo.fetchRecord( recId, libraryId );
+                rawRepoRecord.setDeleted( true );
+                rawRepo.saveRecord( rawRepoRecord, parentId );
                 return;
             }
 
