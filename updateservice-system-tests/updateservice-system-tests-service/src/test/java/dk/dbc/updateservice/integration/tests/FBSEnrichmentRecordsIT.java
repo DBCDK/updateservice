@@ -185,6 +185,133 @@ public class FBSEnrichmentRecordsIT {
         }
     }
 
+    /**
+     * Update an enrichment record which is "empty".
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          Rawrepo with common and enrichment records.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an existing fbs enrichment record which is empty.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          The enrichment record is marked as deleted.
+     *      </dd>
+     * </dl>
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateEmptyRecord() throws Exception {
+        logger.entry();
+
+        try {
+            TestcaseRunner runner = testEnvironment.createTestcase( "tc-03" );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                try {
+                    RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                    runner.saveRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                    runner.saveRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                    runner.saveRecord( dao, "rawrepo-fbs-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                    runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+                    runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-fbs-enrichment.marc" );
+
+                    conn.commit();
+                }
+                catch( SQLException ex ) {
+                    conn.rollback();
+                    Assert.fail( "Unable to setup records in rawrepo: " + ex.getMessage() );
+                }
+            }
+
+            UpdateRecordResult response = runner.sendRequest();
+            runner.checkResponseForUpdateIsOk( response );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                runner.checkRawRepoRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                runner.checkRawRepoRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+
+                runner.checkRawRepoRecordIsDeleted( dao, "request.marc", MarcXChangeMimeType.ENRICHMENT );
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    /**
+     * Update an enrichment record with "empty" classifications.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          Rawrepo with common and enrichment records.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an existing fbs enrichment record with clssifications that equals
+     *          common record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          The enrichment record is marked as deleted.
+     *      </dd>
+     * </dl>
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testUpdateEmptyClassifications() throws Exception {
+        logger.entry();
+
+        try {
+            TestcaseRunner runner = testEnvironment.createTestcase( "tc-04" );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                try {
+                    RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                    runner.saveRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                    runner.saveRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                    runner.saveRecord( dao, "rawrepo-fbs-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                    runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+                    runner.linkSibling( dao, "rawrepo-common.marc", "rawrepo-fbs-enrichment.marc" );
+
+                    conn.commit();
+                }
+                catch( SQLException ex ) {
+                    conn.rollback();
+                    Assert.fail( "Unable to setup records in rawrepo: " + ex.getMessage() );
+                }
+            }
+
+            UpdateRecordResult response = runner.sendRequest();
+            runner.checkResponseForUpdateIsOk( response );
+
+            try( Connection conn = testEnvironment.newRawRepoConnection() ) {
+                RawRepoDAO dao = RawRepoDAO.newInstance( conn );
+
+                runner.checkRawRepoRecord( dao, "rawrepo-common.marc", MarcXChangeMimeType.MARCXCHANGE );
+                runner.checkRawRepoRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
+
+                runner.checkRawRepoRecordIsDeleted( dao, "request.marc", MarcXChangeMimeType.ENRICHMENT );
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     private static XLogger logger = XLoggerFactory.getXLogger( FBSEnrichmentRecordsIT.class );
 
     private static String TEST_ENVIR_NAME = "fbs/enrichment_records";
