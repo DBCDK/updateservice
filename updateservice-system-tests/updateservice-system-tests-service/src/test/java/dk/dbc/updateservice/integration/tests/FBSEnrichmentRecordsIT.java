@@ -240,7 +240,7 @@ public class FBSEnrichmentRecordsIT {
                 runner.checkRawRepoRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
                 runner.checkRawRepoSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
 
-                runner.checkRawRepoRecordIsDeleted( dao, "request.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoRecordIsDeleted( dao, "result-fbs-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
             }
         }
         finally {
@@ -304,7 +304,7 @@ public class FBSEnrichmentRecordsIT {
                 runner.checkRawRepoRecord( dao, "rawrepo-dbc-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
                 runner.checkRawRepoSibling( dao, "rawrepo-common.marc", "rawrepo-dbc-enrichment.marc" );
 
-                runner.checkRawRepoRecordIsDeleted( dao, "request.marc", MarcXChangeMimeType.ENRICHMENT );
+                runner.checkRawRepoRecordIsDeleted( dao, "result-fbs-enrichment.marc", MarcXChangeMimeType.ENRICHMENT );
             }
         }
         finally {

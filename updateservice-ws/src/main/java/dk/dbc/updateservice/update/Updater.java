@@ -261,12 +261,13 @@ public class Updater {
             logger.entry(commonRecord, oldCommonRecordData, libraryId);
             MarcRecord extRecord = recordsHandler.createLibraryExtendedRecord(oldCommonRecordData, libraryId);
 
-            String recId = MarcReader.getRecordValue(extRecord, "001", "a");
+            if( !extRecord.getFields().isEmpty() ) {
+                String recId = MarcReader.getRecordValue(extRecord, "001", "a");
 
-            bizLogger.info( "Creating new enrichment record for library {}:\n{}", libraryId, extRecord.toString() );
-
-            saveRecord(encodeRecord(extRecord), recId, libraryId, "");
-            enqueueRecord(new RecordId(recId, libraryId));
+                bizLogger.info( "Creating new enrichment record for library {}:\n{}", libraryId, extRecord.toString() );
+                saveRecord( encodeRecord( extRecord ), recId, libraryId, "" );
+                enqueueRecord( new RecordId( recId, libraryId ) );
+            }
         }
         finally {
             logger.exit();
@@ -287,7 +288,18 @@ public class Updater {
             bizLogger.info( "Overwriting existing enrichment record. Old record:\n{}\nNew record:\n{}",
                             oldRecord.toString(), extRecord.toString() );
 
-            saveRecord(encodeRecord(extRecord), recId, libraryId, parentId);
+            if (extRecord.getFields().isEmpty()) {
+                if (rawRepo.recordExists(recId, libraryId)) {
+                    bizLogger.info( "Deleting existing library extended record because its empty");
+                    deleteRecord( record );
+                }
+                else {
+                    bizLogger.info( "Does not update enrichment record because it is empty: [{}:{}]", recId, libraryId );
+                }
+            }
+            else {
+                saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
+            }
             enqueueRecord(new RecordId(recId, libraryId));
         }
         finally {
@@ -316,7 +328,7 @@ public class Updater {
             if (extRecord.getFields().isEmpty()) {
                 if (rawRepo.recordExists(recId, libraryId)) {
                     bizLogger.info( "Deleting existing library extended record because its empty");
-                    saveRecord(null, recId, libraryId, parentId);
+                    deleteRecord( record );
                 }
                 else {
                     bizLogger.info( "Does not create enrichment record bacause it is empty: [{}:{}]", recId, libraryId );
@@ -388,6 +400,77 @@ public class Updater {
     }
 
     /**
+     * Deletes a record.
+     *
+     * @param record
+     *
+     * @throws UpdateException
+     * @throws JAXBException
+     * @throws UnsupportedEncodingException
+     */
+    private void deleteRecord( MarcRecord record ) throws UpdateException, JAXBException, UnsupportedEncodingException {
+        logger.entry();
+
+        try {
+            String recordId = MarcReader.getRecordValue( record, "001", "a");
+            int agencyId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
+
+            if( !rawRepo.recordExistsMaybeDeleted( recordId, agencyId ) ) {
+                throw new UpdateException( String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recordId, agencyId) );
+            }
+
+            bizLogger.info( "Deleting record [{}:{}]", recordId, agencyId );
+
+            MarcRecord deletedRecordData = new MarcRecord();
+            for( MarcField field : record.getFields() ) {
+                if( field.getName().equals( "001" ) ) {
+                    deletedRecordData.getFields().add( field );
+                }
+                if( field.getName().equals( "004" ) ) {
+                    deletedRecordData.getFields().add( field );
+                }
+            }
+            MarcWriter.addOrReplaceSubfield( deletedRecordData, "004", "r", "d" );
+
+            logger.debug( "Current record data:\n{}", record.toString() );
+            logger.debug( "Current record deleted data:\n{}", deletedRecordData.toString() );
+
+            final Record rawRepoRecord = rawRepo.fetchRecord( recordId, agencyId );
+            rawRepoRecord.setContent( encodeRecord( deletedRecordData ) );
+            rawRepoRecord.setDeleted( true );
+            rawRepo.saveRecord( rawRepoRecord, "" );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    /**
+     * Deletes a record.
+     *
+     * @param record
+     *
+     * @throws UpdateException
+     * @throws JAXBException
+     * @throws UnsupportedEncodingException
+     */
+    private void deleteRecord( String recordId, Integer agencyId ) throws UpdateException, JAXBException, UnsupportedEncodingException {
+        logger.entry();
+
+        try {
+            if( !rawRepo.recordExistsMaybeDeleted( recordId, agencyId ) ) {
+                throw new UpdateException( String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recordId, agencyId) );
+            }
+
+            final Record rawRepoRecord = rawRepo.fetchRecord( recordId, agencyId );
+            deleteRecord( decodeRecord( rawRepoRecord.getContent() ) );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    /**
      * Saves the record in a rawrepo.
      *
      * @param content   The encoded content of the record.
@@ -404,18 +487,9 @@ public class Updater {
             logger.entry(content, recId, libraryId, parentId);
 
             if (content == null) {
-                if (!rawRepo.recordExists(recId, libraryId)) {
-                    String err = String.format("Record [%s|%s] can not be deleted, because it does not exist.", recId, libraryId);
-                    logger.warn(err);
-                    throw new UpdateException(err);
-                }
-
-                bizLogger.info( "Deleting record [{}:{}]", recId, libraryId );
-
-                final Record rawRepoRecord = rawRepo.fetchRecord( recId, libraryId );
-                rawRepoRecord.setDeleted( true );
-                rawRepo.saveRecord( rawRepoRecord, parentId );
-                return;
+                String err = String.format( "Record [%s|%s] can not be saved, because it is empty.", recId, libraryId);
+                logger.warn( err );
+                throw new UpdateException(err);
             }
 
             if (!parentId.isEmpty() && !rawRepo.recordExists(parentId, libraryId)) {

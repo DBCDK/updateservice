@@ -186,44 +186,10 @@ public class TestcaseRunner {
             assertTrue( dao.recordExists( recId.getBibliographicRecordId(), recId.getAgencyId() ) );
 
             Record rawRecord = dao.fetchRecord( recId.getBibliographicRecordId(), recId.getAgencyId() );
-            assertNotNull( rawRecord );
             assertFalse( rawRecord.isDeleted() );
             assertEquals( mimetype, rawRecord.getMimeType() );
-            assertNotNull( rawRecord.getContent() );
 
-            MarcRecord rawRepoMarcRecord = MarcConverter.convertFromMarcXChange( new String( rawRecord.getContent(), "UTF-8" ) );
-            if( marcRecord.getFields().size() != rawRepoMarcRecord.getFields().size() ) {
-                String message = String.format( "Number of fields differ. Expected record:\n%s\nActual record:\n%s",
-                                                marcRecord.toString(), rawRepoMarcRecord.toString() );
-                fail( message );
-            }
-
-            for( int i = 0; i < marcRecord.getFields().size(); i++ ) {
-                MarcField expected = marcRecord.getFields().get( i );
-                MarcField actual = rawRepoMarcRecord.getFields().get( i );
-
-                if( expected.getName().equals( "001" ) ) {
-                    assertEquals( "Compare field name of 001", expected.getName(), actual.getName() );
-                    assertEquals( "Compare indicator of 001", expected.getIndicator(), actual.getIndicator() );
-
-                    for( int k = 0; k < expected.getSubfields().size(); k++ ) {
-                        MarcSubField expectedSubField = expected.getSubfields().get( k );
-
-                        if( expectedSubField.getName().equals( "c" ) ) {
-                            continue;
-                        }
-                        if( expectedSubField.getName().equals( "d" ) ) {
-                            continue;
-                        }
-
-                        MarcSubField actualSubField = actual.getSubfields().get( k );
-                        assertEquals( "Compare 001" + expectedSubField.getName(), expectedSubField.toString(), actualSubField.toString() );
-                    }
-                }
-                else {
-                    assertEquals( "Compare field " + expected.getName(), expected.toString(), actual.toString() );
-                }
-            }
+            compareRecord( dao, filename );
         }
         catch( IOException | RawRepoException ex ) {
             String message = String.format( "Unable to check record '%s': %s", filename, ex.getMessage() );
@@ -245,6 +211,8 @@ public class TestcaseRunner {
             Record rawRepoRecord = dao.fetchRecord( recordId.getBibliographicRecordId(), recordId.getAgencyId() );
             assertTrue( rawRepoRecord.isDeleted() );
             assertEquals( mimetype, rawRepoRecord.getMimeType() );
+
+            compareRecord( dao, recordFilename );
         }
         finally {
             logger.exit();
@@ -351,6 +319,56 @@ public class TestcaseRunner {
             String message = String.format( "Unable to check links: %s", ex.getMessage() );
             Assert.fail( message );
             logger.error( message, ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    private void compareRecord( RawRepoDAO dao, String filename ) throws IOException, RawRepoException {
+        logger.entry();
+
+        try {
+            MarcRecord marcRecord = loadRecord( filename );
+            RecordId recId = getRecordId( marcRecord );
+
+            Record rawRecord = dao.fetchRecord( recId.getBibliographicRecordId(), recId.getAgencyId() );
+            assertNotNull( rawRecord );
+            assertNotNull( rawRecord.getContent() );
+
+            MarcRecord rawRepoMarcRecord = MarcConverter.convertFromMarcXChange( new String( rawRecord.getContent(), "UTF-8" ) );
+            if( marcRecord.getFields().size() != rawRepoMarcRecord.getFields().size() ) {
+                String message = String.format( "Number of fields differ. Expected record:\n%s\nActual record:\n%s",
+                        marcRecord.toString(), rawRepoMarcRecord.toString() );
+                fail( message );
+            }
+
+            for( int i = 0; i < marcRecord.getFields().size(); i++ ) {
+                MarcField expected = marcRecord.getFields().get( i );
+                MarcField actual = rawRepoMarcRecord.getFields().get( i );
+
+                if( expected.getName().equals( "001" ) ) {
+                    assertEquals( "Compare field name of 001", expected.getName(), actual.getName() );
+                    assertEquals( "Compare indicator of 001", expected.getIndicator(), actual.getIndicator() );
+
+                    for( int k = 0; k < expected.getSubfields().size(); k++ ) {
+                        MarcSubField expectedSubField = expected.getSubfields().get( k );
+
+                        if( expectedSubField.getName().equals( "c" ) ) {
+                            continue;
+                        }
+                        if( expectedSubField.getName().equals( "d" ) ) {
+                            continue;
+                        }
+
+                        MarcSubField actualSubField = actual.getSubfields().get( k );
+                        assertEquals( "Compare 001" + expectedSubField.getName(), expectedSubField.toString(), actualSubField.toString() );
+                    }
+                }
+                else {
+                    assertEquals( "Compare field " + expected.getName(), expected.toString(), actual.toString() );
+                }
+            }
         }
         finally {
             logger.exit();
