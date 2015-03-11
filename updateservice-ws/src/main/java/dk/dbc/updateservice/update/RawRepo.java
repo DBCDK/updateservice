@@ -257,6 +257,35 @@ public class RawRepo {
         }
     }
 
+    /**
+     * Checks if a maybe deleted record exists in RawRepo.
+     *
+     * @param recordId The record id for the record to check for.
+     * @param agencyId The agency id for the record to check for.
+     *
+     * @return <code>true</code> if the record exists, <code>false</code> otherwise.
+     *
+     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
+     */
+    public boolean recordExistsMaybeDeleted( String recordId, Integer agencyId ) throws UpdateException {
+        logger.entry( recordId, agencyId );
+
+        boolean result = false;
+        try( Connection conn = dataSourceReader.getConnection() ) {
+            RawRepoDAO dao = createDAO( conn );
+
+            result = dao.recordExistsMabyDeleted( recordId, agencyId );
+            return result;
+        }
+        catch( RawRepoException | SQLException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record, String parentId ) throws UpdateException {
         logger.entry( record );
