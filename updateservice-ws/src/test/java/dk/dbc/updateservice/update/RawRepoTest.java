@@ -87,7 +87,7 @@ public class RawRepoTest {
         RawRepo rawRepo = new MockRawRepo();
         Set<Integer> agencies = rawRepo.agenciesForRecord( record );
         assertEquals( 2, agencies.size() );
-        assertTrue( agencies.contains( 870970 ) );
+        assertTrue( agencies.contains( RawRepo.COMMON_LIBRARY ) );
         assertTrue( agencies.contains( 700400 ) );
     }
 
