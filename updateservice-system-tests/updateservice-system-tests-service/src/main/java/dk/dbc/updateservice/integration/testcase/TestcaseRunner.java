@@ -10,9 +10,9 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.client.UpdateService;
 import dk.dbc.updateservice.integration.BibliographicRecordFactory;
 import dk.dbc.updateservice.integration.ExternWebServers;
-import dk.dbc.updateservice.integration.UpdateServiceCaller;
 import dk.dbc.updateservice.integration.service.*;
 import dk.dbc.updateservice.update.RawRepo;
 import junit.framework.Assert;
@@ -26,10 +26,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.URL;
+import java.util.*;
 
 import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.*;
@@ -143,8 +141,12 @@ public class TestcaseRunner {
                     }
                 }
 
-                UpdateServiceCaller caller = new UpdateServiceCaller( config.getHeaders() );
-                return caller.updateRecord( request );
+                Properties settings = IOUtils.loadProperties( getClass().getClassLoader(), "settings.properties" );
+
+                String baseUrl = String.format( "http://%s:%s", settings.getProperty( "service.host" ), settings.getProperty( "service.port" ) );
+
+                UpdateService caller = new UpdateService( new URL( baseUrl ), config.getHeaders() );
+                return caller.createPort().updateRecord( request );
             }
             finally {
                 servers.stopServers();
