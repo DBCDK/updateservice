@@ -124,28 +124,6 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
 
             MarcRecord record = reader.readRecord();
-            List<ValidationError> authErrors;
-            try {
-                authErrors = authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() );
-            }
-            catch( EJBException ex ) {
-                bizLogger.warn( "Exception doing authentication: {}", findServiceException( ex ).getMessage() );
-                logger.warn( "Exception doing authentication: ", ex );
-                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
-                return writer.getResponse();
-            }
-
-            if( !authErrors.isEmpty() ) {
-                writer.addValidateResults( authErrors );
-                writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
-
-                bizLogger.error( "Errors with authenticating the record:" );
-                for( ValidationError err : authErrors ) {
-                    err.writeLog( bizLogger );
-                }
-
-                return writer.getResponse();
-            }
 
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             String libId = MarcReader.getRecordValue( record, "001", "b" );
@@ -183,6 +161,29 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
             else {
                 if( !reader.hasValidationOnlyOption() ) {
+                    List<ValidationError> authErrors;
+                    try {
+                        authErrors = authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() );
+                    }
+                    catch( EJBException ex ) {
+                        bizLogger.warn( "Exception doing authentication: {}", findServiceException( ex ).getMessage() );
+                        logger.warn( "Exception doing authentication: ", ex );
+                        writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
+                        return writer.getResponse();
+                    }
+
+                    if( !authErrors.isEmpty() ) {
+                        writer.addValidateResults( authErrors );
+                        writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
+
+                        bizLogger.error( "Errors with authenticating the record:" );
+                        for( ValidationError err : authErrors ) {
+                            err.writeLog( bizLogger );
+                        }
+
+                        return writer.getResponse();
+                    }
+
                     try {
                         writer.setUpdateStatus( UpdateStatusEnum.OK );
 
