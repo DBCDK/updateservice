@@ -409,7 +409,7 @@ public class Updater {
      * @throws UnsupportedEncodingException
      */
     private void deleteRecord( MarcRecord record ) throws UpdateException, JAXBException, UnsupportedEncodingException {
-        logger.entry();
+        logger.entry( record );
 
         try {
             String recordId = MarcReader.getRecordValue( record, "001", "a");
@@ -439,31 +439,6 @@ public class Updater {
             rawRepoRecord.setContent( encodeRecord( deletedRecordData ) );
             rawRepoRecord.setDeleted( true );
             rawRepo.saveRecord( rawRepoRecord, "" );
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    /**
-     * Deletes a record.
-     *
-     * @param record
-     *
-     * @throws UpdateException
-     * @throws JAXBException
-     * @throws UnsupportedEncodingException
-     */
-    private void deleteRecord( String recordId, Integer agencyId ) throws UpdateException, JAXBException, UnsupportedEncodingException {
-        logger.entry();
-
-        try {
-            if( !rawRepo.recordExistsMaybeDeleted( recordId, agencyId ) ) {
-                throw new UpdateException( String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recordId, agencyId) );
-            }
-
-            final Record rawRepoRecord = rawRepo.fetchRecord( recordId, agencyId );
-            deleteRecord( decodeRecord( rawRepoRecord.getContent() ) );
         }
         finally {
             logger.exit();
