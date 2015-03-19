@@ -13,6 +13,20 @@
 
     <dependencies>
         <!-- ************************************************************* -->
+        <!-- I-Scrum Commons                                               -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>dk.dbc.iscrum</groupId>
+            <artifactId>iscrum-records</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc.iscrum</groupId>
+            <artifactId>iscrum-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
         <!-- Logging                                                       -->
         <!-- ************************************************************* -->
         <dependency>
