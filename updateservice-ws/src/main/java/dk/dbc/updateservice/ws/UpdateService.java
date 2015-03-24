@@ -7,11 +7,11 @@ import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.oss.ns.catalogingupdate.*;
-import dk.dbc.oss.ns.catalogingupdate.Error;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.service.api.*;
+import dk.dbc.updateservice.service.api.Error;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.Updater;
 import dk.dbc.updateservice.validate.Validator;
@@ -56,7 +56,7 @@ import java.util.List;
  *
  * @author stp
  */
-@WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/update/catalogingUpdate.wsdl" )
+@WebService( serviceName = "CatalogingUpdateServices", portName = "CatalogingUpdatePort", endpointInterface = "dk.dbc.updateservice.service.api.CatalogingUpdatePortType", targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate", wsdlLocation = "META-INF/wsdl/update/catalogingUpdate.wsdl" )
 @SchemaValidation
 @Stateless
 public class UpdateService implements CatalogingUpdatePortType {

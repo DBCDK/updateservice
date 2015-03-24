@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.integration.testcase;
 
-import dk.dbc.updateservice.integration.service.Authentication;
+import dk.dbc.updateservice.service.api.Authentication;
 
 import java.util.Map;
 

@@ -83,8 +83,9 @@
                             <wsdlFiles>
                                 <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
                             </wsdlFiles>
-                            <packageName>dk.dbc.updateservice.integration.service</packageName>
-                            <wsdlDirectory>${basedir}/../../updateservice-ws/src/wsdl/update</wsdlDirectory>
+                            <packageName>dk.dbc.updateservice.service.api</packageName>
+                            <wsdlDirectory>src/main/resources/wsdl</wsdlDirectory>
+                            <wsdlLocation>/wsdl/catalogingUpdate.wsdl</wsdlLocation>
                             <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-catalogingUpdate</id>

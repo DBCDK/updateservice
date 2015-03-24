@@ -53,6 +53,15 @@
         </dependency>
 
         <!-- ************************************************************* -->
+        <!-- Updateservice                                                 -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>updateservice-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
         <!-- iScrum Commons                                                -->
         <!-- ************************************************************* -->
         <dependency>
@@ -185,14 +194,20 @@
     <build>
         <resources>
             <resource>
-                <targetPath>META-INF</targetPath>
-                <directory>src</directory>
+                <targetPath>META-INF/wsdl/forsrights</targetPath>
+                <directory>src/wsdl/forsrights</directory>
                 <includes>
                     <include>jax-ws-catalog.xml</include>
-                    <include>wsdl/update/*.wsdl</include>
-                    <include>wsdl/update/*.xsd</include>
-                    <include>wsdl/forsrights/*.wsdl</include>
-                    <include>wsdl/forsrights/*.xsd</include>
+                    <include>*.wsdl</include>
+                    <include>*.xsd</include>
+                </includes>
+            </resource>
+            <resource>
+                <targetPath>META-INF/wsdl/update</targetPath>
+                <directory>../clients/client/src/main/resources/wsdl</directory>
+                <includes>
+                    <include>*.wsdl</include>
+                    <include>*.xsd</include>
                 </includes>
             </resource>
             <resource>
@@ -250,21 +265,6 @@
                 <artifactId>jaxws-maven-plugin</artifactId>
                 <version>2.3</version>
                 <executions>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlFiles>
-                                <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <wsdlDirectory>${basedir}/src/wsdl/update</wsdlDirectory>
-                            <wsdlLocation>META-INF/wsdl/update/catalogingUpdate.wsdl</wsdlLocation>
-                            <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
-                        </configuration>
-                        <id>wsimport-generate-catalogingUpdate</id>
-                        <phase>generate-sources</phase>
-                    </execution>
                     <execution>
                         <goals>
                             <goal>wsimport</goal>
