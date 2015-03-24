@@ -4,9 +4,9 @@ package dk.dbc.updateservice.validate;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.oss.ns.catalogingupdate.Schema;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.service.api.Schema;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.ValidationError;
 import org.codehaus.jackson.map.ObjectMapper;

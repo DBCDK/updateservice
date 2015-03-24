@@ -6,9 +6,9 @@ import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.updateservice.integration.service.BibliographicRecord;
-import dk.dbc.updateservice.integration.service.ExtraRecordData;
-import dk.dbc.updateservice.integration.service.RecordData;
+import dk.dbc.updateservice.service.api.BibliographicRecord;
+import dk.dbc.updateservice.service.api.ExtraRecordData;
+import dk.dbc.updateservice.service.api.RecordData;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 

@@ -2,8 +2,8 @@
 package dk.dbc.updateservice.client;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.updateservice.integration.service.CatalogingUpdatePortType;
-import dk.dbc.updateservice.integration.service.CatalogingUpdateServices;
+import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
+import dk.dbc.updateservice.service.api.CatalogingUpdateServices;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -42,6 +42,8 @@ public class UpdateService {
 
             String endpoint = baseUrl.toString() + ENDPOINT_PATH;
 
+            logger.debug( "Using base url: {}", baseUrl );
+            logger.debug( "Using complete endpoint: {}", endpoint );
             proxy.getRequestContext().put( BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint );
 
             proxy.getRequestContext().put( "com.sun.xml.ws.connect.timeout", this.connectTimeout );

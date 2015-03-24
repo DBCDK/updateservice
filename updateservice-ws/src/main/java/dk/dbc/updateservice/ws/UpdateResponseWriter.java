@@ -3,10 +3,10 @@ package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
-import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
-import dk.dbc.oss.ns.catalogingupdate.ValidateInstance;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.service.api.ValidateEntry;
+import dk.dbc.updateservice.service.api.ValidateInstance;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -124,7 +124,7 @@ public class UpdateResponseWriter {
      *
      * @param error The error to set in the response.
      */
-    public void setError( dk.dbc.oss.ns.catalogingupdate.Error error ) {
+    public void setError( dk.dbc.updateservice.service.api.Error error ) {
         logger.entry();
         response.setError( error );
         logger.exit();

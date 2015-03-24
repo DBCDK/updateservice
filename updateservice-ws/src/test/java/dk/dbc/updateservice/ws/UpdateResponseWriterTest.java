@@ -3,7 +3,7 @@ package dk.dbc.updateservice.ws;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+import dk.dbc.updateservice.service.api.ValidateWarningOrErrorEnum;
 import org.junit.Test;
 
 import java.util.ArrayList;

@@ -5,9 +5,9 @@ package dk.dbc.updateservice.ws;
 
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.oss.ns.catalogingupdate.Options;
-import dk.dbc.oss.ns.catalogingupdate.UpdateOptionEnum;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
+import dk.dbc.updateservice.service.api.Options;
+import dk.dbc.updateservice.service.api.UpdateOptionEnum;
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
