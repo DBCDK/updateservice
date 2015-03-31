@@ -1,0 +1,132 @@
+[
+    {
+        "type": "webapp",
+        "configuration": {
+            "homedir": "glassfish/updateservice/dataio",
+            "artifacts": [
+                "${updateservice.basedir}/updateservice-app/target/updateservice-app-1.0-SNAPSHOT.ear",
+                "${updateservice.basedir}/update-logback-include.xml"
+            ],
+            "deployment": {
+                "file": "updateservice-app-1.0-SNAPSHOT.ear",
+                "name": "updateservice"
+            },
+            "glassfish": {
+                "instdir": "glassfish/glassfish4",
+                "adminport": "${glassfish.domain.dataio.admin.port}"
+            },
+            "jdbc": [
+                {
+                    "name": "jdbc/updateservice/raw-repo",
+                    "pool": {
+                        "name": "jdbc/updateservice/raw-repo/pool",
+                        "resource-type": "javax.sql.DataSource",
+                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
+                        "properties": {
+                            "ServerName": "localhost",
+                            "Port": "${postgresql.port}",
+                            "DatabaseName": "rawrepo",
+                            "User": "${user.name}",
+                            "Password": "${user.name}"
+                        }
+                    }
+                },
+                {
+                    "name": "jdbc/updateservice/holdingitems",
+                    "pool": {
+                        "name": "jdbc/updateservice/holdingitems/pool",
+                        "resource-type": "javax.sql.DataSource",
+                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
+                        "properties": {
+                            "ServerName": "localhost",
+                            "Port": "${postgresql.port}",
+                            "DatabaseName": "holdingsitems",
+                            "User": "${user.name}",
+                            "Password": "${user.name}"
+                        }
+                    }
+                }
+
+            ],
+            "jndi": {
+                "update-log/logback": "file\\://${deploy.directory}/glassfish/updateservice/dataio/update-logback-include.xml",
+                "${updateservice.settings.jndi.name}": {
+                    "forsrights.url": "${updateservice.settings.forsrights.url}",
+                    "auth.product.name": "${updateservice.settings.auth.product.name}",
+                    "auth.use.ip": "${updateservice.settings.auth.use.ip}",
+                    "solr.url": "${updateservice.settings.solr.url}",
+                    "javascript.basedir": "${updateservice.settings.javascript.basedir}",
+                    "javascript.install.name": "dataio"
+                }
+            },
+            "system-properties": {
+                "UPDATE_LOGBACK_FILENAME": "${deploy.directory}/glassfish/updateservice/logs/dataio"
+            }
+        }
+    },
+    {
+        "type": "webapp",
+        "configuration": {
+            "homedir": "glassfish/updateservice/fbs",
+            "artifacts": [
+                "${updateservice.basedir}/updateservice-app/target/updateservice-app-1.0-SNAPSHOT.ear",
+                "${updateservice.basedir}/update-logback-include.xml"
+            ],
+            "deployment": {
+                "file": "updateservice-app-1.0-SNAPSHOT.ear",
+                "name": "updateservice"
+            },
+            "glassfish": {
+                "instdir": "glassfish/glassfish4",
+                "adminport": "${glassfish.domain.fbs.admin.port}"
+            },
+            "jdbc": [
+                {
+                    "name": "jdbc/updateservice/raw-repo",
+                    "pool": {
+                        "name": "jdbc/updateservice/raw-repo/pool",
+                        "resource-type": "javax.sql.DataSource",
+                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
+                        "properties": {
+                            "ServerName": "localhost",
+                            "Port": "${postgresql.port}",
+                            "DatabaseName": "rawrepo",
+                            "User": "${user.name}",
+                            "Password": "${user.name}"
+                        }
+                    }
+                },
+                {
+                    "name": "jdbc/updateservice/holdingitems",
+                    "pool": {
+                        "name": "jdbc/updateservice/holdingitems/pool",
+                        "resource-type": "javax.sql.DataSource",
+                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
+                        "properties": {
+                            "ServerName": "localhost",
+                            "Port": "${postgresql.port}",
+                            "DatabaseName": "holdingsitems",
+                            "User": "${user.name}",
+                            "Password": "${user.name}"
+                        }
+                    }
+                }
+
+            ],
+            "jndi": {
+                "update-log/logback": "file\\://${deploy.directory}/glassfish/updateservice/fbs/update-logback-include.xml",
+                "${updateservice.settings.jndi.name}": {
+                    "forsrights.url": "${updateservice.settings.forsrights.url}",
+                    "auth.product.name": "${updateservice.settings.auth.product.name}",
+                    "auth.use.ip": "${updateservice.settings.auth.use.ip}",
+                    "solr.url": "${updateservice.settings.solr.url}",
+                    "javascript.basedir": "${updateservice.settings.javascript.basedir}",
+                    "javascript.install.name": "fbs"
+                }
+            },
+            "system-properties": {
+                "UPDATE_LOGBACK_FILENAME": "${deploy.directory}/glassfish/updateservice/logs/fbs"
+            }
+        }
+    }
+]
