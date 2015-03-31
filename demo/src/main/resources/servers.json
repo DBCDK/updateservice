@@ -56,7 +56,7 @@
                     "portbase": "${glassfish.domain.dataio.portbase}",
                     "libs": [
                         {
-                            "url": "${postgresql.jdbc.artifact}"
+                            "url": "${deploy.artifacts.directory}/${postgresql.jdbc.artifact}"
                         }
                     ]
                 },
@@ -65,7 +65,7 @@
                     "portbase": "${glassfish.domain.fbs.portbase}",
                     "libs": [
                         {
-                            "url": "${postgresql.jdbc.artifact}"
+                            "url": "${deploy.artifacts.directory}/${postgresql.jdbc.artifact}"
                         }
                     ]
                 }
