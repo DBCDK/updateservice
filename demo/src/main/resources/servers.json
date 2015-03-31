@@ -1,0 +1,75 @@
+[
+    {
+        "type": "postgresql",
+        "configuration": {
+            "homedir": "postgres",
+            "artifact": "${postgresql.url}",
+            "port": "${postgresql.port}"
+        }
+    },
+    {
+        "type": "postgressql-database",
+        "configuration": {
+            "homedir": "rawrepo-db",
+            "name": "rawrepo",
+            "postgresql": {
+                "homedir": "postgres",
+                "port": "${postgresql.port}"
+            },
+            "schemas": [
+                {
+                    "url": "https://svn.dbc.dk/repos/rawrepo/trunk/access/schema/rawrepo.sql"
+                },
+                {
+                    "url": "https://svn.dbc.dk/repos/rawrepo/trunk/access/schema/queuerules.sql"
+                }
+            ]
+        }
+    },
+    {
+        "type": "postgressql-database",
+        "configuration": {
+            "homedir": "holdingsitems-db",
+            "name": "holdingsitems",
+            "postgresql": {
+                "homedir": "postgres",
+                "port": "${postgresql.port}"
+            },
+            "schemas": [
+                {
+                    "url": "https://svn.dbc.dk/repos/holdings-items/trunk/access/schema/holdingsitems.sql"
+                },
+                {
+                    "url": "https://svn.dbc.dk/repos/holdings-items/trunk/access/schema/queuerules.sql"
+                }
+            ]
+        }
+    },
+    {
+        "type": "glassfish",
+        "configuration": {
+            "homedir": "glassfish",
+            "artifact": "${deploy.artifacts.directory}/${glassfish.artifact}",
+            "domains": [
+                {
+                    "name": "dataio",
+                    "portbase": "${glassfish.domain.dataio.portbase}",
+                    "libs": [
+                        {
+                            "url": "${postgresql.jdbc.artifact}"
+                        }
+                    ]
+                },
+                {
+                    "name": "fbs",
+                    "portbase": "${glassfish.domain.fbs.portbase}",
+                    "libs": [
+                        {
+                            "url": "${postgresql.jdbc.artifact}"
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+]
