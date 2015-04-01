@@ -1,9 +1,0 @@
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:for="http://oss.dbc.dk/ns/forsrights">
-   <soapenv:Header/>
-   <soapenv:Body>
-      <for:forsRightsRequest>
-         <for:userIdAut>netpunkt</for:userIdAut>
-         <for:passwordAut>20Koster</for:passwordAut>
-      </for:forsRightsRequest>
-   </soapenv:Body>
-</soapenv:Envelope>

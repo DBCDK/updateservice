@@ -27,16 +27,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.rawrepo.name}",
                             "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.rawrepo.passwd}"
                         }
                     }
                 },
@@ -51,16 +42,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.rawrepo.name}",
                             "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.rawrepo.passwd}"
                         }
                     }
                 },
@@ -75,16 +57,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.holdings.name}",
                             "User": "${postgresql.holdings.user}",
-                            "Password": "${postgresql.holdings.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.holdings.passwd}"
                         }
                     }
                 }
@@ -133,16 +106,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.rawrepo.name}",
                             "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.rawrepo.passwd}"
                         }
                     }
                 },
@@ -157,16 +121,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.rawrepo.name}",
                             "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.rawrepo.passwd}"
                         }
                     }
                 },
@@ -181,16 +136,7 @@
                             "Port": "${postgresql.port}",
                             "DatabaseName": "${postgresql.holdings.name}",
                             "User": "${postgresql.holdings.user}",
-                            "Password": "${postgresql.holdings.passwd}",
-                            "driverClass": "org.postgresql.Driver",
-                            "BinaryTransfer": "true",
-                            "Ssl": "false",
-                            "ProtocolVersion": "0",
-                            "TcpKeepAlive": "false",
-                            "SocketTimeout": "0",
-                            "LoginTimeout": "0",
-                            "UnknownLength": "2147483647",
-                            "PrepareThreshold": "5"
+                            "Password": "${postgresql.holdings.passwd}"
                         }
                     }
                 }
