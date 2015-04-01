@@ -25,14 +25,14 @@
 
         <postgresql.jdbc.version>9.3-1101-jdbc41</postgresql.jdbc.version>
         <postgresql.jdbc.artifact>postgresql-${postgresql.jdbc.version}.jar</postgresql.jdbc.artifact>
-        <postgresql.host>pgtest.dbc.dk</postgresql.host>
-        <postgresql.port>5432</postgresql.port>
-        <postgresql.rawrepo.name>ocbtst_a_rr_db</postgresql.rawrepo.name>
-        <postgresql.rawrepo.user>ocbtst_a_rr</postgresql.rawrepo.user>
-        <postgresql.rawrepo.passwd>ocbtst_a_rr</postgresql.rawrepo.passwd>
-        <postgresql.holdings.name>ocbtst_a_holditm_db</postgresql.holdings.name>
-        <postgresql.holdings.user>ocbtst_a_holditm</postgresql.holdings.user>
-        <postgresql.holdings.passwd>ocbtst_a_holditm</postgresql.holdings.passwd>
+        <postgresql.host>localhost</postgresql.host>
+        <postgresql.port>13432</postgresql.port>
+        <postgresql.rawrepo.name>rawrepo</postgresql.rawrepo.name>
+        <postgresql.rawrepo.user>${user.name}</postgresql.rawrepo.user>
+        <postgresql.rawrepo.passwd>${user.name}</postgresql.rawrepo.passwd>
+        <postgresql.holdings.name>holdingsitems</postgresql.holdings.name>
+        <postgresql.holdings.user>${user.name}</postgresql.holdings.user>
+        <postgresql.holdings.passwd>${user.name}</postgresql.holdings.passwd>
 
         <glassfish.domain.dataio.portbase>18100</glassfish.domain.dataio.portbase>
         <glassfish.domain.dataio.http.port>18180</glassfish.domain.dataio.http.port>

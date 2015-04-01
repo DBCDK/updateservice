@@ -10,8 +10,8 @@
     {
         "type": "postgressql-database",
         "configuration": {
-            "homedir": "rawrepo-db",
-            "name": "rawrepo",
+            "homedir": "${postgresql.rawrepo.name}-db",
+            "name": "${postgresql.rawrepo.name}",
             "postgresql": {
                 "homedir": "postgres",
                 "port": "${postgresql.port}"
@@ -29,8 +29,8 @@
     {
         "type": "postgressql-database",
         "configuration": {
-            "homedir": "holdingsitems-db",
-            "name": "holdingsitems",
+            "homedir": "${postgresql.holdings.name}-db",
+            "name": "${postgresql.holdings.name}",
             "postgresql": {
                 "homedir": "postgres",
                 "port": "${postgresql.port}"
