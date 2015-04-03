@@ -54,6 +54,7 @@
                 {
                     "name": "dataio",
                     "portbase": "${glassfish.domain.dataio.portbase}",
+                    "config": "domain-dataio.xml",
                     "libs": [
                         {
                             "url": "${deploy.artifacts.directory}/${postgresql.jdbc.artifact}"
@@ -63,6 +64,7 @@
                 {
                     "name": "fbs",
                     "portbase": "${glassfish.domain.fbs.portbase}",
+                    "config": "domain-fbs.xml",
                     "libs": [
                         {
                             "url": "${deploy.artifacts.directory}/${postgresql.jdbc.artifact}"

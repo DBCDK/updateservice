@@ -14,67 +14,6 @@
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
                 "adminport": "${glassfish.domain.dataio.admin.port}"
-            },
-            "jdbc": [
-                {
-                    "name": "jdbc/updateservice/raw-repo-readonly",
-                    "pool": {
-                        "name": "jdbc/updateservice/raw-repo/pool-readonly",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.rawrepo.name}",
-                            "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}"
-                        }
-                    }
-                },
-                {
-                    "name": "jdbc/updateservice/raw-repo-writable",
-                    "pool": {
-                        "name": "jdbc/updateservice/raw-repo/pool-writable",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.rawrepo.name}",
-                            "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}"
-                        }
-                    }
-                },
-                {
-                    "name": "jdbc/updateservice/holdingitems",
-                    "pool": {
-                        "name": "jdbc/updateservice/holdingitems/pool",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.holdings.name}",
-                            "User": "${postgresql.holdings.user}",
-                            "Password": "${postgresql.holdings.passwd}"
-                        }
-                    }
-                }
-            ],
-            "jndi": {
-                "update-log/logback": "file\\://${deploy.directory}/glassfish/updateservice/dataio/update-logback-include.xml",
-                "${updateservice.settings.jndi.name}": {
-                    "forsrights.url": "${updateservice.settings.forsrights.url}",
-                    "auth.product.name": "${updateservice.settings.auth.product.name}",
-                    "auth.use.ip": "${updateservice.settings.auth.use.ip}",
-                    "solr.url": "${updateservice.settings.solr.url}",
-                    "javascript.basedir": "${updateservice.settings.javascript.basedir}",
-                    "javascript.install.name": "dataio"
-                }
-            },
-            "system-properties": {
-                "UPDATE_LOGBACK_FILENAME": "${deploy.directory}/glassfish/updateservice/logs/dataio"
             }
         }
     },
@@ -93,67 +32,6 @@
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
                 "adminport": "${glassfish.domain.fbs.admin.port}"
-            },
-            "jdbc": [
-                {
-                    "name": "jdbc/updateservice/raw-repo-readonly",
-                    "pool": {
-                        "name": "jdbc/updateservice/raw-repo/pool-readonly",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.rawrepo.name}",
-                            "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}"
-                        }
-                    }
-                },
-                {
-                    "name": "jdbc/updateservice/raw-repo-writable",
-                    "pool": {
-                        "name": "jdbc/updateservice/raw-repo/pool-writable",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.rawrepo.name}",
-                            "User": "${postgresql.rawrepo.user}",
-                            "Password": "${postgresql.rawrepo.passwd}"
-                        }
-                    }
-                },
-                {
-                    "name": "jdbc/updateservice/holdingitems",
-                    "pool": {
-                        "name": "jdbc/updateservice/holdingitems/pool",
-                        "resource-type": "javax.sql.DataSource",
-                        "datasource-classname": "org.postgresql.ds.PGSimpleDataSource",
-                        "properties": {
-                            "ServerName": "${postgresql.host}",
-                            "Port": "${postgresql.port}",
-                            "DatabaseName": "${postgresql.holdings.name}",
-                            "User": "${postgresql.holdings.user}",
-                            "Password": "${postgresql.holdings.passwd}"
-                        }
-                    }
-                }
-            ],
-            "jndi": {
-                "update-log/logback": "file\\://${deploy.directory}/glassfish/updateservice/fbs/update-logback-include.xml",
-                "${updateservice.settings.jndi.name}": {
-                    "forsrights.url": "${updateservice.settings.forsrights.url}",
-                    "auth.product.name": "${updateservice.settings.auth.product.name}",
-                    "auth.use.ip": "${updateservice.settings.auth.use.ip}",
-                    "solr.url": "${updateservice.settings.solr.url}",
-                    "javascript.basedir": "${updateservice.settings.javascript.basedir}",
-                    "javascript.install.name": "fbs"
-                }
-            },
-            "system-properties": {
-                "UPDATE_LOGBACK_FILENAME": "${deploy.directory}/glassfish/updateservice/logs/fbs"
             }
         }
     }
