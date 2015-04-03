@@ -34,6 +34,8 @@
         <postgresql.holdings.user>${user.name}</postgresql.holdings.user>
         <postgresql.holdings.passwd>${user.name}</postgresql.holdings.passwd>
 
+        <glassfish.url>http://download.java.net/glassfish/4.0/release/glassfish-4.0.zip</glassfish.url>
+        <glassfish.artifact>glassfish-4.0.zip</glassfish.artifact>
         <glassfish.domain.dataio.portbase>18100</glassfish.domain.dataio.portbase>
         <glassfish.domain.dataio.http.port>18180</glassfish.domain.dataio.http.port>
         <glassfish.domain.dataio.admin.port>18148</glassfish.domain.dataio.admin.port>
@@ -135,8 +137,6 @@
             </activation>
 
             <properties>
-                <glassfish.url>http://dlc.sun.com.edgesuite.net/glassfish/4.1/release/glassfish-4.1.zip</glassfish.url>
-                <glassfish.artifact>glassfish-4.1.zip</glassfish.artifact>
                 <postgresql.url>${locale.artifacts.directory}/postgresql-9.3.5-1-osx-binaries.zip</postgresql.url>
             </properties>
 
@@ -151,11 +151,8 @@
             </activation>
 
             <properties>
-                <glassfish.url>http://download.java.net/glassfish/4.0/release/glassfish-4.0.zip</glassfish.url>
-                <glassfish.artifact>glassfish-4.0.zip</glassfish.artifact>
                 <postgresql.url>${locale.artifacts.directory}/postgresql-9.3.5-1-linux-x64-binaries.tar.gz</postgresql.url>
             </properties>
-
         </profile>
     </profiles>
 
