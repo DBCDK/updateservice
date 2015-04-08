@@ -119,7 +119,7 @@ public class Updater {
                 String recId = MarcReader.getRecordValue( rec, "001", "a" );
                 int libraryId = Integer.parseInt( MarcReader.getRecordValue( rec, "001", "b" ), 10 );
 
-                bizLogger.info( "Begin to handle record [{}:{}]", recId, libraryId );
+                bizLogger.info( "Begin to handle record [{}:{}]\n{}", recId, libraryId, rec );
 
                 if( libraryId == rawRepo.COMMON_LIBRARY ) {
                     bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );

@@ -100,7 +100,7 @@
         <custom-resource factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"
                          res-type="java.lang.String" jndi-name="update-log/logback">
             <property name="value"
-                      value="${updateservice.basedir}/update-logback-include.xml"></property>
+                      value="file://${deploy.directory}/glassfish/updateservice/dataio/update-logback-include.xml"></property>
         </custom-resource>
 
         <connector-connection-pool resource-adapter-name="jmsra" max-pool-size="250" steady-pool-size="1"
