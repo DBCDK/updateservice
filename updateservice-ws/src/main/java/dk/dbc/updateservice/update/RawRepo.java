@@ -9,6 +9,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
@@ -289,6 +290,15 @@ public class RawRepo {
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record, String parentId ) throws UpdateException {
         logger.entry( record );
+
+        if( record.getId().getBibliographicRecordId().equals( parentId ) ) {
+            int agencyId = record.getId().getAgencyId();
+            if( agencyId == COMMON_LIBRARY ) {
+                agencyId = 870970;
+            }
+            throw new UpdateException( String.format( ResourceBundles.getBundle( this, "messages" ).getString( "parent.point.to.itself" ),
+                    record.getId().getBibliographicRecordId(), agencyId ) );
+        }
 
         try( Connection conn = dataSourceWriter.getConnection() ) {
             RawRepoDAO dao = createDAO( conn );

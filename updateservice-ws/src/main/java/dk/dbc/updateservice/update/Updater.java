@@ -7,6 +7,7 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.iscrum.records.marcxchange.RecordType;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RawRepoException;
@@ -28,9 +29,7 @@ import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -89,8 +88,19 @@ public class Updater {
     public void init() {
         logger = XLoggerFactory.getXLogger( this.getClass() );
 
-        if( recordsHandler == null ) {
-            this.recordsHandler = new LibraryRecordsHandler( scripter, "updater.js" );
+        logger.entry();
+        try {
+            if( recordsHandler == null ) {
+                this.recordsHandler = new LibraryRecordsHandler( scripter, "updater.js" );
+            }
+
+            this.messages = ResourceBundles.getBundle( this, "messages" );
+        }
+        catch( MissingResourceException ex ) {
+            logger.error( "Unable to load resource", ex );
+        }
+        finally {
+            logger.exit();
         }
     }
 
@@ -110,7 +120,7 @@ public class Updater {
 
         try {
             if( record == null ) {
-                throw new NullPointerException( "record can not be (null)" );
+                throw new NullPointerException( messages.getString( "record.is.null" ) );
             }
 
             bizLogger.info( "Split record into records to be created or updated" );
@@ -145,7 +155,7 @@ public class Updater {
             throw new UpdateException( ex.getMessage(), ex );
         }
         catch( NumberFormatException ex ) {
-            throw new UpdateException( "Delfelt 001b skal indeholde et gyldigt tal", ex );
+            throw new UpdateException( messages.getString( "invalid.agencyid" ), ex );
         }
         finally {
             logger.exit();
@@ -173,7 +183,7 @@ public class Updater {
             if (!rawRepo.recordExists(recId, libraryId) && !localLibraries.isEmpty()) {
                 logger.error("Try to update common record [{}:{}], but local records exists: {}",
                         recId, libraryId, recId, localLibraries);
-                throw new UpdateException(String.format( "Det er ikke muligt at opdatere en fællespost med eksisterende lokalposter: %s", localLibraries ) );
+                throw new UpdateException(String.format( messages.getString( "common.record.with.locals" ), localLibraries ) );
             }
 
             MarcRecord oldRecord = null;
@@ -224,7 +234,7 @@ public class Updater {
             enqueueExtendedRecords(new RecordId(recId, libraryId));
         }
         catch( NumberFormatException ex ) {
-            throw new UpdateException( "Delfelt 001b indeholder ikke et gyldigt tal", ex );
+            throw new UpdateException( messages.getString( "invalid.agencyid" ), ex );
         }
         finally {
             logger.exit();
@@ -416,7 +426,7 @@ public class Updater {
             int agencyId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
 
             if( !rawRepo.recordExistsMaybeDeleted( recordId, agencyId ) ) {
-                throw new UpdateException( String.format( "Record [%s|%s] can not be deleted, because it does not exist.", recordId, agencyId) );
+                throw new UpdateException( String.format( messages.getString( "delete.record.not.exist" ), recordId, agencyId) );
             }
 
             bizLogger.info( "Deleting record [{}:{}]", recordId, agencyId );
@@ -462,13 +472,13 @@ public class Updater {
             logger.entry(content, recId, libraryId, parentId);
 
             if (content == null) {
-                String err = String.format( "Record [%s|%s] can not be saved, because it is empty.", recId, libraryId);
+                String err = String.format( messages.getString( "save.empty.record" ), recId, libraryId);
                 logger.warn( err );
                 throw new UpdateException(err);
             }
 
             if (!parentId.isEmpty() && !rawRepo.recordExists(parentId, libraryId)) {
-                String err = String.format("Record [%s|%s] points to [%s|%s], but the referenced record does not exist in this rawrepo.", recId, libraryId, parentId, libraryId);
+                String err = String.format( messages.getString( "reference.record.not.exist" ), recId, libraryId, parentId, libraryId);
                 bizLogger.warn( err );
                 throw new UpdateException(err);
             }
@@ -593,4 +603,5 @@ public class Updater {
     private HoldingsItems holdingsItems;
 
     private LibraryRecordsHandler recordsHandler;
+    private ResourceBundle messages;
 }
