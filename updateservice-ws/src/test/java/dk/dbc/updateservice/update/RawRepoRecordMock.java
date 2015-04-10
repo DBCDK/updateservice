@@ -109,6 +109,10 @@ public class RawRepoRecordMock implements Record {
 	public void setEnriched(boolean enriched) {
 		this.enriched = enriched;
 	}
+
+    public String getEnrichmentTrail() {
+        return "";
+    }
     
     public Set<RecordId> getReferences() {
         return references;
