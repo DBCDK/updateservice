@@ -449,6 +449,8 @@ public class Updater {
             rawRepoRecord.setContent( encodeRecord( deletedRecordData ) );
             rawRepoRecord.setDeleted( true );
             rawRepo.saveRecord( rawRepoRecord, "" );
+
+            rawRepo.changedRecord( PROVIDER, rawRepoRecord.getId(), rawRepoRecord.getMimeType() );
         }
         finally {
             logger.exit();
