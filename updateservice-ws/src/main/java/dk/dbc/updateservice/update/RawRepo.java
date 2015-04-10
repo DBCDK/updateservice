@@ -210,11 +210,11 @@ public class RawRepo {
         RecordType result = RecordType.COMMON_TYPE;
         try {
             Integer agencyId = convertAgencyId( getAgencyId( record ) );
-            if( agencyId == COMMON_LIBRARY ) {
+            if( agencyId == RAWREPO_COMMON_LIBRARY ) {
                 result = RecordType.COMMON_TYPE;
             }
             else {
-                if( recordExists( getRecordId( record ), COMMON_LIBRARY ) ) {
+                if( recordExists( getRecordId( record ), RAWREPO_COMMON_LIBRARY ) ) {
                     result = RecordType.ENRICHMENT_TYPE;
                 }
                 else {
@@ -293,11 +293,18 @@ public class RawRepo {
 
         if( record.getId().getBibliographicRecordId().equals( parentId ) ) {
             int agencyId = record.getId().getAgencyId();
-            if( agencyId == COMMON_LIBRARY ) {
-                agencyId = 870970;
+            if( agencyId == RAWREPO_COMMON_LIBRARY ) {
+                agencyId = COMMON_LIBRARY;
             }
             throw new UpdateException( String.format( ResourceBundles.getBundle( this, "messages" ).getString( "parent.point.to.itself" ),
                     record.getId().getBibliographicRecordId(), agencyId ) );
+        }
+
+        if( record.getId().getAgencyId() != RAWREPO_COMMON_LIBRARY && !parentId.isEmpty() ) {
+            if( recordExists( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ) ) {
+                throw new UpdateException( String.format( ResourceBundles.getBundle( this, "messages" ).getString( "enrichment.has.parent" ),
+                        record.getId().getBibliographicRecordId(), record.getId().getAgencyId() ) );
+            }
         }
 
         try( Connection conn = dataSourceWriter.getConnection() ) {
@@ -309,15 +316,15 @@ public class RawRepo {
             dao.saveRecord( record );
 
             if( !record.isDeleted() ) {
-                if( COMMON_LIBRARY == record.getId().getAgencyId() ) {
+                if( RAWREPO_COMMON_LIBRARY == record.getId().getAgencyId() ) {
                     if (!parentId.isEmpty()) {
                         linkToRecord( dao, record.getId(), new RecordId( parentId, record.getId().getAgencyId() ) );
                     }
                 }
                 else {
-                    if ( recordExists( record.getId().getBibliographicRecordId(), COMMON_LIBRARY)) {
-                        logger.info("Linker record [{}] -> [{}]", record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
-                        linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), COMMON_LIBRARY));
+                    if ( recordExists( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY )) {
+                        logger.info("Linker record [{}] -> [{}]", record.getId(), new RecordId( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ));
+                        linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ));
                     }
                 }
             }
@@ -455,7 +462,8 @@ public class RawRepo {
     //              Constants
     //-------------------------------------------------------------------------
 
-    public static final Integer COMMON_LIBRARY = 191919;
+    public static final Integer RAWREPO_COMMON_LIBRARY = 191919;
+    public static final Integer COMMON_LIBRARY = 870970;
 
     //-------------------------------------------------------------------------
     //              Members
