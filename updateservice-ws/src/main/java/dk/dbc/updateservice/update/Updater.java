@@ -131,19 +131,19 @@ public class Updater {
 
                 bizLogger.info( "Begin to handle record [{}:{}]\n{}", recId, libraryId, rec );
 
-                if( libraryId == rawRepo.COMMON_LIBRARY ) {
+                if( libraryId == rawRepo.RAWREPO_COMMON_LIBRARY ) {
                     bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );
                     updateCommonRecord( rec );
                 }
                 else {
-                    if( rawRepo.recordExists( recId, rawRepo.COMMON_LIBRARY ) ) {
-                        bizLogger.info( "Common record exist [{}:{}]", recId, rawRepo.COMMON_LIBRARY );
+                    if( rawRepo.recordExists( recId, rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                        bizLogger.info( "Common record exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
                         bizLogger.info( "Creates/updates enrichment record: {}", MarcXChangeMimeType.ENRICHMENT );
-                        Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.COMMON_LIBRARY );
+                        Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.RAWREPO_COMMON_LIBRARY );
                         saveLibraryExtendedRecord( commonRecord, rec );
                     }
                     else {
-                        bizLogger.info( "Common record does not exist [{}:{}]", recId, rawRepo.COMMON_LIBRARY );
+                        bizLogger.info( "Common record does not exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
                         bizLogger.info( "Creates/updates local record: {}", MarcXChangeMimeType.DECENTRAL );
                         updateLibraryLocalRecord( rec );
                     }
@@ -174,10 +174,10 @@ public class Updater {
             logger.info("Parent Record id: {}", parentId);
 
             // Fetch ids of local libraries for recId.
-            // Note: We remove rawRepo.COMMON_LIBRARY from the set because the interface
+            // Note: We remove rawRepo.RAWREPO_COMMON_LIBRARY from the set because the interface
             // 		 returns *all* libraries and not only local libraries.
             Set<Integer> localLibraries = rawRepo.agenciesForRecord( recId );
-            localLibraries.remove(rawRepo.COMMON_LIBRARY);
+            localLibraries.remove(rawRepo.RAWREPO_COMMON_LIBRARY );
             logger.info("Local libraries: {}", localLibraries);
 
             if (!rawRepo.recordExists(recId, libraryId) && !localLibraries.isEmpty()) {
@@ -503,12 +503,12 @@ public class Updater {
         String result = "";
         try {
             RecordId recId = rawRepoRecord.getId();
-            if( recId.getAgencyId() == RawRepo.COMMON_LIBRARY ) {
+            if( recId.getAgencyId() == RawRepo.RAWREPO_COMMON_LIBRARY ) {
                 result = MarcXChangeMimeType.MARCXCHANGE;
             }
             else {
-                if( rawRepo.recordExists( recId.getBibliographicRecordId(), rawRepo.COMMON_LIBRARY ) ) {
-                    logger.debug( "Common record exist [{}:{}]", recId.getBibliographicRecordId(), rawRepo.COMMON_LIBRARY );
+                if( rawRepo.recordExists( recId.getBibliographicRecordId(), rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                    logger.debug( "Common record exist [{}:{}]", recId.getBibliographicRecordId(), rawRepo.RAWREPO_COMMON_LIBRARY );
                     result = MarcXChangeMimeType.ENRICHMENT;
                 }
                 else {

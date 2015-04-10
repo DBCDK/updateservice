@@ -79,7 +79,7 @@ public class RawRepoTest {
 
         Set<Integer> daoAgencies = new HashSet<>();
         daoAgencies.add( 700400 );
-        daoAgencies.add( RawRepo.COMMON_LIBRARY );
+        daoAgencies.add( RawRepo.RAWREPO_COMMON_LIBRARY );
 
         when( dataSourceReader.getConnection() ).thenReturn( null );
         when( rawRepoDAO.allAgenciesForBibliographicRecordId( eq( recId ) ) ).thenReturn( daoAgencies );
@@ -87,7 +87,7 @@ public class RawRepoTest {
         RawRepo rawRepo = new MockRawRepo();
         Set<Integer> agencies = rawRepo.agenciesForRecord( record );
         assertEquals( 2, agencies.size() );
-        assertTrue( agencies.contains( RawRepo.COMMON_LIBRARY ) );
+        assertTrue( agencies.contains( RawRepo.RAWREPO_COMMON_LIBRARY ) );
         assertTrue( agencies.contains( 700400 ) );
     }
 
