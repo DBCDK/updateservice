@@ -109,7 +109,7 @@ public class Authenticator {
         List<ValidationError> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod( "auth.js", "authenticateRecord", mapper.writeValueAsString( record ), userId, groupId);
+            Object jsResult = scripter.callMethod( "auth.js", "authenticateRecord", mapper.writeValueAsString( record ), userId, groupId, settings );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
