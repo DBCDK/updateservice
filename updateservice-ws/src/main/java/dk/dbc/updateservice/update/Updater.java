@@ -137,10 +137,15 @@ public class Updater {
                 }
                 else {
                     if( rawRepo.recordExists( recId, rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
-                        bizLogger.info( "Common record exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
-                        bizLogger.info( "Creates/updates enrichment record: {}", MarcXChangeMimeType.ENRICHMENT );
-                        Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.RAWREPO_COMMON_LIBRARY );
-                        saveLibraryExtendedRecord( commonRecord, rec );
+                        if( hasRecordDeletionMark( rec ) ) {
+                            deleteEnrichmentRecord( rec );
+                        }
+                        else {
+                            bizLogger.info( "Common record exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
+                            bizLogger.info( "Creates/updates enrichment record: {}", MarcXChangeMimeType.ENRICHMENT );
+                            Record commonRecord = rawRepo.fetchRecord( recId, rawRepo.RAWREPO_COMMON_LIBRARY );
+                            saveLibraryExtendedRecord( commonRecord, rec );
+                        }
                     }
                     else {
                         bizLogger.info( "Common record does not exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
@@ -260,7 +265,16 @@ public class Updater {
                                 oldRecord.toString(), record.toString() );
             }
 
-            saveRecord(encodeRecord(record), recId, libraryId, parentId);
+            if( hasRecordDeletionMark( record ) ) {
+                if( !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty() ) {
+                    throw new UpdateException( messages.getString( "delete.local.with.holdings.error" ) );
+                }
+
+                deleteRecord( record );
+            }
+            else {
+                saveRecord( encodeRecord( record ), recId, libraryId, parentId );
+            }
         }
         finally {
             logger.exit();
@@ -358,6 +372,26 @@ public class Updater {
                 saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
             }
             enqueueRecord(new RecordId(recId, libraryId));
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void deleteEnrichmentRecord( MarcRecord record ) throws UnsupportedEncodingException, JAXBException, UpdateException {
+        logger.entry( record );
+
+        try {
+            if( !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty() ) {
+                throw new UpdateException( messages.getString( "delete.enrichment.with.holdings.error" ) );
+            }
+
+            String recId = MarcReader.getRecordValue( record, "001", "a" );
+            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+
+            bizLogger.info( "Deleting enrichment record [{}:{}]", recId, agencyId );
+
+            deleteRecord( record );
         }
         finally {
             logger.exit();
@@ -498,6 +532,10 @@ public class Updater {
         finally {
             logger.exit();
         }
+    }
+
+    private boolean hasRecordDeletionMark( MarcRecord record ) {
+        return MarcReader.getRecordValue( record, "004", "r" ).equals( "d" );
     }
 
     private String mimeTypeForRecord( final Record rawRepoRecord ) throws UpdateException {
