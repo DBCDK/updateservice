@@ -178,6 +178,7 @@ public class Updater {
             // 		 returns *all* libraries and not only local libraries.
             Set<Integer> localLibraries = rawRepo.agenciesForRecord( recId );
             localLibraries.remove(rawRepo.RAWREPO_COMMON_LIBRARY );
+            localLibraries.remove(rawRepo.COMMON_LIBRARY );
             logger.info("Local libraries: {}", localLibraries);
 
             if (!rawRepo.recordExists(recId, libraryId) && !localLibraries.isEmpty()) {
