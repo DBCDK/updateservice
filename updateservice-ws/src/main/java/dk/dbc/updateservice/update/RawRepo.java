@@ -140,6 +140,88 @@ public class RawRepo {
         }
     }
 
+    public Set<RecordId> children( MarcRecord record ) throws UpdateException {
+        logger.entry();
+
+        try {
+            if( record == null ) {
+                throw new IllegalArgumentException( "record can not be null" );
+            }
+
+            RecordId recordId = new RecordId( getRecordId( record ), convertAgencyId( getAgencyId( record ) ) );
+            return children( recordId );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public Set<RecordId> children( RecordId recordId ) throws UpdateException {
+        logger.entry();
+
+        try {
+            if( recordId == null ) {
+                throw new IllegalArgumentException( "recordId can not be null" );
+            }
+
+            try( Connection conn = dataSourceReader.getConnection() ) {
+                RawRepoDAO dao = createDAO( conn );
+
+                return dao.getRelationsChildren( recordId );
+            }
+            catch( RawRepoException | SQLException ex ) {
+                logger.error( ex.getMessage(), ex );
+                throw new UpdateException( ex.getMessage(), ex );
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public Set<RecordId> relationsToRecord( MarcRecord record ) throws UpdateException {
+        logger.entry();
+
+        try {
+            if( record == null ) {
+                throw new IllegalArgumentException( "record can not be null" );
+            }
+
+            RecordId recordId = new RecordId( getRecordId( record ), convertAgencyId( getAgencyId( record ) ) );
+            return relationsToRecord( recordId );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public Set<RecordId> relationsToRecord( RecordId recordId ) throws UpdateException {
+        logger.entry();
+
+        try {
+            if( recordId == null ) {
+                throw new IllegalArgumentException( "recordId can not be null" );
+            }
+
+            Set<RecordId> relations = new HashSet<>();
+            try( Connection conn = dataSourceReader.getConnection() ) {
+                RawRepoDAO dao = createDAO( conn );
+
+                relations.addAll( dao.getRelationsChildren( recordId ) );
+                relations.addAll( dao.getRelationsSiblingsToMe( recordId ) );
+
+                return relations;
+            }
+            catch( RawRepoException | SQLException ex ) {
+                logger.error( ex.getMessage(), ex );
+                throw new UpdateException( ex.getMessage(), ex );
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     /**
      * Fetches the RawRepo record for a MarcRecord.
      * <p>

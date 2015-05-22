@@ -2,7 +2,6 @@
 package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
-
 import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
@@ -123,17 +122,26 @@ public class Updater {
                 throw new NullPointerException( messages.getString( "record.is.null" ) );
             }
 
-            bizLogger.info( "Split record into records to be created or updated" );
+            checkRecordForUpdatability( record );
 
-            for( MarcRecord rec : recordsHandler.recordDataForRawRepo( record, userId, groupId ) ) {
+            bizLogger.info( "Split record into records to be created or updated" );
+            List<MarcRecord> records = recordsHandler.recordDataForRawRepo( record, userId, groupId );
+            Collections.sort( records, new ProcessOrder() );
+
+            for( MarcRecord rec : records ) {
                 String recId = MarcReader.getRecordValue( rec, "001", "a" );
                 int libraryId = Integer.parseInt( MarcReader.getRecordValue( rec, "001", "b" ), 10 );
 
                 bizLogger.info( "Begin to handle record [{}:{}]\n{}", recId, libraryId, rec );
 
                 if( libraryId == rawRepo.RAWREPO_COMMON_LIBRARY ) {
-                    bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );
-                    updateCommonRecord( rec );
+                    if( hasRecordDeletionMark( rec ) ) {
+                        deleteCommonRecord( rec );
+                    }
+                    else {
+                        bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );
+                        updateCommonRecord( rec );
+                    }
                 }
                 else {
                     if( rawRepo.recordExists( recId, rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
@@ -166,7 +174,32 @@ public class Updater {
             logger.exit();
         }
     }
-    
+
+    void checkRecordForUpdatability( MarcRecord record ) throws UpdateException {
+        logger.entry();
+
+        try {
+            if( !hasRecordDeletionMark( record ) ) {
+                return;
+            }
+
+            String recId = MarcReader.getRecordValue(record, "001", "a");
+            int libraryId = Integer.parseInt( MarcReader.getRecordValue(record, "001", "b"), 10 );
+            int rawRepoAgencyId = libraryId;
+
+            if( libraryId == RawRepo.COMMON_LIBRARY ) {
+                rawRepoAgencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
+            }
+
+            if( !rawRepo.children( new RecordId( recId, rawRepoAgencyId ) ).isEmpty() ) {
+                throw new UpdateException( String.format( messages.getString( "delete.record.children.error" ), recId ) );
+            }
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
         logger.entry( record );
 
@@ -241,6 +274,21 @@ public class Updater {
         }
         catch( NumberFormatException ex ) {
             throw new UpdateException( messages.getString( "invalid.agencyid" ), ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    public void deleteCommonRecord( MarcRecord record ) throws UnsupportedEncodingException, JAXBException, UpdateException {
+        logger.entry();
+
+        try {
+            String recId = MarcReader.getRecordValue( record, "001", "a" );
+            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+
+            bizLogger.info( "Deleting common record [{}:{}]", recId, agencyId );
+            deleteRecord( record );
         }
         finally {
             logger.exit();
@@ -464,6 +512,15 @@ public class Updater {
                 throw new UpdateException( String.format( messages.getString( "delete.record.not.exist" ), recordId, agencyId) );
             }
 
+            Set<RecordId> relations = rawRepo.relationsToRecord( record );
+            if( !relations.isEmpty() ) {
+                bizLogger.info( "Records that relates to [{}:{}]", recordId, agencyId );
+                for( RecordId recId : relations ) {
+                    bizLogger.info( "  --> Record [{}:{}]", recId.getBibliographicRecordId(), recId.getAgencyId() );
+                }
+                throw new UpdateException( String.format( messages.getString( "delete.record.reference.error" ), recordId ) );
+            }
+
             bizLogger.info( "Deleting record [{}:{}]", recordId, agencyId );
 
             MarcRecord deletedRecordData = new MarcRecord();
@@ -606,6 +663,76 @@ public class Updater {
         }
         finally {
             logger.exit();
+        }
+    }
+
+    /**
+     * Class to sort the records returned from JavaScript in the order they should be
+     * processed.
+     * <p/>
+     * The records are sorted in this order:
+     * <ol>
+     *     <li>Common records are processed before local and enrichment records.</li>
+     *     <li>
+     *         If one of the records has the deletion mark in 004r then the process order
+     *         is reversed.
+     *     </li>
+     * </ol>
+     */
+    private class ProcessOrder implements Comparator<MarcRecord> {
+
+        /**
+         * Compares its two arguments for order.  Returns a negative integer, zero, or a positive integer as the first
+         * argument is less than, equal to, or greater than the second.<p>
+         * <p>
+         * In the foregoing description, the notation <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
+         * <i>signum</i> function, which is defined to return one of <tt>-1</tt>, <tt>0</tt>, or <tt>1</tt> according to
+         * whether the value of <i>expression</i> is negative, zero or positive.<p>
+         * <p>
+         * The implementor must ensure that <tt>sgn(compare(x, y)) == -sgn(compare(y, x))</tt> for all <tt>x</tt> and
+         * <tt>y</tt>.  (This implies that <tt>compare(x, y)</tt> must throw an exception if and only if <tt>compare(y,
+         * x)</tt> throws an exception.)<p>
+         * <p>
+         * The implementor must also ensure that the relation is transitive: <tt>((compare(x, y)&gt;0) &amp;&amp;
+         * (compare(y, z)&gt;0))</tt> implies <tt>compare(x, z)&gt;0</tt>.<p>
+         * <p>
+         * Finally, the implementor must ensure that <tt>compare(x, y)==0</tt> implies that <tt>sgn(compare(x,
+         * z))==sgn(compare(y, z))</tt> for all <tt>z</tt>.<p>
+         * <p>
+         * It is generally the case, but <i>not</i> strictly required that <tt>(compare(x, y)==0) == (x.equals(y))</tt>.
+         * Generally speaking, any comparator that violates this condition should clearly indicate this fact.  The
+         * recommended language is "Note: this comparator imposes orderings that are inconsistent with equals."
+         *
+         * @param o1 the first object to be compared.
+         * @param o2 the second object to be compared.
+         *
+         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater
+         * than the second.
+         *
+         * @throws NullPointerException if an argument is null and this comparator does not permit null arguments
+         * @throws ClassCastException   if the arguments' types prevent them from being compared by this comparator.
+         */
+        @Override
+        public int compare( MarcRecord o1, MarcRecord o2 ) {
+            Integer agency1 = Integer.valueOf( MarcReader.getRecordValue( o1, "001", "b" ), 10 );
+            Integer agency2 = Integer.valueOf( MarcReader.getRecordValue( o2, "001", "b" ), 10 );
+
+            int result;
+            if( agency1.equals( agency2 ) ) {
+                result = 0;
+            }
+            else if( agency1.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                result = -1;
+            }
+            else {
+                result = 1;
+            }
+
+            if( hasRecordDeletionMark( o1 ) || hasRecordDeletionMark( o2 ) ) {
+                return result * -1;
+            }
+
+            return result;
         }
     }
 
