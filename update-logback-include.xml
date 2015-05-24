@@ -11,7 +11,6 @@
 
     <timestamp key="curDate" datePattern="yyyyMMdd"/>
 
-
     <appender name="FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator>
             <key>trackingId</key>
@@ -20,7 +19,7 @@
         <sift>
             <appender name="FILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
                 <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}.log</file>
-                <append>true</append>
+                <append>false</append>
                 <layout class="ch.qos.logback.classic.PatternLayout">
                     <pattern>%date %level [%thread] %logger{35} [%file:%line] - %msg%n</pattern>
                 </layout>
@@ -36,7 +35,7 @@
         <sift>
             <appender name="BIZFILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
                 <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-biz.log</file>
-                <append>true</append>
+                <append>false</append>
 
                 <filter class="dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter" />
 
@@ -59,7 +58,7 @@
         <sift>
             <appender name="ERRFILE-${trackingId}" class="ch.qos.logback.core.FileAppender">
                 <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-warn-err.log</file>
-                <append>true</append>
+                <append>false</append>
 
                 <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
                     <level>WARN</level>
