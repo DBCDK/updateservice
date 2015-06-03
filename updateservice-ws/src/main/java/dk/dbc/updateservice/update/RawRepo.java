@@ -529,11 +529,16 @@ public class RawRepo {
 
     private void linkToRecord( RawRepoDAO dao, RecordId id, RecordId refer_id ) throws SQLException, RawRepoException {
         logger.entry( dao, id, refer_id );
+
         try {
             final HashSet<RecordId> references = new HashSet<>();
 
             references.add( refer_id );
             dao.setRelationsFrom( id, references );
+
+            bizLogger.info( "Set relation from [{}:{}] -> [{}:{}]",
+                            id.getBibliographicRecordId(), id.getAgencyId(),
+                            refer_id.getBibliographicRecordId(), refer_id.getAgencyId() );
         }
         finally {
             logger.exit();
