@@ -398,15 +398,32 @@ public class RawRepo {
             dao.saveRecord( record );
 
             if( !record.isDeleted() ) {
-                if( RAWREPO_COMMON_LIBRARY == record.getId().getAgencyId() ) {
-                    if (!parentId.isEmpty()) {
-                        linkToRecord( dao, record.getId(), new RecordId( parentId, record.getId().getAgencyId() ) );
+                // Single records
+                if( parentId.isEmpty() ) {
+                    if( record.getId().getAgencyId() != RAWREPO_COMMON_LIBRARY ) {
+                        // Enrichment record
+                        if( recordExists( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ) ) {
+                            linkEnrichment( dao, record );
+                        }
+                        // Locale record
+                        else {
+                            clearLinks( dao, record );
+                        }
+                    }
+                    // Common record
+                    else {
+                        clearLinks( dao, record );
                     }
                 }
+                // Multi volume records
                 else {
-                    if ( recordExists( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY )) {
-                        logger.info("Linker record [{}] -> [{}]", record.getId(), new RecordId( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ));
-                        linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ));
+                    // Common record
+                    if( record.getId().getAgencyId() == RAWREPO_COMMON_LIBRARY ) {
+                        linkMultivolume( dao, record, parentId );
+                    }
+                    // Locale record
+                    else if( !recordExists( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ) ) {
+                        linkMultivolume( dao, record, parentId );
                     }
                 }
             }
@@ -527,6 +544,28 @@ public class RawRepo {
         }
     }
 
+    private void linkEnrichment( RawRepoDAO dao, Record record ) throws RawRepoException, SQLException {
+        logger.entry( dao, record );
+
+        try {
+            linkToRecord( dao, record.getId(), new RecordId( record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY ) );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    private void linkMultivolume( RawRepoDAO dao, Record record, String parentId ) throws RawRepoException, SQLException {
+        logger.entry( dao, record );
+
+        try {
+            linkToRecord( dao, record.getId(), new RecordId( parentId, record.getId().getAgencyId() ) );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     private void linkToRecord( RawRepoDAO dao, RecordId id, RecordId refer_id ) throws SQLException, RawRepoException {
         logger.entry( dao, id, refer_id );
 
@@ -539,6 +578,22 @@ public class RawRepo {
             bizLogger.info( "Set relation from [{}:{}] -> [{}:{}]",
                             id.getBibliographicRecordId(), id.getAgencyId(),
                             refer_id.getBibliographicRecordId(), refer_id.getAgencyId() );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    private void clearLinks( RawRepoDAO dao, Record record ) throws RawRepoException {
+        logger.entry();
+
+        try {
+            final HashSet<RecordId> references = new HashSet<>();
+
+            dao.setRelationsFrom( record.getId(), references );
+            bizLogger.info( "Clear relations for [{}:{}]",
+                    record.getId().getBibliographicRecordId(),
+                    record.getId().getAgencyId() );
         }
         finally {
             logger.exit();
