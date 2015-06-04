@@ -245,7 +245,7 @@ public class Updater {
                 bizLogger.info( "Overwriting common existing record. Old record:\n{}\nNew record:\n{}",
                                 oldRecord.toString(), record.toString() );
             }
-            saveRecord(encodeRecord(record), recId, libraryId, parentId);
+            saveRecord( record );
 
             if (recordsHandler.hasClassificationData(oldRecord) && recordsHandler.hasClassificationData(record)) {
                 if (recordsHandler.hasClassificationsChanged(oldRecord, record)) {
@@ -321,7 +321,7 @@ public class Updater {
                 deleteRecord( record );
             }
             else {
-                saveRecord( encodeRecord( record ), recId, libraryId, parentId );
+                saveRecord( record );
             }
         }
         finally {
@@ -338,7 +338,7 @@ public class Updater {
                 String recId = MarcReader.getRecordValue(extRecord, "001", "a");
 
                 bizLogger.info( "Creating new enrichment record for library {}:\n{}", libraryId, extRecord.toString() );
-                saveRecord( encodeRecord( extRecord ), recId, libraryId, "" );
+                saveRecord( extRecord );
                 enqueueRecord( new RecordId( recId, libraryId ) );
             }
         }
@@ -371,7 +371,7 @@ public class Updater {
                 }
             }
             else {
-                saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
+                saveRecord( extRecord );
             }
             enqueueRecord(new RecordId(recId, libraryId));
         }
@@ -417,7 +417,7 @@ public class Updater {
                 else {
                     bizLogger.info( "Creating new enrichment record:\n{}", extRecord.toString() );
                 }
-                saveRecord( encodeRecord( extRecord ), recId, libraryId, parentId );
+                saveRecord( extRecord );
             }
             enqueueRecord(new RecordId(recId, libraryId));
         }
@@ -561,25 +561,29 @@ public class Updater {
      * @throws UpdateException if a parent record does not exist.
      * @throws RawRepoException RawRepoException
      */
-    private void saveRecord( byte[] content, String recId, int libraryId, String parentId ) throws SQLException, UpdateException, RawRepoException {
+    private void saveRecord( MarcRecord record ) throws SQLException, UpdateException, RawRepoException, JAXBException, UnsupportedEncodingException {
         try {
-            logger.entry(content, recId, libraryId, parentId);
+            logger.entry( record );
 
-            if (content == null) {
-                String err = String.format( messages.getString( "save.empty.record" ), recId, libraryId);
+            if( record == null ) {
+                String err = messages.getString( "save.empty.record" );
                 logger.warn( err );
                 throw new UpdateException(err);
             }
 
-            if (!parentId.isEmpty() && !rawRepo.recordExists(parentId, libraryId)) {
-                String err = String.format( messages.getString( "reference.record.not.exist" ), recId, libraryId, parentId, libraryId);
+            String recId = MarcReader.getRecordValue( record, "001", "a" );
+            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            String parentId = MarcReader.getRecordValue( record, "014", "a" );
+
+            if (!parentId.isEmpty() && !rawRepo.recordExists(parentId, agencyId)) {
+                String err = String.format( messages.getString( "reference.record.not.exist" ), recId, agencyId, parentId, agencyId);
                 bizLogger.warn( err );
                 throw new UpdateException(err);
             }
 
-            final Record rawRepoRecord = rawRepo.fetchRecord(recId, libraryId);
-            rawRepoRecord.setContent( content );
-            rawRepoRecord.setMimeType( mimeTypeForRecord( rawRepoRecord ) );
+            final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
+            rawRepoRecord.setContent( encodeRecord( record ) );
+            rawRepoRecord.setMimeType( mimeTypeForRecord( record ) );
             rawRepoRecord.setDeleted( false );
             rawRepo.saveRecord( rawRepoRecord, parentId );
             bizLogger.info( "Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId() );
@@ -595,22 +599,31 @@ public class Updater {
         return MarcReader.getRecordValue( record, "004", "r" ).equals( "d" );
     }
 
-    private String mimeTypeForRecord( final Record rawRepoRecord ) throws UpdateException {
-        logger.entry( rawRepoRecord );
+    private String mimeTypeForRecord( final MarcRecord record ) throws UpdateException {
+        logger.entry( record );
 
         String result = "";
         try {
-            RecordId recId = rawRepoRecord.getId();
-            if( recId.getAgencyId() == RawRepo.RAWREPO_COMMON_LIBRARY ) {
-                result = MarcXChangeMimeType.MARCXCHANGE;
-            }
-            else {
-                if( rawRepo.recordExists( recId.getBibliographicRecordId(), rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
-                    logger.debug( "Common record exist [{}:{}]", recId.getBibliographicRecordId(), rawRepo.RAWREPO_COMMON_LIBRARY );
-                    result = MarcXChangeMimeType.ENRICHMENT;
+            String recId = MarcReader.getRecordValue( record, "001", "a" );
+            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+
+            if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                String owner = MarcReader.getRecordValue( record, "996", "a" );
+
+                if( owner.equals( "DBC" ) ) {
+                    result = MarcXChangeMimeType.MARCXCHANGE;
                 }
                 else {
                     result = MarcXChangeMimeType.DECENTRAL;
+                }
+            }
+            else {
+                if( rawRepo.recordExists( recId, rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                    logger.debug( "Common record exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
+                    result = MarcXChangeMimeType.ENRICHMENT;
+                }
+                else {
+                    result = MarcXChangeMimeType.MARCXCHANGE;
                 }
             }
 
