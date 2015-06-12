@@ -140,7 +140,7 @@ public class Updater {
                     }
                     else {
                         bizLogger.info( "Creates/updates common record: {}", MarcXChangeMimeType.MARCXCHANGE );
-                        updateCommonRecord( rec );
+                        updateCommonRecord( rec, groupId );
                     }
                 }
                 else {
@@ -200,7 +200,7 @@ public class Updater {
         }
     }
 
-    void updateCommonRecord( MarcRecord record ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
+    void updateCommonRecord( MarcRecord record, String groupId ) throws SQLException, UpdateException, JAXBException, UnsupportedEncodingException, ScripterException, RawRepoException {
         logger.entry( record );
 
         try {
@@ -247,6 +247,7 @@ public class Updater {
             }
             saveRecord( record );
 
+            Integer loginAgencyId = Integer.valueOf( groupId, 10 );
             if (recordsHandler.hasClassificationData(oldRecord) && recordsHandler.hasClassificationData(record)) {
                 if (recordsHandler.hasClassificationsChanged(oldRecord, record)) {
                     logger.info("Classifications was changed for common record [{}:{}]", recId, libraryId);
@@ -263,9 +264,10 @@ public class Updater {
                                 logger.info("Extended library record, [{}:{}], has its own classifications. Record not updated.", recId, id);
                                 enqueueRecord(extRecord.getId());
                             }
-                        } else {
-                            logger.info("Create new extended library record: [{}:{}].", recId, id);
-                            createLibraryExtendedRecord(rawRepo.fetchRecord(recId, libraryId), oldRecord, id);
+                        }
+                        else if( !loginAgencyId.equals( id ) ) {
+                            logger.info( "Create new extended library record: [{}:{}].", recId, id );
+                            createLibraryExtendedRecord( rawRepo.fetchRecord( recId, libraryId ), oldRecord, id );
                         }
                     }
                 }
