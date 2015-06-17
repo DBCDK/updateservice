@@ -606,20 +606,14 @@ public class Updater {
 
         String result = "";
         try {
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
             if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
-                String owner = MarcReader.getRecordValue( record, "996", "a" );
-
-                if( owner.equals( "DBC" ) ) {
-                    result = MarcXChangeMimeType.MARCXCHANGE;
-                }
-                else {
-                    result = MarcXChangeMimeType.DECENTRAL;
-                }
+                result = MarcXChangeMimeType.MARCXCHANGE;
             }
             else {
+                String recId = MarcReader.getRecordValue( record, "001", "a" );
+
                 if( rawRepo.recordExists( recId, rawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     logger.debug( "Common record exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
                     result = MarcXChangeMimeType.ENRICHMENT;
