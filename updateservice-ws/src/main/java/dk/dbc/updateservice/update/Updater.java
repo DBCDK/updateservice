@@ -157,7 +157,7 @@ public class Updater {
                     }
                     else {
                         bizLogger.info( "Common record does not exist [{}:{}]", recId, rawRepo.RAWREPO_COMMON_LIBRARY );
-                        bizLogger.info( "Creates/updates local record: {}", MarcXChangeMimeType.DECENTRAL );
+                        bizLogger.info( "Creates/updates local record: {}", MarcXChangeMimeType.MARCXCHANGE );
                         updateLibraryLocalRecord( rec );
                     }
                 }
