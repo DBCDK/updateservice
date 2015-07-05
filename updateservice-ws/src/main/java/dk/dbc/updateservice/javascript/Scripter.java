@@ -68,7 +68,7 @@ public class Scripter {
 
             return result;
         }
-        catch( JavaScriptException ex ) {
+        catch( Exception ex ) {
             throw new ScripterException( ex.getMessage(), ex );
         }
         finally {
@@ -93,7 +93,7 @@ public class Scripter {
 
             return envir;
         }
-        catch( IOException ex ) {
+        catch( Exception ex ) {
             throw new ScripterException( ex.getMessage(), ex );
         }
         finally {
@@ -143,7 +143,6 @@ public class Scripter {
         }
         catch( FileNotFoundException ex ) {
             logger.warn( "The file '{}' does not exist.", fileName );
-            return;
         }
         catch( IOException ex ) {
             logger.warn( "Unable to load properties from file '{}'", fileName );
