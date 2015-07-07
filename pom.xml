@@ -9,6 +9,15 @@
 
     <name>updateservice</name>
 
+    <!-- Use dbc wide pom first. Set relative path to empty, to force it to get it from the repos -->
+    <parent>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-pom</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+      <relativePath></relativePath>
+    </parent>
+
+
     <properties>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
