@@ -4,21 +4,23 @@ package dk.dbc.updateservice.ws;
 //-----------------------------------------------------------------------------
 
 import com.sun.xml.ws.developer.SchemaValidation;
-import dk.dbc.iscrum.records.MarcReader;
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.actions.ServiceEngine;
+import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.auth.AuthenticatorException;
+import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.*;
-import dk.dbc.updateservice.service.api.Error;
-import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.Updater;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.validate.Validator;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
@@ -27,10 +29,7 @@ import javax.jws.WebService;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -60,6 +59,35 @@ import java.util.List;
 @SchemaValidation
 @Stateless
 public class UpdateService implements CatalogingUpdatePortType {
+    //-------------------------------------------------------------------------
+    //              Java EE
+    //-------------------------------------------------------------------------
+
+    /**
+     * Initialization of the EJB after it has been created by the JavaEE
+     * container.
+     * <p>
+     * It simply initialize the XLogger instance for logging.
+     */
+    @PostConstruct
+    public void init() {
+        logger.entry();
+        try {
+            if( recordsHandler == null ) {
+                this.recordsHandler = new LibraryRecordsHandler( scripter, "updater.js" );
+            }
+        }
+        catch( MissingResourceException ex ) {
+            logger.error( "Unable to load resource", ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    //              Business logic
+    //-------------------------------------------------------------------------
 
     /**
      * Update or validate a bibliographic record to the rawrepo.
@@ -86,128 +114,29 @@ public class UpdateService implements CatalogingUpdatePortType {
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
 
-            UpdateRequestReader reader = new UpdateRequestReader( updateRecordRequest );
-            logRequest( reader );
+            UpdateRequestAction action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
+            action.setHoldingsItems( holdingsItems );
+            action.setRecordsHandler( recordsHandler );
+            action.setAuthenticator( authenticator );
+            action.setScripter( scripter );
+            action.setSettings( settings );
 
-            if( !authenticator.authenticateUser( wsContext, reader.readUserId(), reader.readGroupId(), reader.readPassword() ) ) {
-                writer.setError( Error.AUTHENTICATION_ERROR );
-                bizLogger.info( "Could not authenticator user: {}/{}", reader.readUserId(), reader.readGroupId() );
-                return writer.getResponse();
-            }
+            ServiceEngine engine = new ServiceEngine();
+            ServiceResult serviceResult = engine.executeAction( action );
 
-            bizLogger.info( "Authenticated user: {}/{}", reader.readUserId(), reader.readGroupId() );
-            try {
-                if (!validator.checkValidateSchema(reader.readSchemaName())) {
-                    bizLogger.warn("Unknown validate schema: {}", reader.readSchemaName());
-                    writer.setUpdateStatus(UpdateStatusEnum.FAILED_INVALID_SCHEMA);
+            bizLogger.info( "" );
+            bizLogger.info( "Executed action:" );
+            engine.printActions( action );
 
-                    return writer.getResponse();
-                }
-            }
-            catch( ScripterException ex ) {
-                bizLogger.warn( "Exception doing checking validate schema: {}", findServiceException( ex ).getMessage() );
-                logger.warn( "Exception doing checking validate schema: {}", ex );
-                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-                return writer.getResponse();
-            }
-
-            if( !reader.isRecordSchemaValid() ) {
-                bizLogger.warn( "Unknown record schema: {}", updateRecordRequest.getBibliographicRecord().getRecordSchema() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-                return writer.getResponse();
-            }
-
-            if( !reader.isRecordPackingValid() ) {
-                bizLogger.warn( "Unknown record packing: {}", updateRecordRequest.getBibliographicRecord().getRecordPacking() );
-                writer.setUpdateStatus( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
-                return writer.getResponse();
-            }
-
-            MarcRecord record = reader.readRecord();
-
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
-            String libId = MarcReader.getRecordValue( record, "001", "b" );
-
-            bizLogger.info( "Validate record [{}|{}]", recId, libId );
-            List<ValidationError> valErrors;
-            try {
-                valErrors = validator.validateRecord( reader.readSchemaName(), record );
-                if( valErrors.isEmpty() ) {
-                    bizLogger.info( "Record contains no validation errors." );
-                }
-                else {
-                    for( ValidationError err : valErrors ) {
-                        err.writeLog( bizLogger );
-                    }
-                }
-            }
-            catch( EJBException ex ) {
-                bizLogger.warn( "Exception doing validation: {}", ex );
-                writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
-                return writer.getResponse();
-            }
-
-            writer.setUpdateStatus( UpdateStatusEnum.VALIDATE_ONLY );
-            writer.addValidateResults( valErrors );
-            boolean hasValErrors = false;
-            for( ValidationError err: valErrors ) {
-                if( err.getType() == ValidateWarningOrErrorEnum.ERROR ) {
-                    hasValErrors = true;
-                    break;
-                }
-            }
-            if( hasValErrors ) {
-                writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
+            if( serviceResult.getServiceError() != null ) {
+                writer.setError( serviceResult.getServiceError() );
             }
             else {
-                if( !reader.hasValidationOnlyOption() ) {
-                    List<ValidationError> authErrors;
-                    try {
-                        authErrors = authenticator.authenticateRecord( record, reader.readUserId(), reader.readGroupId() );
-                    }
-                    catch( EJBException ex ) {
-                        bizLogger.warn( "Exception doing authentication: {}", findServiceException( ex ).getMessage() );
-                        logger.warn( "Exception doing authentication: ", ex );
-                        writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR );
-                        return writer.getResponse();
-                    }
-
-                    if( !authErrors.isEmpty() ) {
-                        writer.addValidateResults( authErrors );
-                        writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
-
-                        bizLogger.error( "Errors with authenticating the record:" );
-                        for( ValidationError err : authErrors ) {
-                            err.writeLog( bizLogger );
-                        }
-
-                        return writer.getResponse();
-                    }
-
-                    try {
-                        writer.setUpdateStatus( UpdateStatusEnum.OK );
-
-                        bizLogger.info( "Updating record [{}|{}]", recId, libId );
-                        updater.updateRecord( record, reader.readUserId(), reader.readGroupId() );
-                        bizLogger.info( "Record [{}|{}] is updated succesfully", recId, libId );
-                    }
-                    catch( UpdateException ex ) {
-                        bizLogger.warn( "Exception doing update: {}", findServiceException( ex ).getMessage() );
-                        logger.warn( "Exception doing update:", ex );
-                        writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-                        return writer.getResponse();
-                    }
-                }
+                writer.setUpdateStatus( serviceResult.getStatus() );
             }
+            writer.addValidateEntries( serviceResult.getEntries() );
 
             bizLogger.info( "Returning response." );
-            return writer.getResponse();
-        }
-        catch( AuthenticatorException ex ) {
-            bizLogger.error( "Caught Authenticator Exception: {}", findServiceException( ex ).getMessage() );
-            logger.error( "Caught Authenticator Exception: {}", ex );
-            writer = new UpdateResponseWriter();
-            writer.setError( Error.AUTHENTICATION_ERROR );
             return writer.getResponse();
         }
         catch( EJBException ex ) {
@@ -223,8 +152,9 @@ public class UpdateService implements CatalogingUpdatePortType {
             return writer.getResponse();
         }
         finally {
-            MDC.remove( TRACKING_ID_LOG_CONTEXT);
             bizLogger.exit( writer.getResponse() );
+            logger.exit( writer.getResponse() );
+            MDC.remove( TRACKING_ID_LOG_CONTEXT );
         }
     }
 
@@ -335,8 +265,8 @@ public class UpdateService implements CatalogingUpdatePortType {
     /**
      * Logger instance to write entries to the log files.
      */
-    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateService.class );
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     /**
      * MDC constant for tackingId in the log files.
@@ -346,21 +276,29 @@ public class UpdateService implements CatalogingUpdatePortType {
     @Resource
     WebServiceContext wsContext;
 
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
+
     /**
      * EJB for authentication.
      */
     @EJB
     Authenticator authenticator;
 
+    @EJB
+    private Scripter scripter;
+
+    @EJB
+    private RawRepo rawRepo;
+
+    @EJB
+    private HoldingsItems holdingsItems;
+
     /**
      * EJB for record validation.
      */
     @EJB
-    Validator validator;
+    private Validator validator;
 
-    /**
-     * EJB to update records in rawrepo.
-     */
-    @EJB
-    Updater updater;
+    private LibraryRecordsHandler recordsHandler;
 }

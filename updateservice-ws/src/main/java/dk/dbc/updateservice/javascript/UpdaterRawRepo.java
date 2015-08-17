@@ -8,7 +8,7 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.Updater;
+import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -58,7 +58,7 @@ public class UpdaterRawRepo {
 				result = new MarcRecord();
 			}
 			else {
-				result = new Updater().decodeRecord( record.getContent() );
+				result = new RawRepoDecoder().decodeRecord( record.getContent() );
 			}
 
 			return result;

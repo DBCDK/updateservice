@@ -5,6 +5,7 @@ package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.service.api.ValidateWarningOrErrorEnum;
 import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -76,8 +77,17 @@ public class ValidationError {
      * The properties are initialized with "empty" values.
      */
     public ValidationError() {
-        this.type = ValidateWarningOrErrorEnum.ERROR;
+        this( ValidateWarningOrErrorEnum.ERROR );
+    }
+
+    public ValidationError( ValidateWarningOrErrorEnum type ) {
+        this.type = type;
         this.params = new HashMap<>();
+    }
+
+    public ValidationError( ValidateWarningOrErrorEnum type, String message ) {
+        this( type );
+        this.params.put( "message", message );
     }
 
     //-------------------------------------------------------------------------
@@ -134,8 +144,32 @@ public class ValidationError {
     }
 
     //-------------------------------------------------------------------------
+    //              Static interface
+    //-------------------------------------------------------------------------
+
+    public static ValidationError newError( ValidateWarningOrErrorEnum type, String message ) {
+        logger.entry();
+
+        ValidationError err = null;
+        try {
+            err = new ValidationError();
+            err.setType( type );
+            HashMap<String, Object> params = new HashMap<>();
+            params.put( "message", message );
+            err.setParams( params );
+
+            return err;
+        }
+        finally {
+            logger.exit( err );
+        }
+    }
+
+    //-------------------------------------------------------------------------
     //              Private
     //-------------------------------------------------------------------------
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( ValidationError.class );
 
     /**
      * Contains the type of this validation error.

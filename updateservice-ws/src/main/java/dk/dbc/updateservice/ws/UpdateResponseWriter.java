@@ -41,6 +41,7 @@ public class UpdateResponseWriter {
      */
     public UpdateResponseWriter() {
         this.response = new UpdateRecordResult();
+        this.response.setUpdateStatus( UpdateStatusEnum.OK );
     }
     
     //-------------------------------------------------------------------------
@@ -107,7 +108,35 @@ public class UpdateResponseWriter {
             logger.exit();
         }
     }
-    
+
+    /**
+     * Adds a list of validation entires to the response.
+     * <p>
+     * If the list is empty then the response is not changed. In this case the
+     * function is a nop.
+     *
+     * @param entries List of validation errors.
+     */
+    public void addValidateEntries( List<ValidateEntry> entries ) {
+        logger.entry( entries );
+
+        try {
+            if( entries.isEmpty() ) {
+                return;
+            }
+
+            ValidateInstance instance = new ValidateInstance();
+            for( ValidateEntry entry : entries ) {
+                instance.getValidateEntry().add( entry );
+            }
+
+            this.response.setValidateInstance(instance);
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
     /**
      * Sets the update status in the response.
      * 
