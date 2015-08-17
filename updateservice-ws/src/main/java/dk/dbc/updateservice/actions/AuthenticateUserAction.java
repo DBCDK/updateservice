@@ -16,6 +16,13 @@ import javax.xml.ws.WebServiceContext;
 import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
+/**
+ * Action to authenticate the user from the request.
+ * <p>
+ *     The authentication is done against the forsright webservice by the parsed
+ *     Authenticator EJB.
+ * </p>
+ */
 public class AuthenticateUserAction extends AbstractAction {
     public AuthenticateUserAction( Authenticator authenticator, Authentication authentication, WebServiceContext wsContext ) {
         super( ACTION_NAME );
