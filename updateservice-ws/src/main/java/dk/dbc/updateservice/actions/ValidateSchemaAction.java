@@ -2,7 +2,6 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -14,6 +13,14 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.Properties;
 
 //-----------------------------------------------------------------------------
+/**
+ * Action to check that the validate scheme name from the request is a valid
+ * name.
+ * <p>
+ *     The action is using a Scripter to call JavaScript code to validate the
+ *     schema name.
+ * </p>
+ */
 public class ValidateSchemaAction extends AbstractAction {
     public ValidateSchemaAction( String validateSchema, Scripter scripter, Properties settings ) {
         super( "ValidateSchemaAction" );
