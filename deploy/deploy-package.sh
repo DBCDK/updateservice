@@ -5,7 +5,7 @@ cd updateservice-1.0.0
 rm -rf *
 
 cp ../../README.md .
-cp ../../updateservice-system-tests/updateservice-system-tests-servers/glassfish/home/glassfish4/glassfish/domains/domain1/config/domain.xml .
+cp ../../demo/target/deployment/domain-*.xml .
 cp ../../updateservice-app/target/*.ear .
 cd ..
 
