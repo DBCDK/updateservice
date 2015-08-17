@@ -127,6 +127,8 @@ public class RawRepo {
                 RawRepoDAO dao = createDAO( conn );
 
                 result = dao.allAgenciesForBibliographicRecordId( recordId );
+                result.remove( RAWREPO_COMMON_LIBRARY );
+                result.remove( COMMON_LIBRARY );
 
                 return result;
             }
@@ -370,6 +372,27 @@ public class RawRepo {
     }
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    public void saveRecord( Record record ) throws UpdateException {
+        logger.entry( record );
+
+        try( Connection conn = dataSourceWriter.getConnection() ) {
+            RawRepoDAO dao = createDAO( conn );
+
+            if( record.isDeleted() ) {
+                dao.setRelationsFrom( record.getId(), new HashSet<RecordId>() );
+            }
+            dao.saveRecord( record );
+        }
+        catch( RawRepoException | SQLException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record, String parentId ) throws UpdateException {
         logger.entry( record );
 
@@ -438,6 +461,55 @@ public class RawRepo {
     }
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    public void removeLinks( RecordId recId ) throws UpdateException {
+        logger.entry( recId );
+
+        try( Connection conn = dataSourceWriter.getConnection() ) {
+            RawRepoDAO dao = createDAO( conn );
+
+            final HashSet<RecordId> references = new HashSet<>();
+            dao.setRelationsFrom( recId, references );
+        }
+        catch( RawRepoException | SQLException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    /**
+     * Creates a link between two records in rawrepo.
+     *
+     * @param id Id of the record to link from.
+     * @param refer_id Id of the record to link to.
+     *
+     * @throws UpdateException In case of SQLException or RawRepoException, that exception
+     *         encapsulated in an UpdateException.
+     */
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    public void linkRecord( RecordId id, RecordId refer_id ) throws UpdateException {
+        logger.entry( id, refer_id );
+
+        try( Connection conn = dataSourceWriter.getConnection() ) {
+            RawRepoDAO dao = createDAO( conn );
+
+            final HashSet<RecordId> references = new HashSet<>();
+
+            references.add( refer_id );
+            dao.setRelationsFrom( id, references );
+        }
+        catch( RawRepoException | SQLException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit();
+        }
+    }
+
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void changedRecord( String provider, RecordId recId, String mimetype ) throws UpdateException {
         logger.entry( provider, recId, mimetype );
 
@@ -484,7 +556,7 @@ public class RawRepo {
      *
      * @return The encoded record as a sequence of bytes.
      *
-     * @throws javax.xml.bind.JAXBException if the record can not be encoded in marcxchange.
+     * @throws JAXBException if the record can not be encoded in marcxchange.
      * @throws UnsupportedEncodingException if the record can not be encoded in UTF-8
      */
     public byte[] encodeRecord( MarcRecord record ) throws JAXBException, UnsupportedEncodingException {

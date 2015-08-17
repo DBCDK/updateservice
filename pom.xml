@@ -70,35 +70,9 @@
                 <version>${maven.javadoc.plugin.version}</version>
                 <configuration>
                     <show>private</show>
-                    <sourceFileExcludes>
-                        <exclude>dk/dbc/oss/ns/catalogingupdate/*</exclude>
-                        <exclude>dk/dbc/updateservice/integration/service/*</exclude>
-                        <exclude>dk/dbc/forsrights/service/*</exclude>
-                        <exclude>dk/dbc/oss/ns/catalogingupdate/service/*</exclude>
-                    </sourceFileExcludes>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven.javadoc.plugin.version}</version>
-                <configuration>
-                    <show>private</show>
-                    <sourceFileExcludes>
-                        <exclude>dk/dbc/oss/ns/catalogingupdate/*</exclude>
-                        <exclude>dk/dbc/updateservice/integration/service/*</exclude>
-                        <exclude>dk/dbc/forsrights/service/*</exclude>
-                        <exclude>dk/dbc/oss/ns/catalogingupdate/service/*</exclude>
-                    </sourceFileExcludes>
-                </configuration>
-            </plugin>
-        </plugins>
-
-        <outputDirectory>${report.outputDirectory}</outputDirectory>
-    </reporting>
 </project>
