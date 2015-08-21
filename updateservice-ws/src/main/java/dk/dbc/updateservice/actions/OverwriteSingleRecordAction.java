@@ -113,41 +113,42 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     protected MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
 
+        MarcRecord result = null;
         try {
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
             Record record = rawRepo.fetchRecord( recordId, agencyId );
-            return new RawRepoDecoder().decodeRecord( record.getContent() );
+            return result = new RawRepoDecoder().decodeRecord( record.getContent() );
         }
         finally {
-            logger.exit();
+            logger.exit( result );
         }
     }
 
     private Set<Integer> loadLocalAgencies() throws UpdateException {
         logger.entry();
 
+        Set<Integer> agencies = null;
         try {
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
 
-            Set<Integer> agencies = rawRepo.agenciesForRecord( recordId );
+            agencies = rawRepo.agenciesForRecord( recordId );
             agencies.remove( rawRepo.RAWREPO_COMMON_LIBRARY );
             agencies.remove( rawRepo.COMMON_LIBRARY );
 
             return agencies;
         }
         finally {
-            logger.exit();
+            logger.exit( agencies );
         }
     }
 
     protected List<ServiceAction> createActionsForCreateOrUpdateEnrichments( MarcRecord currentRecord ) throws ScripterException, UpdateException, UnsupportedEncodingException {
-        logger.entry();
+        logger.entry( currentRecord );
 
+        List<ServiceAction> result = new ArrayList<>();
         try {
-            List<ServiceAction> result = new ArrayList<>();
-
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
@@ -166,7 +167,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 logger.info( "Update classifications for extended library record: [{}:{}]", recordId, id );
 
                                 UpdateClassificationsInEnrichmentRecordAction action = new UpdateClassificationsInEnrichmentRecordAction( rawRepo, extRecordData );
-                                action.setCommonRecord( currentRecord );
+                                action.setCurrentCommonRecord( currentRecord );
+                                action.setUpdatingCommonRecord( record );
                                 action.setAgencyId( id );
                                 action.setRecordsHandler( recordsHandler );
 
@@ -177,7 +179,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             logger.info( "Create new extended library record: [{}:{}].", recordId, id );
 
                             CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, id );
-                            action.setCommonRecord( currentRecord );
+                            action.setCurrentCommonRecord( currentRecord );
+                            action.setUpdatingCommonRecord( record );
                             action.setRecordsHandler( recordsHandler );
 
                             result.add( action );
@@ -189,7 +192,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             return result;
         }
         finally {
-            logger.exit();
+            logger.exit( result );
         }
     }
 

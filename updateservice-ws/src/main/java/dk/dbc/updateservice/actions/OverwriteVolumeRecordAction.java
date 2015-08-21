@@ -73,8 +73,8 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
-            children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
+            children.add( LinkRecordAction.newLinkParentAction( rawRepo, currentRecord ) );
+            children.addAll( createActionsForCreateOrUpdateEnrichments( record ) );
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
 
             return ServiceResult.newOkResult();

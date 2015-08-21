@@ -181,7 +181,7 @@ public class AssertActionsUtil {
 
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = (CreateEnrichmentRecordWithClassificationsAction)action;
         assertThat( createEnrichmentRecordWithClassificationsAction.getRawRepo(), is( rawRepo ) );
-        assertThat( createEnrichmentRecordWithClassificationsAction.getCommonRecord(), equalTo( commonRecord ) );
+        assertThat( createEnrichmentRecordWithClassificationsAction.getUpdatingCommonRecord(), equalTo( commonRecord ) );
         assertThat( createEnrichmentRecordWithClassificationsAction.getAgencyId(), equalTo( agencyId ) );
     }
 
@@ -190,7 +190,7 @@ public class AssertActionsUtil {
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction)action;
         assertThat( updateClassificationsInEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( updateClassificationsInEnrichmentRecordAction.getCommonRecord(), equalTo( commonRecord ) );
+        assertThat( updateClassificationsInEnrichmentRecordAction.getUpdatingCommonRecord(), equalTo( commonRecord ) );
         assertThat( updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), equalTo( record ) );
     }
 

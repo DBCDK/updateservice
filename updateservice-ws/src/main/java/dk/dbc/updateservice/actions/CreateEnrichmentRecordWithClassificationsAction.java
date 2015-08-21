@@ -36,11 +36,13 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     }
 
     public CreateEnrichmentRecordWithClassificationsAction( RawRepo rawRepo, Integer agencyId ) {
-        super( "CreateEnrichmentRecordAction" );
+        super( "CreateEnrichmentRecordWithClassificationsAction" );
 
         this.rawRepo = rawRepo;
         this.agencyId = agencyId;
         this.recordsHandler = null;
+        this.currentCommonRecord = null;
+        this.updatingCommonRecord = null;
     }
 
     public RawRepo getRawRepo() {
@@ -63,12 +65,20 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.agencyId = agencyId;
     }
 
-    public MarcRecord getCommonRecord() {
-        return commonRecord;
+    public MarcRecord getCurrentCommonRecord() {
+        return currentCommonRecord;
     }
 
-    public void setCommonRecord( MarcRecord commonRecord ) {
-        this.commonRecord = commonRecord;
+    public void setCurrentCommonRecord( MarcRecord currentCommonRecord ) {
+        this.currentCommonRecord = currentCommonRecord;
+    }
+
+    public MarcRecord getUpdatingCommonRecord() {
+        return updatingCommonRecord;
+    }
+
+    public void setUpdatingCommonRecord( MarcRecord updatingCommonRecord ) {
+        this.updatingCommonRecord = updatingCommonRecord;
     }
 
     /**
@@ -84,6 +94,11 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
         try {
             MarcRecord enrichmentRecord = createRecord();
+            if( enrichmentRecord.getFields().isEmpty() ) {
+                bizLogger.info( "No sub actions to create for an empty enrichment record." );
+
+                return ServiceResult.newOkResult();
+            }
             bizLogger.info( "Creating sub actions to store new enrichment record." );
             bizLogger.info( "Enrichment record:\n{}", enrichmentRecord );
 
@@ -116,7 +131,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.entry();
 
         try {
-            return recordsHandler.createLibraryExtendedRecord( commonRecord, agencyId );
+            return recordsHandler.createLibraryExtendedRecord( currentCommonRecord, updatingCommonRecord, agencyId );
         }
         finally {
             logger.exit();
@@ -143,9 +158,17 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     protected LibraryRecordsHandler recordsHandler;
 
     /**
-     * Common record to use to create the enrichment record.
+     * The current version of the common record that is begin updated.
+     * <p>
+     *     This member may be null.
+     * </p>
      */
-    protected MarcRecord commonRecord;
+    protected MarcRecord currentCommonRecord;
+
+    /**
+     * Common record that is being updated.
+     */
+    protected MarcRecord updatingCommonRecord;
 
     /**
      * Agency id of the library that will own the produced enrichment record.

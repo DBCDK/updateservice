@@ -14,6 +14,7 @@ import java.io.InputStream;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,7 +50,8 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
 
         UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
         instance.setRecordsHandler( recordsHandler );
-        instance.setCommonRecord( null );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( null );
         instance.setEnrichmentRecord( enrichmentRecord );
 
         instance.createRecord();
@@ -85,7 +87,8 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
 
         UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
         instance.setRecordsHandler( recordsHandler );
-        instance.setCommonRecord( commonRecord );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
         instance.setEnrichmentRecord( null );
 
         instance.createRecord();
@@ -122,7 +125,8 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
 
         UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
         instance.setRecordsHandler( null );
-        instance.setCommonRecord( commonRecord );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
         instance.setEnrichmentRecord( enrichmentRecord );
 
         instance.createRecord();
@@ -162,10 +166,11 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-        when( recordsHandler.updateLibraryExtendedRecord( eq( commonRecord ), eq( enrichmentRecord ) ) ).thenReturn( newEnrichmentRecord );
+        when( recordsHandler.updateLibraryExtendedRecord( isNull( MarcRecord.class ), eq( commonRecord ), eq( enrichmentRecord ) ) ).thenReturn( newEnrichmentRecord );
 
         UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo, enrichmentRecord );
-        instance.setCommonRecord( commonRecord );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
         instance.setRecordsHandler( recordsHandler );
 
         assertThat( instance.createRecord(), equalTo( newEnrichmentRecord ) );
