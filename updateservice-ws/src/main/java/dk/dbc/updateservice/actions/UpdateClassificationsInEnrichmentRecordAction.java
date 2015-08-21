@@ -44,8 +44,8 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
         logger.entry();
 
         try {
-            if( commonRecord == null ) {
-                throw new IllegalStateException( "commonRecord is not assigned a value" );
+            if( updatingCommonRecord == null ) {
+                throw new IllegalStateException( "updatingCommonRecord is not assigned a value" );
             }
 
             if( enrichmentRecord == null ) {
@@ -56,7 +56,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
                 throw new IllegalStateException( "recordsHandler is not assigned a value" );
             }
 
-            return this.recordsHandler.updateLibraryExtendedRecord( this.commonRecord, this.enrichmentRecord );
+            return this.recordsHandler.updateLibraryExtendedRecord( this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord );
         }
         finally {
             logger.exit();

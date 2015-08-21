@@ -38,7 +38,7 @@ public class LibraryRecordsHandler {
 
     /**
      * Tests if a record contains any classification data.
-     * 
+     *
      * @param record The record.
      * 
      * @return <code>true</code> if classifications where found, 
@@ -121,23 +121,24 @@ public class LibraryRecordsHandler {
      * Creates an extended library record based on the bibliographic 
      * classification elements of the record from DBC
      * 
-     * @param dbcRecord The record from DBC.
-     * @param libraryId The library id for the library, that the extended 
+     * @param currentCommonRecord The record from DBC.
+     * @param agencyId The library id for the library, that the extended
      *                  record will be created for.
      * 
      * @return Returns the library record after it has been updated. 
      *         <code>libraryRecord</code> may have changed.
      * @throws ScripterException
      */
-    public MarcRecord createLibraryExtendedRecord( MarcRecord dbcRecord, int libraryId ) throws ScripterException {
-        logger.entry( dbcRecord, libraryId );
+    public MarcRecord createLibraryExtendedRecord( MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, int agencyId ) throws ScripterException {
+        logger.entry( currentCommonRecord, updatingCommonRecord, agencyId );
 
         Object jsResult = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String jsonRecord = mapper.writeValueAsString( dbcRecord );
+            String jsonCurrentCommonRecord = mapper.writeValueAsString( currentCommonRecord );
+            String jsonUpdatingCommonRecord = mapper.writeValueAsString( updatingCommonRecord );
 
-            jsResult = scripter.callMethod( fileName, "createLibraryExtendedRecord", jsonRecord, libraryId );
+            jsResult = scripter.callMethod( fileName, "createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, agencyId );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -159,24 +160,26 @@ public class LibraryRecordsHandler {
      * This method updates an extended library record based on the bibliographic 
      * classification elements of the record from DBC
      * 
-     * @param dbcRecord     The record from DBC.
-     * @param libraryRecord The library extended record.
+     * @param currentCommonRecord  The record from DBC.
+     * @param updatingCommonRecord The record that is being updated.
+     * @param enrichmentRecord     The library extended record.
      * 
      * @return Returns the library record after it has been updated. 
-     *         <code>libraryRecord</code> may have changed.
+     *         <code>enrichmentRecord</code> may have changed.
      * @throws ScripterException
      */
-    public MarcRecord updateLibraryExtendedRecord( MarcRecord dbcRecord, MarcRecord libraryRecord ) throws ScripterException {
-        logger.entry( dbcRecord, libraryRecord );
+    public MarcRecord updateLibraryExtendedRecord( MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord ) throws ScripterException {
+        logger.entry( currentCommonRecord, updatingCommonRecord, enrichmentRecord );
 
         Object jsResult = null;
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String jsonDbcRecord = mapper.writeValueAsString( dbcRecord );
-            String jsonLibraryRecord = mapper.writeValueAsString( libraryRecord );
+            String jsonCurrentCommonRecord = mapper.writeValueAsString( currentCommonRecord );
+            String jsonUpdatingCommonRecord = mapper.writeValueAsString( updatingCommonRecord );
+            String jsonEnrichmentRecord = mapper.writeValueAsString( enrichmentRecord );
 
-            jsResult = scripter.callMethod(fileName, "updateLibraryExtendedRecord", jsonDbcRecord, jsonLibraryRecord);
+            jsResult = scripter.callMethod(fileName, "updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -187,23 +190,24 @@ public class LibraryRecordsHandler {
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "updateLibraryExtendedRecord"));
         }
         catch( IOException ex ) {
-            throw new ScripterException( "Error when executing JavaScript function: createLibraryExtendedRecord", ex );
+            throw new ScripterException( "Error when executing JavaScript function: updateLibraryExtendedRecord", ex );
         }
         finally {
             logger.exit( jsResult );
         }
     }
     
-    public MarcRecord correctLibraryExtendedRecord( MarcRecord dbcRecord, MarcRecord libraryRecord ) throws ScripterException {
-        logger.entry( dbcRecord, libraryRecord );
+    public MarcRecord correctLibraryExtendedRecord( MarcRecord commonRecord, MarcRecord enrichmentRecord ) throws ScripterException {
+        logger.entry( commonRecord, enrichmentRecord );
 
         Object jsResult = null;
+
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String jsonDbcRecord = mapper.writeValueAsString( dbcRecord );
-            String jsonLibraryRecord = mapper.writeValueAsString( libraryRecord );
+            String jsonCommonRecord = mapper.writeValueAsString( commonRecord );
+            String jsonEnrichmentRecord = mapper.writeValueAsString( enrichmentRecord );
 
-            jsResult = scripter.callMethod(fileName, "correctLibraryExtendedRecord", jsonDbcRecord, jsonLibraryRecord);
+            jsResult = scripter.callMethod(fileName, "correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -211,27 +215,27 @@ public class LibraryRecordsHandler {
                 return mapper.readValue( jsResult.toString(), MarcRecord.class );
             }
 
-            throw new ScripterException( "The JavaScript function %s must return a String value.", "correctLibraryExtendedRecord" );
+            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "correctLibraryExtendedRecord"));
         }
         catch( IOException ex ) {
-            throw new ScripterException( "Error when executing JavaScript function: createLibraryExtendedRecord", ex );
+            throw new ScripterException( "Error when executing JavaScript function: correctLibraryExtendedRecord", ex );
         }
         finally {
             logger.exit( jsResult );
         }
     }
 
-    public List<MarcRecord> recordDataForRawRepo( MarcRecord dbcRecord, String userId, String groupId ) throws ScripterException {
-        logger.entry( dbcRecord );
+    public List<MarcRecord> recordDataForRawRepo( MarcRecord record, String userId, String groupId ) throws ScripterException {
+        logger.entry( record );
 
         List<MarcRecord> result = null;
         try {
             Object jsResult;
             ObjectMapper mapper = new ObjectMapper();
-            String jsonDbcRecord = mapper.writeValueAsString( dbcRecord );
+            String jsonRecord = mapper.writeValueAsString( record );
 
             try {
-                jsResult = scripter.callMethod( fileName, "recordDataForRawRepo", jsonDbcRecord, userId, groupId );
+                jsResult = scripter.callMethod( fileName, "recordDataForRawRepo", jsonRecord, userId, groupId );
             } catch ( IllegalStateException ex ) {
                 logger.error( "Error when executing JavaScript function: recordDataForRawRepo", ex );
                 jsResult = false;

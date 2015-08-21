@@ -22,6 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -65,11 +66,12 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-        when( recordsHandler.createLibraryExtendedRecord( eq( commonRecord ), eq( agencyId ) ) ).thenReturn( enrichmentRecord );
+        when( recordsHandler.createLibraryExtendedRecord( isNull( MarcRecord.class ), eq( commonRecord ), eq( agencyId ) ) ).thenReturn( enrichmentRecord );
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, agencyId );
         instance.setRecordsHandler( recordsHandler );
-        instance.setCommonRecord( commonRecord );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -138,11 +140,12 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-        when( recordsHandler.createLibraryExtendedRecord( eq( commonRecord ), eq( agencyId ) ) ).thenThrow( new ScripterException( "Script error" ) );
+        when( recordsHandler.createLibraryExtendedRecord( isNull( MarcRecord.class ), eq( commonRecord ), eq( agencyId ) ) ).thenThrow( new ScripterException( "Script error" ) );
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, agencyId );
         instance.setRecordsHandler( recordsHandler );
-        instance.setCommonRecord( commonRecord );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
 
         instance.performAction();
     }
