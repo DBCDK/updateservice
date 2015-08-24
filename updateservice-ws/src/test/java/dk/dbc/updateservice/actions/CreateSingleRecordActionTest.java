@@ -57,6 +57,7 @@ public class CreateSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -64,7 +65,7 @@ public class CreateSingleRecordActionTest {
         Assert.assertThat( children.size(), is( 2 ) );
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 1 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 1 ), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**

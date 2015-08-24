@@ -17,6 +17,7 @@ import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
@@ -193,6 +194,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setAuthentication( request.getAuthentication() );
         updateOperationAction.setHoldingsItems( this.holdingsItems );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
+        updateOperationAction.setProviderId( this.settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
         return updateOperationAction;
     }

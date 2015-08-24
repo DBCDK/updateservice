@@ -61,6 +61,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.authentication = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
+        this.providerId = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -95,6 +96,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
     public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
         this.recordsHandler = recordsHandler;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -144,6 +153,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
+                    action.setProviderId( providerId );
 
                     children.add( action );
                 }
@@ -152,12 +162,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                         UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, rec );
                         action.setRecordsHandler( recordsHandler );
                         action.setHoldingsItems( holdingsItems );
+                        action.setProviderId( providerId );
 
                         children.add( action );
                     }
                     else {
                         UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, rec );
                         action.setHoldingsItems( holdingsItems );
+                        action.setProviderId( providerId );
 
                         children.add( action );
                     }
@@ -331,6 +343,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+    private String providerId;
 
     private ResourceBundle messages;
 }

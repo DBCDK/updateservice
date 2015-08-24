@@ -76,6 +76,7 @@ public class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -86,7 +87,7 @@ public class CreateVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**

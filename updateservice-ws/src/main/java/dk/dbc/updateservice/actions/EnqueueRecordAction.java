@@ -5,12 +5,16 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.ResourceBundle;
 
 /**
  * Action to enqueue a record in rawrepo.
@@ -32,6 +36,17 @@ import org.slf4j.ext.XLoggerFactory;
 public class EnqueueRecordAction extends AbstractRawRepoAction {
     public EnqueueRecordAction( RawRepo rawRepo, MarcRecord record ) {
         super( "EnqueueRecordAction", rawRepo, record );
+        providerId = null;
+
+        this.messages = ResourceBundles.getBundle( this, "actions" );
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     public String getMimetype() {
@@ -55,10 +70,14 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            if( providerId == null ) {
+                return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString( "provider.id.not.set" ) );
+            }
+
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
-            rawRepo.changedRecord( PROVIDER, new RecordId( recId, agencyId ), this.mimetype );
+            rawRepo.changedRecord( providerId, new RecordId( recId, agencyId ), this.mimetype );
             bizLogger.info( "The record {{}:{}} successfully enqueued", recId, agencyId );
 
             return result = ServiceResult.newOkResult();
@@ -71,11 +90,13 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a EnqueueRecordAction.
      */
-    public static EnqueueRecordAction newEnqueueAction( RawRepo rawRepo, MarcRecord record, String mimetype ) {
+    public static EnqueueRecordAction newEnqueueAction( RawRepo rawRepo, MarcRecord record, String providerId, String mimetype ) {
         logger.entry( rawRepo, record, mimetype );
 
+        EnqueueRecordAction enqueueRecordAction = null;
         try {
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
+            enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
+            enqueueRecordAction.setProviderId( providerId );
             enqueueRecordAction.setMimetype( mimetype );
 
             return enqueueRecordAction;
@@ -97,7 +118,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      * content. This constant defines the provider name for the update web
      * service.
      */
-    static final String PROVIDER = "opencataloging-update";
+    private String providerId;
 
     /**
      * Mimetype for the record.
@@ -107,4 +128,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      * </p>
      */
     private String mimetype;
+
+    private ResourceBundle messages;
 }

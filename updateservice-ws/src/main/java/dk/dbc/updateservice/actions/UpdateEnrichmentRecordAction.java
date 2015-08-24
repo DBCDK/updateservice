@@ -34,6 +34,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         this.decoder = new RawRepoDecoder();
         this.recordsHandler = null;
         this.holdingsItems = null;
+        this.providerId = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -56,6 +57,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -155,10 +164,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             LinkRecordAction linkRecordAction = new LinkRecordAction( rawRepo, enrichmentRecord );
             linkRecordAction.setLinkToRecordId( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
             children.add( linkRecordAction );
-
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, enrichmentRecord );
-            enqueueRecordAction.setMimetype( MIMETYPE );
-            children.add( enqueueRecordAction );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, enrichmentRecord, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -200,10 +206,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction( rawRepo, record );
             deleteRecordAction.setMimetype( MIMETYPE );
             children.add( deleteRecordAction );
-
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
-            enqueueRecordAction.setMimetype( MIMETYPE );
-            children.add( enqueueRecordAction );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -225,6 +228,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private LibraryRecordsHandler recordsHandler;
 
     private HoldingsItems holdingsItems;
+    private String providerId;
 
     private ResourceBundle messages;
 }

@@ -54,6 +54,7 @@ public class UpdateSingleRecordTest {
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -64,6 +65,7 @@ public class UpdateSingleRecordTest {
         assertThat( action, notNullValue() );
         assertThat( action.getRawRepo(), is( rawRepo ) );
         assertThat( action.getRecord(), is( record ) );
+        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
     }
 
     /**
@@ -109,6 +111,7 @@ public class UpdateSingleRecordTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -122,6 +125,7 @@ public class UpdateSingleRecordTest {
         assertThat( action.getGroupId(), equalTo( 700000 ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
     }
 
     /**
@@ -160,6 +164,7 @@ public class UpdateSingleRecordTest {
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -171,5 +176,6 @@ public class UpdateSingleRecordTest {
         assertThat( action.getRawRepo(), is( rawRepo ) );
         assertThat( action.getRecord(), is( record ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
     }
 }

@@ -22,7 +22,10 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
         logger.entry();
 
         try {
-            return new CreateVolumeRecordAction( rawRepo, record );
+            CreateVolumeRecordAction action = new CreateVolumeRecordAction( rawRepo, record );
+            action.setProviderId( providerId );
+
+            return action;
         }
         finally {
             logger.exit();
@@ -38,6 +41,7 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
             action.setGroupId( getGroupId() );
             action.setHoldingsItems( getHoldingsItems() );
             action.setRecordsHandler( getRecordsHandler() );
+            action.setProviderId( providerId );
 
             return action;
         }

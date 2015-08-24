@@ -31,6 +31,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         super( "UpdateLocalRecord", rawRepo, record );
 
         this.holdingsItems = null;
+        this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
@@ -40,6 +41,14 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -98,6 +107,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add( new RemoveLinksAction( rawRepo, record ) );
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
+            enqueueRecordAction.setProviderId( providerId );
             enqueueRecordAction.setMimetype( MIMETYPE );
             children.add( enqueueRecordAction );
 
@@ -150,6 +160,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add( linkRecordAction );
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
+            enqueueRecordAction.setProviderId( providerId );
             enqueueRecordAction.setMimetype( MIMETYPE );
             children.add( enqueueRecordAction );
 
@@ -199,6 +210,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add( deleteRecordAction );
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, record );
+            enqueueRecordAction.setProviderId( providerId );
             enqueueRecordAction.setMimetype( MIMETYPE );
             children.add( enqueueRecordAction );
 
@@ -219,6 +231,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     private HoldingsItems holdingsItems;
+    private String providerId;
 
     private ResourceBundle messages;
 }

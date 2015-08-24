@@ -28,6 +28,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
         super( "DeleteCommonRecordAction", rawRepo, record );
 
         this.holdingsItems = null;
+        this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
@@ -37,6 +38,14 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -72,7 +81,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.add( DeleteRecordAction.newDeleteRecordAction( rawRepo, record, MIMETYPE ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -94,6 +103,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+    private String providerId;
 
     private ResourceBundle messages;
 }

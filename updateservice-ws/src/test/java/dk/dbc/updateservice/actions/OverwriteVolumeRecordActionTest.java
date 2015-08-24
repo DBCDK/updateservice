@@ -81,6 +81,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -91,7 +92,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), OverwriteVolumeRecordAction.MIMETYPE );
     }
 
     /**
@@ -148,6 +149,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -158,7 +160,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -218,6 +220,7 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -228,7 +231,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -292,6 +295,7 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -303,7 +307,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, 700100 );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -374,6 +378,7 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -385,7 +390,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -470,6 +475,7 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -482,7 +488,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, newEnrichmentAgencyId );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
     }
 
     //-------------------------------------------------------------------------

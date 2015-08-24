@@ -97,8 +97,9 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
-        instance.setHoldingsItems( mock( HoldingsItems.class) );
+        instance.setHoldingsItems( mock( HoldingsItems.class ) );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -121,13 +122,7 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat( linkRecordAction.getRecord(), is( record ) );
         assertThat( linkRecordAction.getLinkToRecordId(), equalTo( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) );
 
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), UpdateEnrichmentRecordAction.MIMETYPE );
     }
 
     /**
@@ -178,6 +173,7 @@ public class UpdateEnrichmentRecordActionTest {
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -202,10 +198,7 @@ public class UpdateEnrichmentRecordActionTest {
         child = children.get( 2 );
         assertTrue( child.getClass() == EnqueueRecordAction.class );
 
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), UpdateEnrichmentRecordAction.MIMETYPE );
     }
 
     /**

@@ -29,4 +29,6 @@ public class JNDIResources {
 
     public static final String JAVASCRIPT_BASEDIR_KEY = "javascript.basedir";
     public static final String JAVASCRIPT_INSTALL_NAME_KEY = "javascript.install.name";
+
+    public static final String RAWREPO_PROVIDER_ID = "rawrepo.provider.id";
 }
