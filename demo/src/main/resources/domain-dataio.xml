@@ -95,6 +95,7 @@
             <property name="auth.use.ip" value="${updateservice.settings.auth.use.ip}"></property>
             <property name="javascript.basedir" value="${updateservice.settings.javascript.basedir}"></property>
             <property name="javascript.install.name" value="dataio"></property>
+            <property name="rawrepo.provider.id" value="${updateservice.settings.rawrepo.provider.id}"></property>
         </custom-resource>
 
         <custom-resource factory-class="org.glassfish.resources.custom.factory.PrimitivesAndStringFactory"

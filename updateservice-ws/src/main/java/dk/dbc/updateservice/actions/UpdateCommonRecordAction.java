@@ -29,6 +29,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
+        this.providerId = null;
     }
 
     public Integer getGroupId() {
@@ -53,6 +54,14 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
     public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
         this.recordsHandler = recordsHandler;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -80,6 +89,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             action.setGroupId( groupId );
             action.setHoldingsItems( holdingsItems );
             action.setRecordsHandler( recordsHandler );
+            action.setProviderId( providerId );
 
             children.add( action );
             return ServiceResult.newOkResult();
@@ -114,4 +124,5 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+    private String providerId;
 }

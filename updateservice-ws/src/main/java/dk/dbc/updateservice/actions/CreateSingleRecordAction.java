@@ -24,6 +24,14 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
+    }
+
     /**
      * Performs this actions and may create any child actions.
      *
@@ -46,7 +54,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             bizLogger.error( "Creating sub actions successfully" );
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -64,5 +72,6 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
+    private String providerId;
     private ResourceBundle messages;
 }

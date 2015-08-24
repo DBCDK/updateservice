@@ -30,6 +30,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
         super( "CreateVolumeRecordAction", rawRepo, record );
 
         this.holdingsItems = null;
+        this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
@@ -39,6 +40,14 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
     }
 
     /**
@@ -83,7 +92,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -105,6 +114,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+    private String providerId;
 
     private ResourceBundle messages;
 }

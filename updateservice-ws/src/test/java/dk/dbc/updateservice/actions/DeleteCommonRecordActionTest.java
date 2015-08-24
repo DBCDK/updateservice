@@ -68,6 +68,7 @@ public class DeleteCommonRecordActionTest {
 
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -76,7 +77,7 @@ public class DeleteCommonRecordActionTest {
 
         AssertActionsUtil.assertRemoveLinksAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertDeleteRecordAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**

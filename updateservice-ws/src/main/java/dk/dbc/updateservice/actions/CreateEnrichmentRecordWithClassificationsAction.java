@@ -43,6 +43,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.recordsHandler = null;
         this.currentCommonRecord = null;
         this.updatingCommonRecord = null;
+        this.providerId = null;
     }
 
     public RawRepo getRawRepo() {
@@ -81,6 +82,14 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.updatingCommonRecord = updatingCommonRecord;
     }
 
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
+    }
+
     /**
      * Performs this actions and may create any child actions.
      *
@@ -113,6 +122,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             children.add( linkRecordAction );
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction( rawRepo, enrichmentRecord );
+            enqueueRecordAction.setProviderId( providerId );
             enqueueRecordAction.setMimetype( MIMETYPE );
             children.add( enqueueRecordAction );
 
@@ -174,4 +184,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
      * Agency id of the library that will own the produced enrichment record.
      */
     private Integer agencyId;
+
+    private String providerId;
 }

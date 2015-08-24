@@ -30,6 +30,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
+        this.providerId = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -58,6 +59,14 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public void setProviderId( String providerId ) {
+        this.providerId = providerId;
+    }
+
     /**
      * Performs this actions and may create any child actions.
      *
@@ -82,7 +91,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -100,7 +109,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -171,6 +180,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 action.setUpdatingCommonRecord( record );
                                 action.setAgencyId( id );
                                 action.setRecordsHandler( recordsHandler );
+                                action.setProviderId( providerId );
 
                                 result.add( action );
                             }
@@ -182,6 +192,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             action.setCurrentCommonRecord( currentRecord );
                             action.setUpdatingCommonRecord( record );
                             action.setRecordsHandler( recordsHandler );
+                            action.setProviderId( providerId );
 
                             result.add( action );
                         }
@@ -221,6 +232,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+
+    private String providerId;
 
     private ResourceBundle messages;
 }

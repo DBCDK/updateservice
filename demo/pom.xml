@@ -50,6 +50,7 @@
         <updateservice.settings.auth.product.name>netpunkt.dk</updateservice.settings.auth.product.name>
         <updateservice.settings.auth.use.ip>True</updateservice.settings.auth.use.ip>
         <updateservice.settings.javascript.basedir>${basedir}/../updateservice-system-tests-service/opencat-business</updateservice.settings.javascript.basedir>
+        <updateservice.settings.rawrepo.provider.id>opencataloging-update</updateservice.settings.rawrepo.provider.id>
 
     </properties>
 

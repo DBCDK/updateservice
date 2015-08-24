@@ -194,12 +194,13 @@ public class AssertActionsUtil {
         assertThat( updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), equalTo( record ) );
     }
 
-    public static void assertEnqueueRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {
+    public static void assertEnqueueRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype ) {
         assertTrue( action.getClass() == EnqueueRecordAction.class );
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)action;
         assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateCommonRecordAction.MIMETYPE ) );
+        assertThat( enqueueRecordAction.getProviderId(), equalTo( providerId ) );
+        assertThat( enqueueRecordAction.getMimetype(), equalTo( mimetype ) );
     }
 }

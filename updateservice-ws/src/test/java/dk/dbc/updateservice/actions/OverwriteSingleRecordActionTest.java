@@ -74,6 +74,7 @@ public class OverwriteSingleRecordActionTest {
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -82,7 +83,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -134,6 +135,7 @@ public class OverwriteSingleRecordActionTest {
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -142,7 +144,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -197,6 +199,7 @@ public class OverwriteSingleRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -205,7 +208,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -264,6 +267,7 @@ public class OverwriteSingleRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -273,7 +277,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
         AssertActionsUtil.assertCreateEnrichmentAction( children.get( 2 ), rawRepo, record, 700100 );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -338,6 +342,7 @@ public class OverwriteSingleRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -347,7 +352,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
         AssertActionsUtil.assertUpdateEnrichmentAction( children.get( 2 ), rawRepo, record, enrichmentRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -426,6 +431,7 @@ public class OverwriteSingleRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -437,7 +443,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, record, enrichmentRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, record, newEnrichmentAgencyId );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, instance.getProviderId(), OverwriteSingleRecordAction.MIMETYPE );
     }
 
     //-------------------------------------------------------------------------

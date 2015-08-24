@@ -24,7 +24,7 @@ import org.slf4j.ext.XLoggerFactory;
 public class DeleteRecordAction extends StoreRecordAction {
     public DeleteRecordAction( RawRepo rawRepo, MarcRecord record ) {
         super( rawRepo, record );
-        setName( DeleteRecordAction.class.getName() );
+        setName( DeleteRecordAction.class.getSimpleName() );
     }
 
     /**
