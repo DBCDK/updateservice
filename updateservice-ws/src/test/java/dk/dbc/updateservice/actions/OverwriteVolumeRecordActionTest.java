@@ -6,14 +6,17 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -81,7 +84,10 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -92,7 +98,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), OverwriteVolumeRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteVolumeRecordAction.MIMETYPE );
     }
 
     /**
@@ -149,7 +155,10 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -160,7 +169,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
     /**
@@ -220,7 +229,10 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -231,7 +243,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
     /**
@@ -276,6 +288,9 @@ public class OverwriteVolumeRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
@@ -290,12 +305,13 @@ public class OverwriteVolumeRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( volumeRecord ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( ServiceResult.newOkResult() );
 
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -307,7 +323,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, 700100 );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
     /**
@@ -378,7 +394,10 @@ public class OverwriteVolumeRecordActionTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -390,7 +409,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
     /**
@@ -451,6 +470,9 @@ public class OverwriteVolumeRecordActionTest {
         MarcWriter.addOrReplaceSubfield( enrichmentRecord, "001", "a", volumeRecordId );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
@@ -470,12 +492,13 @@ public class OverwriteVolumeRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( volumeRecord ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( ServiceResult.newOkResult() );
 
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -488,7 +511,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
         AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, newEnrichmentAgencyId );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
     //-------------------------------------------------------------------------

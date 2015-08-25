@@ -4,6 +4,8 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -13,6 +15,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
@@ -114,6 +117,52 @@ public class LibraryRecordsHandler {
         }
         finally {
             logger.exit( jsResult );
+        }
+    }
+
+    /**
+     * Tests if we should create new enrichment records for a common record.
+     * <p>
+     *     This function is implementated by calling the JavaScript function: shouldCreateEnrichmentRecords
+     * </p>
+     * <p>
+     *     This function returns a ServiceResult with status <code>OK</code> if we should create enrichment
+     *     records. Otherwise we should not create enrichment records. An entry in the result is added to
+     *     explain why enrichment records should not be created.
+     * </p>
+     * <p>
+     *     This feature is provided so the ServiceAction has a change to write to the business log why enrichment
+     *     records should not be created.
+     * </p>
+     *
+     * @param currentCommonRecord  The current common record in rawrepo.
+     * @param updatingCommonRecord The common record to create enrichment records for.
+     *
+     * @return ServiceResult with the result.
+     *
+     * @throws ScripterException In case of an error from JavaScript.
+     */
+    public ServiceResult shouldCreateEnrichmentRecords( Properties settings, MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord ) throws ScripterException {
+        logger.entry( settings, currentCommonRecord, updatingCommonRecord );
+
+        ServiceResult result = null;
+        try {
+            Object jsResult = scripter.callMethod( fileName, CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME,
+                                                   settings, Json.encode( currentCommonRecord ), Json.encode( updatingCommonRecord ) );
+
+            logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
+
+            if( jsResult instanceof String ) {
+                return result = Json.decode( jsResult.toString(), ServiceResult.class );
+            }
+
+            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME ) );
+        }
+        catch( IOException ex ) {
+            throw new ScripterException( "Error when executing JavaScript function: " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, ex );
+        }
+        finally {
+            logger.exit( result );
         }
     }
 
@@ -257,8 +306,13 @@ public class LibraryRecordsHandler {
             logger.exit( result );
         }
     }
-    
+
+    //-------------------------------------------------------------------------
+    //              Members
+    //-------------------------------------------------------------------------
+
     private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
+    static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
 
     private Scripter scripter;
     private String fileName;

@@ -13,6 +13,8 @@ import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.Properties;
+
 //-----------------------------------------------------------------------------
 /**
  * This action is used to update a common record.
@@ -29,7 +31,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
-        this.providerId = null;
+        this.settings = null;
     }
 
     public Integer getGroupId() {
@@ -56,12 +58,12 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public Properties getSettings() {
+        return settings;
     }
 
-    public void setProviderId( String providerId ) {
-        this.providerId = providerId;
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     /**
@@ -89,7 +91,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             action.setGroupId( groupId );
             action.setHoldingsItems( holdingsItems );
             action.setRecordsHandler( recordsHandler );
-            action.setProviderId( providerId );
+            action.setSettings( settings );
 
             children.add( action );
             return ServiceResult.newOkResult();
@@ -124,5 +126,5 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
-    private String providerId;
+    private Properties settings;
 }

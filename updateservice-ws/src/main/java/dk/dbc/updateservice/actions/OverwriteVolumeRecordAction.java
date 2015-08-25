@@ -10,6 +10,7 @@ import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -75,7 +76,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.add( LinkRecordAction.newLinkParentAction( rawRepo, currentRecord ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getProviderId(), MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -95,7 +96,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getProviderId(), MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }

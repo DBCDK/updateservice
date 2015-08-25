@@ -10,8 +10,11 @@ import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
@@ -24,7 +27,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
-        this.providerId = null;
+        this.settings = null;
     }
 
     public Integer getGroupId() {
@@ -51,12 +54,12 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public Properties getSettings() {
+        return settings;
     }
 
-    public void setProviderId( String providerId ) {
-        this.providerId = providerId;
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     /**
@@ -100,7 +103,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
         try {
             CreateSingleRecordAction action = new CreateSingleRecordAction( rawRepo, record );
-            action.setProviderId( providerId );
+            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
         }
@@ -120,7 +123,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             action.setGroupId( groupId );
             action.setHoldingsItems( holdingsItems );
             action.setRecordsHandler( recordsHandler );
-            action.setProviderId( providerId );
+            action.setSettings( settings );
 
             return action;
         }
@@ -138,7 +141,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         try {
             DeleteCommonRecordAction action = new DeleteCommonRecordAction( rawRepo, record );
             action.setHoldingsItems( holdingsItems );
-            action.setProviderId( providerId );
+            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
         }
@@ -172,5 +175,5 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
-    protected String providerId;
+    protected Properties settings;
 }
