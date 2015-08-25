@@ -194,7 +194,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setAuthentication( request.getAuthentication() );
         updateOperationAction.setHoldingsItems( this.holdingsItems );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
-        updateOperationAction.setProviderId( this.settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        updateOperationAction.setSettings( settings );
 
         return updateOperationAction;
     }

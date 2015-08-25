@@ -16,13 +16,11 @@ import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 
@@ -61,7 +59,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.authentication = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
-        this.providerId = null;
+        this.settings = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -98,12 +96,12 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public Properties getSettings() {
+        return settings;
     }
 
-    public void setProviderId( String providerId ) {
-        this.providerId = providerId;
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     /**
@@ -153,7 +151,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
-                    action.setProviderId( providerId );
+                    action.setSettings( settings );
 
                     children.add( action );
                 }
@@ -162,14 +160,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                         UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, rec );
                         action.setRecordsHandler( recordsHandler );
                         action.setHoldingsItems( holdingsItems );
-                        action.setProviderId( providerId );
+                        action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                         children.add( action );
                     }
                     else {
                         UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, rec );
                         action.setHoldingsItems( holdingsItems );
-                        action.setProviderId( providerId );
+                        action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                         children.add( action );
                     }
@@ -343,7 +341,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
-    private String providerId;
+    private Properties settings;
 
     private ResourceBundle messages;
 }

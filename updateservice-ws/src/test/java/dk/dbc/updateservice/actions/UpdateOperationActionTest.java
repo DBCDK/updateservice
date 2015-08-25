@@ -9,11 +9,13 @@ import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -53,6 +55,9 @@ public class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         Authenticator authenticator = mock( Authenticator.class );
 
         Authentication authentication = mock( Authentication.class );
@@ -74,6 +79,7 @@ public class UpdateOperationActionTest {
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -117,6 +123,9 @@ public class UpdateOperationActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         Authenticator authenticator = mock( Authenticator.class );
 
         Authentication authentication = mock( Authentication.class );
@@ -138,6 +147,7 @@ public class UpdateOperationActionTest {
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -182,6 +192,9 @@ public class UpdateOperationActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         Authenticator authenticator = mock( Authenticator.class );
 
         Authentication authentication = mock( Authentication.class );
@@ -203,6 +216,7 @@ public class UpdateOperationActionTest {
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 

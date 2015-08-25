@@ -5,19 +5,18 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 /**
@@ -30,7 +29,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.recordsHandler = null;
-        this.providerId = null;
+        this.settings = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -59,12 +58,12 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public Properties getSettings() {
+        return settings;
     }
 
-    public void setProviderId( String providerId ) {
-        this.providerId = providerId;
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     /**
@@ -91,7 +90,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -109,7 +108,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
+            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return ServiceResult.newOkResult();
         }
@@ -180,21 +179,30 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 action.setUpdatingCommonRecord( record );
                                 action.setAgencyId( id );
                                 action.setRecordsHandler( recordsHandler );
-                                action.setProviderId( providerId );
+                                action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                                 result.add( action );
                             }
                         }
-                        else if( !groupId.equals( id ) ) {
-                            logger.info( "Create new extended library record: [{}:{}].", recordId, id );
+                        else if( groupId.equals( id ) ) {
+                                bizLogger.info( "Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id );
+                        }
+                        else {
+                            ServiceResult serviceResult = recordsHandler.shouldCreateEnrichmentRecords( settings, currentRecord, record );
+                            if( serviceResult.getStatus() != UpdateStatusEnum.OK ) {
+                                bizLogger.info( "Enrichment record is not created for reason: {}", serviceResult );
+                            }
+                            else {
+                                logger.info( "Create new extended library record: [{}:{}].", recordId, id );
 
-                            CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, id );
-                            action.setCurrentCommonRecord( currentRecord );
-                            action.setUpdatingCommonRecord( record );
-                            action.setRecordsHandler( recordsHandler );
-                            action.setProviderId( providerId );
+                                CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, id );
+                                action.setCurrentCommonRecord( currentRecord );
+                                action.setUpdatingCommonRecord( record );
+                                action.setRecordsHandler( recordsHandler );
+                                action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
-                            result.add( action );
+                                result.add( action );
+                            }
                         }
                     }
                 }
@@ -212,6 +220,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     //-------------------------------------------------------------------------
 
     private static final XLogger logger = XLoggerFactory.getXLogger( OverwriteSingleRecordAction.class );
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     /**
@@ -233,7 +243,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      */
     private LibraryRecordsHandler recordsHandler;
 
-    private String providerId;
+    private Properties settings;
 
     private ResourceBundle messages;
 }

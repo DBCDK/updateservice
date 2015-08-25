@@ -6,11 +6,13 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -54,7 +56,10 @@ public class UpdateSingleRecordTest {
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -65,7 +70,7 @@ public class UpdateSingleRecordTest {
         assertThat( action, notNullValue() );
         assertThat( action.getRawRepo(), is( rawRepo ) );
         assertThat( action.getRecord(), is( record ) );
-        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
+        assertThat( action.getProviderId(), equalTo( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) ) );
     }
 
     /**
@@ -111,7 +116,10 @@ public class UpdateSingleRecordTest {
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -125,7 +133,7 @@ public class UpdateSingleRecordTest {
         assertThat( action.getGroupId(), equalTo( 700000 ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
-        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
+        assertThat( action.getSettings(), equalTo( settings ) );
     }
 
     /**
@@ -164,7 +172,10 @@ public class UpdateSingleRecordTest {
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -176,6 +187,6 @@ public class UpdateSingleRecordTest {
         assertThat( action.getRawRepo(), is( rawRepo ) );
         assertThat( action.getRecord(), is( record ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
-        assertThat( action.getProviderId(), equalTo( instance.getProviderId() ) );
+        assertThat( action.getProviderId(), equalTo( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) ) );
     }
 }

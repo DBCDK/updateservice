@@ -6,11 +6,13 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -53,11 +55,15 @@ public class UpdateVolumeRecordTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -163,6 +169,9 @@ public class UpdateVolumeRecordTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecordAndMarkForDeletion( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
 
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
@@ -172,6 +181,7 @@ public class UpdateVolumeRecordTest {
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 

@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -23,7 +24,7 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
 
         try {
             CreateVolumeRecordAction action = new CreateVolumeRecordAction( rawRepo, record );
-            action.setProviderId( providerId );
+            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
         }
@@ -41,7 +42,7 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
             action.setGroupId( getGroupId() );
             action.setHoldingsItems( getHoldingsItems() );
             action.setRecordsHandler( getRecordsHandler() );
-            action.setProviderId( providerId );
+            action.setSettings( settings );
 
             return action;
         }
