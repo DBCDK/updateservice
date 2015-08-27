@@ -4,16 +4,19 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
@@ -27,9 +30,18 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     public DeleteCommonRecordAction( RawRepo rawRepo, MarcRecord record ) {
         super( "DeleteCommonRecordAction", rawRepo, record );
 
+        this.recordsHandler = null;
         this.holdingsItems = null;
         this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
+    }
+
+    public LibraryRecordsHandler getRecordsHandler() {
+        return recordsHandler;
+    }
+
+    public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
+        this.recordsHandler = recordsHandler;
     }
 
     public HoldingsItems getHoldingsItems() {
@@ -70,11 +82,18 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, errorMessage );
             }
 
-            if( !rawRepo.relationsToRecord( record ).isEmpty() ) {
-                String message = messages.getString( "delete.record.with.relations" );
+            for( RecordId enrichmentId : rawRepo.enrichments( record ) ) {
+                Record rawRepoEnrichmentRecord = rawRepo.fetchRecord( enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId() );
+                MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord( rawRepoEnrichmentRecord.getContent() );
 
-                bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                MarcWriter.addOrReplaceSubfield( enrichmentRecord, "004", "r", "d" );
+
+                UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
+                action.setRecordsHandler( recordsHandler );
+                action.setHoldingsItems( holdingsItems );
+                action.setProviderId( providerId );
+
+                children.add( action );
             }
 
             bizLogger.error( "Creating sub actions successfully" );
@@ -84,6 +103,10 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
 
             return ServiceResult.newOkResult();
+        }
+        catch( UnsupportedEncodingException ex ) {
+            logger.error( ex.getMessage(), ex );
+            return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage() );
         }
         finally {
             logger.exit();
@@ -98,6 +121,8 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
+
+    private LibraryRecordsHandler recordsHandler;
 
     /**
      * Class to give access to the holdings database.

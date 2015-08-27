@@ -181,7 +181,7 @@ public class RawRepo {
         }
     }
 
-    public Set<RecordId> relationsToRecord( MarcRecord record ) throws UpdateException {
+    public Set<RecordId> enrichments( MarcRecord record ) throws UpdateException {
         logger.entry();
 
         try {
@@ -190,14 +190,14 @@ public class RawRepo {
             }
 
             RecordId recordId = new RecordId( getRecordId( record ), convertAgencyId( getAgencyId( record ) ) );
-            return relationsToRecord( recordId );
+            return enrichments( recordId );
         }
         finally {
             logger.exit();
         }
     }
 
-    public Set<RecordId> relationsToRecord( RecordId recordId ) throws UpdateException {
+    public Set<RecordId> enrichments( RecordId recordId ) throws UpdateException {
         logger.entry();
 
         try {
@@ -205,14 +205,10 @@ public class RawRepo {
                 throw new IllegalArgumentException( "recordId can not be null" );
             }
 
-            Set<RecordId> relations = new HashSet<>();
             try( Connection conn = dataSourceReader.getConnection() ) {
                 RawRepoDAO dao = createDAO( conn );
 
-                relations.addAll( dao.getRelationsChildren( recordId ) );
-                relations.addAll( dao.getRelationsSiblingsToMe( recordId ) );
-
-                return relations;
+                return dao.getRelationsSiblingsToMe( recordId );
             }
             catch( RawRepoException | SQLException ex ) {
                 logger.error( ex.getMessage(), ex );

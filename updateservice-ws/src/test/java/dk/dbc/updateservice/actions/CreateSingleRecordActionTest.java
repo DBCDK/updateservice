@@ -91,7 +91,6 @@ public class CreateSingleRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
 
         RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700300 ) );
 
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );

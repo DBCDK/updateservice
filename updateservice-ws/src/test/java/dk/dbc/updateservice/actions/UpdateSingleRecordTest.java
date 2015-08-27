@@ -167,10 +167,13 @@ public class UpdateSingleRecordTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
 
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
+        instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
 
         Properties settings = new Properties();
@@ -186,6 +189,7 @@ public class UpdateSingleRecordTest {
         assertThat( action, notNullValue() );
         assertThat( action.getRawRepo(), is( rawRepo ) );
         assertThat( action.getRecord(), is( record ) );
+        assertThat( action.getRecordsHandler(), is( recordsHandler ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
         assertThat( action.getProviderId(), equalTo( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) ) );
     }

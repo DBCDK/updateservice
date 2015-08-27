@@ -4,15 +4,18 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -61,12 +64,16 @@ public class DeleteCommonRecordActionTest {
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExistsMaybeDeleted( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+        when( rawRepo.enrichments( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
+        instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );
 
@@ -75,9 +82,10 @@ public class DeleteCommonRecordActionTest {
         List<ServiceAction> children = instance.children();
         Assert.assertThat( children.size(), is( 3 ) );
 
-        AssertActionsUtil.assertRemoveLinksAction( children.get( 0 ), rawRepo, record );
-        AssertActionsUtil.assertDeleteRecordAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -94,7 +102,14 @@ public class DeleteCommonRecordActionTest {
      *      </dd>
      *      <dt>Then</dt>
      *      <dd>
-     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
+     *          Create child actions:
+     *          <ol>
+     *              <li>UpdateEnrichmentRecordAction: Delete enrichment record.</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>DeleteRecordAction: Deletes the record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
      *      </dd>
      * </dl>
      */
@@ -105,20 +120,35 @@ public class DeleteCommonRecordActionTest {
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExistsMaybeDeleted( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+        when( rawRepo.enrichments( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
+        when( rawRepo.fetchRecord( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( enrichmentRecord, MarcXChangeMimeType.ENRICHMENT ) );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
+        instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
 
-        String message = messages.getString( "delete.record.with.relations" );
-        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
-        assertThat( instance.children().isEmpty(), is( true ) );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        MarcRecord expectedEnrichmentRecord = AssertActionsUtil.loadRecordAndMarkForDeletion( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+
+        List<ServiceAction> children = instance.children();
+        Assert.assertThat( children.size(), is( 4 ) );
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, expectedEnrichmentRecord, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 
     /**
@@ -149,7 +179,8 @@ public class DeleteCommonRecordActionTest {
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExistsMaybeDeleted( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( volumeRecord ) );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( volumeRecord ) );
+        when( rawRepo.enrichments( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
@@ -157,7 +188,7 @@ public class DeleteCommonRecordActionTest {
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
 
-        String message = messages.getString( "delete.record.with.relations" );
+        String message = String.format( messages.getString( "delete.record.children.error" ), recordId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
         assertThat( instance.children().isEmpty(), is( true ) );
     }
@@ -192,7 +223,8 @@ public class DeleteCommonRecordActionTest {
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExistsMaybeDeleted( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( volumeRecord, enrichmentRecord ) );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( volumeRecord ) );
+        when( rawRepo.enrichments( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
@@ -200,7 +232,7 @@ public class DeleteCommonRecordActionTest {
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
 
-        String message = messages.getString( "delete.record.with.relations" );
+        String message = String.format( messages.getString( "delete.record.children.error" ), recordId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
         assertThat( instance.children().isEmpty(), is( true ) );
     }

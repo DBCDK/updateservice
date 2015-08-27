@@ -65,7 +65,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -128,7 +127,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -194,7 +192,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -268,7 +265,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -341,7 +337,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -413,7 +408,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( true );
@@ -506,7 +500,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( true );
@@ -605,7 +598,6 @@ public class OverwriteSingleRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet( enrichmentRecord ) );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( true );

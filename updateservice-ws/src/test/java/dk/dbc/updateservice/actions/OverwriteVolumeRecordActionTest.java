@@ -71,7 +71,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -141,7 +140,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -214,7 +212,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -295,7 +292,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -376,7 +372,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( enrichmentAgencyId ) ) ).thenReturn( true );
@@ -477,7 +472,6 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( volumeRecord, MarcXChangeMimeType.MARCXCHANGE ) );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( enrichmentAgencyId ) ) ).thenReturn( true );
