@@ -140,6 +140,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
         try {
             DeleteCommonRecordAction action = new DeleteCommonRecordAction( rawRepo, record );
+            action.setRecordsHandler( recordsHandler );
             action.setHoldingsItems( holdingsItems );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 

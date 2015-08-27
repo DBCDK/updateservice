@@ -67,7 +67,6 @@ public class CreateVolumeRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExistsMaybeDeleted( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -122,7 +121,6 @@ public class CreateVolumeRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExistsMaybeDeleted( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700300 ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -168,7 +166,6 @@ public class CreateVolumeRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( false );
         when( rawRepo.recordExistsMaybeDeleted( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
@@ -214,7 +211,6 @@ public class CreateVolumeRecordActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( false );
         when( rawRepo.recordExistsMaybeDeleted( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
-        when( rawRepo.relationsToRecord( eq( mainRecord ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
