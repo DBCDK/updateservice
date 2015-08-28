@@ -436,7 +436,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertUpdateEnrichmentAction( children.get( 2 ), rawRepo, record, enrichmentRecord );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( children.get( 2 ), rawRepo, record, enrichmentRecord );
         AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
     }
 
@@ -529,7 +529,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, record, enrichmentRecord );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, record, enrichmentRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, record, newEnrichmentAgencyId );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
     }
@@ -627,7 +627,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, record, enrichmentRecord );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, record, enrichmentRecord );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
     }
 

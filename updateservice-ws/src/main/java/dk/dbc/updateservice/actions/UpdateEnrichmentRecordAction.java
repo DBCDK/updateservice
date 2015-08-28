@@ -113,6 +113,13 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
+            if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
+
+                bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
+                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
             Record commonRecord = rawRepo.fetchRecord( recordId, RawRepo.RAWREPO_COMMON_LIBRARY );
             MarcRecord enrichmentRecord = recordsHandler.correctLibraryExtendedRecord( decoder.decodeRecord( commonRecord.getContent() ), record );
 

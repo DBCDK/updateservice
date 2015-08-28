@@ -14,6 +14,8 @@ import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.*;
 import org.junit.Assert;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -51,11 +53,41 @@ public class AssertActionsUtil {
         return MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
     }
 
+    public static MarcRecord loadRecord( String filename, String newRecordId ) throws IOException {
+        logger.entry();
+
+        MarcRecord record = null;
+        try {
+            record = loadRecord( filename );
+            MarcWriter.addOrReplaceSubfield( record, "001", "a", newRecordId );
+
+            return record;
+        }
+        finally {
+            logger.exit( record );
+        }
+    }
+
     public static MarcRecord loadRecordAndMarkForDeletion( String filename ) throws IOException {
         MarcRecord record = loadRecord( filename );
         MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
 
         return record;
+    }
+
+    public static MarcRecord loadRecordAndMarkForDeletion( String filename, String newRecordId ) throws IOException {
+        logger.entry();
+
+        MarcRecord record = null;
+        try {
+            record = loadRecordAndMarkForDeletion( filename );
+            MarcWriter.addOrReplaceSubfield( record, "001", "a", newRecordId );
+
+            return record;
+        }
+        finally {
+            logger.exit( record );
+        }
     }
 
     public static Set<RecordId> createRecordSet( MarcRecord... records ) {
@@ -185,7 +217,18 @@ public class AssertActionsUtil {
         assertThat( createEnrichmentRecordWithClassificationsAction.getAgencyId(), equalTo( agencyId ) );
     }
 
-    public static void assertUpdateEnrichmentAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, MarcRecord record ) {
+    public static void assertUpdateEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
+        assertTrue( action.getClass() == UpdateEnrichmentRecordAction.class );
+
+        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction)action;
+        assertThat( updateEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( updateEnrichmentRecordAction.getRecord(), equalTo( record ) );
+        assertThat( updateEnrichmentRecordAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( updateEnrichmentRecordAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( updateEnrichmentRecordAction.getProviderId(), is( providerId ) );
+    }
+
+    public static void assertUpdateClassificationsInEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, MarcRecord record ) {
         assertTrue( action.getClass() == UpdateClassificationsInEnrichmentRecordAction.class );
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction)action;
@@ -203,4 +246,10 @@ public class AssertActionsUtil {
         assertThat( enqueueRecordAction.getProviderId(), equalTo( providerId ) );
         assertThat( enqueueRecordAction.getMimetype(), equalTo( mimetype ) );
     }
+
+    //-------------------------------------------------------------------------
+    //              Members
+    //-------------------------------------------------------------------------
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( AssertActionsUtil.class );
 }

@@ -6,7 +6,6 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -403,7 +402,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }
 
@@ -503,7 +502,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, volumeRecord );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
-        AssertActionsUtil.assertUpdateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, volumeRecord, enrichmentRecord );
         AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, volumeRecord, newEnrichmentAgencyId );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
     }

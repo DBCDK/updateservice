@@ -126,6 +126,51 @@ public class UpdateEnrichmentRecordActionTest {
     }
 
     /**
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an enrichment record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>LinkRecordAction: Link the record to the common record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_UpdateRecord_CommonRecordDoesNotExist() throws Exception {
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+
+        String commonRecordId = AssertActionsUtil.getRecordId( commonRecord );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( commonRecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( false );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
+        instance.setHoldingsItems( mock( HoldingsItems.class ) );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setProviderId( "xxx" );
+
+        String message = String.format( messages.getString( "record.does.not.exist" ), commonRecordId );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+    }
+
+    /**
      * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record that is optimize to an
      * empty record by LibraryRecordsHandler.
      *
