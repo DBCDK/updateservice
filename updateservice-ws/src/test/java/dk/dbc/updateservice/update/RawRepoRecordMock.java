@@ -86,6 +86,15 @@ public class RawRepoRecordMock implements Record {
     }
 
     @Override
+    public String getTrackingId() {
+        return trackingId;
+    }
+
+    public void setTrackingId( String trackingId ) {
+        this.trackingId = trackingId;
+    }
+
+    @Override
     public boolean isOriginal() {
         return original;
     }
@@ -131,6 +140,7 @@ public class RawRepoRecordMock implements Record {
     private String mimeType;
     private Date created;
     private Date modified;
+    private String trackingId;
     private boolean original;
     private boolean deleted;
     private boolean enriched;
