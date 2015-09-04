@@ -98,6 +98,8 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( MarcReader.markedForDeletion( record ) ) {
                 return performDeletionAction();
             }

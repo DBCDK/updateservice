@@ -64,6 +64,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( MarcReader.markedForDeletion( this.record ) ) {
                 return performDeletionAction();
             }

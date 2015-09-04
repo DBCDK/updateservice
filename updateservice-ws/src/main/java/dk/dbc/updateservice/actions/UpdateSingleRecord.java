@@ -5,6 +5,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -74,6 +75,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
@@ -156,6 +159,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     //-------------------------------------------------------------------------
 
     private static final XLogger logger = XLoggerFactory.getXLogger( UpdateSingleRecord.class );
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     /**

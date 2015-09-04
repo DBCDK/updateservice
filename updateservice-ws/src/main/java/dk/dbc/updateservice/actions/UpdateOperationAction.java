@@ -125,6 +125,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             ServiceResult checkResult = checkRecordForUpdatability();
             if( checkResult.getStatus() != UpdateStatusEnum.OK ) {
                 bizLogger.error( "Unable to update record: {}", checkResult );

@@ -105,6 +105,8 @@ public class AuthenticateRecordAction extends AbstractAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             List<ValidationError> errors = this.authenticator.authenticateRecord( this.record, this.authentication.getUserIdAut(), this.authentication.getGroupIdAut() );
             result = new ServiceResult();
             result.addEntries( errors );

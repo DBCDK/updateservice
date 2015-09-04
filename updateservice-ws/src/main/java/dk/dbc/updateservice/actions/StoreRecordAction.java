@@ -53,6 +53,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             String recId = MarcReader.getRecordValue( record, "001", "a" );
             Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
 
