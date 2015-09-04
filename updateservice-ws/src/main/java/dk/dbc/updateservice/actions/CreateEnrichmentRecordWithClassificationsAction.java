@@ -102,6 +102,9 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.entry();
 
         try {
+            bizLogger.info( "Current common record:\n{}", currentCommonRecord );
+            bizLogger.info( "Updating common record:\n{}", updatingCommonRecord );
+
             MarcRecord enrichmentRecord = createRecord();
             if( enrichmentRecord.getFields().isEmpty() ) {
                 bizLogger.info( "No sub actions to create for an empty enrichment record." );

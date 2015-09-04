@@ -41,6 +41,8 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             String parentId = MarcReader.readParentId( record );
             Integer agencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
@@ -74,7 +76,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( LinkRecordAction.newLinkParentAction( rawRepo, currentRecord ) );
+            children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( record ) );
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 

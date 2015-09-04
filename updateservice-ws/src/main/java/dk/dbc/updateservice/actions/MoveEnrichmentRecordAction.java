@@ -82,6 +82,8 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             String agencyId = MarcReader.getRecordValue( record, "001", "b" );
 

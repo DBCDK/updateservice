@@ -62,6 +62,8 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             String parentId = MarcReader.readParentId( record );
             Integer agencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );

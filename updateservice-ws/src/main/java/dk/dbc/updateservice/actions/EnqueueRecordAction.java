@@ -70,6 +70,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( providerId == null ) {
                 return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString( "provider.id.not.set" ) );
             }

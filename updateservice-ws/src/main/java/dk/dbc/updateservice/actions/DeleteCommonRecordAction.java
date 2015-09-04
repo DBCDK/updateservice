@@ -72,6 +72,8 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( !rawRepo.children( record ).isEmpty() ) {
                 String message = messages.getString( "delete.record.children.error" );
                 String recordId = MarcReader.getRecordValue( record, "001", "a" );

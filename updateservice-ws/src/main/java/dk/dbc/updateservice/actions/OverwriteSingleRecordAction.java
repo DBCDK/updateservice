@@ -78,6 +78,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( !recordsHandler.hasClassificationData( record ) ) {
                 return performStoreRecord();
             }

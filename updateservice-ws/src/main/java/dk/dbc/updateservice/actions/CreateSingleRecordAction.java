@@ -44,6 +44,8 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            bizLogger.info( "Handling record:\n{}", record );
+
             if( !rawRepo.agenciesForRecord( record ).isEmpty() ) {
                 String message = messages.getString( "create.record.with.locals" );
 
