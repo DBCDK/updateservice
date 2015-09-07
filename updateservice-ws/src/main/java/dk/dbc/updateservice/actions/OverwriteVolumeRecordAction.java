@@ -40,6 +40,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
 
+        ServiceResult result = ServiceResult.newOkResult();;
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
@@ -65,28 +66,30 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
-            if( !getRecordsHandler().hasClassificationData( record ) ) {
-                return performStoreRecord();
-            }
+            //if( !getRecordsHandler().hasClassificationData( record ) ) {
+            //    return performStoreRecord();
+            //}
 
             MarcRecord currentRecord = loadCurrentRecord();
-            if( !getRecordsHandler().hasClassificationsChanged( currentRecord, record ) ) {
-                return performStoreRecord();
-            }
+            //if( !getRecordsHandler().hasClassificationsChanged( currentRecord, record ) ) {
+            //    return performStoreRecord();
+            //}
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
-            children.addAll( createActionsForCreateOrUpdateEnrichments( record ) );
+            children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
+
+            result = performActionsFor002Links( currentRecord );
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
-            return ServiceResult.newOkResult();
+            return result;
         }
         catch( ScripterException | UnsupportedEncodingException ex ) {
-            return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage() );
+            return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage() );
         }
         finally {
-            logger.exit();
+            logger.exit( result );
         }
     }
 
@@ -112,7 +115,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     //              Members
     //-------------------------------------------------------------------------
 
-    private static final XLogger logger = XLoggerFactory.getXLogger( OverwriteSingleRecordAction.class );
+    private static final XLogger logger = XLoggerFactory.getXLogger( OverwriteVolumeRecordAction.class );
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     private ResourceBundle messages;

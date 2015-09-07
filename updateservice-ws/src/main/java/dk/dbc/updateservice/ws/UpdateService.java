@@ -111,22 +111,20 @@ public class UpdateService implements CatalogingUpdatePortType {
         logger.entry( updateRecordRequest );
         UpdateResponseWriter writer = new UpdateResponseWriter();
 
+        UpdateRequestAction action = null;
+        ServiceEngine engine = null;
         try {
             MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
 
-            UpdateRequestAction action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
+            action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
             action.setHoldingsItems( holdingsItems );
             action.setRecordsHandler( recordsHandler );
             action.setAuthenticator( authenticator );
             action.setScripter( scripter );
             action.setSettings( settings );
 
-            ServiceEngine engine = new ServiceEngine();
+            engine = new ServiceEngine();
             ServiceResult serviceResult = engine.executeAction( action );
-
-            bizLogger.info( "" );
-            bizLogger.info( "Executed action:" );
-            engine.printActions( action );
 
             if( serviceResult.getServiceError() != null ) {
                 writer.setError( serviceResult.getServiceError() );
@@ -152,6 +150,12 @@ public class UpdateService implements CatalogingUpdatePortType {
             return writer.getResponse();
         }
         finally {
+            if( engine != null && action != null ) {
+                bizLogger.info( "" );
+                bizLogger.info( "Executed action:" );
+                engine.printActions( action );
+            }
+
             bizLogger.exit( writer.getResponse() );
             logger.exit( writer.getResponse() );
             MDC.remove( TRACKING_ID_LOG_CONTEXT );

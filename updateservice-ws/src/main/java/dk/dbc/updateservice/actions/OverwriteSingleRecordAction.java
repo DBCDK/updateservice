@@ -4,10 +4,12 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
@@ -77,30 +79,26 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
 
+        ServiceResult result = ServiceResult.newOkResult();;
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            if( !recordsHandler.hasClassificationData( record ) ) {
-                return performStoreRecord();
-            }
-
             MarcRecord currentRecord = loadCurrentRecord();
-            if( !recordsHandler.hasClassificationsChanged( currentRecord, record ) ) {
-                return performStoreRecord();
-            }
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
+
+            result = performActionsFor002Links( currentRecord );
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
-            return ServiceResult.newOkResult();
+            return result;
         }
         catch( ScripterException | UnsupportedEncodingException ex ) {
             return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage() );
         }
         finally {
-            logger.exit();
+            logger.exit( result );
         }
     }
 
@@ -133,24 +131,6 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
         finally {
             logger.exit( result );
-        }
-    }
-
-    private Set<Integer> loadLocalAgencies() throws UpdateException {
-        logger.entry();
-
-        Set<Integer> agencies = null;
-        try {
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-
-            agencies = rawRepo.agenciesForRecord( recordId );
-            agencies.remove( rawRepo.RAWREPO_COMMON_LIBRARY );
-            agencies.remove( rawRepo.COMMON_LIBRARY );
-
-            return agencies;
-        }
-        finally {
-            logger.exit( agencies );
         }
     }
 
@@ -207,6 +187,52 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             }
                         }
                     }
+                }
+            }
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    protected ServiceResult performActionsFor002Links( MarcRecord currentRecord ) throws ScripterException, UpdateException, UnsupportedEncodingException {
+        logger.entry( currentRecord );
+
+        ServiceResult result = ServiceResult.newOkResult();
+        try {
+            if( recordsHandler.hasClassificationsChanged( currentRecord, record ) ) {
+                return result;
+            }
+
+            MarcRecordReader currentRecordReader = new MarcRecordReader( currentRecord );
+            for( String recordId : new MarcRecordReader( record ).getValues( "002", "a" ) ) {
+                if( currentRecordReader.hasValue( "002", "a", recordId ) ) {
+                    continue;
+                }
+
+                if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                    String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
+                    return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+
+                Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
+                for( RecordId enrichmentId : enrichmentIds ) {
+                    if( enrichmentId.getAgencyId() == RawRepo.COMMON_LIBRARY ) {
+                        continue;
+                    }
+
+                    Record enrichmentRecord = rawRepo.fetchRecord( enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId() );
+                    MarcRecord enrichmentRecordData = new RawRepoDecoder().decodeRecord( enrichmentRecord.getContent() );
+
+                    MoveEnrichmentRecordAction action = new MoveEnrichmentRecordAction( rawRepo, enrichmentRecordData );
+                    action.setCommonRecord( record );
+                    action.setRecordsHandler( recordsHandler );
+                    action.setHoldingsItems( holdingsItems );
+                    action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+                    children.add( action );
                 }
             }
 

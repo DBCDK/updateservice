@@ -129,7 +129,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             bizLogger.info( "Old content:\n{}", record );
             bizLogger.info( "New content:\n{}", enrichmentRecord );
 
-            if( enrichmentRecord.getFields().isEmpty() ) {
+            if( enrichmentRecord.isEmpty() ) {
                 return performDeletionAction();
             }
 
@@ -207,6 +207,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
                 bizLogger.warn( "Unable to delete enrichment record doing to an error: {}", message );
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
+
+            String recordId = RawRepo.getRecordId( record );
+            Integer agencyId = RawRepo.convertAgencyId( RawRepo.getAgencyId( record ) );
+            if( !rawRepo.recordExists( recordId, agencyId ) ) {
+                bizLogger.info( "The enrichment record {{}:{}} does not exist, so no actions is added for deletion." );
+                return ServiceResult.newOkResult();
             }
 
             bizLogger.info( "Creating sub actions to delete enrichment record successfully" );
