@@ -595,15 +595,15 @@ public class RawRepo {
         return RawRepoDAO.newInstance( conn );
     }
 
-    private String getRecordId( MarcRecord record ) {
+    public static String getRecordId( MarcRecord record ) {
         return MarcReader.getRecordValue( record, "001", "a" );
     }
 
-    private String getAgencyId( MarcRecord record ) {
+    public static String getAgencyId( MarcRecord record ) {
         return MarcReader.getRecordValue( record, "001", "b" );
     }
 
-    private int convertAgencyId( String agencyId ) throws UpdateException {
+    public static int convertAgencyId( String agencyId ) throws UpdateException {
         try {
             return Integer.parseInt( agencyId, 10 );
         }

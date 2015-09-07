@@ -84,7 +84,7 @@ public class DeleteCommonRecordActionTest {
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, instance.MIMETYPE );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 
@@ -147,7 +147,7 @@ public class DeleteCommonRecordActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, expectedEnrichmentRecord, recordsHandler, holdingsItems );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, instance.MIMETYPE );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
     }
 

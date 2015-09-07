@@ -2,8 +2,10 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -629,6 +631,337 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, record, enrichmentRecord );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+    }
+
+    /**
+     * Test performAction(): Update single common record with no changes to
+     * its current classifications and with new 002 to an existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  An enrichment record <code>e1</code>, that points to <code>c2</code>.
+     *              </li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with no changes in classifications and a new 002 field that
+     *          points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>
+     *                  MoveEnrichmentRecordAction: Move enrichment record <code>e1</code> from
+     *                  <code>c2</code> to <code>c1</code>.
+     *              </li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+        MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        String e1RecordId = AssertActionsUtil.getRecordId( e1 );
+        Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
+        when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with no changes to
+     * its current classifications and with existing 002 in the existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  An enrichment record <code>e1</code>, that points to <code>c2</code>.
+     *              </li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with no changes classifications and with no change to the
+     *          002 field that points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_SameClassifications_NoChangeIn002Links() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcWriter.addOrReplaceSubfield( c1, "002", "a", c2RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+        MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+
+        String e1RecordId = AssertActionsUtil.getRecordId( e1 );
+        Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with changes to
+     * its current classifications and with new 002 to an existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  An enrichment record <code>e1</code>, that points to <code>c2</code>.
+     *              </li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with no changes to classifications and a new 002 field that
+     *          points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_ChangedClassifications_DoNotMoveEnrichments() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+        MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        String e1RecordId = AssertActionsUtil.getRecordId( e1 );
+        Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with no changes to
+     * its current classifications and with new 002 to a common record that
+     * does not exist.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with no changes to classifications and a new 002 field that
+     *          points to a record that does not exist.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_002Link_DoNotExist() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( false );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        String message = String.format( messages.getString( "record.does.not.exist" ), c2RecordId );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
     }
 
     //-------------------------------------------------------------------------

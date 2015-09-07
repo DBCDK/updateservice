@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertTrue;
@@ -132,7 +133,8 @@ public class AssertActionsUtil {
     //-------------------------------------------------------------------------
 
     public static void assertAuthenticateRecordAction( ServiceAction action, MarcRecord record, Authenticator authenticator, Authentication authentication ) {
-        assertTrue( action.getClass() == AuthenticateRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( AuthenticateRecordAction.class.getName() ) );
 
         AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction)action;
         Assert.assertThat( authenticateRecordAction.getRecord(), is( record ) );
@@ -141,7 +143,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertUpdateLocalRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems ) {
-        assertTrue( action.getClass() == UpdateLocalRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateLocalRecordAction.class.getName() ) );
 
         UpdateLocalRecordAction updateLocalRecordAction = (UpdateLocalRecordAction)action;
         Assert.assertThat( updateLocalRecordAction.getRawRepo(), is( rawRepo ) );
@@ -150,7 +153,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertUpdateEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems ) {
-        assertTrue( action.getClass() == UpdateEnrichmentRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateEnrichmentRecordAction.class.getName() ) );
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction)action;
         Assert.assertThat( updateEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
@@ -160,7 +164,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertUpdateCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, Integer groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems ) {
-        assertTrue( action.getClass() == UpdateCommonRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateCommonRecordAction.class.getName() ) );
 
         UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction)action;
         Assert.assertThat( updateCommonRecordAction.getRawRepo(), is( rawRepo ) );
@@ -171,7 +176,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertStoreRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {
-        assertTrue( action.getClass() == StoreRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( StoreRecordAction.class.getName() ) );
 
         StoreRecordAction storeRecordAction = (StoreRecordAction)action;
         assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
@@ -179,17 +185,19 @@ public class AssertActionsUtil {
         assertThat( storeRecordAction.getMimetype(), equalTo( UpdateCommonRecordAction.MIMETYPE ) );
     }
 
-    public static void assertDeleteRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {
-        assertTrue( action.getClass() == DeleteRecordAction.class );
+    public static void assertDeleteRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( DeleteRecordAction.class.getName() ) );
 
         DeleteRecordAction deleteRecordAction = (DeleteRecordAction) action;
         assertThat( deleteRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( deleteRecordAction.getRecord(), is( record ) );
-        assertThat( deleteRecordAction.getMimetype(), equalTo( UpdateCommonRecordAction.MIMETYPE ) );
+        assertThat( deleteRecordAction.getMimetype(), equalTo( mimetype ) );
     }
 
     public static void assertLinkRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord target ) {
-        assertTrue( action.getClass() == LinkRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( LinkRecordAction.class.getName() ) );
 
         LinkRecordAction linkRecordAction = (LinkRecordAction)action;
         assertThat( linkRecordAction.getRawRepo(), is( rawRepo ) );
@@ -201,7 +209,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertRemoveLinksAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {
-        assertTrue( action.getClass() == RemoveLinksAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( RemoveLinksAction.class.getName() ) );
 
         RemoveLinksAction removeLinksAction = (RemoveLinksAction)action;
         assertThat( removeLinksAction.getRawRepo(), is( rawRepo ) );
@@ -209,7 +218,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertCreateEnrichmentAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, Integer agencyId ) {
-        assertTrue( action.getClass() == CreateEnrichmentRecordWithClassificationsAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( CreateEnrichmentRecordWithClassificationsAction.class.getName() ) );
 
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = (CreateEnrichmentRecordWithClassificationsAction)action;
         assertThat( createEnrichmentRecordWithClassificationsAction.getRawRepo(), is( rawRepo ) );
@@ -218,7 +228,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertUpdateEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
-        assertTrue( action.getClass() == UpdateEnrichmentRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateEnrichmentRecordAction.class.getName() ) );
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction)action;
         assertThat( updateEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
@@ -229,7 +240,8 @@ public class AssertActionsUtil {
     }
 
     public static void assertUpdateClassificationsInEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, MarcRecord record ) {
-        assertTrue( action.getClass() == UpdateClassificationsInEnrichmentRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateClassificationsInEnrichmentRecordAction.class.getName() ) );
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction)action;
         assertThat( updateClassificationsInEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
@@ -238,13 +250,25 @@ public class AssertActionsUtil {
     }
 
     public static void assertEnqueueRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype ) {
-        assertTrue( action.getClass() == EnqueueRecordAction.class );
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( EnqueueRecordAction.class.getName() ) );
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)action;
         assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( enqueueRecordAction.getRecord(), is( record ) );
         assertThat( enqueueRecordAction.getProviderId(), equalTo( providerId ) );
         assertThat( enqueueRecordAction.getMimetype(), equalTo( mimetype ) );
+    }
+
+    public static void assertMoveEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( MoveEnrichmentRecordAction.class.getName() ) );
+
+        MoveEnrichmentRecordAction moveEnrichmentRecordAction = (MoveEnrichmentRecordAction)action;
+        assertThat( moveEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( moveEnrichmentRecordAction.getRecord(), is( record ) );
+        assertThat( moveEnrichmentRecordAction.getCommonRecord(), is( commonRecord ) );
+        assertThat( moveEnrichmentRecordAction.getProviderId(), equalTo( providerId ) );
     }
 
     //-------------------------------------------------------------------------
