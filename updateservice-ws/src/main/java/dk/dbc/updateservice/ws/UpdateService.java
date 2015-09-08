@@ -108,13 +108,20 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @Override
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
-        logger.entry( updateRecordRequest );
-        UpdateResponseWriter writer = new UpdateResponseWriter();
+        UUID prefixId = UUID.randomUUID();
 
+        MDC.put( REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
+        MDC.put( PREFIX_ID_LOG_CONTEXT, prefixId.toString() );
+        MDC.put( TRACKING_ID_LOG_CONTEXT, prefixId.toString() );
+
+        logger.entry( updateRecordRequest );
+
+        UpdateResponseWriter writer = new UpdateResponseWriter();
         UpdateRequestAction action = null;
         ServiceEngine engine = null;
         try {
-            MDC.put( TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
+            logger.info( "MDC: {}", MDC.getCopyOfContextMap() );
+            logger.info( "Request tracking id: {}", updateRecordRequest.getTrackingId() );
 
             action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
             action.setHoldingsItems( holdingsItems );
@@ -124,6 +131,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             action.setSettings( settings );
 
             engine = new ServiceEngine();
+            engine.setLoggerKeys( MDC.getCopyOfContextMap() );
             ServiceResult serviceResult = engine.executeAction( action );
 
             if( serviceResult.getServiceError() != null ) {
@@ -158,7 +166,7 @@ public class UpdateService implements CatalogingUpdatePortType {
 
             bizLogger.exit( writer.getResponse() );
             logger.exit( writer.getResponse() );
-            MDC.remove( TRACKING_ID_LOG_CONTEXT );
+            MDC.clear();
         }
     }
 
@@ -275,7 +283,17 @@ public class UpdateService implements CatalogingUpdatePortType {
     /**
      * MDC constant for tackingId in the log files.
      */
-    private static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
+    public static final String REQUEST_ID_LOG_CONTEXT = "requestId";
+
+    /**
+     * MDC constant for tackingId in the log files.
+     */
+    public static final String PREFIX_ID_LOG_CONTEXT = "prefixId";
+
+    /**
+     * MDC constant for tackingId in the log files.
+     */
+    public static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
 
     @Resource
     WebServiceContext wsContext;

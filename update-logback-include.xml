@@ -13,15 +13,15 @@
 
     <appender name="FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator>
-            <key>trackingId</key>
+            <key>requestId</key>
             <defaultValue>unknown</defaultValue>
         </discriminator>
         <sift>
-            <appender name="FILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}.log</file>
+            <appender name="FILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}.log</file>
                 <append>false</append>
                 <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date %level [%thread] %logger{35} [%file:%line] - %msg%n</pattern>
+                    <pattern>%date %level [%thread] [Update:%X{trackingId}] %logger{35} [%file:%line] - %msg%n</pattern>
                 </layout>
             </appender>
         </sift>
@@ -29,12 +29,12 @@
 
     <appender name="BIZFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator>
-            <key>trackingId</key>
+            <key>requestId</key>
             <defaultValue>unknown</defaultValue>
         </discriminator>
         <sift>
-            <appender name="BIZFILE-${trackingId}-${curDate}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-biz.log</file>
+            <appender name="BIZFILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}-biz.log</file>
                 <append>false</append>
 
                 <filter class="dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter" />
@@ -44,7 +44,7 @@
                 </filter>
 
                 <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date{HH:mm:ss.SSS} %level - %msg%n</pattern>
+                    <pattern>%date{HH:mm:ss.SSS} %level [Update:%X{trackingId}] - %msg%n</pattern>
                 </layout>
             </appender>
         </sift>
@@ -52,12 +52,12 @@
 
     <appender name="ERRFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
         <discriminator>
-            <key>trackingId</key>
+            <key>requestId</key>
             <defaultValue>unknown</defaultValue>
         </discriminator>
         <sift>
-            <appender name="ERRFILE-${trackingId}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${trackingId}-warn-err.log</file>
+            <appender name="ERRFILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
+                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}-warn-err.log</file>
                 <append>false</append>
 
                 <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
@@ -65,14 +65,13 @@
                 </filter>
 
                 <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date %level [%thread] %logger{35} [%file:%line] - %msg%n</pattern>
+                    <pattern>%date %level [%thread] [Update:%X{trackingId}] %logger{35} [%file:%line] - %msg%n</pattern>
                 </layout>
             </appender>
         </sift>
     </appender>
 
     <root level="TRACE">
-        <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
         <appender-ref ref="BIZFILE"/>
         <appender-ref ref="ERRFILE"/>

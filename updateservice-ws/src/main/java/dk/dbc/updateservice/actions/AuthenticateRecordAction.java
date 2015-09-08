@@ -12,6 +12,7 @@ import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.MDCUtil;
 import dk.dbc.updateservice.ws.ValidationError;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -135,6 +136,11 @@ public class AuthenticateRecordAction extends AbstractAction {
         finally {
             logger.exit( result );
         }
+    }
+
+    @Override
+    public void setupMDCContext() {
+        MDCUtil.setupContextForRecord( record );
     }
 
     //-------------------------------------------------------------------------

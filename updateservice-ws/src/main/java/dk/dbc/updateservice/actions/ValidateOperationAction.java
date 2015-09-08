@@ -9,6 +9,7 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.MDCUtil;
 
 import javax.xml.ws.WebServiceContext;
 import java.util.Properties;
@@ -114,6 +115,11 @@ public class ValidateOperationAction extends AbstractAction {
         children.add( validateRecordAction );
 
         return ServiceResult.newStatusResult( this.okStatus );
+    }
+
+    @Override
+    public void setupMDCContext() {
+        MDCUtil.setupContextForRecord( record );
     }
 
     //-------------------------------------------------------------------------
