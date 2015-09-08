@@ -4,8 +4,12 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.ws.UpdateService;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -41,9 +45,16 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
         this.record = record;
     }
 
+    @Override
+    public void setupMDCContext() {
+        MDCUtil.setupContextForRecord( record );
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( AbstractRawRepoAction.class );
 
     /**
      * RawRepo EJB to write records to the RawRepo.

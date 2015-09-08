@@ -11,6 +11,7 @@ import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -138,6 +139,11 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         finally {
             logger.exit();
         }
+    }
+
+    @Override
+    public void setupMDCContext() {
+        MDCUtil.setupContextForEnrichmentRecord( updatingCommonRecord, agencyId.toString() );
     }
 
     public MarcRecord createRecord() throws ScripterException {

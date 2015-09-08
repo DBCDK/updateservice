@@ -6,10 +6,14 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 //-----------------------------------------------------------------------------
 /**
@@ -19,6 +23,15 @@ import java.util.List;
  */
 public class ServiceEngine {
     public ServiceEngine() {
+        this.loggerKeys = new HashMap<>();
+    }
+
+    public Map<String, String> getLoggerKeys() {
+        return loggerKeys;
+    }
+
+    public void setLoggerKeys( Map<String, String> loggerKeys ) {
+        this.loggerKeys = loggerKeys;
     }
 
     /**
@@ -46,6 +59,9 @@ public class ServiceEngine {
                 String message = String.format( "%s.executeAction can not be called with (null)", getClass().getName() );
                 throw new IllegalArgumentException( message );
             }
+
+            MDC.setContextMap( loggerKeys );
+            action.setupMDCContext();
 
             printActionHeader( action );
 
@@ -81,6 +97,7 @@ public class ServiceEngine {
             return actionResult;
         }
         finally {
+            MDC.setContextMap( loggerKeys );
             logger.exit();
         }
     }
@@ -155,4 +172,6 @@ public class ServiceEngine {
 
     private static final XLogger logger = XLoggerFactory.getXLogger( ServiceEngine.class );
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+
+    Map<String, String> loggerKeys;
 }

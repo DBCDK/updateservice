@@ -7,6 +7,7 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -92,6 +93,10 @@ public class ValidateSchemaAction extends AbstractAction {
         finally {
             logger.exit( result );
         }
+    }
+
+    @Override
+    public void setupMDCContext() {
     }
 
     //-------------------------------------------------------------------------

@@ -3,9 +3,11 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.update.UpdateException;
 
 import java.util.List;
+import java.util.Map;
 
 //-----------------------------------------------------------------------------
 /**
@@ -68,4 +70,6 @@ public interface ServiceAction {
 
     ServiceAction parent();
     List<ServiceAction> children();
+
+    void setupMDCContext();
 }
