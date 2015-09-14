@@ -20,23 +20,24 @@
 
     <properties>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <java.source.level>1.7</java.source.level>
-        <java.target.level>1.7</java.target.level>
-        <maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
         <maven.site.plugin.version>3.4</maven.site.plugin.version>
         <maven.project.info.plugin.version>2.7</maven.project.info.plugin.version>
         <maven.javadoc.plugin.version>2.9.1</maven.javadoc.plugin.version>
-        <maven.slf4j-ext.plugin.version>1.7.7</maven.slf4j-ext.plugin.version>
-        <maven.logback-classic.plugin.version>1.1.2</maven.logback-classic.plugin.version>
     </properties>
 
     <repositories>
         <repository>
             <id>mavenrepo.dbc.dk</id>
-            <url>http://mavenrepo.dbc.dk/content/groups/public</url>
+            <url>http://mavenrepo.dbc.dk/nexus/content/groups/public</url>
         </repository>
     </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mavenrepo.dbc.dk</id>
+            <url>http://mavenrepo.dbc.dk/nexus/content/groups/public</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <modules>
         <module>updateservice-app</module>
