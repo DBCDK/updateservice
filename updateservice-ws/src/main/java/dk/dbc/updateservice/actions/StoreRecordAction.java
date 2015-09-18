@@ -10,6 +10,8 @@ import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.UpdateService;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -62,6 +64,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepoRecord.setContent( encoder.encodeRecord( recordToStore() ) );
             rawRepoRecord.setMimeType( mimetype );
             rawRepoRecord.setDeleted( deletionMarkToStore() );
+            rawRepoRecord.setTrackingId( MDC.get( UpdateService.TRACKING_ID_LOG_CONTEXT ) );
             rawRepo.saveRecord( rawRepoRecord );
             bizLogger.info( "Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId() );
 
