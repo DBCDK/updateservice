@@ -6,6 +6,7 @@ import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -31,18 +32,27 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     public MoveEnrichmentRecordAction( RawRepo rawRepo, MarcRecord record ) {
         super( "MoveEnrichmentRecordAction", rawRepo, record );
 
-        this.commonRecord = null;
+        this.currentCommonRecord = null;
+        this.updatingCommonRecord = null;
         this.recordsHandler = null;
         this.holdingsItems = null;
         this.providerId = null;
     }
 
-    public MarcRecord getCommonRecord() {
-        return commonRecord;
+    public MarcRecord getCurrentCommonRecord() {
+        return currentCommonRecord;
     }
 
-    public void setCommonRecord( MarcRecord commonRecord ) {
-        this.commonRecord = commonRecord;
+    public void setCurrentCommonRecord( MarcRecord currentCommonRecord ) {
+        this.currentCommonRecord = currentCommonRecord;
+    }
+
+    public MarcRecord getUpdatingCommonRecord() {
+        return updatingCommonRecord;
+    }
+
+    public void setUpdatingCommonRecord( MarcRecord updatingCommonRecord ) {
+        this.updatingCommonRecord = updatingCommonRecord;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -87,7 +97,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             String agencyId = MarcReader.getRecordValue( record, "001", "b" );
 
-            String commonRecordId = MarcReader.getRecordValue( commonRecord, "001", "a" );
+            String commonRecordId = MarcReader.getRecordValue( updatingCommonRecord, "001", "a" );
             MarcRecord newEnrichmentRecord = new MarcRecord( record );
             MarcWriter.addOrReplaceSubfield( newEnrichmentRecord, "001", "a", commonRecordId );
 
@@ -102,13 +112,29 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             children.add( action );
 
             bizLogger.info( "Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId );
-            action = new UpdateEnrichmentRecordAction( rawRepo, newEnrichmentRecord );
-            action.setRecordsHandler( recordsHandler );
-            action.setHoldingsItems( holdingsItems );
-            action.setProviderId( providerId );
-            children.add( action );
+
+            if( recordsHandler.hasClassificationData( newEnrichmentRecord ) ) {
+                action = new UpdateEnrichmentRecordAction( rawRepo, newEnrichmentRecord );
+                action.setRecordsHandler( recordsHandler );
+                action.setHoldingsItems( holdingsItems );
+                action.setProviderId( providerId );
+                children.add( action );
+            }
+            else {
+                UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
+                updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord( currentCommonRecord );
+                updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord( updatingCommonRecord );
+                updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord( newEnrichmentRecord );
+                updateClassificationsInEnrichmentRecordAction.setAgencyId( Integer.valueOf( MarcReader.getRecordValue( newEnrichmentRecord, "001", "b" ), 10 ) );
+                updateClassificationsInEnrichmentRecordAction.setRecordsHandler( recordsHandler );
+                updateClassificationsInEnrichmentRecordAction.setProviderId( providerId );
+                children.add( updateClassificationsInEnrichmentRecordAction );
+            }
 
             return result = ServiceResult.newOkResult();
+        }
+        catch( ScripterException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             logger.exit( result );
@@ -122,7 +148,8 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger( MoveEnrichmentRecordAction.class );
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
-    private MarcRecord commonRecord;
+    private MarcRecord currentCommonRecord;
+    private MarcRecord updatingCommonRecord;
 
     private LibraryRecordsHandler recordsHandler;
 
