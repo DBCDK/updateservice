@@ -3,6 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
@@ -56,7 +57,11 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
                 throw new IllegalStateException( "recordsHandler is not assigned a value" );
             }
 
-            return this.recordsHandler.updateLibraryExtendedRecord( this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord );
+            MarcRecord record = this.recordsHandler.updateLibraryExtendedRecord( this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord );
+            MarcRecordWriter writer = new MarcRecordWriter( record );
+            writer.sort();
+
+            return record;
         }
         finally {
             logger.exit();

@@ -610,7 +610,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, record, mainRecord );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, v1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );

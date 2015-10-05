@@ -65,7 +65,8 @@ public class MoveEnrichmentRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
-        instance.setCommonRecord( c2 );
+        instance.setCurrentCommonRecord( c2 );
+        instance.setUpdatingCommonRecord( c2 );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
 
@@ -76,7 +77,7 @@ public class MoveEnrichmentRecordActionTest {
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, e1Deleted, recordsHandler, holdingsItems, instance.getProviderId() );
 
         MarcRecord e1Moved = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, e1Moved, recordsHandler, holdingsItems, instance.getProviderId() );
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, c1, e1Moved );
 
         Assert.assertThat( iterator.hasNext(), is( false ) );
     }

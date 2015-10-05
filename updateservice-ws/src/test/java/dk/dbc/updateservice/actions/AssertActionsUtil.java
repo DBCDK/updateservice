@@ -260,14 +260,15 @@ public class AssertActionsUtil {
         assertThat( enqueueRecordAction.getMimetype(), equalTo( mimetype ) );
     }
 
-    public static void assertMoveEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, String providerId ) {
+    public static void assertMoveEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String providerId ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( MoveEnrichmentRecordAction.class.getName() ) );
 
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = (MoveEnrichmentRecordAction)action;
         assertThat( moveEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( moveEnrichmentRecordAction.getRecord(), is( record ) );
-        assertThat( moveEnrichmentRecordAction.getCommonRecord(), is( commonRecord ) );
+        assertThat( moveEnrichmentRecordAction.getCurrentCommonRecord(), is( currentCommonRecord ) );
+        assertThat( moveEnrichmentRecordAction.getUpdatingCommonRecord(), is( updatingCommonRecord ) );
         assertThat( moveEnrichmentRecordAction.getProviderId(), equalTo( providerId ) );
     }
 

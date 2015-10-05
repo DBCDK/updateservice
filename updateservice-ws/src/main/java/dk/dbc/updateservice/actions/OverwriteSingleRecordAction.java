@@ -202,11 +202,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            if( recordsHandler.hasClassificationsChanged( currentRecord, record ) ) {
-                return result;
-            }
-
+            boolean classificationsChanged = recordsHandler.hasClassificationsChanged( currentRecord, record );
             MarcRecordReader currentRecordReader = new MarcRecordReader( currentRecord );
+
             for( String recordId : new MarcRecordReader( record ).getValues( "002", "a" ) ) {
                 if( currentRecordReader.hasValue( "002", "a", recordId ) ) {
                     continue;
@@ -215,6 +213,23 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
                     return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+
+                if( classificationsChanged ) {
+                    Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsFor( recordId );
+                    Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
+
+                    for( Integer holdingAgencyId : holdingAgencies ) {
+                        if( !enrichmentIds.contains( new RecordId( recordId, holdingAgencyId ) ) ) {
+                            CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
+                            action.setUpdatingCommonRecord( record );
+                            action.setCurrentCommonRecord( currentRecord );
+                            action.setRecordsHandler( recordsHandler );
+                            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+                            children.add( action );
+                        }
+                    }
                 }
 
                 Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
@@ -227,7 +242,8 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     MarcRecord enrichmentRecordData = new RawRepoDecoder().decodeRecord( enrichmentRecord.getContent() );
 
                     MoveEnrichmentRecordAction action = new MoveEnrichmentRecordAction( rawRepo, enrichmentRecordData );
-                    action.setCommonRecord( record );
+                    action.setCurrentCommonRecord( currentRecord );
+                    action.setUpdatingCommonRecord( record );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
                     action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
