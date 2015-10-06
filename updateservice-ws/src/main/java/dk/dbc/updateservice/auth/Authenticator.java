@@ -3,6 +3,8 @@ package dk.dbc.updateservice.auth;
 
 //-----------------------------------------------------------------------------
 
+import dk.dbc.forsrights.client.ForsRights;
+import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.Ressource;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -59,42 +61,23 @@ public class Authenticator {
             String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL_KEY).toString();
             logger.debug("Using endpoint to forsrights webservice: {}", endpoint);
 
-            ForsService service = new ForsService( endpoint );
-            ForsRightsResponse response;
+            ForsRights.RightSet rights;
 
             Object useIpSetting = settings.get( JNDIResources.AUTH_USE_IP_KEY );
             if( useIpSetting != null && Boolean.valueOf( useIpSetting.toString() ) ) {
                 String ipAddress = getRemoteAddrFromMessage( wsContext );
-                response = service.forsRightsWithIp( userId, groupId, passwd, ipAddress );
+                rights = forsService.forsRightsWithIp( userId, groupId, passwd, ipAddress );
             }
             else {
-                response = service.forsRights( userId, groupId, passwd );
+                rights = forsService.forsRights( userId, groupId, passwd );
             }
 
-            if (response.getError() != null) {
-                logger.debug( "Response contains an authentication error." );
-            }
-            else if (response.getRessource() == null) {
-                logger.debug( "Response contains no resources." );
-            }
-            else {
-                String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME_KEY);
-                logger.debug( "Looking for product name: {}", productName );
+            String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME_KEY);
+            logger.debug( "Looking for product name: {}", productName );
 
-                for (Ressource res : response.getRessource()) {
-                    logger.debug( "Checking product name: {}", res.getName() );
-
-                    if (res.getName().equals(productName)) {
-                        logger.debug( "Found correct product in resources." );
-                        result = true;
-                        break;
-                    }
-                }
-            }
-
-            return result;
+            return result = rights.hasRightName( productName );
         }
-        catch( RuntimeException ex ) {
+        catch( ForsRightsException ex ) {
             logger.error( "Caught exception:", ex );
             throw new AuthenticatorException( ex.getMessage(), ex );
         }
@@ -192,6 +175,9 @@ public class Authenticator {
      */
     @Resource( lookup = JNDIResources.SETTINGS_NAME )
     private Properties settings;
+
+    @EJB
+    ForsService forsService;
 
     @EJB
     private Scripter scripter;

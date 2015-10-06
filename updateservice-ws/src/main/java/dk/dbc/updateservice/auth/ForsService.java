@@ -1,15 +1,25 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.auth;
 
+import dk.dbc.forsrights.client.ForsRights;
+import dk.dbc.forsrights.client.ForsRightsException;
+import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
 import dk.dbc.forsrights.service.ForsRightsPortType;
 import dk.dbc.forsrights.service.ForsRightsRequest;
 import dk.dbc.forsrights.service.ForsRightsResponse;
 import dk.dbc.forsrights.service.ForsRightsService;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
+import javax.ejb.Singleton;
 import javax.xml.ws.BindingProvider;
+import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
@@ -17,28 +27,18 @@ import javax.xml.ws.BindingProvider;
 * 
 * @author stp
 */
+@Singleton
+@ConcurrencyManagement( ConcurrencyManagementType.BEAN )
 public class ForsService {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
-	
-	/**
-	 * Constructs instance with a endpoint
-	 * 
-	 * @param endpoint The endpoint to the forsrights service.
-	 */
-	public ForsService( String endpoint ) {
-        logger.entry();
+    @PostConstruct
+    public void init() {
+        forsRightsCache = new ForsRights.RightsCache( CACHE_ENTRY_TIMEOUT );
 
-        try {
-            this.endpoint = endpoint;
-            this.services = new ForsRightsService();
-            this.callerProxy = getAndConfigureUpdateProxy();
-        }
-        finally {
-            logger.exit();
-        }
-	}
+        ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
+        builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
+
+        forsRights = builder.build( settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) ).forsRights( forsRightsCache );
+    }
 
     /**
      * Calls the forsrights
@@ -49,19 +49,12 @@ public class ForsService {
      *
      * @return A response from forsrights.
      */
-    public ForsRightsResponse forsRights( String userId, String groupId, String passwd ) {
+    public ForsRights.RightSet forsRights( String userId, String groupId, String passwd ) throws ForsRightsException {
         logger.entry( userId, groupId, "****" );
 
         try {
-            ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
-
-            bizLogger.info( "Authenticating user {}/{} against forsright at {}", userId, groupId, this.endpoint );
-            return this.callerProxy.forsRights( request );
-        }
-        catch( Exception ex ) {
-            bizLogger.error( "ForsRights error: {}", ex.getMessage() );
-            logger.error( "ForsService.forsRights: Caught exception: ", ex );
-            throw ex;
+            bizLogger.info( "Authenticating user {}/{} against forsright at {}", userId, groupId, settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) );
+            return forsRights.lookupRight( userId, groupId, passwd, null );
         }
         finally {
             logger.exit();
@@ -78,76 +71,34 @@ public class ForsService {
 	 * 
 	 * @return A response from forsrights.
 	 */
-	public ForsRightsResponse forsRightsWithIp( String userId, String groupId, String passwd, String ipAddress ) {
+	public ForsRights.RightSet forsRightsWithIp( String userId, String groupId, String passwd, String ipAddress ) throws ForsRightsException {
         logger.entry( userId, groupId, "****", ipAddress );
 
         try {
-            ForsRightsRequest request = createUserRequest( userId, groupId, passwd );
-            request.setIpAddress( ipAddress );
-
-            bizLogger.info( "Authenticating user {}/{} with ip-address {} against forsright at {}", userId, groupId, ipAddress, this.endpoint );
-            return this.callerProxy.forsRights( request );
-        }
-        catch( Exception ex ) {
-            bizLogger.error( "ForsRights error: {}", ex.getMessage() );
-            logger.error( "ForsService.forsRights: Caught exception: ", ex );
-            throw ex;
+            bizLogger.info( "Authenticating user {}/{} with ip-address {} against forsright at {}", userId, groupId, ipAddress, settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) );
+            return forsRights.lookupRight( userId, groupId, passwd, ipAddress );
         }
         finally {
             logger.exit();
         }
 	}
-	
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
 
-	private ForsRightsPortType getAndConfigureUpdateProxy() {
-        logger.entry();
-
-        try {
-            ForsRightsPortType port = this.services.getForsRightsPortType();
-            BindingProvider proxy = (BindingProvider) port;
-
-            proxy.getRequestContext().put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, endpoint);
-
-            proxy.getRequestContext().put("com.sun.xml.ws.connect.timeout", CONNECT_TIMEOUT_DEFAULT_IN_MS);
-            proxy.getRequestContext().put("com.sun.xml.ws.request.timeout", REQUEST_TIMEOUT_DEFAULT_IN_MS);
-
-            return port;
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    private ForsRightsRequest createUserRequest( String userId, String groupId, String passwd ) {
-        logger.entry( userId, groupId, "****" );
-
-        try {
-            ForsRightsRequest request = new ForsRightsRequest();
-            request.setUserIdAut( userId );
-            request.setGroupIdAut( groupId );
-            request.setPasswordAut( passwd );
-
-            return request;
-        }
-        finally {
-            logger.exit();
-        }
-    }
-	
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
 
     private static final XLogger logger = XLoggerFactory.getXLogger( ForsService.class );
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+    private static final long CACHE_ENTRY_TIMEOUT =  10 * 60 * 1000;
+    private static final int CONNECT_TIMEOUT =  1 * 60 * 1000;
+    private static final int REQUEST_TIMEOUT =  3 * 60 * 1000;
 
-    private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS =  1 * 60 * 1000;    // 1 minute
-    private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS =  3 * 60 * 1000;    // 3 minutes
+    /**
+     * Resource to lookup the product name for authentication.
+     */
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
 
-    private final String endpoint;
-    private final ForsRightsService services;
-    private final ForsRightsPortType callerProxy;
+    private ForsRights.RightsCache forsRightsCache;
+    private ForsRights forsRights;
 }
