@@ -69,6 +69,11 @@
             <artifactId>forsrights-ws-client</artifactId>
             <version>1.2-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>openagency-ws-client</artifactId>
+            <version>2.23-SNAPSHOT</version>
+        </dependency>
 
         <!-- ************************************************************* -->
         <!-- DBC JsLib                                                     -->

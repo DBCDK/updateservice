@@ -91,6 +91,7 @@
                          res-type="java.util.Properties" jndi-name="${updateservice.settings.jndi.name}">
             <property name="solr.url" value="${updateservice.settings.solr.url}"></property>
             <property name="forsrights.url" value="${updateservice.settings.forsrights.url}"></property>
+            <property name="openagency.url" value="${updateservice.settings.openagency.url}"></property>
             <property name="auth.product.name" value="${updateservice.settings.auth.product.name}"></property>
             <property name="auth.use.ip" value="${updateservice.settings.auth.use.ip}"></property>
             <property name="javascript.basedir" value="${updateservice.settings.javascript.basedir}"></property>
