@@ -2,6 +2,7 @@
 package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
+import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -15,6 +16,7 @@ import javax.annotation.Resource;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
+import java.io.IOException;
 import java.util.Properties;
 
 //-----------------------------------------------------------------------------
@@ -37,10 +39,26 @@ public class OpenAgencyService {
 
         Boolean result = null;
         try {
-            result = libraryRules.isAllowed( Integer.valueOf( agencyId, 10 ), feature );
+            result = libraryRules.isAllowed( agencyId, feature );
 
             bizLogger.info( "Agency '{}' is allowed to use feature '{}': {}", agencyId, feature, result );
             return result;
+        }
+        catch( OpenAgencyException ex ) {
+            bizLogger.error( "Failed to read feature from OpenAgency for ['{}':'{}']: {}", agencyId, feature, ex.getMessage() );
+            try {
+                if( ex.getRequest() != null ) {
+                    bizLogger.error( "Request to OpenAgency:\n{}", Json.encodePretty( ex.getRequest() ) );
+                }
+                if( ex.getResponse() != null ) {
+                    bizLogger.error( "Response from OpenAgency:\n{}", Json.encodePretty( ex.getResponse() ) );
+                }
+            }
+            catch( IOException ioError ) {
+                bizLogger.error( "Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError );
+            }
+
+            throw ex;
         }
         finally {
             logger.exit( result );

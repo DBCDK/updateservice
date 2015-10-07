@@ -106,6 +106,7 @@ public class AuthenticateRecordAction extends AbstractAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Login user: {}/{}", this.authentication.getUserIdAut(), this.authentication.getGroupIdAut() );
             bizLogger.info( "Handling record:\n{}", record );
 
             List<ValidationError> errors = this.authenticator.authenticateRecord( this.record, this.authentication.getUserIdAut(), this.authentication.getGroupIdAut() );
@@ -128,6 +129,8 @@ public class AuthenticateRecordAction extends AbstractAction {
         catch( EJBException | ScripterException ex ) {
             Throwable businessException = findServiceException( ex );
             String message = String.format( messages.getString( "internal.authenticate.record.error" ), businessException.getMessage() );
+
+            bizLogger.error( message );
 
             logger.warn( "Exception doing authentication: ", businessException );
 
