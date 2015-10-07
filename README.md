@@ -34,6 +34,9 @@ så resourcen behøver ikke være transaktionssikker. Det anbefaldes at anvende 
 * *solr.url*: Angiver den fulde url til SOLR-indekset inkl. core.
 * *forsrights.url*: Angiver den fulde url til forsrights webservicen. Pt er det vigtigt at huske at afslutte url'en
 med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan updateservice ikke håndterer.
+* *openagency.url*: Angiver den fulde url til openagency webservicen. Pt er det vigtigt at huske at afslutte url'en
+                    med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan 
+                    updateservice ikke håndterer.
 * *auth.product.name*: Angiver navnet på det produkt, som forsrights skal returnerer for at brugeren har adgang til
 at bruge denne webservice.
 * *auth.use.ip*: Angiver om klientens IP-adresse skal sendes videre til forsrights webservice ved authentikation af

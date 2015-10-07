@@ -42,6 +42,7 @@
         <updateservice.settings.jndi.name>updateservice/settings</updateservice.settings.jndi.name>
         <updateservice.settings.solr.url>http://ifish-i01.dbc.dk:8082/solr/raapost-index</updateservice.settings.solr.url>
         <updateservice.settings.forsrights.url>http://forsrights.addi.dk/1.2/</updateservice.settings.forsrights.url>
+        <updateservice.settings.openagency.url>http://openagency.addi.dk/next_2.23/</updateservice.settings.openagency.url>
         <updateservice.settings.auth.product.name>netpunkt.dk</updateservice.settings.auth.product.name>
         <updateservice.settings.auth.use.ip>True</updateservice.settings.auth.use.ip>
         <updateservice.settings.javascript.basedir>${basedir}/../updateservice-system-tests-service/opencat-business</updateservice.settings.javascript.basedir>
