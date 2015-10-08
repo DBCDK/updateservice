@@ -117,7 +117,7 @@ public class AuthenticateRecordAction extends AbstractAction {
             String agencyId = MarcReader.getRecordValue( record, "001", "b" );
             if( result.hasErrors() ) {
                 bizLogger.warn( "Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut() );
-                result.setStatus( UpdateStatusEnum.VALIDATION_ERROR );
+                result.setStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
             }
             else {
                 bizLogger.info( "Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut() );

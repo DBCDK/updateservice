@@ -111,7 +111,7 @@ public class AuthenticateRecordActionTest {
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( auth );
 
-        ServiceResult expected = ServiceResult.newStatusResult( UpdateStatusEnum.VALIDATION_ERROR );
+        ServiceResult expected = ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
         expected.addEntry( err );
         assertThat( instance.performAction(), equalTo( expected ) );
 
