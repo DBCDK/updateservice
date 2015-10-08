@@ -11,6 +11,7 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.*;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Test;
 
@@ -246,10 +247,12 @@ public class UpdateRequestActionTest {
 
         RawRepo rawRepo = mock( RawRepo.class );
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setAuthenticator( authenticator );
         instance.setScripter( scripter );
@@ -279,6 +282,7 @@ public class UpdateRequestActionTest {
         UpdateOperationAction updateOperationAction = (UpdateOperationAction)child;
         assertThat( updateOperationAction.getRawRepo(), is( rawRepo ) );
         assertThat( updateOperationAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( updateOperationAction.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( updateOperationAction.getRecordsHandler(), is( recordsHandler ) );
         assertThat( updateOperationAction.getRecord(), equalTo( record ) );
         assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );

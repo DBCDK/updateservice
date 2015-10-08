@@ -14,6 +14,7 @@ import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.*;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.validate.Validator;
 import org.slf4j.MDC;
@@ -125,6 +126,7 @@ public class UpdateService implements CatalogingUpdatePortType {
 
             action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
             action.setHoldingsItems( holdingsItems );
+            action.setOpenAgencyService( openAgencyService );
             action.setRecordsHandler( recordsHandler );
             action.setAuthenticator( authenticator );
             action.setScripter( scripter );
@@ -315,6 +317,9 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     @EJB
     private HoldingsItems holdingsItems;
+
+    @EJB
+    private OpenAgencyService openAgencyService;
 
     /**
      * EJB for record validation.
