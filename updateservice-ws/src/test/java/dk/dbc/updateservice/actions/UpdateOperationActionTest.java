@@ -4,10 +4,13 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Test;
@@ -32,7 +35,9 @@ public class UpdateOperationActionTest {
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
-     *          A local single record.
+     *          <ol>
+     *              <li>A local single record.</li>
+     *          </ol>
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
@@ -70,6 +75,9 @@ public class UpdateOperationActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
         List<MarcRecord> rawRepoRecords = Arrays.asList( record );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
@@ -78,6 +86,7 @@ public class UpdateOperationActionTest {
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -92,12 +101,15 @@ public class UpdateOperationActionTest {
     }
 
     /**
-     * Test performAction(): Update a local record.
+     * Test performAction(): Update an enrichment record.
      *
      * <dl>
      *      <dt>Given</dt>
      *      <dd>
-     *          A local single record.
+     *          <ol>
+     *              <li>A local single record.</li>
+     *              <li>The library for the record being updated has the feature 'create_enrichments'</li>
+     *          </ol>
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
@@ -108,14 +120,14 @@ public class UpdateOperationActionTest {
      *          Create child actions:
      *          <ol>
      *              <li>AuthenticateRecordAction: Authentication of the record</li>
-     *              <li>UpdateLocalRecordAction: Update the local record</li>
+     *              <li>UpdateEnrichmentRecordAction: Update the local record</li>
      *          </ol>
      *          Return status: OK
      *      </dd>
      * </dl>
      */
     @Test
-    public void testPerformAction_EnrichmentRecord() throws Exception {
+    public void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
@@ -138,6 +150,9 @@ public class UpdateOperationActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
         List<MarcRecord> rawRepoRecords = Arrays.asList( enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
@@ -146,6 +161,7 @@ public class UpdateOperationActionTest {
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -157,6 +173,81 @@ public class UpdateOperationActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), enrichmentRecord, authenticator, authentication );
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
+    }
+
+    /**
+     * Test performAction(): Update an enrichment record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          <ol>
+     *              <li>A local single record.</li>
+     *              <li>The library for the record being updated has not the feature 'create_enrichments'</li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update the record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>AuthenticateRecordAction: Authentication of the record</li>
+     *              <li>UpdateLocalRecordAction: Update the local record</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
+        Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        Authenticator authenticator = mock( Authenticator.class );
+
+        Authentication authentication = mock( Authentication.class );
+        when( authentication.getGroupIdAut() ).thenReturn( GROUP_ID );
+        when( authentication.getUserIdAut() ).thenReturn( USER_ID );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( false );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( false );
+
+        List<MarcRecord> rawRepoRecords = Arrays.asList( enrichmentRecord );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
+
+        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, enrichmentRecord );
+        instance.setAuthenticator( authenticator );
+        instance.setAuthentication( authentication );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        assertThat( children.size(), is( 2 ) );
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), enrichmentRecord, authenticator, authentication );
+        AssertActionsUtil.assertUpdateLocalRecordAction( iterator.next(), rawRepo, enrichmentRecord, holdingsItems );
     }
 
     /**
@@ -190,6 +281,8 @@ public class UpdateOperationActionTest {
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        MarcRecordWriter writer = new MarcRecordWriter( enrichmentRecord );
+        writer.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
         Properties settings = new Properties();
@@ -207,6 +300,9 @@ public class UpdateOperationActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
         List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
@@ -215,6 +311,7 @@ public class UpdateOperationActionTest {
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 

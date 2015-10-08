@@ -13,10 +13,7 @@ import dk.dbc.updateservice.service.api.Options;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -47,6 +44,7 @@ public class UpdateRequestAction extends AbstractAction {
 
         this.rawRepo = rawRepo;
         this.holdingsItems = null;
+        this.openAgencyService = null;
         this.recordsHandler = null;
 
         this.request = request;
@@ -73,6 +71,14 @@ public class UpdateRequestAction extends AbstractAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public OpenAgencyService getOpenAgencyService() {
+        return openAgencyService;
+    }
+
+    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+        this.openAgencyService = openAgencyService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -199,6 +205,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setAuthenticator( this.authenticator );
         updateOperationAction.setAuthentication( request.getAuthentication() );
         updateOperationAction.setHoldingsItems( this.holdingsItems );
+        updateOperationAction.setOpenAgencyService( this.openAgencyService );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
         updateOperationAction.setSettings( settings );
 
@@ -417,6 +424,11 @@ public class UpdateRequestAction extends AbstractAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to the OpenAgency web service
+     */
+    private OpenAgencyService openAgencyService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

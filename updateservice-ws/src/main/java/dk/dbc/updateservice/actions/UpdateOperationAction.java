@@ -7,15 +7,14 @@ import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -58,6 +57,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.authenticator = null;
         this.authentication = null;
         this.holdingsItems = null;
+        this.openAgencyService = null;
         this.recordsHandler = null;
         this.settings = null;
 
@@ -86,6 +86,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public OpenAgencyService getOpenAgencyService() {
+        return openAgencyService;
+    }
+
+    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+        this.openAgencyService = openAgencyService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -158,7 +166,10 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     children.add( action );
                 }
                 else {
-                    if( commonRecordExists( records, rec ) ) {
+                    if( commonRecordExists( records, rec ) &&
+                        ( agencyId.equals( RawRepo.COMMON_LIBRARY ) ||
+                          openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ) )
+                    {
                         UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, rec );
                         action.setRecordsHandler( recordsHandler );
                         action.setHoldingsItems( holdingsItems );
@@ -178,7 +189,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
             return result = ServiceResult.newOkResult();
         }
-        catch( ScripterException ex ) {
+        catch( ScripterException | OpenAgencyException ex ) {
             return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage() );
         }
         finally {
@@ -334,6 +345,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to the OpenAgency web service
+     */
+    private OpenAgencyService openAgencyService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.
