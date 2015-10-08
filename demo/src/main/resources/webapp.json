@@ -9,7 +9,7 @@
             ],
             "deployment": {
                 "file": "updateservice-app-1.0-SNAPSHOT.ear",
-                "name": "updateservice"
+                "name": "updateservice-app-1.0-SNAPSHOT"
             },
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
@@ -27,7 +27,7 @@
             ],
             "deployment": {
                 "file": "updateservice-app-1.0-SNAPSHOT.ear",
-                "name": "updateservice"
+                "name": "updateservice-app-1.0-SNAPSHOT"
             },
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
