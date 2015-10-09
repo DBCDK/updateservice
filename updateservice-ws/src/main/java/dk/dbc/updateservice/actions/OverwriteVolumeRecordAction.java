@@ -66,14 +66,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
-            //if( !getRecordsHandler().hasClassificationData( record ) ) {
-            //    return performStoreRecord();
-            //}
-
             MarcRecord currentRecord = loadCurrentRecord();
-            //if( !getRecordsHandler().hasClassificationsChanged( currentRecord, record ) ) {
-            //    return performStoreRecord();
-            //}
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
             children.add( new RemoveLinksAction( rawRepo, record ) );
@@ -91,24 +84,6 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         finally {
             logger.exit( result );
         }
-    }
-
-    @Override
-    protected ServiceResult performStoreRecord() {
-        logger.entry();
-
-        try {
-            children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
-            children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
-
-            return ServiceResult.newOkResult();
-        }
-        finally {
-            logger.exit();
-        }
-
     }
 
     //-------------------------------------------------------------------------

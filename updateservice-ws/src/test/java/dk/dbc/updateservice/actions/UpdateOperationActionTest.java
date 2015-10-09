@@ -322,7 +322,7 @@ public class UpdateOperationActionTest {
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), record, authenticator, authentication );
-        AssertActionsUtil.assertUpdateCommonRecordAction( iterator.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems );
+        AssertActionsUtil.assertUpdateCommonRecordAction( iterator.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems, openAgencyService );
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
     }
 

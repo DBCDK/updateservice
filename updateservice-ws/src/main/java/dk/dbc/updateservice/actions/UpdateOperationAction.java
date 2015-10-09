@@ -160,6 +160,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
                     action.setRecordsHandler( recordsHandler );
+                    action.setOpenAgencyService( openAgencyService );
                     action.setHoldingsItems( holdingsItems );
                     action.setSettings( settings );
 

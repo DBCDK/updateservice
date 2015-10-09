@@ -7,10 +7,7 @@ import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -31,6 +28,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
         this.groupId = null;
         this.holdingsItems = null;
+        this.openAgencyService = null;
         this.recordsHandler = null;
         this.settings = null;
     }
@@ -49,6 +47,14 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public OpenAgencyService getOpenAgencyService() {
+        return openAgencyService;
+    }
+
+    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+        this.openAgencyService = openAgencyService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -92,6 +98,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             action.setGroupId( groupId );
             action.setHoldingsItems( holdingsItems );
+            action.setOpenAgencyService( openAgencyService );
             action.setRecordsHandler( recordsHandler );
             action.setSettings( settings );
 
@@ -121,6 +128,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to the OpenAgency web service
+     */
+    private OpenAgencyService openAgencyService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.
