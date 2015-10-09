@@ -5,6 +5,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -109,12 +110,15 @@ public class UpdateSingleRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( record ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();
@@ -132,6 +136,7 @@ public class UpdateSingleRecordTest {
         assertThat( action.getRecord(), is( record ) );
         assertThat( action.getGroupId(), equalTo( 700000 ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( action.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
         assertThat( action.getSettings(), equalTo( settings ) );
     }

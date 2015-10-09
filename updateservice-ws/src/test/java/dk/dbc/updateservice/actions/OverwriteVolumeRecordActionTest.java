@@ -8,9 +8,11 @@ import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.records.SortRecordByName;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -300,6 +302,9 @@ public class OverwriteVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( eq( "700100" ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( volumeRecord ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( true );
@@ -308,6 +313,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -383,6 +389,9 @@ public class OverwriteVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( volumeRecord ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( true );
@@ -390,6 +399,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();
@@ -485,6 +495,10 @@ public class OverwriteVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
+        when( openAgencyService.hasFeature( eq( newEnrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( volumeRecord ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( volumeRecord ), eq( volumeRecord ) ) ).thenReturn( true );
@@ -493,6 +507,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -590,6 +605,9 @@ public class OverwriteVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( v1 ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( eq( e1AgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( eq( v1 ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
@@ -598,6 +616,7 @@ public class OverwriteVolumeRecordActionTest {
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();

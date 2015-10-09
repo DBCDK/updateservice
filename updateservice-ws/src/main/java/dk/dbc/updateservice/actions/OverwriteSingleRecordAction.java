@@ -8,6 +8,8 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -30,6 +32,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         this.groupId = null;
         this.holdingsItems = null;
+        this.openAgencyService = null;
         this.recordsHandler = null;
         this.settings = null;
 
@@ -50,6 +53,14 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public OpenAgencyService getOpenAgencyService() {
+        return openAgencyService;
+    }
+
+    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+        this.openAgencyService = openAgencyService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -102,22 +113,6 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected ServiceResult performStoreRecord() {
-        logger.entry();
-
-        try {
-            children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
-            children.add( new RemoveLinksAction( rawRepo, record ) );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
-
-            return ServiceResult.newOkResult();
-        }
-        finally {
-            logger.exit();
-        }
-
-    }
-
     protected MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
 
@@ -150,6 +145,11 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     RawRepoDecoder decoder = new RawRepoDecoder();
                     for (Integer id : holdingsLibraries) {
                         logger.info("Local library for record: {}", id);
+
+                        if( !openAgencyService.hasFeature( id.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) {
+                            continue;
+                        }
+
                         if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = decoder.decodeRecord( extRecord.getContent() );
@@ -192,6 +192,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             return result;
         }
+        catch( OpenAgencyException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
+        }
         finally {
             logger.exit( result );
         }
@@ -220,6 +223,10 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
 
                     for( Integer holdingAgencyId : holdingAgencies ) {
+                        if( !openAgencyService.hasFeature( holdingAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) {
+                            continue;
+                        }
+
                         if( !enrichmentIds.contains( new RecordId( recordId, holdingAgencyId ) ) ) {
                             CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
                             action.setUpdatingCommonRecord( record );
@@ -235,6 +242,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
                 for( RecordId enrichmentId : enrichmentIds ) {
                     if( enrichmentId.getAgencyId() == RawRepo.COMMON_LIBRARY ) {
+                        continue;
+                    }
+                    if( !openAgencyService.hasFeature( String.valueOf( enrichmentId.getAgencyId() ), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) {
                         continue;
                     }
 
@@ -253,6 +263,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             }
 
             return result;
+        }
+        catch( OpenAgencyException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             logger.exit( result );
@@ -277,6 +290,11 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to the OpenAgency web service
+     */
+    private OpenAgencyService openAgencyService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

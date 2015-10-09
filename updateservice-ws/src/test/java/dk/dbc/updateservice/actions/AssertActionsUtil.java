@@ -163,7 +163,7 @@ public class AssertActionsUtil {
         Assert.assertThat( updateEnrichmentRecordAction.getHoldingsItems(), is( holdingsItems ) );
     }
 
-    public static void assertUpdateCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, Integer groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems ) {
+    public static void assertUpdateCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, Integer groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( UpdateCommonRecordAction.class.getName() ) );
 
@@ -173,6 +173,7 @@ public class AssertActionsUtil {
         Assert.assertThat( updateCommonRecordAction.getGroupId(), equalTo( groupId ) );
         Assert.assertThat( updateCommonRecordAction.getRecordsHandler(), is( recordsHandler ) );
         Assert.assertThat( updateCommonRecordAction.getHoldingsItems(), is( holdingsItems ) );
+        Assert.assertThat( updateCommonRecordAction.getOpenAgencyService(), is( openAgencyService ) );
     }
 
     public static void assertStoreRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {

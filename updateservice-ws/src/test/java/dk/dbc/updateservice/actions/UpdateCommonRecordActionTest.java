@@ -3,8 +3,10 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,12 +57,15 @@ public class UpdateCommonRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( record ) ).thenReturn( false );
 
         UpdateCommonRecordAction instance = new UpdateCommonRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -74,6 +79,7 @@ public class UpdateCommonRecordActionTest {
         assertThat( action.getRecord(), is( record ) );
         assertThat( action.getGroupId(), equalTo( 700000 ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( action.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
     }
 
@@ -115,12 +121,15 @@ public class UpdateCommonRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( volumeRecord ) ).thenReturn( false );
 
         UpdateCommonRecordAction instance = new UpdateCommonRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -134,6 +143,7 @@ public class UpdateCommonRecordActionTest {
         assertThat( action.getRecord(), is( volumeRecord ) );
         assertThat( action.getGroupId(), equalTo( 700000 ) );
         assertThat( action.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( action.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
     }
 }
