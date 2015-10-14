@@ -2,6 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -60,13 +61,13 @@ public class MoveEnrichmentRecordActionTest {
         when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
-        instance.setCurrentCommonRecord( c2 );
-        instance.setUpdatingCommonRecord( c2 );
+        instance.setCommonRecord( c2 );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
 

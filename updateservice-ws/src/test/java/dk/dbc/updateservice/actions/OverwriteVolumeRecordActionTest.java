@@ -597,6 +597,7 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.recordExists( eq( v2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( v1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( v1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( v2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( v2, MarcXChangeMimeType.MARCXCHANGE ) );
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
         when( rawRepo.agenciesForRecord( eq( v1 ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( rawRepo.enrichments( eq( new RecordId( v2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
@@ -629,7 +630,7 @@ public class OverwriteVolumeRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, record, mainRecord );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, v1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), instance.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );

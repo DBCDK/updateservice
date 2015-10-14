@@ -1073,6 +1073,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
@@ -1099,7 +1100,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, c1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1170,6 +1171,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
@@ -1339,6 +1341,7 @@ public class OverwriteSingleRecordActionTest {
         final Integer localAgencyId = 700400;
 
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
         MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
@@ -1350,6 +1353,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
@@ -1374,7 +1378,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, record, localAgencyId );
+        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1429,6 +1433,7 @@ public class OverwriteSingleRecordActionTest {
         final Integer localAgencyId = 700400;
 
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
         MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
@@ -1440,6 +1445,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
@@ -1516,6 +1522,7 @@ public class OverwriteSingleRecordActionTest {
         final Integer localAgencyId = 700400;
 
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
@@ -1532,6 +1539,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
@@ -1558,7 +1566,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, c1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1613,6 +1621,7 @@ public class OverwriteSingleRecordActionTest {
         final Integer localAgencyId = 700400;
 
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
@@ -1629,6 +1638,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
