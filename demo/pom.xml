@@ -29,8 +29,8 @@
         <postgresql.holdings.user>${user.name}</postgresql.holdings.user>
         <postgresql.holdings.passwd>${user.name}</postgresql.holdings.passwd>
 
-        <glassfish.url>http://download.java.net/glassfish/4.0/release/glassfish-4.0.zip</glassfish.url>
-        <glassfish.artifact>glassfish-4.0.zip</glassfish.artifact>
+        <glassfish.url>http://download.java.net/glassfish/4.1.1/release/glassfish-4.1.1.zip</glassfish.url>
+        <glassfish.artifact>glassfish-4.1.1.zip</glassfish.artifact>
         <glassfish.domain.dataio.portbase>18100</glassfish.domain.dataio.portbase>
         <glassfish.domain.dataio.http.port>18180</glassfish.domain.dataio.http.port>
         <glassfish.domain.dataio.admin.port>18148</glassfish.domain.dataio.admin.port>
