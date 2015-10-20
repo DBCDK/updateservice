@@ -211,12 +211,16 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             Integer agencyId = Integer.valueOf( recordReader.getValue( "001", "b" ) );
 
+            logger.info( "Is classifications changed in record '{{}:{}}': {}", recordReader.getValue( "001", "a" ), agencyId, classificationsChanged );
+
             for( String recordId : recordReader.getValues( "002", "a" ) ) {
                 if( currentRecordReader.hasValue( "002", "a", recordId ) ) {
+                    logger.info( "002 linked record '{}' is not changed, so it is not handled.", recordId );
                     continue;
                 }
 
                 if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                    logger.warn( "002 linked record '{}' does not exist", recordId );
                     String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
                     return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                 }
