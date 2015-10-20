@@ -66,7 +66,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepoRecord.setDeleted( deletionMarkToStore() );
             rawRepoRecord.setTrackingId( MDC.get( UpdateService.TRACKING_ID_LOG_CONTEXT ) );
             rawRepo.saveRecord( rawRepoRecord );
+
             bizLogger.info( "Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId() );
+            logger.debug( "Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId() );
 
             return result = ServiceResult.newOkResult();
         }

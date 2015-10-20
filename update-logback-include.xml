@@ -50,30 +50,8 @@
         </sift>
     </appender>
 
-    <appender name="ERRFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
-        <discriminator>
-            <key>requestId</key>
-            <defaultValue>unknown</defaultValue>
-        </discriminator>
-        <sift>
-            <appender name="ERRFILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}-warn-err.log</file>
-                <append>false</append>
-
-                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                    <level>WARN</level>
-                </filter>
-
-                <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date %level [%thread] [Update:%X{trackingId}] %logger{35} [%file:%line] - %msg%n</pattern>
-                </layout>
-            </appender>
-        </sift>
-    </appender>
-
-    <root level="TRACE">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="BIZFILE"/>
-        <appender-ref ref="ERRFILE"/>
     </root>
 </included>

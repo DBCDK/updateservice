@@ -126,11 +126,11 @@ public class ValidateRecordAction extends AbstractAction {
             String recordId = MarcReader.getRecordValue( record, "001", "a" );
             String agencyId = MarcReader.getRecordValue( record, "001", "b" );
             if( result.hasErrors() ) {
-                bizLogger.error( String.format( "Record {%s:%s} contains validation errors.", recordId, agencyId ) );
+                bizLogger.error( "Record {{}:{}} contains validation errors.", recordId, agencyId );
                 result.setStatus( UpdateStatusEnum.VALIDATION_ERROR );
             }
             else {
-                bizLogger.info( String.format( "Record {%s:%s} has validated successfully.", recordId, agencyId ) );
+                bizLogger.info( "Record {{}:{}} has validated successfully.", recordId, agencyId );
                 result.setStatus( okStatus );
             }
 
@@ -138,7 +138,7 @@ public class ValidateRecordAction extends AbstractAction {
         }
         catch( IOException | ScripterException ex ) {
             String message = String.format( messages.getString( "internal.validate.record.error" ), ex.getMessage() );
-            bizLogger.error( message, ex );
+            logger.error( message, ex );
             return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message );
         }
         finally {
