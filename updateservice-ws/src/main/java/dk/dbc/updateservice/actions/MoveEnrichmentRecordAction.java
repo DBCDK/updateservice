@@ -7,11 +7,14 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
@@ -34,7 +37,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         this.commonRecord = null;
         this.recordsHandler = null;
         this.holdingsItems = null;
-        this.providerId = null;
+        this.settings = null;
     }
 
     public MarcRecord getCommonRecord() {
@@ -61,12 +64,12 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         this.holdingsItems = holdingsItems;
     }
 
-    public String getProviderId() {
-        return providerId;
+    public Properties getSettings() {
+        return settings;
     }
 
-    public void setProviderId( String providerId ) {
-        this.providerId = providerId;
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     /**
@@ -84,49 +87,133 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+            children.add( createDeleteEnrichmentAction() );
+            children.add( createMoveEnrichmentToCommonRecordAction() );
 
+            return result = ServiceResult.newOkResult();
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    /**
+     * Constructs an action to delete the enrichment record in this action.
+     *
+     * @return An instance of UpdateEnrichmentRecordAction
+     */
+    private ServiceAction createDeleteEnrichmentAction() {
+        logger.entry();
+
+        ServiceAction result = null;
+        try {
+            MarcRecord deleteRecord = new MarcRecord( record );
+
+            String recordId = MarcReader.getRecordValue( deleteRecord, "001", "a" );
+            String agencyId = MarcReader.getRecordValue( deleteRecord, "001", "b" );
+
+            bizLogger.info( "Create action to delete old enrichment record {{}:{}}", recordId, agencyId );
+            MarcWriter.addOrReplaceSubfield( deleteRecord, "004", "r", "d" );
+
+            return createUpdateRecordAction( deleteRecord );
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    /**
+     * Constructs an action to delete the enrichment record in this action.
+     *
+     * @return An instance of UpdateEnrichmentRecordAction
+     */
+    private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
+        logger.entry();
+
+        ServiceAction result = null;
+        try {
             String commonRecordId = MarcReader.getRecordValue( commonRecord, "001", "a" );
             MarcRecord newEnrichmentRecord = new MarcRecord( record );
             MarcWriter.addOrReplaceSubfield( newEnrichmentRecord, "001", "a", commonRecordId );
 
-            UpdateEnrichmentRecordAction action;
-
-            bizLogger.info( "Create action to delete old enrichment record {{}:{}}", recordId, agencyId );
-            MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
-            action = new UpdateEnrichmentRecordAction( rawRepo, record );
-            action.setRecordsHandler( recordsHandler );
-            action.setHoldingsItems( holdingsItems );
-            action.setProviderId( providerId );
-            children.add( action );
-
+            String recordId = MarcReader.getRecordValue( record, "001", "a" );
+            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
             bizLogger.info( "Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId );
 
             if( recordsHandler.hasClassificationData( newEnrichmentRecord ) ) {
-                action = new UpdateEnrichmentRecordAction( rawRepo, newEnrichmentRecord );
-                action.setRecordsHandler( recordsHandler );
-                action.setHoldingsItems( holdingsItems );
-                action.setProviderId( providerId );
-                children.add( action );
-            }
-            else {
-                MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ).getContent() );
-
-                UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
-                updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord( currentCommonRecord );
-                updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord( currentCommonRecord );
-                updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord( newEnrichmentRecord );
-                updateClassificationsInEnrichmentRecordAction.setAgencyId( Integer.valueOf( MarcReader.getRecordValue( newEnrichmentRecord, "001", "b" ), 10 ) );
-                updateClassificationsInEnrichmentRecordAction.setRecordsHandler( recordsHandler );
-                updateClassificationsInEnrichmentRecordAction.setProviderId( providerId );
-                children.add( updateClassificationsInEnrichmentRecordAction );
+                return createUpdateRecordAction( newEnrichmentRecord );
             }
 
-            return result = ServiceResult.newOkResult();
+            MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ).getContent() );
+
+            ServiceResult currentCommonRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, currentCommonRecord, currentCommonRecord );
+            ServiceResult newCommonRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, commonRecord, commonRecord );
+
+            boolean isCurrentCommonRecordPublished = currentCommonRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
+            boolean isNewCommonRecordPublished = newCommonRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
+
+            if( isCurrentCommonRecordPublished || isNewCommonRecordPublished ) {
+                return createUpdateRecordAndClassificationsAction( newEnrichmentRecord, currentCommonRecord );
+            }
+
+            return createUpdateRecordAction( newEnrichmentRecord );
         }
         catch( ScripterException | UnsupportedEncodingException ex ) {
             throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    /**
+     * Constructs an action to update a record where classification data is
+     * not updated.
+     *
+     * @param updateRecord The record to update.
+     *
+     * @return An instance of UpdateEnrichmentRecordAction
+     */
+    private ServiceAction createUpdateRecordAction( MarcRecord updateRecord ) {
+        logger.entry();
+
+        ServiceAction result = null;
+        try {
+            UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, updateRecord );
+            action.setRecordsHandler( recordsHandler );
+            action.setHoldingsItems( holdingsItems );
+            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+            return action;
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    /**
+     * Constructs an action to update a record where classification data is
+     * updated.
+     *
+     * @param updateRecord The record to update.
+     * @param commonRecord The common record to copy classifications data from.
+     *
+     * @return An instance of UpdateEnrichmentRecordAction
+     */
+    private ServiceAction createUpdateRecordAndClassificationsAction( MarcRecord updateRecord, MarcRecord commonRecord ) {
+        logger.entry();
+
+        ServiceAction result = null;
+        try {
+            UpdateClassificationsInEnrichmentRecordAction action = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
+            action.setCurrentCommonRecord( commonRecord );
+            action.setUpdatingCommonRecord( commonRecord );
+            action.setEnrichmentRecord( updateRecord );
+            action.setAgencyId( Integer.valueOf( MarcReader.getRecordValue( updateRecord, "001", "b" ), 10 ) );
+            action.setRecordsHandler( recordsHandler );
+            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+            return action;
         }
         finally {
             logger.exit( result );
@@ -145,5 +232,5 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private LibraryRecordsHandler recordsHandler;
 
     private HoldingsItems holdingsItems;
-    private String providerId;
+    private Properties settings;
 }

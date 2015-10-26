@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
@@ -44,6 +45,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.recordsHandler = null;
         this.currentCommonRecord = null;
         this.updatingCommonRecord = null;
+        this.commonRecordId = null;
         this.providerId = null;
     }
 
@@ -81,6 +83,14 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
     public void setUpdatingCommonRecord( MarcRecord updatingCommonRecord ) {
         this.updatingCommonRecord = updatingCommonRecord;
+    }
+
+    public String getCommonRecordId() {
+        return commonRecordId;
+    }
+
+    public void setCommonRecordId( String commonRecordId ) {
+        this.commonRecordId = commonRecordId;
     }
 
     public String getProviderId() {
@@ -149,11 +159,18 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     public MarcRecord createRecord() throws ScripterException {
         logger.entry();
 
+        MarcRecord result = null;
         try {
-            return recordsHandler.createLibraryExtendedRecord( currentCommonRecord, updatingCommonRecord, agencyId );
+            result = recordsHandler.createLibraryExtendedRecord( currentCommonRecord, updatingCommonRecord, agencyId );
+            if( commonRecordId != null ) {
+                MarcRecordWriter writer = new MarcRecordWriter( result );
+                writer.addOrReplaceSubfield( "001", "a", commonRecordId );
+            }
+
+            return result;
         }
         finally {
-            logger.exit();
+            logger.exit( result );
         }
     }
 
@@ -188,6 +205,20 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
      * Common record that is being updated.
      */
     protected MarcRecord updatingCommonRecord;
+
+    /**
+     * Record id to assign to the new enrichment record.
+     * <p>
+     *     Normally we use the record id from the common record that is used to create
+     *     the enrichment record. But in a special case where we create an enrichment
+     *     in the process of merging two common records with field 002 we need to assign the
+     *     enrichment record to another common record.
+     * </p>
+     * <p>
+     *     This property is used in that case. In other cases this member will be null.
+     * </p>
+     */
+    protected String commonRecordId;
 
     /**
      * Agency id of the library that will own the produced enrichment record.

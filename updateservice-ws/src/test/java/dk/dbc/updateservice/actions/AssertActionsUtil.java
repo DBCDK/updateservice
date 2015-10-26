@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -218,7 +219,7 @@ public class AssertActionsUtil {
         assertThat( removeLinksAction.getRecord(), is( record ) );
     }
 
-    public static void assertCreateEnrichmentAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, Integer agencyId ) {
+    public static void assertCreateEnrichmentAction( ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, Integer agencyId, String commonRecordId ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( CreateEnrichmentRecordWithClassificationsAction.class.getName() ) );
 
@@ -226,6 +227,7 @@ public class AssertActionsUtil {
         assertThat( createEnrichmentRecordWithClassificationsAction.getRawRepo(), is( rawRepo ) );
         assertThat( createEnrichmentRecordWithClassificationsAction.getUpdatingCommonRecord(), equalTo( commonRecord ) );
         assertThat( createEnrichmentRecordWithClassificationsAction.getAgencyId(), equalTo( agencyId ) );
+        assertThat( createEnrichmentRecordWithClassificationsAction.getCommonRecordId(), equalTo( commonRecordId) );
     }
 
     public static void assertUpdateEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
@@ -261,7 +263,7 @@ public class AssertActionsUtil {
         assertThat( enqueueRecordAction.getMimetype(), equalTo( mimetype ) );
     }
 
-    public static void assertMoveEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, String providerId ) {
+    public static void assertMoveEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, Properties settings ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( MoveEnrichmentRecordAction.class.getName() ) );
 
@@ -269,7 +271,7 @@ public class AssertActionsUtil {
         assertThat( moveEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( moveEnrichmentRecordAction.getRecord(), is( record ) );
         assertThat( moveEnrichmentRecordAction.getCommonRecord(), is( commonRecord ) );
-        assertThat( moveEnrichmentRecordAction.getProviderId(), equalTo( providerId ) );
+        assertThat( moveEnrichmentRecordAction.getSettings(), equalTo( settings ) );
     }
 
     //-------------------------------------------------------------------------
