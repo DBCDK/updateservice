@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -11,11 +12,14 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 //-----------------------------------------------------------------------------
 /**
@@ -66,11 +70,15 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
+            String parentId = MarcReader.readParentId( this.record );
             if( MarcReader.markedForDeletion( this.record ) ) {
-                return performDeletionAction();
+                if( parentId == null ) {
+                    return performSingleDeleteAction();
+                }
+
+                return performVolumeDeleteAction();
             }
 
-            String parentId = MarcReader.readParentId( this.record );
             if( parentId == null ) {
                 return performUpdateSingleRecordAction();
             }
@@ -189,7 +197,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      *
      * @throws UpdateException In case of critical errors.
      */
-    private ServiceResult performDeletionAction() throws UpdateException {
+    private ServiceResult performSingleDeleteAction() throws UpdateException {
         logger.entry();
 
         try {
@@ -220,6 +228,42 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         }
         finally {
             logger.exit();
+        }
+    }
+
+    private ServiceResult performVolumeDeleteAction() throws UpdateException {
+        logger.entry();
+
+        ServiceResult result = null;
+        try {
+            result = performSingleDeleteAction();
+            if( result.getStatus() != UpdateStatusEnum.OK ) {
+                return result;
+            }
+
+            String parentId = MarcReader.readParentId( this.record );
+            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( this.record, "001", "b" ), 10 );
+
+            Set<RecordId> children = rawRepo.children( new RecordId( parentId, agencyId ) );
+            if( children.size() != 1 ) {
+                return result = ServiceResult.newOkResult();
+            }
+
+            MarcRecord mainRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( parentId, agencyId ).getContent() );
+            MarcWriter.addOrReplaceSubfield( mainRecord, "004", "r", "d" );
+
+            UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, mainRecord );
+            action.setHoldingsItems( holdingsItems );
+            action.setProviderId( providerId );
+            this.children.add( action );
+
+            return ServiceResult.newOkResult();
+        }
+        catch( UnsupportedEncodingException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
+        }
+        finally {
+            logger.exit( result );
         }
     }
 

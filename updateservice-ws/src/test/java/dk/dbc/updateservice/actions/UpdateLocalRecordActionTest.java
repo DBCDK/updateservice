@@ -7,18 +7,17 @@ import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.records.MarcWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -353,6 +352,76 @@ public class UpdateLocalRecordActionTest {
         assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( enqueueRecordAction.getRecord(), is( record ) );
         assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
+    }
+
+    /**
+     * Test UpdateLocalRecordAction.performAction(): Delete the last volume record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A raw repo with two records:
+     *          <ol>
+     *              <li>Main record <code>m</code></li>
+     *              <li>Volume record <code>v</code></li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Delete the record <code>v</code>
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>DeleteRecordAction: Deletes the record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *              <li>UpdateLocalRecordAction: Delete the main record <code>m</code></li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteLastVolumeRecord() throws Exception {
+        MarcRecord mainRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE );
+        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+
+        String mainRecordId = AssertActionsUtil.getRecordId( mainRecord );
+        String recordId = AssertActionsUtil.getRecordId( record );
+        Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( mainRecord, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( recordId ), eq( agencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( record, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.children( eq( new RecordId( mainRecordId, agencyId ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( record ) );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( AssertActionsUtil.createRecordSet() );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+
+        String providerId = "xxx";
+        instance.setProviderId( providerId );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE );
+
+        MarcWriter.addOrReplaceSubfield( mainRecord, "004", "r", "d" );
+        AssertActionsUtil.assertUpdateLocalRecordAction( iterator.next(), rawRepo, mainRecord, holdingsItems );
+
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**
