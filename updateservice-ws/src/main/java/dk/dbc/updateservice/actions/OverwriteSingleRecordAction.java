@@ -212,7 +212,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             String destinationCommonRecordId = recordReader.getValue( "001", "a" );
             Integer agencyId = Integer.valueOf( recordReader.getValue( "001", "b" ) );
 
-            logger.info( "Is classifications changed in record '{{}:{}}': {}", recordReader.getValue( "001", "a" ), agencyId, classificationsChanged );
+            logger.info( "Is classifications changed in record '{{}:{}}': {}", destinationCommonRecordId, agencyId, classificationsChanged );
 
             for( String recordId : recordReader.getValues( "002", "a" ) ) {
                 if( currentRecordReader.hasValue( "002", "a", recordId ) ) {
