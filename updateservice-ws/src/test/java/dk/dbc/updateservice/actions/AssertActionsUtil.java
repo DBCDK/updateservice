@@ -43,6 +43,8 @@ public class AssertActionsUtil {
     public static final String COMMON_MAIN_RECORD_RESOURCE = "rawrepo-main.marc";
     public static final String COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE = "rawrepo-main-enrichment.marc";
     public static final String COMMON_VOLUME_RECORD_RESOURCE = "rawrepo-volume.marc";
+    public static final String LOCAL_MAIN_RECORD_RESOURCE = "rawrepo-local-main.marc";
+    public static final String LOCAL_VOLUME_RECORD_RESOURCE = "rawrepo-local-volume.marc";
     public static final String ENRICHMENT_SINGLE_RECORD_RESOURCE = "enrichment.marc";
     public static final String LOCAL_SINGLE_RECORD_RESOURCE = "book.marc";
 
