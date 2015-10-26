@@ -308,7 +308,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( children.get( 1 ), rawRepo, record );
-        AssertActionsUtil.assertCreateEnrichmentAction( children.get( 2 ), rawRepo, record, 700100 );
+        AssertActionsUtil.assertCreateEnrichmentAction( children.get( 2 ), rawRepo, record, 700100, null );
         AssertActionsUtil.assertEnqueueRecordAction( children.get( 3 ), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
     }
 
@@ -717,7 +717,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction( iterator.next(), rawRepo, record, enrichmentRecord );
-        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, record, newEnrichmentAgencyId );
+        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, record, newEnrichmentAgencyId, null );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
     }
 
@@ -1100,7 +1100,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1316,6 +1316,7 @@ public class OverwriteSingleRecordActionTest {
      *                  A library has holdings for <code>c2</code> but no enrichment records.
      *              </li>
      *          </ol>
+     *          Both common records are published.
      *      </dd>
      *      <dt>When</dt>
      *      <dd>
@@ -1328,6 +1329,7 @@ public class OverwriteSingleRecordActionTest {
      *          <ol>
      *              <li>StoreRecordAction: Store the record</li>
      *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>CreateEnrichmentRecordWithClassificationsAction: Create enrichment record for the local agency with holdings.</li>
      *              <li>EnqueueRecordAction: Put the record in queue</li>
      *          </ol>
      *          Return status: OK
@@ -1335,7 +1337,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments() throws Exception {
+    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
@@ -1365,6 +1367,8 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
@@ -1378,7 +1382,284 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId );
+        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId, c1RecordId );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with changes to
+     * its current classifications and with new 002 to an existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  A library has holdings for <code>c2</code> but no enrichment records.
+     *              </li>
+     *          </ol>
+     *          Only <code>c1</code> is published.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with changes to classifications and a new 002 field that
+     *          points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>CreateEnrichmentRecordWithClassificationsAction: Create enrichment record for the local agency with holdings.</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+        final Integer localAgencyId = 700400;
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( localAgencyId );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId, c1RecordId );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with changes to
+     * its current classifications and with new 002 to an existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  A library has holdings for <code>c2</code> but no enrichment records.
+     *              </li>
+     *          </ol>
+     *          Only <code>c2</code> is published.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with changes to classifications and a new 002 field that
+     *          points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>CreateEnrichmentRecordWithClassificationsAction: Create enrichment record for the local agency with holdings.</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsNotPublished() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+        final Integer localAgencyId = 700400;
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( localAgencyId );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId, c1RecordId );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Update single common record with changes to
+     * its current classifications and with new 002 to an existing common
+     * record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with this content:
+     *          <ol>
+     *              <li>
+     *                  A common record <code>c1</code>. This record is to be updated.
+     *              </li>
+     *              <li>
+     *                  A common record <code>c2</code>. This record is a duplicate of
+     *                  <code>c1</code> but with a different faust-id.
+     *              </li>
+     *              <li>
+     *                  A library has holdings for <code>c2</code> but no enrichment records.
+     *              </li>
+     *          </ol>
+     *          None of the common records are published.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update record <code>c1</code> with changes to classifications and a new 002 field that
+     *          points to <code>c2</code>.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
+        final String c1RecordId = "1 234 567 8";
+        final String c2RecordId = "2 345 678 9";
+        final Integer localAgencyId = 700400;
+
+        MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
+        MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
+
+        MarcRecord record = new MarcRecord( c1 );
+        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( c1RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c1, MarcXChangeMimeType.MARCXCHANGE ) );
+        when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+
+        OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( localAgencyId );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1566,7 +1847,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        AssertActionsUtil.assertMoveEnrichmentRecordAction( iterator.next(), rawRepo, e1, record, settings );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );

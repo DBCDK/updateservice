@@ -209,6 +209,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             MarcRecordReader currentRecordReader = new MarcRecordReader( currentRecord );
             MarcRecordReader recordReader = new MarcRecordReader( record );
 
+            String destinationCommonRecordId = recordReader.getValue( "001", "a" );
             Integer agencyId = Integer.valueOf( recordReader.getValue( "001", "b" ) );
 
             logger.info( "Is classifications changed in record '{{}:{}}': {}", recordReader.getValue( "001", "a" ), agencyId, classificationsChanged );
@@ -225,27 +226,51 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                 }
 
-                MarcRecord linkRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, agencyId ).getContent() );
-
                 if( classificationsChanged ) {
                     Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsFor( recordId );
                     Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
 
+                    if( holdingAgencies.isEmpty() ) {
+                        logger.info( "No holdings found for record id '{}'", recordId );
+                    }
+
                     for( Integer holdingAgencyId : holdingAgencies ) {
                         if( !openAgencyService.hasFeature( holdingAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) {
+                            bizLogger.info( "Ignoring holdings for agency '{}', because they do not have the feature '{}'", holdingAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS );
                             continue;
                         }
 
                         if( !enrichmentIds.contains( new RecordId( recordId, holdingAgencyId ) ) ) {
-                            CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
-                            action.setUpdatingCommonRecord( linkRecord );
-                            action.setCurrentCommonRecord( linkRecord );
-                            action.setRecordsHandler( recordsHandler );
-                            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+                            bizLogger.warn( "No enrichments found for record '{}' for agency '{}' with holdings: {}", recordId, holdingAgencyId );
+                            MarcRecord linkRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, agencyId ).getContent() );
 
-                            children.add( action );
+                            ServiceResult linkRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, linkRecord, linkRecord );
+                            ServiceResult requestRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, record, record );
+
+                            logger.debug( "Linked record is published: {}", linkRecordShouldCreateEnrichments );
+                            logger.debug( "Request record is published: {}", requestRecordShouldCreateEnrichments );
+
+                            boolean isLinkRecordPublished = linkRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
+                            boolean isRequestRecordPublished = requestRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
+
+                            if( isLinkRecordPublished || isRequestRecordPublished ) {
+                                CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
+                                action.setUpdatingCommonRecord( linkRecord );
+                                action.setCurrentCommonRecord( linkRecord );
+                                action.setCommonRecordId( destinationCommonRecordId );
+                                action.setRecordsHandler( recordsHandler );
+                                action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+                                children.add( action );
+                            }
+                            else {
+                                bizLogger.warn( "Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId );
+                            }
                         }
                     }
+                }
+                else {
+                    bizLogger.info( "Holdings for linked record '{}' was not checked, because the classifications has not changed." );
                 }
 
                 Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
@@ -254,6 +279,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         continue;
                     }
                     if( !openAgencyService.hasFeature( String.valueOf( enrichmentId.getAgencyId() ), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) {
+                        bizLogger.info( "Ignoring enrichment record for agency '{}', because they do not have the feature '{}'", enrichmentId.getAgencyId(), LibraryRuleHandler.Rule.USE_ENRICHMENTS );
                         continue;
                     }
 
@@ -264,7 +290,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     action.setCommonRecord( record );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
-                    action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+                    action.setSettings( settings );
 
                     children.add( action );
                 }

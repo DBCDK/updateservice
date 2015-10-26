@@ -53,7 +53,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_Success() throws Exception {
+    public void testPerformAction_CommonRecordIdIsNull() throws Exception {
         InputStream is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
@@ -72,6 +72,81 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         instance.setRecordsHandler( recordsHandler );
         instance.setCurrentCommonRecord( null );
         instance.setUpdatingCommonRecord( commonRecord );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        Assert.assertThat( children.size(), is( 3 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == StoreRecordAction.class );
+
+        StoreRecordAction storeRecordAction = (StoreRecordAction)child;
+        assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( storeRecordAction.getRecord(), is( enrichmentRecord ) );
+        assertThat( storeRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == LinkRecordAction.class );
+
+        LinkRecordAction linkRecordAction = (LinkRecordAction)child;
+        assertThat( linkRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( linkRecordAction.getRecord(), is( enrichmentRecord ) );
+        assertThat( linkRecordAction.getLinkToRecordId(), equalTo( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) );
+
+        child = children.get( 2 );
+        assertTrue( child.getClass() == EnqueueRecordAction.class );
+
+        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
+        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( enqueueRecordAction.getRecord(), is( enrichmentRecord ) );
+        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+    }
+
+    /**
+     * Test CreateEnrichmentRecordAction.performAction(): Create enrichment record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Perform actions to create a new enrichment record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>LinkRecordAction: Link the new enrichment record to the common record</li>
+     *              <li>EnqueueRecordAction: Put the enrichment record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_CommonRecordIdIsSet() throws Exception {
+        String commonRecordId = "3 456 789 4";
+
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, commonRecordId );
+
+        String recordId = MarcReader.getRecordValue( enrichmentRecord, "001", "a" );
+        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( enrichmentRecord, "001", "b" ), 10 );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.createLibraryExtendedRecord( isNull( MarcRecord.class ), eq( commonRecord ), eq( agencyId ) ) ).thenReturn( enrichmentRecord );
+
+        CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, agencyId );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setCurrentCommonRecord( null );
+        instance.setUpdatingCommonRecord( commonRecord );
+        instance.setCommonRecordId( commonRecordId );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
