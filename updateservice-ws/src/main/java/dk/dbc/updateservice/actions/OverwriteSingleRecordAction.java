@@ -222,8 +222,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     logger.warn( "002 linked record '{}' does not exist", recordId );
-                    String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
-                    return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                    continue;
                 }
 
                 if( classificationsChanged ) {
