@@ -2011,8 +2011,14 @@ public class OverwriteSingleRecordActionTest {
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
-        String message = String.format( messages.getString( "record.does.not.exist" ), c2RecordId );
-        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
+
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     //-------------------------------------------------------------------------
