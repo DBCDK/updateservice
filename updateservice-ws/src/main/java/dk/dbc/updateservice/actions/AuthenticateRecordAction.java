@@ -3,8 +3,8 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.auth.Authenticator;
@@ -113,8 +113,9 @@ public class AuthenticateRecordAction extends AbstractAction {
             result = new ServiceResult();
             result.addEntries( errors );
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            String agencyId = reader.agencyId();
             if( result.hasErrors() ) {
                 bizLogger.warn( "Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut() );
                 result.setStatus( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );

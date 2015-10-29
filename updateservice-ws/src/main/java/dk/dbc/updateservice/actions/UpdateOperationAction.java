@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -154,7 +154,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 bizLogger.info( "" );
                 bizLogger.info( "Create sub actions for record:\n{}", rec );
 
-                Integer agencyId = Integer.parseInt( MarcReader.getRecordValue( rec, "001", "b" ), 10 );
+                Integer agencyId = new MarcRecordReader( rec ).agencyIdAsInteger();
 
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
@@ -202,15 +202,17 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            String recordId = MarcReader.getRecordValue( rec, "001", "a" );
+            MarcRecordReader reader = new MarcRecordReader( rec );
+            String recordId = reader.recordId();
 
             if( rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                 return true;
             }
 
             for( MarcRecord record : records ) {
-                String checkRecordId = MarcReader.getRecordValue( record, "001", "a" );
-                Integer checkAgencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+                MarcRecordReader recordReader = new MarcRecordReader( record );
+                String checkRecordId = recordReader.recordId();
+                Integer checkAgencyId = recordReader.agencyIdAsInteger();
 
                 if( checkRecordId.equals( recordId ) && checkAgencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY) ) {
                     return true;
@@ -228,12 +230,13 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            if( !MarcReader.markedForDeletion( record ) ) {
+            MarcRecordReader reader = new MarcRecordReader( record );
+            if( !reader.markedForDeletion() ) {
                 return ServiceResult.newOkResult();
             }
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            int agencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            String recordId = reader.recordId();
+            int agencyId = reader.agencyIdAsInteger();
             int rawRepoAgencyId = agencyId;
 
             if( agencyId == RawRepo.COMMON_LIBRARY ) {
@@ -301,8 +304,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
          */
         @Override
         public int compare( MarcRecord o1, MarcRecord o2 ) {
-            Integer agency1 = Integer.valueOf( MarcReader.getRecordValue( o1, "001", "b" ), 10 );
-            Integer agency2 = Integer.valueOf( MarcReader.getRecordValue( o2, "001", "b" ), 10 );
+            MarcRecordReader reader1 = new MarcRecordReader( o1 );
+            MarcRecordReader reader2 = new MarcRecordReader( o2 );
+
+            Integer agency1 = reader1.agencyIdAsInteger();
+            Integer agency2 = reader2.agencyIdAsInteger();
 
             int result;
             if( agency1.equals( agency2 ) ) {
@@ -315,7 +321,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 result = 1;
             }
 
-            if( MarcReader.markedForDeletion( o1 ) || MarcReader.markedForDeletion( o2 ) ) {
+            if( reader1.markedForDeletion() || reader2.markedForDeletion() ) {
                 return result * -1;
             }
 

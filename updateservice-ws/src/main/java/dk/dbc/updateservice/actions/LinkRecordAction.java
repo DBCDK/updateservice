@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -57,8 +57,9 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             if( !rawRepo.recordExists( linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId() ) ) {
                 String message = String.format( messages.getString( "reference.record.not.exist" ), recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId() );
@@ -84,8 +85,10 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         try {
             LinkRecordAction action = new LinkRecordAction( rawRepo, record );
 
-            String parentId = MarcReader.readParentId( record );
-            Integer agencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String parentId = reader.parentId();
+            Integer agencyId = reader.agencyIdAsInteger();
+
             action.setLinkToRecordId( new RecordId( parentId, agencyId ) );
 
             return action;

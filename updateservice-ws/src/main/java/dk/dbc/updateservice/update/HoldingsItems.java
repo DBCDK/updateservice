@@ -7,6 +7,7 @@ import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -48,7 +49,7 @@ public class HoldingsItems {
 
         Set<Integer> result = null;
         try {
-            result = getAgenciesThatHasHoldingsFor( MarcReader.getRecordValue(record, "001", "a") );
+            result = getAgenciesThatHasHoldingsFor( new MarcRecordReader( record ).recordId() );
             return result;
         }
         finally {

@@ -1,10 +1,7 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
@@ -13,7 +10,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.io.InputStream;
 import java.util.ResourceBundle;
 
 import static org.hamcrest.MatcherAssert.assertThat;

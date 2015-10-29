@@ -2,9 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
@@ -109,11 +109,14 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecord deleteRecord = new MarcRecord( record );
 
-            String recordId = MarcReader.getRecordValue( deleteRecord, "001", "a" );
-            String agencyId = MarcReader.getRecordValue( deleteRecord, "001", "b" );
+            MarcRecordReader reader = new MarcRecordReader( deleteRecord );
+            String recordId = reader.recordId();
+            String agencyId = reader.agencyId();
 
             bizLogger.info( "Create action to delete old enrichment record {{}:{}}", recordId, agencyId );
-            MarcWriter.addOrReplaceSubfield( deleteRecord, "004", "r", "d" );
+
+            MarcRecordWriter writer = new MarcRecordWriter( deleteRecord );
+            writer.markForDeletion();
 
             return createUpdateRecordAction( deleteRecord );
         }
@@ -132,12 +135,15 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
 
         ServiceAction result = null;
         try {
-            String commonRecordId = MarcReader.getRecordValue( commonRecord, "001", "a" );
-            MarcRecord newEnrichmentRecord = new MarcRecord( record );
-            MarcWriter.addOrReplaceSubfield( newEnrichmentRecord, "001", "a", commonRecordId );
+            String commonRecordId = new MarcRecordReader( commonRecord ).recordId();
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+            MarcRecord newEnrichmentRecord = new MarcRecord( record );
+            MarcRecordWriter writer = new MarcRecordWriter( newEnrichmentRecord );
+            writer.addOrReplaceSubfield( "001", "a", commonRecordId );
+
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            String agencyId = reader.agencyId();
             bizLogger.info( "Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId );
 
             if( recordsHandler.hasClassificationData( newEnrichmentRecord ) ) {
@@ -205,11 +211,13 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
 
         ServiceAction result = null;
         try {
+            MarcRecordReader reader = new MarcRecordReader( updateRecord );
+
             UpdateClassificationsInEnrichmentRecordAction action = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
             action.setCurrentCommonRecord( commonRecord );
             action.setUpdatingCommonRecord( commonRecord );
             action.setEnrichmentRecord( updateRecord );
-            action.setAgencyId( Integer.valueOf( MarcReader.getRecordValue( updateRecord, "001", "b" ), 10 ) );
+            action.setAgencyId( reader.agencyIdAsInteger() );
             action.setRecordsHandler( recordsHandler );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 

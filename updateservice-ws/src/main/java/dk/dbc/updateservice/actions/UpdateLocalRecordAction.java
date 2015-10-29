@@ -2,9 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -70,8 +70,9 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String parentId = MarcReader.readParentId( this.record );
-            if( MarcReader.markedForDeletion( this.record ) ) {
+            MarcRecordReader reader = new MarcRecordReader( this.record );
+            String parentId = reader.parentId();
+            if( reader.markedForDeletion() ) {
                 if( parentId == null ) {
                     return performSingleDeleteAction();
                 }
@@ -148,8 +149,9 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( this.record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             if( recordId.equals( parentId ) ) {
                 String message = String.format( messages.getString( "parent.point.to.itself" ), recordId, agencyId );
@@ -202,7 +204,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
         try {
             if( !rawRepo.children( record ).isEmpty() ) {
-                String recordId = MarcReader.getRecordValue( record, "001", "a" );
+                MarcRecordReader reader = new MarcRecordReader( this.record );
+                String recordId = reader.recordId();
                 String message = String.format( messages.getString( "delete.record.children.error" ), recordId );
 
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
@@ -241,8 +244,9 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return result;
             }
 
-            String parentId = MarcReader.readParentId( this.record );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( this.record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( this.record );
+            String parentId = reader.parentId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             Set<RecordId> children = rawRepo.children( new RecordId( parentId, agencyId ) );
             if( children.size() != 1 ) {
@@ -250,7 +254,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             }
 
             MarcRecord mainRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( parentId, agencyId ).getContent() );
-            MarcWriter.addOrReplaceSubfield( mainRecord, "004", "r", "d" );
+            MarcRecordWriter writer = new MarcRecordWriter( mainRecord );
+            writer.markForDeletion();
 
             UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, mainRecord );
             action.setHoldingsItems( holdingsItems );

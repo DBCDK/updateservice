@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -88,7 +88,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             UpdateSingleRecord action = null;
             bizLogger.info( "Handling record:\n{}", record );
 
-            String parentId = MarcReader.readParentId( record );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String parentId = reader.parentId();
             if( parentId != null && !parentId.isEmpty() ) {
                 action = new UpdateVolumeRecord( rawRepo, record );
             }

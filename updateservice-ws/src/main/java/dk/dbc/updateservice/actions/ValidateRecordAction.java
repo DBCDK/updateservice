@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
@@ -123,8 +123,10 @@ public class ValidateRecordAction extends AbstractAction {
             result = new ServiceResult();
             result.addEntries( errors );
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            String agencyId = reader.agencyId();
+
             if( result.hasErrors() ) {
                 bizLogger.error( "Record {{}:{}} contains validation errors.", recordId, agencyId );
                 result.setStatus( UpdateStatusEnum.VALIDATION_ERROR );

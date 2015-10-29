@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.utils.IOUtils;
@@ -41,8 +41,10 @@ public class RemoveLinksActionTest {
     public void testPerformAction() throws Exception {
         InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
 
         RawRepo rawRepo = mock( RawRepo.class );
         RemoveLinksAction instance = new RemoveLinksAction( rawRepo, record );

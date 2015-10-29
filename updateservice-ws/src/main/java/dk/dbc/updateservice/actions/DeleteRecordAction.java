@@ -4,7 +4,7 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -53,7 +53,8 @@ public class DeleteRecordAction extends StoreRecordAction {
                     result.getFields().add( field );
                 }
             }
-            MarcWriter.addOrReplaceSubfield( result, "004", "r", "d" );
+            MarcRecordWriter writer = new MarcRecordWriter( result );
+            writer.markForDeletion();
 
             return result;
         }

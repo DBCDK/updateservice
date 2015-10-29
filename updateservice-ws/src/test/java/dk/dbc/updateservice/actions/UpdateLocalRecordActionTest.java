@@ -1,10 +1,10 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -12,7 +12,6 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -134,8 +133,10 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_UpdateVolumeRecord_OK() throws Exception {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        Integer agencyId = reader.agencyIdAsInteger();
+        String parentId = reader.parentId();
 
         RawRepo rawRepo = mock( RawRepo.class );
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
@@ -196,9 +197,10 @@ public class UpdateLocalRecordActionTest {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+        String parentId = reader.parentId();
 
         RawRepo rawRepo = mock( RawRepo.class );
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
@@ -233,9 +235,10 @@ public class UpdateLocalRecordActionTest {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        MarcWriter.addOrReplaceSubfield( record, "014", "a", recordId );
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "014", "a", recordId );
 
         RawRepo rawRepo = mock( RawRepo.class );
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
@@ -268,9 +271,9 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteRecord_WithChildren() throws Exception {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
+        String recordId = new MarcRecordReader( record ).recordId();
 
         RawRepo rawRepo = mock( RawRepo.class );
 
@@ -314,7 +317,7 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteVolumeRecord() throws Exception {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
@@ -387,7 +390,7 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteLastVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE );
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
         String mainRecordId = AssertActionsUtil.getRecordId( mainRecord );
         String recordId = AssertActionsUtil.getRecordId( record );
@@ -418,7 +421,7 @@ public class UpdateLocalRecordActionTest {
         AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE );
 
-        MarcWriter.addOrReplaceSubfield( mainRecord, "004", "r", "d" );
+        new MarcRecordWriter( mainRecord ).markForDeletion();
         AssertActionsUtil.assertUpdateLocalRecordAction( iterator.next(), rawRepo, mainRecord, holdingsItems );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -446,8 +449,9 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+
+        Integer agencyId = new MarcRecordReader( record ).agencyIdAsInteger();
+        new MarcRecordWriter( record ).markForDeletion();
 
         RawRepo rawRepo = mock( RawRepo.class );
 
@@ -493,7 +497,7 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteSingleRecord() throws Exception {
         InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
@@ -555,8 +559,8 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
         InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        Integer agencyId = new MarcRecordReader( record ).agencyIdAsInteger();
+        new MarcRecordWriter( record ).markForDeletion();
 
         RawRepo rawRepo = mock( RawRepo.class );
 

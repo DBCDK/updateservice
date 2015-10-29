@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -64,9 +64,10 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            String parentId = MarcReader.readParentId( record );
-            Integer agencyId = Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            String parentId = reader.parentId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             if( recordId.equals( parentId ) ) {
                 String message = String.format( messages.getString( "parent.point.to.itself" ), recordId, agencyId );

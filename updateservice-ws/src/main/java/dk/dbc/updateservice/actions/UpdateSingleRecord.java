@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -83,15 +83,16 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             if( !rawRepo.recordExists( recordId, agencyId ) ) {
                 children.add( createCreateRecordAction() );
                 return ServiceResult.newOkResult();
             }
 
-            if( MarcReader.markedForDeletion( record ) ) {
+            if( reader.markedForDeletion() ) {
                 children.add( createDeleteRecordAction() );
                 return ServiceResult.newOkResult();
             }

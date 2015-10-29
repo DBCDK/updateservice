@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.utils.IOUtils;
@@ -60,8 +60,9 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord enrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        String recordId = MarcReader.getRecordValue( enrichmentRecord, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( enrichmentRecord, "001", "b" ), 10 );
+        MarcRecordReader reader = new MarcRecordReader( enrichmentRecord );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
 
         RawRepo rawRepo = mock( RawRepo.class );
 
@@ -134,8 +135,9 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, commonRecordId );
 
-        String recordId = MarcReader.getRecordValue( enrichmentRecord, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( enrichmentRecord, "001", "b" ), 10 );
+        MarcRecordReader reader = new MarcRecordReader( enrichmentRecord );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
 
         RawRepo rawRepo = mock( RawRepo.class );
 
@@ -210,7 +212,8 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord enrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( enrichmentRecord, "001", "b" ), 10 );
+        MarcRecordReader reader = new MarcRecordReader( enrichmentRecord );
+        Integer agencyId = reader.agencyIdAsInteger();
 
         RawRepo rawRepo = mock( RawRepo.class );
 

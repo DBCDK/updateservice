@@ -3,10 +3,10 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -63,7 +63,7 @@ public class AssertActionsUtil {
         MarcRecord record = null;
         try {
             record = loadRecord( filename );
-            MarcWriter.addOrReplaceSubfield( record, "001", "a", newRecordId );
+            new MarcRecordWriter( record ).addOrReplaceSubfield( "001", "a", newRecordId );
 
             return record;
         }
@@ -74,7 +74,7 @@ public class AssertActionsUtil {
 
     public static MarcRecord loadRecordAndMarkForDeletion( String filename ) throws IOException {
         MarcRecord record = loadRecord( filename );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
         return record;
     }
@@ -85,7 +85,7 @@ public class AssertActionsUtil {
         MarcRecord record = null;
         try {
             record = loadRecordAndMarkForDeletion( filename );
-            MarcWriter.addOrReplaceSubfield( record, "001", "a", newRecordId );
+            new MarcRecordWriter( record ).addOrReplaceSubfield( "001", "a", newRecordId );
 
             return record;
         }
@@ -124,11 +124,11 @@ public class AssertActionsUtil {
     }
 
     public static String getRecordId( MarcRecord record ) {
-        return MarcReader.getRecordValue( record, "001", "a" );
+        return new MarcRecordReader( record ).recordId();
     }
 
     public static Integer getAgencyId( MarcRecord record ) {
-        return Integer.parseInt( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+        return new MarcRecordReader( record ).agencyIdAsInteger();
     }
 
     //-------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -1060,7 +1060,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         String e1RecordId = AssertActionsUtil.getRecordId( e1 );
         Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
@@ -1158,7 +1158,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         String e1RecordId = AssertActionsUtil.getRecordId( e1 );
         Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
@@ -1248,7 +1248,7 @@ public class OverwriteSingleRecordActionTest {
         final String c2RecordId = "2 345 678 9";
 
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
-        MarcWriter.addOrReplaceSubfield( c1, "002", "a", c2RecordId );
+        new MarcRecordWriter( c1 ).addOrReplaceSubfield( "002", "a", c2RecordId );
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
@@ -1346,7 +1346,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -1439,7 +1439,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -1532,7 +1532,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -1624,7 +1624,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -1717,7 +1717,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -1807,7 +1807,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         String e1RecordId = AssertActionsUtil.getRecordId( e1 );
         Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
@@ -1906,7 +1906,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         String e1RecordId = AssertActionsUtil.getRecordId( e1 );
         Integer e1AgencyId = AssertActionsUtil.getAgencyId( e1 );
@@ -1985,7 +1985,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c1 = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId );
 
         MarcRecord record = new MarcRecord( c1 );
-        MarcWriter.addOrReplaceSubfield( record, "002", "a", c2RecordId );
+        new MarcRecordWriter( record ).addOrReplaceSubfield( "002", "a", c2RecordId );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
