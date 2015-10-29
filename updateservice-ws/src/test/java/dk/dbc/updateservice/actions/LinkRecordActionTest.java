@@ -1,7 +1,7 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.utils.IOUtils;
@@ -50,9 +50,10 @@ public class LinkRecordActionTest {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+        String parentId = reader.parentId();
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
@@ -100,9 +101,10 @@ public class LinkRecordActionTest {
         InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        String parentId = MarcReader.getRecordValue( record, "014", "a" );
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+        String parentId = reader.parentId();
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( false );

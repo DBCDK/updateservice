@@ -2,8 +2,8 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -125,7 +125,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             bizLogger.info( "Creating sub actions to store new enrichment record." );
             bizLogger.info( "Enrichment record:\n{}", enrichmentRecord );
 
-            String recordId = MarcReader.getRecordValue( enrichmentRecord, "001", "a" );
+            String recordId = new MarcRecordReader( enrichmentRecord ).recordId();
 
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, enrichmentRecord );
             storeRecordAction.setMimetype( MIMETYPE );

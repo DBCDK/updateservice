@@ -2,7 +2,6 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
@@ -118,8 +117,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         MarcRecord result = null;
         try {
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             Record record = rawRepo.fetchRecord( recordId, agencyId );
             return result = new RawRepoDecoder().decodeRecord( record.getContent() );
@@ -134,8 +134,9 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         List<ServiceAction> result = new ArrayList<>();
         try {
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             if( recordsHandler.hasClassificationData( currentRecord ) && recordsHandler.hasClassificationData(record)) {
                 if( recordsHandler.hasClassificationsChanged( currentRecord, record ) ) {

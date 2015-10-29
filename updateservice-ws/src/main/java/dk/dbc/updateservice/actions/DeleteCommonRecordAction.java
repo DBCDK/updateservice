@@ -2,9 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -12,7 +12,6 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -75,8 +74,10 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             bizLogger.info( "Handling record:\n{}", record );
 
             if( !rawRepo.children( record ).isEmpty() ) {
+                MarcRecordReader reader = new MarcRecordReader( record );
+                String recordId = reader.recordId();
+
                 String message = messages.getString( "delete.record.children.error" );
-                String recordId = MarcReader.getRecordValue( record, "001", "a" );
 
                 String errorMessage = String.format( message, recordId );
 
@@ -88,7 +89,8 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 Record rawRepoEnrichmentRecord = rawRepo.fetchRecord( enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId() );
                 MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord( rawRepoEnrichmentRecord.getContent() );
 
-                MarcWriter.addOrReplaceSubfield( enrichmentRecord, "004", "r", "d" );
+                MarcRecordWriter writer = new MarcRecordWriter( enrichmentRecord );
+                writer.markForDeletion();
 
                 UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
                 action.setRecordsHandler( recordsHandler );

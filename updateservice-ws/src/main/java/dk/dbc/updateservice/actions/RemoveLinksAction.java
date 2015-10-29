@@ -2,8 +2,8 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
@@ -42,8 +42,9 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             rawRepo.removeLinks( new RecordId( recId, agencyId ) );
             bizLogger.info( "Removed all links for record {{}:{}} successfully", recId, agencyId );

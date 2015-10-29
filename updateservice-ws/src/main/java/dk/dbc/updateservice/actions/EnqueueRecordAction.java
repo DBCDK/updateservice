@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -76,8 +76,9 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString( "provider.id.not.set" ) );
             }
 
-            String recId = MarcReader.getRecordValue( record, "001", "a" );
-            Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
             rawRepo.changedRecord( providerId, new RecordId( recId, agencyId ), this.mimetype );
             bizLogger.info( "The record {{}:{}} successfully enqueued", recId, agencyId );

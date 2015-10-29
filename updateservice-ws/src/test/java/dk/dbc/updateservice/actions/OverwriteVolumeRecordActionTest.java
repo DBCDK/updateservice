@@ -4,8 +4,6 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.records.MarcWriter;
-import dk.dbc.iscrum.records.SortRecordByName;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -373,7 +371,7 @@ public class OverwriteVolumeRecordActionTest {
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
-        MarcWriter.addOrReplaceSubfield( enrichmentRecord, "001", "a", volumeRecordId );
+        new MarcRecordWriter( enrichmentRecord ).addOrReplaceSubfield( "001", "a", volumeRecordId );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
         RawRepo rawRepo = mock( RawRepo.class );
@@ -474,7 +472,7 @@ public class OverwriteVolumeRecordActionTest {
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
-        MarcWriter.addOrReplaceSubfield( enrichmentRecord, "001", "a", volumeRecordId );
+        new MarcRecordWriter( enrichmentRecord ).addOrReplaceSubfield( "001", "a", volumeRecordId );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
         Properties settings = new Properties();

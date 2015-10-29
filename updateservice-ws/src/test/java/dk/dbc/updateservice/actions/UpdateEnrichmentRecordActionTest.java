@@ -2,10 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -80,7 +77,9 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_UpdateRecord() throws Exception {
         InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
 
         is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
@@ -343,7 +342,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+        new MarcRecordWriter( record ).markForDeletion();
 
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
 
@@ -410,8 +409,10 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_DeleteRecord_WithHoldings() throws Exception {
         InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
-        MarcWriter.addOrReplaceSubfield( record, "004", "r", "d" );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        Integer agencyId = reader.agencyIdAsInteger();
+        new MarcRecordWriter( record ).markForDeletion();
 
         is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
@@ -440,8 +441,9 @@ public class UpdateEnrichmentRecordActionTest {
     private Record createRawRepoRecord( MarcRecord record, String mimetype ) throws JAXBException, UnsupportedEncodingException {
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock();
 
-        String recordId = MarcReader.getRecordValue( record, "001", "a" );
-        Integer agencyId = Integer.valueOf( MarcReader.getRecordValue( record, "001", "b" ), 10 );
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
 
         rawRepoRecord.setId( new RecordId( recordId, agencyId ) );
         rawRepoRecord.setDeleted( false );

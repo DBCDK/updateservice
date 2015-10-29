@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -161,7 +161,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
 
         is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord newEnrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        MarcWriter.addOrReplaceSubfield( newEnrichmentRecord, "504", "a", "Ny Note" );
+        new MarcRecordWriter( newEnrichmentRecord ).addOrReplaceSubfield( "504", "a", "Ny Note" );
 
         RawRepo rawRepo = mock( RawRepo.class );
 

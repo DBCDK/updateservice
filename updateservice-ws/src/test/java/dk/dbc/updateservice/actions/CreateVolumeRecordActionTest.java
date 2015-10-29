@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcWriter;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -161,7 +161,7 @@ public class CreateVolumeRecordActionTest {
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         String volumeRecordId = AssertActionsUtil.getRecordId( volumeRecord );
-        MarcWriter.addOrReplaceSubfield( volumeRecord, "014", "a", volumeRecordId );
+        new MarcRecordWriter( volumeRecord ).addOrReplaceSubfield( "014", "a", volumeRecordId );
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( false );

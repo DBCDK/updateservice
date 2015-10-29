@@ -2,7 +2,7 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcReader;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -100,15 +100,16 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            if( MarcReader.markedForDeletion( record ) ) {
+            MarcRecordReader reader = new MarcRecordReader( record );
+            if( reader.markedForDeletion() ) {
                 return performDeletionAction();
             }
 
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
+            String recordId = reader.recordId();
 
-            String parentId = MarcReader.getRecordValue( record, "014", "a" );
+            String parentId = reader.parentId();
             if( parentId != null && !parentId.isEmpty() ) {
-                String agencyId = MarcReader.getRecordValue( record, "001", "b" );
+                String agencyId = reader.agencyId();
                 String message = String.format( messages.getString( "enrichment.has.parent" ), recordId, agencyId );
 
                 bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
@@ -164,7 +165,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            String recordId = MarcReader.getRecordValue( record, "001", "a" );
+            String recordId = new MarcRecordReader( record ).recordId();
 
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, enrichmentRecord );
             storeRecordAction.setMimetype( MIMETYPE );
