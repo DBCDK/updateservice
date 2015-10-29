@@ -203,16 +203,10 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            if( !holdingsItems.getAgenciesThatHasHoldingsFor( this.record ).isEmpty() ) {
-                String message = messages.getString( "delete.enrichment.with.holdings.error" );
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
 
-                bizLogger.warn( "Unable to delete enrichment record doing to an error: {}", message );
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
-            }
-
-
-            String recordId = RawRepo.getRecordId( record );
-            Integer agencyId = RawRepo.convertAgencyId( RawRepo.getAgencyId( record ) );
             if( !rawRepo.recordExists( recordId, agencyId ) ) {
                 bizLogger.info( "The enrichment record {{}:{}} does not exist, so no actions is added for deletion." );
                 return ServiceResult.newOkResult();
