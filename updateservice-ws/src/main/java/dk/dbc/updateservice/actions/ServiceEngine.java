@@ -88,6 +88,7 @@ public class ServiceEngine {
                     }
 
                     if( stopExecution( childResult ) ) {
+                        actionResult.setServiceError( childResult.getServiceError() );
                         actionResult.setStatus( childResult.getStatus() );
                         return actionResult;
                     }
