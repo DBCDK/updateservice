@@ -148,7 +148,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
             bizLogger.info( "Split record into records to store in rawrepo." );
             List<MarcRecord> records = recordsHandler.recordDataForRawRepo( record, authentication.getUserIdAut(), authentication.getGroupIdAut() );
-            Collections.sort( records, new ProcessOrder() );
+            //Collections.sort( records, new ProcessOrder() );
 
             for( MarcRecord rec : records ) {
                 bizLogger.info( "" );

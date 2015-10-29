@@ -24,6 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -342,49 +343,33 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        String providerId = "xxx";
+
         new MarcRecordWriter( record ).markForDeletion();
 
-        MarcRecord commonRecordData = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-
         RawRepo rawRepo = mock( RawRepo.class );
-        Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
-        when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
+        instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( providerId );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 3 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
 
-        ServiceAction child = children.get( 0 );
-        assertTrue( child.getClass() == RemoveLinksAction.class );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateEnrichmentRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, UpdateEnrichmentRecordAction.MIMETYPE );
 
-        RemoveLinksAction removeLinksAction = (RemoveLinksAction)child;
-        assertThat( removeLinksAction.getRawRepo(), is( rawRepo ) );
-        assertThat( removeLinksAction.getRecord(), is( record ) );
-
-        child = children.get( 1 );
-        assertTrue( child.getClass() == DeleteRecordAction.class );
-
-        DeleteRecordAction deleteRecordAction = (DeleteRecordAction)child;
-        assertThat( deleteRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( deleteRecordAction.getRecord(), is( record ) );
-        assertThat( deleteRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
-
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+        assertFalse( iterator.hasNext() );
     }
 
     /**
@@ -411,27 +396,35 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
         MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
+
+        String providerId = "xxx";
+
         new MarcRecordWriter( record ).markForDeletion();
 
-        is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
-        MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-
         RawRepo rawRepo = mock( RawRepo.class );
-        Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
-        when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
-        when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        Set<Integer> holdings = new HashSet<>();
-        holdings.add( agencyId );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( holdings );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( agencyId ) );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
+        instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( providerId );
 
-        String message = messages.getString( "delete.enrichment.with.holdings.error" );
-        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateEnrichmentRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, UpdateEnrichmentRecordAction.MIMETYPE );
+
+        assertFalse( iterator.hasNext() );
     }
 
     //-------------------------------------------------------------------------

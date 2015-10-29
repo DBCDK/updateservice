@@ -5,14 +5,17 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
 /**
@@ -27,6 +30,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         this.openAgencyService = null;
         this.recordsHandler = null;
         this.settings = null;
+
+        this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
     public Integer getGroupId() {
@@ -93,6 +98,11 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             }
 
             if( reader.markedForDeletion() ) {
+                if( !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty() ) {
+                    String message = messages.getString( "delete.common.with.holdings.error" );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+
                 children.add( createDeleteRecordAction() );
                 return ServiceResult.newOkResult();
             }
@@ -195,4 +205,6 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      */
     private LibraryRecordsHandler recordsHandler;
     protected Properties settings;
+
+    private ResourceBundle messages;
 }
