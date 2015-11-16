@@ -592,7 +592,7 @@ public class RawRepo {
     //-------------------------------------------------------------------------
 
     protected RawRepoDAO createDAO( Connection conn ) throws RawRepoException {
-        return RawRepoDAO.newInstance( conn );
+        return RawRepoDAO.builder( conn ).build();
     }
 
     public static String getRecordId( MarcRecord record ) {
