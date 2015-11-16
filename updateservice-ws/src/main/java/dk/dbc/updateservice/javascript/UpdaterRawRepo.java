@@ -51,7 +51,7 @@ public class UpdaterRawRepo {
 
 		MarcRecord result = null;
 		try( Connection con = getConnection() ) {
-			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
+			RawRepoDAO rawRepoDAO = RawRepoDAO.builder( con ).build();
 
 			Record record = rawRepoDAO.fetchRecord( recordId, Integer.valueOf( libraryNo ) );
 			if( record.getContent() == null ) {
@@ -86,7 +86,7 @@ public class UpdaterRawRepo {
 		boolean result = false;
 
 		try( Connection con = getConnection() ) {
-			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
+			RawRepoDAO rawRepoDAO = RawRepoDAO.builder( con ).build();
 
 			result = rawRepoDAO.recordExists( recordId, Integer.valueOf( libraryNo ) );
 
@@ -115,7 +115,7 @@ public class UpdaterRawRepo {
 		try( Connection con = getConnection() ) {
 			result = new ArrayList<>();
 
-			RawRepoDAO rawRepoDAO = RawRepoDAO.newInstance(con);
+			RawRepoDAO rawRepoDAO = RawRepoDAO.builder( con ).build();
 			Set<RecordId> records = rawRepoDAO.getRelationsChildren( new RecordId( recordId, Integer.valueOf( libraryNo ) ) );
 			Iterator<RecordId> iterator = records.iterator();
 			while( iterator.hasNext() ) {
