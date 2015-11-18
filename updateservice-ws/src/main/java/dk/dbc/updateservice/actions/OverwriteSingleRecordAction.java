@@ -141,7 +141,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             if( recordsHandler.hasClassificationData( currentRecord ) && recordsHandler.hasClassificationData(record)) {
                 if( recordsHandler.hasClassificationsChanged( currentRecord, record ) ) {
                     logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
-                    Set<Integer> holdingsLibraries = holdingsItems.getAgenciesThatHasHoldingsFor( recordId );
+                    Set<Integer> holdingsLibraries = holdingsItems.getAgenciesThatHasHoldingsFor( record );
 
                     RawRepoDecoder decoder = new RawRepoDecoder();
                     for (Integer id : holdingsLibraries) {
@@ -227,7 +227,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 }
 
                 if( classificationsChanged ) {
-                    Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsFor( recordId );
+                    Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId( recordId );
                     Set<RecordId> enrichmentIds = rawRepo.enrichments( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
 
                     if( holdingAgencies.isEmpty() ) {

@@ -297,8 +297,8 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( volumeRecord ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( "700100" ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -384,8 +384,8 @@ public class OverwriteVolumeRecordActionTest {
         when( rawRepo.fetchRecord( eq( volumeRecordId ), eq( enrichmentAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( enrichmentRecord, MarcXChangeMimeType.ENRICHMENT ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -490,8 +490,8 @@ public class OverwriteVolumeRecordActionTest {
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecordId ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
