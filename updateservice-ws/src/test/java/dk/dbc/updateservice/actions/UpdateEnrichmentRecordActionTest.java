@@ -207,7 +207,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( new MarcRecord() );
@@ -354,7 +354,7 @@ public class UpdateEnrichmentRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );

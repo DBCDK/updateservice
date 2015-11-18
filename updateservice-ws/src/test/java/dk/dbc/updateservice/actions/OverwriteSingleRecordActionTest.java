@@ -284,7 +284,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( "700100" ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -360,7 +360,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( "700100" ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );
@@ -435,7 +435,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -513,7 +513,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( enrichmentRecord, MarcXChangeMimeType.ENRICHMENT ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -593,7 +593,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( enrichmentRecord, MarcXChangeMimeType.ENRICHMENT ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -690,7 +690,7 @@ public class OverwriteSingleRecordActionTest {
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -784,7 +784,7 @@ public class OverwriteSingleRecordActionTest {
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );
@@ -881,7 +881,7 @@ public class OverwriteSingleRecordActionTest {
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -978,7 +978,7 @@ public class OverwriteSingleRecordActionTest {
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( enrichmentAgencyId, newEnrichmentAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( enrichmentAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );
@@ -1078,7 +1078,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1176,7 +1176,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( e1AgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );
@@ -1268,7 +1268,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( e1RecordId ), eq( e1AgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( e1, MarcXChangeMimeType.ENRICHMENT ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1358,7 +1358,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1451,7 +1451,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1544,7 +1544,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1636,7 +1636,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ).thenReturn( true );
@@ -1729,7 +1729,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.fetchRecord( eq( c2RecordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( c2, MarcXChangeMimeType.MARCXCHANGE ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( c2RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( localAgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( localAgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );
@@ -1825,7 +1825,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( e1AgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( true );
@@ -1924,7 +1924,7 @@ public class OverwriteSingleRecordActionTest {
         when( rawRepo.enrichments( eq( new RecordId( c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) ) ).thenReturn( AssertActionsUtil.createRecordSet( e1 ) );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
+        when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( e1RecordId ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( e1AgencyId ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( eq( e1AgencyId.toString() ), eq( LibraryRuleHandler.Rule.USE_ENRICHMENTS ) ) ).thenReturn( false );

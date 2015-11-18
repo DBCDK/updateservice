@@ -5,7 +5,6 @@ package dk.dbc.updateservice.update;
 
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import dk.dbc.iscrum.records.MarcReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -13,12 +12,14 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
+
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Set;
 
 //-----------------------------------------------------------------------------
@@ -49,7 +50,12 @@ public class HoldingsItems {
 
         Set<Integer> result = null;
         try {
-            result = getAgenciesThatHasHoldingsFor( new MarcRecordReader( record ).recordId() );
+            result = getAgenciesThatHasHoldingsForId( new MarcRecordReader( record ).recordId() );
+            MarcRecordReader mm = new MarcRecordReader( record );
+            List<String> aliasIds =  mm.centralAliasId();
+            for (String s : aliasIds ) {
+                result.addAll(getAgenciesThatHasHoldingsForId( s ) );
+            }
             return result;
         }
         finally {
@@ -57,7 +63,7 @@ public class HoldingsItems {
         }
     }
 
-    public Set<Integer> getAgenciesThatHasHoldingsFor( String recordId ) throws UpdateException {
+    public Set<Integer> getAgenciesThatHasHoldingsForId( String recordId ) throws UpdateException {
         logger.entry( recordId );
 
         Set<Integer> result = null;
