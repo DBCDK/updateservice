@@ -120,6 +120,8 @@ public class UpdateService implements CatalogingUpdatePortType {
         UpdateResponseWriter writer = new UpdateResponseWriter();
         UpdateRequestAction action = null;
         ServiceEngine engine = null;
+
+        UpdateRecordResult result = null;
         try {
             logger.info( "MDC: {}", MDC.getCopyOfContextMap() );
             logger.info( "Request tracking id: {}", updateRecordRequest.getTrackingId() );
@@ -145,19 +147,13 @@ public class UpdateService implements CatalogingUpdatePortType {
             writer.addValidateEntries( serviceResult.getEntries() );
 
             bizLogger.info( "Returning response." );
-            return writer.getResponse();
+            return result = writer.getResponse();
         }
-        catch( EJBException ex ) {
-            bizLogger.error( "Caught EJB Exception: {}", findServiceException( ex ).getMessage() );
-            logger.error( "Caught EJB Exception: {}", ex );
+        catch( Throwable ex ) {
+            bizLogger.error( "Caught Exception: {}", findServiceException( ex ).getMessage() );
+            logger.error( "Caught Exception: {}", ex );
             writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-            return writer.getResponse();
-        }
-        catch( Exception ex ) {
-            bizLogger.error( "Caught javascript exception: {}", findServiceException( ex ).getMessage() );
-            logger.error( "Caught javascript exception: {}", ex );
-            writer = convertUpdateErrorToResponse( ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR );
-            return writer.getResponse();
+            return result = writer.getResponse();
         }
         finally {
             if( engine != null && action != null ) {
@@ -166,8 +162,7 @@ public class UpdateService implements CatalogingUpdatePortType {
                 engine.printActions( action );
             }
 
-            bizLogger.exit( writer.getResponse() );
-            logger.exit( writer.getResponse() );
+            bizLogger.exit( result );
             MDC.clear();
         }
     }
@@ -247,7 +242,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         bizLogger.info( "======================================" );
     }
 
-    private Throwable findServiceException( Exception ex ) {
+    private Throwable findServiceException( Throwable ex ) {
         Throwable throwable = ex;
         while( throwable != null && throwable.getClass().getPackage().getName().startsWith( "javax.ejb" ) ) {
             throwable = throwable.getCause();
@@ -256,7 +251,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         return throwable;
     }
 
-    private UpdateResponseWriter convertUpdateErrorToResponse( Exception ex, UpdateStatusEnum status ) {
+    private UpdateResponseWriter convertUpdateErrorToResponse( Throwable ex, UpdateStatusEnum status ) {
         Throwable throwable = findServiceException( ex );
 
         UpdateResponseWriter writer = new UpdateResponseWriter();
