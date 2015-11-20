@@ -19,6 +19,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -48,11 +49,11 @@ public class HoldingsItems {
     public Set<Integer> getAgenciesThatHasHoldingsFor( MarcRecord record ) throws UpdateException {
         logger.entry( record );
 
-        Set<Integer> result = null;
+        Set<Integer> result = new HashSet<>();
         try {
-            result = getAgenciesThatHasHoldingsForId( new MarcRecordReader( record ).recordId() );
+            result.addAll( getAgenciesThatHasHoldingsForId( new MarcRecordReader( record ).recordId() ) );
             MarcRecordReader mm = new MarcRecordReader( record );
-            List<String> aliasIds =  mm.centralAliasId();
+            List<String> aliasIds =  mm.centralAliasIds();
             for (String s : aliasIds ) {
                 result.addAll(getAgenciesThatHasHoldingsForId( s ) );
             }
@@ -66,7 +67,7 @@ public class HoldingsItems {
     public Set<Integer> getAgenciesThatHasHoldingsForId( String recordId ) throws UpdateException {
         logger.entry( recordId );
 
-        Set<Integer> result = null;
+        Set<Integer> result = new HashSet<>();
         try( Connection conn = dataSource.getConnection() ) {
             HoldingsItemsDAO dao = createDAO( conn );
 
