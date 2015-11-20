@@ -139,8 +139,8 @@ public class HoldingsItemsTest {
         resultlibs.addAll( libraries002 );
 
         when( dataSource.getConnection() ).thenReturn( null );
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( eq( "12345678" ) ) ).thenReturn( libraries002 );
-        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( eq( "02345678" ) ) ).thenReturn( libraries );
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( eq( "12345678" ) ) ).thenReturn( libraries );
+        when( holdingsItemsDAO.getAgenciesThatHasHoldingsFor( eq( "02345678" ) ) ).thenReturn( libraries002 );
 
         HoldingsItems items = new MockHoldingsItems();
 
