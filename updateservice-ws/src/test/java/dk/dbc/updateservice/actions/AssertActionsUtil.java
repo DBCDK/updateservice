@@ -48,6 +48,9 @@ public class AssertActionsUtil {
     public static final String ENRICHMENT_SINGLE_RECORD_RESOURCE = "enrichment.marc";
     public static final String LOCAL_SINGLE_RECORD_RESOURCE = "book.marc";
 
+    public static final String COMMON_SCHOOL_RECORD_RESOURCE = "common_school_enrichment.marc";
+    public static final String SCHOOL_RECORD_RESOURCE = "school_enrichment.marc";
+
     //-------------------------------------------------------------------------
     //              Records
     //-------------------------------------------------------------------------

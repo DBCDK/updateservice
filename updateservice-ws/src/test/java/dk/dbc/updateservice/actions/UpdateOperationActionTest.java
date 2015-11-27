@@ -151,7 +151,7 @@ public class UpdateOperationActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-        when( openAgencyService.hasFeature( enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+        when( openAgencyService.hasFeature( eq( GROUP_ID ), eq( LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ) ).thenReturn( true );
 
         List<MarcRecord> rawRepoRecords = Arrays.asList( enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
