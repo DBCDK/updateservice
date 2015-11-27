@@ -169,7 +169,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 else {
                     if( commonRecordExists( records, rec ) &&
                         ( agencyId.equals( RawRepo.COMMON_LIBRARY ) ||
-                          openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ) )
+                          openAgencyService.hasFeature( this.authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ) )
                     {
                         UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, rec );
                         action.setRecordsHandler( recordsHandler );

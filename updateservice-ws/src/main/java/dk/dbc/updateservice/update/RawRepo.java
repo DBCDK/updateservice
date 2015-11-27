@@ -674,6 +674,7 @@ public class RawRepo {
 
     public static final Integer RAWREPO_COMMON_LIBRARY = 191919;
     public static final Integer COMMON_LIBRARY = 870970;
+    public static final Integer SCHOOL_COMMON_AGENCY = 300000;
 
     //-------------------------------------------------------------------------
     //              Members
