@@ -5,7 +5,6 @@ package dk.dbc.updateservice.javascript;
 
 import dk.dbc.jslib.*;
 import dk.dbc.updateservice.ws.JNDIResources;
-import org.mozilla.javascript.JavaScriptException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -87,7 +86,7 @@ public class Scripter {
             String baseDir = settings.getProperty( JNDIResources.JAVASCRIPT_BASEDIR_KEY );
             String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
 
-            Environment envir = new Environment();
+            Environment envir = new Environment( true );
             envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
             envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, fileName ) );
 
