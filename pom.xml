@@ -47,6 +47,16 @@
         <module>demo</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dk.dbc</groupId>
+                <artifactId>dbc-jslib</artifactId>
+                <version>1.2-SNAPSHOT</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <pluginManagement>
             <plugins>
