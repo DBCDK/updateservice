@@ -4,6 +4,7 @@ package dk.dbc.updateservice.ws;
 //-----------------------------------------------------------------------------
 
 import com.sun.xml.ws.developer.SchemaValidation;
+import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
@@ -17,6 +18,7 @@ import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.validate.Validator;
+import org.perf4j.StopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -109,6 +111,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @Override
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
+        StopWatch watch = new StopWatch();
         UUID prefixId = UUID.randomUUID();
 
         MDC.put( REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
@@ -146,8 +149,10 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
             writer.addValidateEntries( serviceResult.getEntries() );
 
-            bizLogger.info( "Returning response." );
-            return result = writer.getResponse();
+            result = writer.getResponse();
+            bizLogger.info( "Returning response:\n{}", Json.encodePretty( result ) );
+
+            return result;
         }
         catch( Throwable ex ) {
             bizLogger.error( "Caught Exception: {}", findServiceException( ex ).getMessage() );
@@ -160,6 +165,11 @@ public class UpdateService implements CatalogingUpdatePortType {
                 bizLogger.info( "" );
                 bizLogger.info( "Executed action:" );
                 engine.printActions( action );
+            }
+
+            if( watch != null ) {
+                bizLogger.info( "" );
+                bizLogger.info( "Processing request in {} ms", watch.getElapsedTime() );
             }
 
             bizLogger.exit( result );
