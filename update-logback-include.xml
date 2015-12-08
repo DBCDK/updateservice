@@ -1,57 +1,22 @@
 <included>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>DEBUG</level>
-        </filter>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <append>true</append>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- daily rollover -->
+            <fileNamePattern>${UPDATE_LOGBACK_FILENAME}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- or whenever the file size reaches nnMB -->
+                <maxFileSize>1024MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
 
         <encoder>
-            <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+            <pattern>%date %level [%thread] [Update:%X{trackingId}] %logger{35} [%file:%line] - %msg%n</pattern>
         </encoder>
-    </appender>
-
-    <timestamp key="curDate" datePattern="yyyyMMdd"/>
-
-    <appender name="FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
-        <discriminator>
-            <key>requestId</key>
-            <defaultValue>unknown</defaultValue>
-        </discriminator>
-        <sift>
-            <appender name="FILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}.log</file>
-                <append>false</append>
-                <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date %level [%thread] [Update:%X{trackingId}] %logger{35} [%file:%line] - %msg%n</pattern>
-                </layout>
-            </appender>
-        </sift>
-    </appender>
-
-    <appender name="BIZFILE" class="ch.qos.logback.classic.sift.SiftingAppender">
-        <discriminator>
-            <key>requestId</key>
-            <defaultValue>unknown</defaultValue>
-        </discriminator>
-        <sift>
-            <appender name="BIZFILE-${requestId}-${curDate}" class="ch.qos.logback.core.FileAppender">
-                <file>${UPDATE_LOGBACK_FILENAME}-${curDate}-${requestId}-biz.log</file>
-                <append>false</append>
-
-                <filter class="dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter" />
-
-                <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                    <level>INFO</level>
-                </filter>
-
-                <layout class="ch.qos.logback.classic.PatternLayout">
-                    <pattern>%date{HH:mm:ss.SSS} %level [Update:%X{trackingId}] - %msg%n</pattern>
-                </layout>
-            </appender>
-        </sift>
     </appender>
 
     <root level="DEBUG">
         <appender-ref ref="FILE"/>
-        <appender-ref ref="BIZFILE"/>
     </root>
 </included>
