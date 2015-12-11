@@ -30,7 +30,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/listschemas.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>
@@ -100,7 +100,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/validate_book_ok.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>
@@ -170,7 +170,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/update_book.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>

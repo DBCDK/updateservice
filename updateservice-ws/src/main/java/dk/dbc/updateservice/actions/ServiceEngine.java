@@ -6,6 +6,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
+import org.perf4j.StopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -13,7 +14,6 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 //-----------------------------------------------------------------------------
 /**
@@ -65,7 +65,9 @@ public class ServiceEngine {
 
             printActionHeader( action );
 
+            StopWatch watch = new StopWatch();
             ServiceResult actionResult = action.performAction();
+            action.setTimeElapsed( watch.getElapsedTime() );
             action.setServiceResult( actionResult );
 
             bizLogger.info( "" );
@@ -153,7 +155,7 @@ public class ServiceEngine {
         logger.entry();
 
         try {
-            bizLogger.info( "{}{}: {}", indent, action.name(), action.getServiceResult() );
+            bizLogger.info( "{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult() );
 
             List<ServiceAction> children = action.children();
             if( children != null ) {

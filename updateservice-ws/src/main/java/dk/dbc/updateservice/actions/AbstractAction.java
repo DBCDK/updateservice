@@ -15,6 +15,7 @@ public abstract class AbstractAction implements ServiceAction {
         this.name = name;
         this.parent = parent;
         this.children = new ArrayList<>();
+        this.timeElapsed = -1;
     }
 
     //-------------------------------------------------------------------------
@@ -50,6 +51,15 @@ public abstract class AbstractAction implements ServiceAction {
         return this.children;
     }
 
+    @Override
+    public long getTimeElapsed() {
+        return timeElapsed;
+    }
+
+    @Override
+    public void setTimeElapsed( long timeElapsed ) {
+        this.timeElapsed = timeElapsed;
+    }
 
     //-------------------------------------------------------------------------
     //              Helpers
@@ -86,4 +96,5 @@ public abstract class AbstractAction implements ServiceAction {
     protected ServiceResult serviceResult;
     protected ServiceAction parent;
     protected List<ServiceAction> children;
+    protected long timeElapsed;
 }
