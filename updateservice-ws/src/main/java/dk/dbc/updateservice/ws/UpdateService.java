@@ -77,7 +77,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         logger.entry();
         try {
             if( recordsHandler == null ) {
-                this.recordsHandler = new LibraryRecordsHandler( scripter, "updater.js" );
+                this.recordsHandler = new LibraryRecordsHandler( scripter );
             }
         }
         catch( MissingResourceException ex ) {

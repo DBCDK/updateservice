@@ -35,13 +35,12 @@ public class LibraryRecordsHandlerTest {
         String currentCommonRecordArgument = Json.encode( currentCommonRecord );
         String updatingCommonRecordArgument = Json.encode( updatingCommonRecord );
         String scripterResult = Json.encode( ServiceResult.newOkResult() );
-        when( scripter.callMethod( eq( SCRIPTER_FILENAME ),
-                                   eq( LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME ),
+        when( scripter.callMethod( eq( LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME ),
                                    isNull( Properties.class ),
                                    eq( currentCommonRecordArgument ),
                                    eq( updatingCommonRecordArgument ) ) ).thenReturn( scripterResult );
 
-        LibraryRecordsHandler instance = new LibraryRecordsHandler( scripter, SCRIPTER_FILENAME );
+        LibraryRecordsHandler instance = new LibraryRecordsHandler( scripter );
         assertThat( instance.shouldCreateEnrichmentRecords( null, currentCommonRecord, updatingCommonRecord ), equalTo( ServiceResult.newOkResult() ) );
     }
 
@@ -54,13 +53,12 @@ public class LibraryRecordsHandlerTest {
         String updatingCommonRecordArgument = Json.encode( updatingCommonRecord );
         ServiceResult scripterReason = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason" );
         String scripterResult = Json.encode( scripterReason );
-        when( scripter.callMethod( eq( SCRIPTER_FILENAME ),
-                                   eq( LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME ),
+        when( scripter.callMethod( eq( LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME ),
                                    isNull( Properties.class ),
                                    eq( currentCommonRecordArgument ),
                                    eq( updatingCommonRecordArgument ) ) ).thenReturn( scripterResult );
 
-        LibraryRecordsHandler instance = new LibraryRecordsHandler( scripter, SCRIPTER_FILENAME );
+        LibraryRecordsHandler instance = new LibraryRecordsHandler( scripter );
         assertThat( instance.shouldCreateEnrichmentRecords( null, currentCommonRecord, updatingCommonRecord ), equalTo( scripterReason ) );
     }
 

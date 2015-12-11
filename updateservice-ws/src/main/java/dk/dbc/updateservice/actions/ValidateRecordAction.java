@@ -2,8 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcRecordReader;
+
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -116,7 +117,7 @@ public class ValidateRecordAction extends AbstractAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            Object jsResult = scripter.callMethod( "validator.js", "validateRecord", schemaName, Json.encode( record ), settings );
+            Object jsResult = scripter.callMethod( "validateRecord", schemaName, Json.encode( record ), settings );
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             List<ValidationError> errors = Json.decodeArray( jsResult.toString(), ValidationError.class );

@@ -30,9 +30,8 @@ public class LibraryRecordsHandler {
     //              Constructors
     //-------------------------------------------------------------------------
 
-    public LibraryRecordsHandler( Scripter scripter, String fileName ) {
+    public LibraryRecordsHandler( Scripter scripter ) {
         this.scripter = scripter;
-        this.fileName = fileName;
     }
 
     //-------------------------------------------------------------------------
@@ -57,7 +56,7 @@ public class LibraryRecordsHandler {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String json = mapper.writeValueAsString( record );
-                jsResult = scripter.callMethod( fileName, "hasClassificationData", json );
+                jsResult = scripter.callMethod( "hasClassificationData", json );
             }
             catch ( IOException ex ) {
                 throw new ScripterException( "Error when executing JavaScript function: hasClassificationData", ex );
@@ -101,7 +100,7 @@ public class LibraryRecordsHandler {
                 String jsonOldRecord = mapper.writeValueAsString( oldRecord );
                 String jsonNewRecord = mapper.writeValueAsString( newRecord );
 
-                jsResult = scripter.callMethod(fileName, "hasClassificationsChanged", jsonOldRecord, jsonNewRecord);
+                jsResult = scripter.callMethod( "hasClassificationsChanged", jsonOldRecord, jsonNewRecord);
             }
             catch( IOException ex ) {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationsChanged", ex);
@@ -147,7 +146,7 @@ public class LibraryRecordsHandler {
 
         ServiceResult result = null;
         try {
-            Object jsResult = scripter.callMethod( fileName, CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME,
+            Object jsResult = scripter.callMethod( CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME,
                                                    settings, Json.encode( currentCommonRecord ), Json.encode( updatingCommonRecord ) );
 
             logger.trace( "Result from JS ({}): {}", jsResult.getClass().getName(), jsResult );
@@ -187,7 +186,7 @@ public class LibraryRecordsHandler {
             String jsonCurrentCommonRecord = mapper.writeValueAsString( currentCommonRecord );
             String jsonUpdatingCommonRecord = mapper.writeValueAsString( updatingCommonRecord );
 
-            jsResult = scripter.callMethod( fileName, "createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, agencyId );
+            jsResult = scripter.callMethod( "createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, agencyId );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -228,7 +227,7 @@ public class LibraryRecordsHandler {
             String jsonUpdatingCommonRecord = mapper.writeValueAsString( updatingCommonRecord );
             String jsonEnrichmentRecord = mapper.writeValueAsString( enrichmentRecord );
 
-            jsResult = scripter.callMethod(fileName, "updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
+            jsResult = scripter.callMethod( "updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -256,7 +255,7 @@ public class LibraryRecordsHandler {
             String jsonCommonRecord = mapper.writeValueAsString( commonRecord );
             String jsonEnrichmentRecord = mapper.writeValueAsString( enrichmentRecord );
 
-            jsResult = scripter.callMethod(fileName, "correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
+            jsResult = scripter.callMethod( "correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -284,7 +283,7 @@ public class LibraryRecordsHandler {
             String jsonRecord = mapper.writeValueAsString( record );
 
             try {
-                jsResult = scripter.callMethod( fileName, "recordDataForRawRepo", jsonRecord, userId, groupId );
+                jsResult = scripter.callMethod( "recordDataForRawRepo", jsonRecord, userId, groupId );
             } catch ( IllegalStateException ex ) {
                 logger.error( "Error when executing JavaScript function: recordDataForRawRepo", ex );
                 jsResult = false;
@@ -315,5 +314,4 @@ public class LibraryRecordsHandler {
     static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
 
     private Scripter scripter;
-    private String fileName;
 }
