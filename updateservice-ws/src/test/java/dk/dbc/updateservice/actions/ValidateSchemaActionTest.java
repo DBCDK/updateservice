@@ -49,7 +49,7 @@ public class ValidateSchemaActionTest {
         ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
         ScripterException ex = new ScripterException( "message" );
-        when( scripter.callMethod( anyString(), anyString(), anyString(), eq( settings ) ) ).thenThrow( ex );
+        when( scripter.callMethod( anyString(), anyString(), eq( settings ) ) ).thenThrow( ex );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, ex.getMessage() ) ) );
     }
@@ -60,7 +60,7 @@ public class ValidateSchemaActionTest {
         Properties settings = new Properties();
         ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( anyString(), anyString(), anyString(), eq( settings ) ) ).thenReturn( 27 );
+        when( scripter.callMethod( anyString(), anyString(), eq( settings ) ) ).thenReturn( 27 );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, "The JavaScript function checkTemplate must return a boolean value." ) ) );
     }
@@ -71,7 +71,7 @@ public class ValidateSchemaActionTest {
         Properties settings = new Properties();
         ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( eq( "validator.js" ), eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( true );
+        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( true );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
     }
@@ -82,7 +82,7 @@ public class ValidateSchemaActionTest {
         Properties settings = new Properties();
         ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( eq( "validator.js" ), eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( false );
+        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( false );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA ) ) );
     }

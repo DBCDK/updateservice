@@ -15,7 +15,10 @@ import dk.dbc.updateservice.ws.ValidationError;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -59,7 +62,7 @@ public class ValidateRecordActionTest {
         instance.setScripter( scripter );
         instance.setSettings( settings );
 
-        when( scripter.callMethod( "validator.js", "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( "[]" );
+        when( scripter.callMethod( "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( "[]" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
     }
@@ -98,7 +101,7 @@ public class ValidateRecordActionTest {
         ValidationError warn = ValidationError.newError( ValidateWarningOrErrorEnum.WARNING, "warning" );
         List<ValidationError> jsReturnList = Arrays.asList( warn );
 
-        when( scripter.callMethod( "validator.js", "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( Json.encode( jsReturnList ) );
+        when( scripter.callMethod( "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( Json.encode( jsReturnList ) );
 
         ServiceResult expected = ServiceResult.newOkResult();
         expected.addEntry( warn );
@@ -139,7 +142,7 @@ public class ValidateRecordActionTest {
         ValidationError err = ValidationError.newError( ValidateWarningOrErrorEnum.ERROR, "error" );
         List<ValidationError> jsReturnList = Arrays.asList( err );
 
-        when( scripter.callMethod( "validator.js", "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( Json.encode( jsReturnList ) );
+        when( scripter.callMethod( "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( Json.encode( jsReturnList ) );
 
         ServiceResult expected = ServiceResult.newStatusResult( UpdateStatusEnum.VALIDATION_ERROR );
         expected.addEntry( err );
@@ -178,7 +181,7 @@ public class ValidateRecordActionTest {
         instance.setSettings( settings );
 
         ScripterException ex = new ScripterException( "error" );
-        when( scripter.callMethod( "validator.js", "validateRecord", "bog", Json.encode( record ), settings ) ).thenThrow( ex );
+        when( scripter.callMethod( "validateRecord", "bog", Json.encode( record ), settings ) ).thenThrow( ex );
 
         String message = String.format( messages.getString( "internal.validate.record.error" ), ex.getMessage() );
         ServiceResult expected = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message );
@@ -216,7 +219,7 @@ public class ValidateRecordActionTest {
         instance.setScripter( scripter );
         instance.setSettings( settings );
 
-        when( scripter.callMethod( "validator.js", "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( 27 );
+        when( scripter.callMethod( "validateRecord", "bog", Json.encode( record ), settings ) ).thenReturn( 27 );
 
         ServiceResult actual = instance.performAction();
         assertThat( actual.getServiceError(), nullValue() );

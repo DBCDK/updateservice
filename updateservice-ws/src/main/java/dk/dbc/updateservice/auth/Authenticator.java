@@ -5,8 +5,6 @@ package dk.dbc.updateservice.auth;
 
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
-import dk.dbc.forsrights.service.ForsRightsResponse;
-import dk.dbc.forsrights.service.Ressource;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -92,7 +90,7 @@ public class Authenticator {
         List<ValidationError> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod( "auth.js", "authenticateRecord", mapper.writeValueAsString( record ), userId, groupId, settings );
+            Object jsResult = scripter.callMethod( "authenticateRecord", mapper.writeValueAsString( record ), userId, groupId, settings );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 

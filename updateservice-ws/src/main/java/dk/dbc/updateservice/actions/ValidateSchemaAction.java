@@ -2,12 +2,12 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -66,7 +66,7 @@ public class ValidateSchemaAction extends AbstractAction {
 
         ServiceResult result = null;
         try {
-            Object jsResult = scripter.callMethod( ENTRY_POINT_FILENAME, "checkTemplate", validateSchema, settings );
+            Object jsResult = scripter.callMethod( "checkTemplate", validateSchema, settings );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -105,8 +105,6 @@ public class ValidateSchemaAction extends AbstractAction {
 
     private static final XLogger logger = XLoggerFactory.getXLogger( ValidateSchemaAction.class );
     private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
-
-    private static final String ENTRY_POINT_FILENAME = "validator.js";
 
     private String validateSchema;
     private Scripter scripter;

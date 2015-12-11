@@ -39,7 +39,7 @@ public class Validator {
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod( ENTRY_POINT_FILENAME, "getValidateSchemas", settings );
+            Object jsResult = scripter.callMethod( "getValidateSchemas", settings );
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             Schema[] names = mapper.readValue(jsResult.toString(), Schema[].class);
@@ -62,8 +62,6 @@ public class Validator {
 
     private static final XLogger logger = XLoggerFactory.getXLogger( Validator.class );
 
-    private static final String ENTRY_POINT_FILENAME = "validator.js";
-    
     @EJB
     private Scripter scripter;
     

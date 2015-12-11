@@ -13,8 +13,6 @@ import javax.annotation.Resource;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 //-----------------------------------------------------------------------------
@@ -30,10 +28,12 @@ public class Scripter {
 
     public Scripter() {
         this.settings = null;
+        this.environment = null;
     }
 
     public Scripter( Properties settings ) {
         this.settings = settings;
+        this.environment = null;
     }
 
     //-------------------------------------------------------------------------
@@ -45,7 +45,6 @@ public class Scripter {
      * <p/>
      * The JavaScript environment is created and cached by the filename.
      *
-     * @param fileName   JavaScript file to load in the environment.
      * @param methodName Name of the function to call.
      * @param args       Arguments to the function.
      *
@@ -54,20 +53,19 @@ public class Scripter {
      * @throws ScripterException Encapsulate any exception from Rhino or is throwned
      *         in case of an error. For instance if the file can not be loaded.
      */
-    public Object callMethod( String fileName, String methodName, Object... args ) throws ScripterException {
-        logger.entry( fileName, methodName, args );
+    public Object callMethod( String methodName, Object... args ) throws ScripterException {
+        logger.entry( methodName, args );
 
         Object result = null;
         try {
             StopWatch watch = new StopWatch();
-            if( !environments.containsKey( fileName ) ) {
-                environments.put( fileName, createEnvironment( fileName ) );
+            if( environment == null ) {
+                environment = createEnvironment();
             }
 
-            Environment envir = environments.get( fileName );
-            result = envir.callMethod( methodName, args );
+            result = environment.callMethod( methodName, args );
 
-            logger.info( "Scripter. Call function '{}:{}': {} ms", fileName, methodName, watch.getElapsedTime() );
+            logger.info( "Scripter. Call function '{}:{}': {} ms", ENTRYPOINT_FILENAME, methodName, watch.getElapsedTime() );
             return result;
         }
         catch( Exception ex ) {
@@ -82,8 +80,8 @@ public class Scripter {
     //              Helpers
     //-------------------------------------------------------------------------
 
-    private Environment createEnvironment( String fileName ) throws ScripterException {
-        logger.entry( fileName );
+    private Environment createEnvironment() throws ScripterException {
+        logger.entry();
 
         try {
             StopWatch watch = new StopWatch();
@@ -92,7 +90,7 @@ public class Scripter {
 
             Environment envir = new Environment( false );
             envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
-            envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, fileName ) );
+            envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME ) );
 
             logger.info( "Scripter. Creating new environment: {} ms", watch.getElapsedTime() );
             return envir;
@@ -191,6 +189,7 @@ public class Scripter {
     private static final String COMMON_INSTALL_NAME = "common";
     private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
+    private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
 
     /**
      * Resource to lookup the product name for authentication.
@@ -199,7 +198,7 @@ public class Scripter {
     private Properties settings;
 
     /**
-     * @brief Map of Environment for our Rhino JavaScript engine.
+     * Environment for our Rhino JavaScript engine.
      */
-    private Map<String, Environment> environments = new HashMap<>();
+    private Environment environment;
 }

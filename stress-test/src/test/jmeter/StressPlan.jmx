@@ -15,10 +15,10 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">5</stringProp>
+          <stringProp name="LoopController.loops">150</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">10</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <stringProp name="ThreadGroup.num_threads">30</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">15</stringProp>
         <longProp name="ThreadGroup.start_time">1413730441000</longProp>
         <longProp name="ThreadGroup.end_time">1413730441000</longProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
@@ -30,7 +30,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/listschemas.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>
@@ -100,7 +100,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/validate_book_ok.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>
@@ -170,7 +170,7 @@
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments"/>
           </elementProp>
-          <stringProp name="SoapSampler.URL_DATA">http://localhost:13080/CatalogingUpdateServices/UpdateService</stringProp>
+          <stringProp name="SoapSampler.URL_DATA">http://localhost:18180/CatalogingUpdateServices/UpdateService</stringProp>
           <stringProp name="HTTPSamper.xml_data"></stringProp>
           <stringProp name="SoapSampler.xml_data_file">../../../src/test/jmeter/requests/update_book.xml</stringProp>
           <stringProp name="SoapSampler.SOAP_ACTION"></stringProp>
