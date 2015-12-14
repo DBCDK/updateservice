@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -162,7 +163,7 @@ public class UpdateSchoolCommonRecordTest {
      *      </dd>
      * </dl>
      */
-    //@Test
+    @Test
     public void testPerformAction_CreateRecord_WithSchoolEnrichments() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         String recordId = AssertActionsUtil.getRecordId( commonRecord );
@@ -176,6 +177,8 @@ public class UpdateSchoolCommonRecordTest {
         when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( false );
+        when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( schoolAgencyId ) );
+        when( rawRepo.fetchRecord( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( schoolRecord, MarcXChangeMimeType.ENRICHMENT ) );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 

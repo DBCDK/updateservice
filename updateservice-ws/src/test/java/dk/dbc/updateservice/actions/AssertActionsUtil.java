@@ -3,9 +3,9 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
@@ -29,7 +29,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Utility functions to reuse code in different test classes.
@@ -180,6 +179,18 @@ public class AssertActionsUtil {
         Assert.assertThat( updateCommonRecordAction.getRecordsHandler(), is( recordsHandler ) );
         Assert.assertThat( updateCommonRecordAction.getHoldingsItems(), is( holdingsItems ) );
         Assert.assertThat( updateCommonRecordAction.getOpenAgencyService(), is( openAgencyService ) );
+    }
+
+    public static void assertSchoolCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateSchoolCommonRecord.class.getName() ) );
+
+        UpdateSchoolCommonRecord updateSchoolCommonRecord = (UpdateSchoolCommonRecord)action;
+        Assert.assertThat( updateSchoolCommonRecord.getRawRepo(), is( rawRepo ) );
+        Assert.assertThat( updateSchoolCommonRecord.getRecord(), is( record ) );
+        Assert.assertThat( updateSchoolCommonRecord.getRecordsHandler(), is( recordsHandler ) );
+        Assert.assertThat( updateSchoolCommonRecord.getHoldingsItems(), is( holdingsItems ) );
+        Assert.assertThat( updateSchoolCommonRecord.getProviderId(), equalTo( providerId ) );
     }
 
     public static void assertStoreRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {

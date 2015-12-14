@@ -8,15 +8,16 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Action to update a common school record.
@@ -83,6 +84,10 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
 
             return ServiceResult.newOkResult();
         }
+        catch( UnsupportedEncodingException ex ) {
+            logger.error( ex.getMessage(), ex );
+            throw new UpdateException( ex.getMessage(), ex );
+        }
         finally {
             logger.exit();
         }
@@ -104,11 +109,32 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
         }
     }
 
-    private void moveSchoolEnrichmentsActions() {
+    private void moveSchoolEnrichmentsActions() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
 
         try {
+            Set<Integer> agencies = rawRepo.agenciesForRecord( record );
+            if( agencies == null ) {
+                return;
+            }
 
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+
+            for( Integer agencyId : agencies ) {
+                if( agencyId < RawRepo.MIN_SCHOOL_AGENCY || agencyId > RawRepo.MAX_SCHOOL_AGENCY ) {
+                    continue;
+                }
+
+                Record rawRepoRecord = rawRepo.fetchRecord( recordId, agencyId );
+                MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord( rawRepoRecord.getContent() );
+
+                LinkRecordAction linkRecordAction = new LinkRecordAction( rawRepo, enrichmentRecord );
+                linkRecordAction.setLinkToRecordId( new RecordId( recordId, RawRepo.SCHOOL_COMMON_AGENCY ) );
+                children.add( linkRecordAction );
+
+                children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, enrichmentRecord, providerId, MIMETYPE ) );
+            }
         }
         finally {
             logger.exit();
@@ -122,7 +148,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger( UpdateSchoolCommonRecord.class );
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
-    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
+    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
     /**
      * Class to give access to the holdings database.
