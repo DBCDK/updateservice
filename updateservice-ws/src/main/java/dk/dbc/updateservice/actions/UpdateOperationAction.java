@@ -3,8 +3,8 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -19,7 +19,10 @@ import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
 
@@ -163,6 +166,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setOpenAgencyService( openAgencyService );
                     action.setHoldingsItems( holdingsItems );
                     action.setSettings( settings );
+
+                    children.add( action );
+                }
+                else if( agencyId.equals( RawRepo.SCHOOL_COMMON_AGENCY ) ) {
+                    UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord( rawRepo, rec );
+                    action.setRecordsHandler( recordsHandler );
+                    action.setHoldingsItems( holdingsItems );
+                    action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                     children.add( action );
                 }
