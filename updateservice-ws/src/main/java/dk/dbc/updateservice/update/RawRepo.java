@@ -603,6 +603,10 @@ public class RawRepo {
         return MarcReader.getRecordValue( record, "001", "b" );
     }
 
+    public static boolean isSchoolEnrichment( Integer agencyId ) {
+        return MIN_SCHOOL_AGENCY <= agencyId && agencyId <= RawRepo.MAX_SCHOOL_AGENCY;
+    }
+
     public static int convertAgencyId( String agencyId ) throws UpdateException {
         try {
             return Integer.parseInt( agencyId, 10 );
