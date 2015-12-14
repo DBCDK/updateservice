@@ -2,8 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcRecordReader;
+
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -116,14 +117,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
-            if( !rawRepo.recordExists( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+            if( !rawRepo.recordExists( recordId, commonRecordAgencyId() ) ) {
                 String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
 
                 bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
-            Record commonRecord = rawRepo.fetchRecord( recordId, RawRepo.RAWREPO_COMMON_LIBRARY );
+            Record commonRecord = rawRepo.fetchRecord( recordId, commonRecordAgencyId() );
             MarcRecord enrichmentRecord = recordsHandler.correctLibraryExtendedRecord( decoder.decodeRecord( commonRecord.getContent() ), record );
 
             bizLogger.info( "Correct content of enrichment record." );
@@ -172,7 +173,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             children.add( storeRecordAction );
 
             LinkRecordAction linkRecordAction = new LinkRecordAction( rawRepo, enrichmentRecord );
-            linkRecordAction.setLinkToRecordId( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) );
+            linkRecordAction.setLinkToRecordId( new RecordId( recordId, commonRecordAgencyId() ) );
             children.add( linkRecordAction );
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, enrichmentRecord, providerId, MIMETYPE ) );
 
@@ -225,6 +226,10 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         finally {
             logger.exit();
         }
+    }
+
+    protected Integer commonRecordAgencyId() {
+        return RawRepo.RAWREPO_COMMON_LIBRARY;
     }
 
     //-------------------------------------------------------------------------

@@ -193,6 +193,18 @@ public class AssertActionsUtil {
         Assert.assertThat( updateSchoolCommonRecord.getProviderId(), equalTo( providerId ) );
     }
 
+    public static void assertSchoolEnrichmentRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateSchoolEnrichmentRecordAction.class.getName() ) );
+
+        UpdateSchoolEnrichmentRecordAction updateSchoolEnrichmentRecordAction = (UpdateSchoolEnrichmentRecordAction)action;
+        Assert.assertThat( updateSchoolEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
+        Assert.assertThat( updateSchoolEnrichmentRecordAction.getRecord(), is( record ) );
+        Assert.assertThat( updateSchoolEnrichmentRecordAction.getRecordsHandler(), is( recordsHandler ) );
+        Assert.assertThat( updateSchoolEnrichmentRecordAction.getHoldingsItems(), is( holdingsItems ) );
+        Assert.assertThat( updateSchoolEnrichmentRecordAction.getProviderId(), equalTo( providerId ) );
+    }
+
     public static void assertStoreRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( StoreRecordAction.class.getName() ) );

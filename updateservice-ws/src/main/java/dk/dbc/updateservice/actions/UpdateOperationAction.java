@@ -182,7 +182,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                         ( agencyId.equals( RawRepo.COMMON_LIBRARY ) ||
                           openAgencyService.hasFeature( this.authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ) )
                     {
-                        UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, rec );
+                        UpdateEnrichmentRecordAction action;
+                        if( RawRepo.isSchoolEnrichment( agencyId ) ) {
+                            action = new UpdateSchoolEnrichmentRecordAction( rawRepo, rec );
+                        }
+                        else {
+                            action = new UpdateEnrichmentRecordAction( rawRepo, rec );
+                        }
+
                         action.setRecordsHandler( recordsHandler );
                         action.setHoldingsItems( holdingsItems );
                         action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );

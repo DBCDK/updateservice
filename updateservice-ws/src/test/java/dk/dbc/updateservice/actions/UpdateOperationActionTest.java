@@ -397,6 +397,81 @@ public class UpdateOperationActionTest {
         assertThat( iterator.hasNext(), is( false ) );
     }
 
+    /**
+     * Test performAction(): Create a new school enrichment record.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          Rawrepo with:
+     *          <ul>
+     *              <li>A common record <code>c1</code></li>
+     *          </ul>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update the school enrichment record <code>s1</code> with new data.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>UpdateSchoolEnrichmentRecordAction: Update the common school record</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_CreateSchoolEnrichment() throws Exception {
+
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.SCHOOL_RECORD_RESOURCE );
+
+        String userId = USER_ID;
+        String groupId = AssertActionsUtil.getAgencyId( record ).toString();
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        Authenticator authenticator = mock( Authenticator.class );
+
+        Authentication authentication = mock( Authentication.class );
+        when( authentication.getGroupIdAut() ).thenReturn( groupId );
+        when( authentication.getUserIdAut() ).thenReturn( userId );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( false );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
+        List<MarcRecord> rawRepoRecords = Arrays.asList( record );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.recordDataForRawRepo( eq( record ), eq( userId ), eq( groupId ) ) ).thenReturn( rawRepoRecords );
+
+        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
+        instance.setAuthenticator( authenticator );
+        instance.setAuthentication( authentication );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), record, authenticator, authentication );
+        AssertActionsUtil.assertSchoolEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
     private String GROUP_ID = "700100";
     private String USER_ID = "netpunkt";
 }
