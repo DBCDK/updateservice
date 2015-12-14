@@ -10,7 +10,6 @@ import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -73,14 +72,13 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader( record );
             if( reader.markedForDeletion() ) {
-                String format = messages.getString( "record.operation.not.supported" );
-                String message = String.format( format, messages.getString( "operation.delete.common.school.record" ) );
-
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                moveSchoolEnrichmentsActions( RawRepo.RAWREPO_COMMON_LIBRARY );
+                updateRecordAction();
             }
-
-            updateRecordAction();
-            moveSchoolEnrichmentsActions();
+            else {
+                updateRecordAction();
+                moveSchoolEnrichmentsActions( RawRepo.SCHOOL_COMMON_AGENCY );
+            }
 
             return ServiceResult.newOkResult();
         }
@@ -109,7 +107,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
         }
     }
 
-    private void moveSchoolEnrichmentsActions() throws UpdateException, UnsupportedEncodingException {
+    private void moveSchoolEnrichmentsActions( Integer target ) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
 
         try {
@@ -122,7 +120,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
             String recordId = reader.recordId();
 
             for( Integer agencyId : agencies ) {
-                if( agencyId < RawRepo.MIN_SCHOOL_AGENCY || agencyId > RawRepo.MAX_SCHOOL_AGENCY ) {
+                if( !RawRepo.isSchoolEnrichment( agencyId ) ) {
                     continue;
                 }
 
@@ -130,7 +128,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord( rawRepoRecord.getContent() );
 
                 LinkRecordAction linkRecordAction = new LinkRecordAction( rawRepo, enrichmentRecord );
-                linkRecordAction.setLinkToRecordId( new RecordId( recordId, RawRepo.SCHOOL_COMMON_AGENCY ) );
+                linkRecordAction.setLinkToRecordId( new RecordId( recordId, target ) );
                 children.add( linkRecordAction );
 
                 children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, enrichmentRecord, providerId, MIMETYPE ) );
