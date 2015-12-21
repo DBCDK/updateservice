@@ -225,6 +225,18 @@ public class AssertActionsUtil {
         assertThat( deleteRecordAction.getMimetype(), equalTo( mimetype ) );
     }
 
+    public static void assertCommonDeleteRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( DeleteCommonRecordAction.class.getName() ) );
+
+        DeleteCommonRecordAction deleteCommonRecordAction = (DeleteCommonRecordAction) action;
+        assertThat( deleteCommonRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( deleteCommonRecordAction.getRecord(), is( record ) );
+        assertThat( deleteCommonRecordAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( deleteCommonRecordAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( deleteCommonRecordAction.getProviderId(), equalTo( providerId ) );
+    }
+
     public static void assertLinkRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord target ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( LinkRecordAction.class.getName() ) );

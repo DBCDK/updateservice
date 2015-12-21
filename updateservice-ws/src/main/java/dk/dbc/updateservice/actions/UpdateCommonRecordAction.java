@@ -3,8 +3,8 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.*;
@@ -29,6 +29,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.openAgencyService = null;
+        this.solrService = null;
         this.recordsHandler = null;
         this.settings = null;
     }
@@ -55,6 +56,14 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
     public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
         this.openAgencyService = openAgencyService;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -100,6 +109,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             action.setGroupId( groupId );
             action.setHoldingsItems( holdingsItems );
             action.setOpenAgencyService( openAgencyService );
+            action.setSolrService( solrService );
             action.setRecordsHandler( recordsHandler );
             action.setSettings( settings );
 
@@ -134,6 +144,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * Class to give access to the OpenAgency web service
      */
     private OpenAgencyService openAgencyService;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

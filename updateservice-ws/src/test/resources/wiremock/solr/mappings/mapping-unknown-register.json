@@ -1,0 +1,22 @@
+{
+  "request" : {
+    "url" : "/solr/raw-repo-index/select?q=marc.xxxsdas%3A*&wt=json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 400,
+    "bodyFileName" : "body-unknown-register.json",
+    "headers" : {
+      "Server" : "Apache-Coyote/1.1",
+      "Cache-Control" : "no-cache, no-store",
+      "Pragma" : "no-cache",
+      "Expires" : "Sat, 01 Jan 2000 01:00:00 GMT",
+      "Last-Modified" : "Thu, 17 Dec 2015 13:26:20 GMT",
+      "ETag" : "\"151b01eb08b\"",
+      "Content-Type" : "text/plain;charset=UTF-8",
+      "Transfer-Encoding" : "chunked",
+      "Date" : "Thu, 17 Dec 2015 13:26:19 GMT",
+      "Connection" : "close"
+    }
+  }
+}

@@ -40,7 +40,7 @@
 
         <updateservice.basedir>${basedir}/..</updateservice.basedir>
         <updateservice.settings.jndi.name>updateservice/settings</updateservice.settings.jndi.name>
-        <updateservice.settings.solr.url>http://ifish-i01.dbc.dk:8082/solr/raapost-index</updateservice.settings.solr.url>
+        <updateservice.settings.solr.url>http://localhost:18082/solr/raapost-index</updateservice.settings.solr.url>
         <updateservice.settings.forsrights.url>http://forsrights.addi.dk/1.2/</updateservice.settings.forsrights.url>
         <updateservice.settings.openagency.url>http://openagency.addi.dk/next_2.23/</updateservice.settings.openagency.url>
         <updateservice.settings.auth.product.name>netpunkt.dk</updateservice.settings.auth.product.name>
