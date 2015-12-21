@@ -14,7 +14,6 @@ import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
-import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -45,6 +44,7 @@ public class UpdateRequestAction extends AbstractAction {
         this.rawRepo = rawRepo;
         this.holdingsItems = null;
         this.openAgencyService = null;
+        this.solrService = null;
         this.recordsHandler = null;
 
         this.request = request;
@@ -79,6 +79,14 @@ public class UpdateRequestAction extends AbstractAction {
 
     public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
         this.openAgencyService = openAgencyService;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -206,6 +214,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setAuthentication( request.getAuthentication() );
         updateOperationAction.setHoldingsItems( this.holdingsItems );
         updateOperationAction.setOpenAgencyService( this.openAgencyService );
+        updateOperationAction.setSolrService( this.solrService );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
         updateOperationAction.setSettings( settings );
 
@@ -429,6 +438,11 @@ public class UpdateRequestAction extends AbstractAction {
      * Class to give access to the OpenAgency web service
      */
     private OpenAgencyService openAgencyService;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

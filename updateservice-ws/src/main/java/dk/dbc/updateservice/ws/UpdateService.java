@@ -13,10 +13,7 @@ import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.*;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
 import org.perf4j.StopWatch;
 import org.slf4j.MDC;
@@ -132,6 +129,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
             action.setHoldingsItems( holdingsItems );
             action.setOpenAgencyService( openAgencyService );
+            action.setSolrService( solrService );
             action.setRecordsHandler( recordsHandler );
             action.setAuthenticator( authenticator );
             action.setScripter( scripter );
@@ -325,6 +323,9 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     @EJB
     private OpenAgencyService openAgencyService;
+
+    @EJB
+    private SolrService solrService;
 
     /**
      * EJB for record validation.

@@ -3,8 +3,8 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -28,6 +28,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         this.groupId = null;
         this.holdingsItems = null;
         this.openAgencyService = null;
+        this.solrService = null;
         this.recordsHandler = null;
         this.settings = null;
 
@@ -56,6 +57,14 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
     public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
         this.openAgencyService = openAgencyService;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -98,7 +107,11 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             }
 
             if( reader.markedForDeletion() ) {
-                if( !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty() ) {
+                String solrQuery = SolrServiceIndexer.createSubfieldQuery( "002a", recordId );
+                boolean hasHoldings = !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty();
+                boolean has002Links = solrService.hasDocuments( solrQuery );
+
+                if( hasHoldings && !has002Links ) {
                     String message = messages.getString( "delete.common.with.holdings.error" );
                     return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                 }
@@ -195,6 +208,11 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * Class to give access to the OpenAgency web service
      */
     private OpenAgencyService openAgencyService;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

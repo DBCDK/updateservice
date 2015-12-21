@@ -61,6 +61,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.authentication = null;
         this.holdingsItems = null;
         this.openAgencyService = null;
+        this.solrService = null;
         this.recordsHandler = null;
         this.settings = null;
 
@@ -97,6 +98,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
     public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
         this.openAgencyService = openAgencyService;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public LibraryRecordsHandler getRecordsHandler() {
@@ -164,6 +173,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
                     action.setRecordsHandler( recordsHandler );
                     action.setOpenAgencyService( openAgencyService );
+                    action.setSolrService( solrService );
                     action.setHoldingsItems( holdingsItems );
                     action.setSettings( settings );
 
@@ -375,6 +385,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * Class to give access to the OpenAgency web service
      */
     private OpenAgencyService openAgencyService;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     /**
      * Class to give access to the JavaScript engine to handle records.

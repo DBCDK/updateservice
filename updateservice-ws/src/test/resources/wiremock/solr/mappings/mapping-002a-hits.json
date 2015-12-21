@@ -1,6 +1,6 @@
 {
   "request" : {
-    "url" : "/solr/raw-repo-index/select?wt=json&indent=true&q=marc.002a%3A06605141",
+    "url" : "/solr/raw-repo-index/select?q=marc.002a%3A06605141&wt=json",
     "method" : "GET"
   },
   "response" : {
