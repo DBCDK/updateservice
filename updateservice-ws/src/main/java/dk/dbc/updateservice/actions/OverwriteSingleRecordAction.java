@@ -33,6 +33,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         this.holdingsItems = null;
         this.openAgencyService = null;
         this.recordsHandler = null;
+        this.solrService = null;
         this.settings = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
@@ -68,6 +69,14 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
         this.recordsHandler = recordsHandler;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public Properties getSettings() {
@@ -290,6 +299,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     action.setCommonRecord( record );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
+                    action.setSolrService( solrService );
                     action.setSettings( settings );
 
                     children.add( action );
@@ -338,6 +348,11 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     private Properties settings;
 

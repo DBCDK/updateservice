@@ -2,7 +2,11 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.*;
+
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordFactory;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -17,7 +21,10 @@ import org.junit.Test;
 import javax.xml.bind.JAXBException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,7 +58,8 @@ public class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record.
+     * Test UpdateEnrichmentRecordAction.performAction(): Create enrichment record with no 002 links
+     * from other records.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -75,12 +83,13 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UpdateRecord() throws Exception {
+    public void testPerformAction_CreateRecord_No002Links() throws Exception {
         InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
 
         MarcRecordReader reader = new MarcRecordReader( record );
         String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
 
         is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
@@ -89,13 +98,18 @@ public class UpdateEnrichmentRecordActionTest {
         Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
         when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
         when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -123,7 +137,8 @@ public class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record.
+     * Test UpdateEnrichmentRecordAction.performAction(): Create enrichment record with 002 links
+     * from other records.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -147,9 +162,222 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
+    public void testPerformAction_CreateRecord_With002Links() throws Exception {
+        InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+
+        is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
+        MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
+        when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
+
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+
+        UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
+        instance.setHoldingsItems( mock( HoldingsItems.class ) );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
+        instance.setProviderId( "xxx" );
+
+        String message = messages.getString( "create.record.with.002.links" );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+        assertThat( instance.children().isEmpty(), is( true ) );
+    }
+
+    /**
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record with no 002 links
+     * from other records.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an enrichment record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>LinkRecordAction: Link the record to the common record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_UpdateRecord_No002Links() throws Exception {
+        InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+
+        is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
+        MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
+        when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
+
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
+        UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
+        instance.setHoldingsItems( mock( HoldingsItems.class ) );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
+        instance.setProviderId( "xxx" );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        Assert.assertThat( children.size(), is( 3 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == StoreRecordAction.class );
+
+        StoreRecordAction storeRecordAction = (StoreRecordAction)child;
+        assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( storeRecordAction.getRecord(), is( record ) );
+        assertThat( storeRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == LinkRecordAction.class );
+
+        LinkRecordAction linkRecordAction = (LinkRecordAction)child;
+        assertThat( linkRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( linkRecordAction.getRecord(), is( record ) );
+        assertThat( linkRecordAction.getLinkToRecordId(), equalTo( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) );
+
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), UpdateEnrichmentRecordAction.MIMETYPE );
+    }
+
+    /**
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record with 002 links
+     * from other records.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an enrichment record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>LinkRecordAction: Link the record to the common record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_UpdateRecord_With002Links() throws Exception {
+        InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        MarcRecordReader reader = new MarcRecordReader( record );
+        String recordId = reader.recordId();
+        Integer agencyId = reader.agencyIdAsInteger();
+
+        is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
+        MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        Record commonRecord = createRawRepoRecord( commonRecordData, MarcXChangeMimeType.MARCXCHANGE );
+        when( rawRepo.recordExists( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( true );
+        when( rawRepo.fetchRecord( eq( commonRecord.getId().getBibliographicRecordId() ), eq( commonRecord.getId().getAgencyId() ) ) ).thenReturn( commonRecord );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
+
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+
+        UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
+        instance.setHoldingsItems( mock( HoldingsItems.class ) );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
+        instance.setProviderId( "xxx" );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        Assert.assertThat( children.size(), is( 3 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == StoreRecordAction.class );
+
+        StoreRecordAction storeRecordAction = (StoreRecordAction)child;
+        assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( storeRecordAction.getRecord(), is( record ) );
+        assertThat( storeRecordAction.getMimetype(), equalTo( UpdateEnrichmentRecordAction.MIMETYPE ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == LinkRecordAction.class );
+
+        LinkRecordAction linkRecordAction = (LinkRecordAction)child;
+        assertThat( linkRecordAction.getRawRepo(), is( rawRepo ) );
+        assertThat( linkRecordAction.getRecord(), is( record ) );
+        assertThat( linkRecordAction.getLinkToRecordId(), equalTo( new RecordId( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ) ) );
+
+        AssertActionsUtil.assertEnqueueRecordAction( children.get( 2 ), rawRepo, record, instance.getProviderId(), UpdateEnrichmentRecordAction.MIMETYPE );
+    }
+
+    /**
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record to a common record that
+     * does not exist.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          An empty rawrepo.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update an enrichment record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
+     *      </dd>
+     * </dl>
+     */
+    @Test
     public void testPerformAction_UpdateRecord_CommonRecordDoesNotExist() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( enrichmentRecord );
 
         String commonRecordId = AssertActionsUtil.getRecordId( commonRecord );
 
@@ -158,9 +386,13 @@ public class UpdateEnrichmentRecordActionTest {
 
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setProviderId( "xxx" );
 
         String message = String.format( messages.getString( "record.does.not.exist" ), commonRecordId );
@@ -212,9 +444,13 @@ public class UpdateEnrichmentRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( new MarcRecord() );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -251,6 +487,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_UpdateRecord_EncodingException() throws Exception {
         InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        String recordId = AssertActionsUtil.getRecordId( record );
 
         is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
@@ -266,9 +503,13 @@ public class UpdateEnrichmentRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setDecoder( decoder );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         instance.performAction();
     }
@@ -296,6 +537,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_UpdateRecord_ScripterException() throws Exception {
         InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
         MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        String recordId = AssertActionsUtil.getRecordId( record );
 
         is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
         MarcRecord commonRecordData = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
@@ -308,8 +550,12 @@ public class UpdateEnrichmentRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenThrow( new ScripterException( "error" ) );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         instance.performAction();
     }
@@ -356,9 +602,13 @@ public class UpdateEnrichmentRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
+        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -411,9 +661,13 @@ public class UpdateEnrichmentRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( agencyId ) );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
+        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );

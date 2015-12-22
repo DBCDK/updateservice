@@ -3,15 +3,13 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -30,6 +28,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
         super( "CreateVolumeRecordAction", rawRepo, record );
 
         this.holdingsItems = null;
+        this.solrService = null;
         this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -40,6 +39,14 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -90,6 +97,13 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
+            if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) {
+                String message = messages.getString( "create.record.with.002.links" );
+
+                bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
             bizLogger.error( "Creating sub actions successfully" );
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
@@ -117,6 +131,12 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
+
     private String providerId;
 
     private ResourceBundle messages;

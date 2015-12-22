@@ -147,6 +147,42 @@ public class AssertActionsUtil {
         Assert.assertThat( authenticateRecordAction.getAuthentication(), is( authentication ) );
     }
 
+    public static void assertUpdateCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, Integer groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( UpdateCommonRecordAction.class.getName() ) );
+
+        UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction)action;
+        Assert.assertThat( updateCommonRecordAction.getRawRepo(), is( rawRepo ) );
+        Assert.assertThat( updateCommonRecordAction.getRecord(), is( record ) );
+        Assert.assertThat( updateCommonRecordAction.getGroupId(), equalTo( groupId ) );
+        Assert.assertThat( updateCommonRecordAction.getRecordsHandler(), is( recordsHandler ) );
+        Assert.assertThat( updateCommonRecordAction.getHoldingsItems(), is( holdingsItems ) );
+        Assert.assertThat( updateCommonRecordAction.getOpenAgencyService(), is( openAgencyService ) );
+    }
+
+    public static void assertCreateSingleRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, SolrService solrService, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( CreateSingleRecordAction.class.getName() ) );
+
+        CreateSingleRecordAction act = (CreateSingleRecordAction)action;
+        Assert.assertThat( act.getRawRepo(), is( rawRepo ) );
+        Assert.assertThat( act.getRecord(), is( record ) );
+        Assert.assertThat( act.getSolrService(), is( solrService ) );
+        Assert.assertThat( act.getProviderId(), equalTo( providerId ) );
+    }
+
+    public static void assertCreateVolumeRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems, SolrService solrService, String providerId ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( CreateVolumeRecordAction.class.getName() ) );
+
+        CreateVolumeRecordAction act = (CreateVolumeRecordAction)action;
+        Assert.assertThat( act.getRawRepo(), is( rawRepo ) );
+        Assert.assertThat( act.getRecord(), is( record ) );
+        Assert.assertThat( act.getHoldingsItems(), is( holdingsItems ) );
+        Assert.assertThat( act.getSolrService(), is( solrService ) );
+        Assert.assertThat( act.getProviderId(), equalTo( providerId ) );
+    }
+
     public static void assertUpdateLocalRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems ) {
         assertThat( action, notNullValue() );
         assertThat( action.getClass().getName(), equalTo( UpdateLocalRecordAction.class.getName() ) );
@@ -166,19 +202,6 @@ public class AssertActionsUtil {
         Assert.assertThat( updateEnrichmentRecordAction.getRecord(), is( record ) );
         Assert.assertThat( updateEnrichmentRecordAction.getRecordsHandler(), is( recordsHandler ) );
         Assert.assertThat( updateEnrichmentRecordAction.getHoldingsItems(), is( holdingsItems ) );
-    }
-
-    public static void assertUpdateCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, Integer groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService ) {
-        assertThat( action, notNullValue() );
-        assertThat( action.getClass().getName(), equalTo( UpdateCommonRecordAction.class.getName() ) );
-
-        UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction)action;
-        Assert.assertThat( updateCommonRecordAction.getRawRepo(), is( rawRepo ) );
-        Assert.assertThat( updateCommonRecordAction.getRecord(), is( record ) );
-        Assert.assertThat( updateCommonRecordAction.getGroupId(), equalTo( groupId ) );
-        Assert.assertThat( updateCommonRecordAction.getRecordsHandler(), is( recordsHandler ) );
-        Assert.assertThat( updateCommonRecordAction.getHoldingsItems(), is( holdingsItems ) );
-        Assert.assertThat( updateCommonRecordAction.getOpenAgencyService(), is( openAgencyService ) );
     }
 
     public static void assertSchoolCommonRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId ) {

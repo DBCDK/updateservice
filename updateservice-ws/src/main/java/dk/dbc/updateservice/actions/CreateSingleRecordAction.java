@@ -3,11 +3,14 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -21,7 +24,18 @@ import java.util.ResourceBundle;
 public class CreateSingleRecordAction extends AbstractRawRepoAction {
     public CreateSingleRecordAction( RawRepo rawRepo, MarcRecord record ) {
         super( "CreateSingleRecordAction", rawRepo, record );
+
+        this.solrService = null;
+
         this.messages = ResourceBundles.getBundle( this, "actions" );
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -53,6 +67,14 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
+            MarcRecordReader reader = new MarcRecordReader( record );
+            if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                String message = messages.getString( "create.record.with.002.links" );
+
+                bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
             bizLogger.error( "Creating sub actions successfully" );
 
             children.add( StoreRecordAction.newStoreAction( rawRepo, record, MIMETYPE ) );
@@ -73,6 +95,11 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
     private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     private String providerId;
     private ResourceBundle messages;

@@ -37,6 +37,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         this.commonRecord = null;
         this.recordsHandler = null;
         this.holdingsItems = null;
+        this.solrService = null;
         this.settings = null;
     }
 
@@ -62,6 +63,14 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public Properties getSettings() {
@@ -188,6 +197,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, updateRecord );
             action.setRecordsHandler( recordsHandler );
             action.setHoldingsItems( holdingsItems );
+            action.setSolrService( solrService );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
@@ -240,5 +250,11 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private LibraryRecordsHandler recordsHandler;
 
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
+
     private Properties settings;
 }

@@ -136,6 +136,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
         try {
             CreateSingleRecordAction action = new CreateSingleRecordAction( rawRepo, record );
+            action.setSolrService( solrService );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
@@ -157,6 +158,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             action.setHoldingsItems( holdingsItems );
             action.setOpenAgencyService( openAgencyService );
             action.setRecordsHandler( recordsHandler );
+            action.setSolrService( solrService );
             action.setSettings( settings );
 
             return action;
@@ -176,6 +178,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             DeleteCommonRecordAction action = new DeleteCommonRecordAction( rawRepo, record );
             action.setRecordsHandler( recordsHandler );
             action.setHoldingsItems( holdingsItems );
+            action.setSolrService( solrService );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;
