@@ -2,8 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcRecordReader;
+
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
@@ -31,7 +32,9 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
         this.recordsHandler = null;
         this.holdingsItems = null;
+        this.solrService = null;
         this.providerId = null;
+
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
@@ -49,6 +52,14 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -95,6 +106,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
                 action.setRecordsHandler( recordsHandler );
                 action.setHoldingsItems( holdingsItems );
+                action.setSolrService( solrService );
                 action.setProviderId( providerId );
 
                 children.add( action );
@@ -132,6 +144,12 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      * Class to give access to the holdings database.
      */
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
+
     private String providerId;
 
     private ResourceBundle messages;

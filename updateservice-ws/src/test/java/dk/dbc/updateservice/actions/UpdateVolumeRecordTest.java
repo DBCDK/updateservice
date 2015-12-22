@@ -61,18 +61,20 @@ public class UpdateVolumeRecordTest {
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
 
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        SolrService solrService = mock( SolrService.class );
+
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 1 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
 
-        CreateVolumeRecordAction action = (CreateVolumeRecordAction)children.get( 0 );
-        assertThat( action, notNullValue() );
-        assertThat( action.getRawRepo(), is( rawRepo ) );
-        assertThat( action.getRecord(), is( volumeRecord ) );
+        AssertActionsUtil.assertCreateVolumeRecordAction( iterator.next(), rawRepo, volumeRecord, holdingsItems, solrService, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**

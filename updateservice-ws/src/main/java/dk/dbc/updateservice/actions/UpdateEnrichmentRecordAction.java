@@ -35,6 +35,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         this.decoder = new RawRepoDecoder();
         this.recordsHandler = null;
         this.holdingsItems = null;
+        this.solrService = null;
         this.providerId = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
@@ -58,6 +59,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -122,6 +131,15 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
                 bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
+            if( !rawRepo.recordExists( recordId, reader.agencyIdAsInteger() ) ) {
+                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                    String message = messages.getString( "create.record.with.002.links" );
+
+                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
             }
 
             Record commonRecord = rawRepo.fetchRecord( recordId, commonRecordAgencyId() );
@@ -245,6 +263,12 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private LibraryRecordsHandler recordsHandler;
 
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
+
     private String providerId;
 
     private ResourceBundle messages;

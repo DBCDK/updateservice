@@ -27,6 +27,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
 
         this.holdingsItems = null;
         this.recordsHandler = null;
+        this.solrService = null;
         this.providerId = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
@@ -46,6 +47,14 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
 
     public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
         this.recordsHandler = recordsHandler;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -98,6 +107,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
             UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction( rawRepo, record );
             action.setRecordsHandler( recordsHandler );
             action.setHoldingsItems( holdingsItems );
+            action.setSolrService( solrService );
             action.setProviderId( providerId );
 
             children.add( action );
@@ -161,6 +171,11 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
 
     private String providerId;
 

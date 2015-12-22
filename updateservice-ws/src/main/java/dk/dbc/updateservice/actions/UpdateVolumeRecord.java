@@ -24,6 +24,8 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
 
         try {
             CreateVolumeRecordAction action = new CreateVolumeRecordAction( rawRepo, record );
+            action.setHoldingsItems( getHoldingsItems() );
+            action.setSolrService( getSolrService() );
             action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
             return action;

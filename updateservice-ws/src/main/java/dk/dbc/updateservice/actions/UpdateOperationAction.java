@@ -183,6 +183,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord( rawRepo, rec );
                     action.setRecordsHandler( recordsHandler );
                     action.setHoldingsItems( holdingsItems );
+                    action.setSolrService( solrService );
                     action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                     children.add( action );
@@ -202,6 +203,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                         action.setRecordsHandler( recordsHandler );
                         action.setHoldingsItems( holdingsItems );
+                        action.setSolrService( solrService );
                         action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                         children.add( action );
@@ -209,6 +211,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     else {
                         UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, rec );
                         action.setHoldingsItems( holdingsItems );
+                        action.setSolrService( solrService );
                         action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
 
                         children.add( action );

@@ -6,6 +6,8 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -50,13 +52,18 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals() throws Exception {
+    public void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
+        instance.setSolrService( solrService );
         instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -66,6 +73,45 @@ public class CreateSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction( children.get( 0 ), rawRepo, record );
         AssertActionsUtil.assertEnqueueRecordAction( children.get( 1 ), rawRepo, record, instance.getProviderId(), instance.MIMETYPE );
+    }
+
+    /**
+     * Test performAction(): Create new single common record with no local records for the
+     * same faust-id, but with 002 links from other records.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          An empty rawrepo.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update a common record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_NoLocals_With002Links() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+
+        CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
+        instance.setSolrService( solrService );
+        instance.setProviderId( "xxx" );
+
+        String message = messages.getString( "create.record.with.002.links" );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+        assertThat( instance.children().isEmpty(), is( true ) );
     }
 
     /**
@@ -89,11 +135,17 @@ public class CreateSingleRecordActionTest {
     @Test
     public void testPerformAction_WithLocal() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
 
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700300 ) );
 
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
+        instance.setSolrService( solrService );
+        instance.setProviderId( "xxx" );
 
         String message = messages.getString( "create.record.with.locals" );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );

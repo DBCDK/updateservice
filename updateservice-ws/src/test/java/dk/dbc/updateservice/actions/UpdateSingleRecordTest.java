@@ -58,23 +58,21 @@ public class UpdateSingleRecordTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
-        instance.setSolrService( mock( SolrService.class) );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 1 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
 
-        CreateSingleRecordAction action = (CreateSingleRecordAction)children.get( 0 );
-        assertThat( action, notNullValue() );
-        assertThat( action.getRawRepo(), is( rawRepo ) );
-        assertThat( action.getRecord(), is( record ) );
-        assertThat( action.getProviderId(), equalTo( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) ) );
+        AssertActionsUtil.assertCreateSingleRecordAction( iterator.next(), rawRepo, record, solrService, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**

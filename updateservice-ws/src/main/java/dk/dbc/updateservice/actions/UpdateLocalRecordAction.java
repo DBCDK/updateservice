@@ -2,18 +2,16 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.records.MarcRecordReader;
+
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -35,6 +33,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         super( "UpdateLocalRecord", rawRepo, record );
 
         this.holdingsItems = null;
+        this.solrService = null;
         this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -45,6 +44,14 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public SolrService getSolrService() {
+        return solrService;
+    }
+
+    public void setSolrService( SolrService solrService ) {
+        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -111,6 +118,17 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
+            MarcRecordReader reader = new MarcRecordReader( record );
+
+            if( !rawRepo.recordExists( reader.recordId(), reader.agencyIdAsInteger() ) ) {
+                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                    String message = messages.getString( "create.record.with.002.links" );
+
+                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+            }
+
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, record );
             storeRecordAction.setMimetype( MIMETYPE );
             children.add( storeRecordAction );
@@ -161,6 +179,15 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             if( !rawRepo.recordExists( parentId, agencyId ) ) {
                 String message = String.format( messages.getString( "reference.record.not.exist" ), recordId, agencyId, parentId, agencyId );
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+            }
+
+            if( !rawRepo.recordExists( recordId, agencyId ) ) {
+                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                    String message = messages.getString( "create.record.with.002.links" );
+
+                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
             }
 
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, record );
@@ -259,6 +286,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
             UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, mainRecord );
             action.setHoldingsItems( holdingsItems );
+            action.setSolrService( solrService );
             action.setProviderId( providerId );
             this.children.add( action );
 
@@ -282,6 +310,12 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to lookups for the rawrepo in solr.
+     */
+    private SolrService solrService;
+
     private String providerId;
 
     private ResourceBundle messages;
