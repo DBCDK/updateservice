@@ -9,10 +9,7 @@ import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.*;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceContext;
@@ -57,9 +54,25 @@ public class UpdateRequestActionTest {
         UpdateRecordRequest request = new UpdateRecordRequest();
         WebServiceContext webServiceContext = mock( WebServiceContext.class );
 
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+        Properties settings = new Properties();
+
         RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, this.messages.getString( "request.record.is.missing" ) ) ) );
     }
 
@@ -91,7 +104,22 @@ public class UpdateRequestActionTest {
         request.setBibliographicRecord( bibRecord );
 
         RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+        Properties settings = new Properties();
+
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
 
         bibRecord.setRecordSchema( null );
         assertThat( instance.performAction(), equalTo( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA ) ) );
@@ -128,7 +156,22 @@ public class UpdateRequestActionTest {
         request.setBibliographicRecord( bibRecord );
 
         RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+        Properties settings = new Properties();
+
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
 
         bibRecord.setRecordPacking( null );
         assertThat( instance.performAction(), equalTo( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA ) ) );
@@ -180,8 +223,16 @@ public class UpdateRequestActionTest {
         request.setBibliographicRecord( bibRecord );
 
         RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
         instance.setAuthenticator( authenticator );
         instance.setScripter( scripter );
         instance.setSettings( settings );
@@ -248,11 +299,13 @@ public class UpdateRequestActionTest {
         RawRepo rawRepo = mock( RawRepo.class );
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setAuthenticator( authenticator );
         instance.setScripter( scripter );

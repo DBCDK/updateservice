@@ -2,16 +2,14 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -62,11 +60,16 @@ public class UpdateCommonRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( record ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+        Properties settings = mock( Properties.class );
+
         UpdateCommonRecordAction instance = new UpdateCommonRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -126,11 +129,16 @@ public class UpdateCommonRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( volumeRecord ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+        Properties settings = mock( Properties.class );
+
         UpdateCommonRecordAction instance = new UpdateCommonRecordAction( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
