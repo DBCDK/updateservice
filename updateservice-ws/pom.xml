@@ -191,7 +191,7 @@
             </resource>
             <resource>
                 <targetPath>META-INF/wsdl/update</targetPath>
-                <directory>../clients/client/src/main/resources/wsdl</directory>
+                <directory>src/wsdl/update</directory>
                 <includes>
                     <include>*.wsdl</include>
                     <include>*.xsd</include>
