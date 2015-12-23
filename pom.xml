@@ -43,7 +43,6 @@
         <module>updateservice-app</module>
         <module>updateservice-ws</module>
         <module>updateservice-log</module>
-        <module>clients</module>
         <module>demo</module>
     </modules>
 
