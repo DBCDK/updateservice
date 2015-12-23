@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<cu:getSchemasResponse xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
-  <cu:getSchemasResult>
-    <cu:error>authentication_error</cu:error>
-  </cu:getSchemasResult>
-</cu:getSchemasResponse>

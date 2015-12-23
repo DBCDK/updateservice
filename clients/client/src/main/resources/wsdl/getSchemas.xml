@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<cu:getSchemas xmlns:cu="http://oss.dbc.dk/ns/catalogingUpdate">
-  <cu:getSchemasRequest>
-    <cu:agencyId>123456</cu:agencyId>
-    <cu:trackingId>2014-04-03T02:49:26:514495:15147</cu:trackingId>
-  </cu:getSchemasRequest>
-</cu:getSchemas>
