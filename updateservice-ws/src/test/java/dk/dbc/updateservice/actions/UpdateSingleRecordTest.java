@@ -58,13 +58,20 @@ public class UpdateSingleRecordTest {
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
 
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -179,10 +186,15 @@ public class UpdateSingleRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
-        instance.setRecordsHandler( recordsHandler );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
-        instance.setSolrService( mock( SolrService.class) );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -231,13 +243,17 @@ public class UpdateSingleRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 710100 ) );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
-        instance.setRecordsHandler( recordsHandler );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -286,13 +302,17 @@ public class UpdateSingleRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 710100 ) );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
-        instance.setRecordsHandler( recordsHandler );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );

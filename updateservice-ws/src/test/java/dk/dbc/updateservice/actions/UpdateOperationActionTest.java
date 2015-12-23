@@ -8,10 +8,7 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.service.api.Authentication;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Test;
 
@@ -82,11 +79,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -157,11 +157,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, enrichmentRecord );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -232,11 +235,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, enrichmentRecord );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -307,11 +313,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -380,11 +389,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
@@ -455,11 +467,14 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( userId ), eq( groupId ) ) ).thenReturn( rawRepoRecords );
 
+        SolrService solrService = mock( SolrService.class );
+
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 

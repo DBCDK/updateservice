@@ -8,10 +8,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
@@ -80,10 +77,14 @@ public class OverwriteSingleRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( record ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -147,10 +148,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -216,11 +221,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -294,11 +302,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -370,11 +381,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -445,11 +459,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason" ) );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -522,11 +539,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -602,11 +622,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -701,11 +724,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -795,11 +821,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -892,11 +921,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason" ) );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -989,11 +1021,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason" ) );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1088,11 +1123,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1186,11 +1224,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1278,11 +1319,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1370,11 +1414,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1463,11 +1510,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newOkResult() );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1556,11 +1606,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1648,11 +1701,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
         when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1739,11 +1795,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1835,11 +1894,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -1934,11 +1996,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( localAgencyId );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -2004,11 +2069,14 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( false );
 
+        SolrService solrService = mock( SolrService.class );
+
         OverwriteSingleRecordAction instance = new OverwriteSingleRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSolrService( solrService );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );

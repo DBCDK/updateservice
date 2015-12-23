@@ -62,11 +62,18 @@ public class UpdateVolumeRecordTest {
         when( rawRepo.recordExists( eq( volumeRecordId ), eq( agencyId ) ) ).thenReturn( false );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -117,13 +124,21 @@ public class UpdateVolumeRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.hasClassificationData( volumeRecord ) ).thenReturn( false );
+
+        Properties settings = new Properties();
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -182,13 +197,17 @@ public class UpdateVolumeRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( new HashSet<Integer>() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
-        instance.setRecordsHandler( recordsHandler );
+        instance.setGroupId( 700000 );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
