@@ -66,9 +66,9 @@
     <dependencies>
         <dependency>
             <groupId>dk.dbc</groupId>
-            <artifactId>updateservice-app</artifactId>
+            <artifactId>updateservice</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <type>ear</type>
+            <type>war</type>
         </dependency>
     </dependencies>
 
