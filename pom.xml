@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
+    <!-- Use dbc wide pom first. Set relative path to empty, to force it to get it from the repos -->
+    <parent>
+        <groupId>dk.dbc</groupId>
+        <artifactId>dbc-pom</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath></relativePath>
+    </parent>
 
     <groupId>dk.dbc</groupId>
     <artifactId>updateservice</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>war</packaging>
 
-    <name>updateservice</name>
-
-    <!-- Use dbc wide pom first. Set relative path to empty, to force it to get it from the repos -->
-    <parent>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dbc-pom</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-      <relativePath></relativePath>
-    </parent>
-
+    <name>UpdateService Project</name>
 
     <properties>
         <report.outputDirectory>${project.build.directory}/site</report.outputDirectory>
@@ -39,13 +39,6 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <modules>
-        <module>updateservice-app</module>
-        <module>updateservice-ws</module>
-        <module>updateservice-log</module>
-        <module>demo</module>
-    </modules>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -56,7 +49,191 @@
         </dependencies>
     </dependencyManagement>
 
+    <dependencies>
+        <!-- ************************************************************* -->
+        <!-- Java EE                                                       -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>javax</groupId>
+            <artifactId>javaee-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.ws</groupId>
+            <artifactId>jaxws-rt</artifactId>
+            <version>2.2.8</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.metro</groupId>
+            <artifactId>webservices-rt</artifactId>
+            <version>2.3</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- Updateservice                                                 -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>updateservice-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- iScrum Commons                                                -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>dk.dbc.iscrum</groupId>
+            <artifactId>iscrum-records</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc.iscrum</groupId>
+            <artifactId>iscrum-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- DBC                                                           -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>rawrepo-access</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>holdings-items-access</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>forsrights-ws-client</artifactId>
+            <version>1.2-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>openagency-ws-client</artifactId>
+            <version>2.23-SNAPSHOT</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- DBC JsLib                                                     -->
+        <!-- ************************************************************* -->
+
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-jslib</artifactId>
+
+            <!--
+                This tells maven to not include log4j dependencies, even if
+                introduced by other depencencies. dbc-jsslib has such a dep in test
+                but here they are removed
+            -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>jscommon</artifactId>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- Perf4j                                                        -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>org.perf4j</groupId>
+            <artifactId>perf4j</artifactId>
+            <version>0.9.16</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- Apache Jackson                                                -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-asl</artifactId>
+            <version>1.9.11</version>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- Logging                                                       -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-ext</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <!-- ************************************************************* -->
+        <!-- JUnit                                                         -->
+        <!-- ************************************************************* -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hamcrest</groupId>
+                    <artifactId>hamcrest-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>1.46</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
     <build>
+        <resources>
+            <resource>
+                <targetPath>META-INF/wsdl/forsrights</targetPath>
+                <directory>src/wsdl/forsrights</directory>
+                <includes>
+                    <include>jax-ws-catalog.xml</include>
+                    <include>*.wsdl</include>
+                    <include>*.xsd</include>
+                </includes>
+            </resource>
+            <resource>
+                <targetPath>META-INF/wsdl/update</targetPath>
+                <directory>src/wsdl/update</directory>
+                <includes>
+                    <include>*.wsdl</include>
+                    <include>*.xsd</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -68,6 +245,85 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${endorsed.dir}</outputDirectory>
+                            <silent>true</silent>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax</groupId>
+                                    <artifactId>javaee-endorsed-api</artifactId>
+                                    <version>7.0</version>
+                                    <type>jar</type>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jvnet.jax-ws-commons</groupId>
+                <artifactId>jaxws-maven-plugin</artifactId>
+                <version>2.3</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <wsdlFiles>
+                                <wsdlFile>forsrights.wsdl</wsdlFile>
+                            </wsdlFiles>
+                            <wsdlLocation>META-INF/wsdl/forsrights/forsrights.wsdl</wsdlLocation>
+                            <wsdlDirectory>${basedir}/src/wsdl/forsrights</wsdlDirectory>
+                            <packageName>dk.dbc.forsrights.service</packageName>
+                            <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
+                        </configuration>
+                        <id>wsimport-generate-forsrights</id>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>javax.xml</groupId>
+                        <artifactId>webservices-api</artifactId>
+                        <version>2.0</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <sourceDestDir>${project.build.directory}/generated-sources/jaxws-wsimport</sourceDestDir>
+                    <xnocompile>true</xnocompile>
+                    <verbose>true</verbose>
+                    <extension>true</extension>
+                    <catalog>${basedir}/src/jax-ws-catalog.xml</catalog>
+                    <target>2.0</target>
+                    <vmArgs>
+                        <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+                    </vmArgs>
+                </configuration>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>

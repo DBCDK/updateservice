@@ -4,12 +4,12 @@
         "configuration": {
             "homedir": "glassfish/updateservice/dataio",
             "artifacts": [
-                "${updateservice.basedir}/updateservice-app/target/updateservice-app-1.0-SNAPSHOT.ear",
+                "${updateservice.basedir}/target/updateservice-1.0-SNAPSHOT.war",
                 "${updateservice.basedir}/update-logback-include.xml"
             ],
             "deployment": {
-                "file": "updateservice-app-1.0-SNAPSHOT.ear",
-                "name": "updateservice-app-1.0-SNAPSHOT"
+                "file": "updateservice-1.0-SNAPSHOT.war",
+                "name": "updateservice-1.0-SNAPSHOT"
             },
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
@@ -22,12 +22,12 @@
         "configuration": {
             "homedir": "glassfish/updateservice/fbs",
             "artifacts": [
-                "${updateservice.basedir}/updateservice-app/target/updateservice-app-1.0-SNAPSHOT.ear",
+                "${updateservice.basedir}/target/updateservice-1.0-SNAPSHOT.war",
                 "${updateservice.basedir}/update-logback-include.xml"
             ],
             "deployment": {
-                "file": "updateservice-app-1.0-SNAPSHOT.ear",
-                "name": "updateservice-app-1.0-SNAPSHOT"
+                "file": "updateservice-1.0-SNAPSHOT.war",
+                "name": "updateservice-1.0-SNAPSHOT"
             },
             "glassfish": {
                 "instdir": "glassfish/glassfish4",
