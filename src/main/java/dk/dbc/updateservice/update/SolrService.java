@@ -3,6 +3,7 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -19,6 +20,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * EJB to make lookups in a SOLR index of the rawrepo database.
@@ -31,6 +33,7 @@ public class SolrService {
 
     public SolrService( Properties settings ) {
         this.settings = settings;
+        this.messages = ResourceBundles.getBundle( this, "messages" );
     }
 
     public boolean hasDocuments( String q ) throws UpdateException {
@@ -107,7 +110,7 @@ public class SolrService {
     public Map<String, Object> callSolr( URL url ) throws IOException {
         logger.entry();
 
-        int responseCode = -1;
+        int responseCode;
         Map<String, Object> result = null;
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -116,6 +119,7 @@ public class SolrService {
 
             InputStream is;
             responseCode = conn.getResponseCode();
+
             if( responseCode == 200 ) {
                 is = conn.getInputStream();
             }
@@ -131,10 +135,15 @@ public class SolrService {
             }
 
             conn.disconnect();
-            logger.debug( "Solr response {} ==> {}", url.toString(), response );
+            if( responseCode == 200 ) {
+                logger.debug( "Solr response {} ==> {}", url.toString(), response );
+            }
+            else {
+                logger.warn( "Solr response {} ==> {}", url.toString(), response );
+            }
 
-            if( responseCode == 404 ) {
-                throw new IOException( String.format( "Unable to access url [%s]: %s", conn.getResponseCode(), response ) );
+            if( responseCode != 200 ) {
+                throw new IOException( messages.getString( "solr.error.responsecode" ) );
             }
 
             result = Json.decode( response, Map.class );
@@ -165,4 +174,6 @@ public class SolrService {
      */
     @Resource( lookup = JNDIResources.SETTINGS_NAME )
     private Properties settings;
+
+    private ResourceBundle messages;
 }
