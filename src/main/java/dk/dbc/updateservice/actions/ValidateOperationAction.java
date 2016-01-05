@@ -107,7 +107,10 @@ public class ValidateOperationAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         children.add( new AuthenticateUserAction( this.authenticator, this.authentication, this.webServiceContext ) );
-        children.add( new ValidateSchemaAction( this.validateSchema, this.scripter, this.settings ) );
+
+        ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction( this.validateSchema, this.scripter, this.settings );
+        validateSchemaAction.setGroupId( this.authentication.getGroupIdAut() );
+        children.add( validateSchemaAction );
 
         ValidateRecordAction validateRecordAction = new ValidateRecordAction( this.validateSchema, this.record, this.okStatus );
         validateRecordAction.setScripter( this.scripter );
