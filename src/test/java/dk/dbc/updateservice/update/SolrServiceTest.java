@@ -9,6 +9,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Properties;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
