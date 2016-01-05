@@ -29,6 +29,7 @@ import javax.jws.WebService;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
+import java.io.IOException;
 import java.util.*;
 
 //-----------------------------------------------------------------------------
@@ -194,7 +195,8 @@ public class UpdateService implements CatalogingUpdatePortType {
             MDC.put( TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId() );
 
             logger.entry( getValidateSchemasRequest );
-            List<Schema> names = validator.getValidateSchemas();
+            bizLogger.info( Json.encodePretty( getValidateSchemasRequest ) );
+            List<Schema> names = validator.getValidateSchemas( getValidateSchemasRequest.getAuthentication().getGroupIdAut() );
 
             GetSchemasResult response = new GetSchemasResult();
             response.setSchemasStatus(SchemasStatusEnum.OK);
@@ -204,6 +206,14 @@ public class UpdateService implements CatalogingUpdatePortType {
         }
         catch( ScripterException ex ) {
             logger.error( "Caught JavaScript exception: {}", ex.getCause() );
+
+            GetSchemasResult response = new GetSchemasResult();
+            response.setSchemasStatus(SchemasStatusEnum.FAILED_INTERNAL_ERROR);
+
+            return response;
+        }
+        catch( IOException ex ) {
+            logger.error( "Caught runtime exception: {}", ex.getCause() );
 
             GetSchemasResult response = new GetSchemasResult();
             response.setSchemasStatus(SchemasStatusEnum.FAILED_INTERNAL_ERROR);

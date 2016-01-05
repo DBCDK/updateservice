@@ -46,10 +46,12 @@ public class ValidateSchemaActionTest {
     public void testScripterException() throws Exception {
         Scripter scripter = mock( Scripter.class );
         Properties settings = new Properties();
+
         ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
+        instance.setGroupId( "400700" );
 
         ScripterException ex = new ScripterException( "message" );
-        when( scripter.callMethod( anyString(), anyString(), eq( settings ) ) ).thenThrow( ex );
+        when( scripter.callMethod( anyString(), anyString(), eq( "400700" ), eq( settings ) ) ).thenThrow( ex );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, ex.getMessage() ) ) );
     }
@@ -58,9 +60,11 @@ public class ValidateSchemaActionTest {
     public void testScripterWrongDatatype() throws Exception {
         Scripter scripter = mock( Scripter.class );
         Properties settings = new Properties();
-        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( anyString(), anyString(), eq( settings ) ) ).thenReturn( 27 );
+        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
+        instance.setGroupId( "400700" );
+
+        when( scripter.callMethod( anyString(), anyString(), eq( "400700" ), eq( settings ) ) ).thenReturn( 27 );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, "The JavaScript function checkTemplate must return a boolean value." ) ) );
     }
@@ -69,9 +73,11 @@ public class ValidateSchemaActionTest {
     public void testSchemaFound() throws Exception {
         Scripter scripter = mock( Scripter.class );
         Properties settings = new Properties();
-        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( true );
+        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
+        instance.setGroupId( "400700" );
+
+        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( "400700" ), eq( settings ) ) ).thenReturn( true );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
     }
@@ -80,9 +86,11 @@ public class ValidateSchemaActionTest {
     public void testSchemaNotFound() throws Exception {
         Scripter scripter = mock( Scripter.class );
         Properties settings = new Properties();
-        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
 
-        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( settings ) ) ).thenReturn( false );
+        ValidateSchemaAction instance = new ValidateSchemaAction( "book", scripter, settings );
+        instance.setGroupId( "400700" );
+
+        when( scripter.callMethod( eq( "checkTemplate" ), eq( "book" ), eq( "400700" ), eq( settings ) ) ).thenReturn( false );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA ) ) );
     }

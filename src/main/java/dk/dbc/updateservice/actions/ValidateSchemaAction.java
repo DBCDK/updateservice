@@ -28,6 +28,7 @@ public class ValidateSchemaAction extends AbstractAction {
 
         this.validateSchema = validateSchema;
         this.scripter = scripter;
+        this.groupId = null;
         this.settings = settings;
     }
 
@@ -37,6 +38,14 @@ public class ValidateSchemaAction extends AbstractAction {
 
     public Scripter getScripter() {
         return scripter;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId( String groupId ) {
+        this.groupId = groupId;
     }
 
     public Properties getSettings() {
@@ -60,13 +69,16 @@ public class ValidateSchemaAction extends AbstractAction {
         if( scripter == null ) {
             throw new IllegalArgumentException( "scripter must not be (null)" );
         }
+        if( groupId == null ) {
+            throw new IllegalArgumentException( "groupId must not be (null)" );
+        }
         if( settings == null ) {
             throw new IllegalArgumentException( "settings must not be (null)" );
         }
 
         ServiceResult result = null;
         try {
-            Object jsResult = scripter.callMethod( "checkTemplate", validateSchema, settings );
+            Object jsResult = scripter.callMethod( "checkTemplate", validateSchema, groupId, settings );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -108,5 +120,6 @@ public class ValidateSchemaAction extends AbstractAction {
 
     private String validateSchema;
     private Scripter scripter;
+    private String groupId;
     private Properties settings;
 }

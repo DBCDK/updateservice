@@ -33,13 +33,13 @@ public class Validator {
     //              Business logic
     //-------------------------------------------------------------------------
 
-    public List<Schema> getValidateSchemas() throws ScripterException {
+    public List<Schema> getValidateSchemas( String groupId ) throws ScripterException {
         logger.entry();
         List<Schema> result = new ArrayList<>();
 
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod( "getValidateSchemas", settings );
+            Object jsResult = scripter.callMethod( "getValidateSchemas", groupId, settings );
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             Schema[] names = mapper.readValue(jsResult.toString(), Schema[].class);
