@@ -141,12 +141,13 @@ public class UpdateService implements CatalogingUpdatePortType {
             ServiceResult serviceResult = engine.executeAction( action );
 
             if( serviceResult.getServiceError() != null ) {
+                writer.setUpdateStatus( null );
                 writer.setError( serviceResult.getServiceError() );
             }
             else {
                 writer.setUpdateStatus( serviceResult.getStatus() );
+                writer.addValidateEntries( serviceResult.getEntries() );
             }
-            writer.addValidateEntries( serviceResult.getEntries() );
 
             result = writer.getResponse();
             bizLogger.info( "Returning response:\n{}", Json.encodePretty( result ) );
