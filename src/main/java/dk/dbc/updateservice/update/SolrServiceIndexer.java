@@ -15,5 +15,5 @@ public class SolrServiceIndexer {
     //              Members
     //-------------------------------------------------------------------------
 
-    private static String SUBFIELD_QUERY = "marc.%s=\"%s\"";
+    private static String SUBFIELD_QUERY = "marc.%s:\"%s\"";
 }
