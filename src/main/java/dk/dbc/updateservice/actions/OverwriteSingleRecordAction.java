@@ -130,7 +130,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add( new RemoveLinksAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
 
-            result = performActionsFor002Links( currentRecord );
+            result = performActionsFor002Links();
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return result;
@@ -152,6 +152,19 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
+            Record record = rawRepo.fetchRecord( recordId, agencyId );
+            return result = new RawRepoDecoder().decodeRecord( record.getContent() );
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    protected MarcRecord loadRecord( String recordId, Integer agencyId ) throws UpdateException, UnsupportedEncodingException {
+        logger.entry();
+
+        MarcRecord result = null;
+        try {
             Record record = rawRepo.fetchRecord( recordId, agencyId );
             return result = new RawRepoDecoder().decodeRecord( record.getContent() );
         }
@@ -232,19 +245,18 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected ServiceResult performActionsFor002Links( MarcRecord currentRecord ) throws ScripterException, UpdateException, UnsupportedEncodingException {
-        logger.entry( currentRecord );
+    protected ServiceResult performActionsFor002Links() throws ScripterException, UpdateException, UnsupportedEncodingException {
+        logger.entry();
 
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            boolean classificationsChanged = recordsHandler.hasClassificationsChanged( currentRecord, record );
-            MarcRecordReader currentRecordReader = new MarcRecordReader( currentRecord );
             MarcRecordReader recordReader = new MarcRecordReader( record );
 
             String destinationCommonRecordId = recordReader.getValue( "001", "a" );
             Integer agencyId = Integer.valueOf( recordReader.getValue( "001", "b" ) );
 
-            logger.info( "Is classifications changed in record '{{}:{}}': {}", destinationCommonRecordId, agencyId, classificationsChanged );
+            MarcRecord currentRecord = loadRecord( destinationCommonRecordId, agencyId );
+            MarcRecordReader currentRecordReader = new MarcRecordReader( currentRecord );
 
             for( String recordId : recordReader.getValues( "002", "a" ) ) {
                 if( currentRecordReader.hasValue( "002", "a", recordId ) ) {
@@ -256,6 +268,11 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     logger.warn( "002 linked record '{}' does not exist", recordId );
                     continue;
                 }
+
+                MarcRecord linkRecord = loadRecord( recordId, agencyId );
+
+                boolean classificationsChanged = recordsHandler.hasClassificationsChanged( record, linkRecord );
+                logger.info( "Is classifications changed in record '{{}:{}}': {}", destinationCommonRecordId, agencyId, classificationsChanged );
 
                 if( classificationsChanged ) {
                     Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId( recordId );
@@ -273,16 +290,15 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                         if( !enrichmentIds.contains( new RecordId( recordId, holdingAgencyId ) ) ) {
                             bizLogger.warn( "No enrichments found for record '{}' for agency '{}' with holdings: {}", recordId, holdingAgencyId );
-                            MarcRecord linkRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, agencyId ).getContent() );
 
                             ServiceResult linkRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, linkRecord, linkRecord );
-                            ServiceResult requestRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, record, record );
+                            ServiceResult currentRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, currentRecord, currentRecord );
 
                             logger.debug( "Linked record is published: {}", linkRecordShouldCreateEnrichments );
-                            logger.debug( "Request record is published: {}", requestRecordShouldCreateEnrichments );
+                            logger.debug( "Current record is published: {}", currentRecordShouldCreateEnrichments );
 
                             boolean isLinkRecordPublished = linkRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
-                            boolean isRequestRecordPublished = requestRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
+                            boolean isRequestRecordPublished = currentRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
 
                             if( isLinkRecordPublished || isRequestRecordPublished ) {
                                 CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
