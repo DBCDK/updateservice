@@ -22,7 +22,7 @@ import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
- * Singleton EJB to access the OpenAgency web service.
+ * EJB to access the OpenAgency web service.
  */
 @Stateless
 public class OpenAgencyService {
