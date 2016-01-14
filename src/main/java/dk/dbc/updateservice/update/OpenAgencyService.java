@@ -16,6 +16,7 @@ import javax.annotation.Resource;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
+import javax.ejb.Stateless;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -23,8 +24,7 @@ import java.util.Properties;
 /**
  * Singleton EJB to access the OpenAgency web service.
  */
-@Singleton
-@ConcurrencyManagement( ConcurrencyManagementType.BEAN )
+@Stateless
 public class OpenAgencyService {
     @PostConstruct
     public void init() {
