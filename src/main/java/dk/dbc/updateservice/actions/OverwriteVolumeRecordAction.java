@@ -75,7 +75,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             children.add( LinkRecordAction.newLinkParentAction( rawRepo, record ) );
             children.addAll( createActionsForCreateOrUpdateEnrichments( currentRecord ) );
 
-            result = performActionsFor002Links( currentRecord );
+            result = performActionsFor002Links();
             children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, getSettings().getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), MIMETYPE ) );
 
             return result;
