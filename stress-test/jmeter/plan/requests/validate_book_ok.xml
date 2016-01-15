@@ -5,12 +5,12 @@
 		<cat:updateRecord>
 			<cat:updateRecordRequest>
                 <cat:authentication>
-                    <cat:groupIdAut>010100</cat:groupIdAut>
+                    <cat:groupIdAut>714700</cat:groupIdAut>
                     <cat:passwordAut>20Koster</cat:passwordAut>
                     <cat:userIdAut>netpunkt</cat:userIdAut>
                 </cat:authentication>
 
-                <cat:schemaName>us-book</cat:schemaName>
+                <cat:schemaName>bog</cat:schemaName>
 
 				<cat:bibliographicRecord>
 					<cat:recordSchema>info:lc/xmlns/marcxchange-v1</cat:recordSchema>
@@ -127,6 +127,9 @@
 									<marcx:subfield code="0" />
 									<marcx:subfield code="s">psykisk syge
 									</marcx:subfield>
+								</marcx:datafield>
+								<marcx:datafield ind1="0" ind2="0" tag="996">
+									<marcx:subfield code="a">714700</marcx:subfield>
 								</marcx:datafield>
 							</marcx:record>
 						</marcx:collection>
