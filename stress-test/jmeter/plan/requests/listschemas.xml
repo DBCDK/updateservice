@@ -5,7 +5,7 @@
 		<cat:getSchemas>
 			<cat:getSchemasRequest>
                 <cat:authentication>
-                    <cat:groupIdAut>010100</cat:groupIdAut>
+                    <cat:groupIdAut>714700</cat:groupIdAut>
                     <cat:passwordAut>20Koster</cat:passwordAut>
                     <cat:userIdAut>netpunkt</cat:userIdAut>
                 </cat:authentication>
