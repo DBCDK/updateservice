@@ -75,6 +75,7 @@
                 <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
                 <assertionsResultsToSave>0</assertionsResultsToSave>
                 <bytes>true</bytes>
+                <url>true</url>
               </value>
             </objProp>
             <objProp>
@@ -145,6 +146,7 @@
                 <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
                 <assertionsResultsToSave>0</assertionsResultsToSave>
                 <bytes>true</bytes>
+                <url>true</url>
               </value>
             </objProp>
             <objProp>
@@ -215,6 +217,7 @@
                 <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
                 <assertionsResultsToSave>0</assertionsResultsToSave>
                 <bytes>true</bytes>
+                <url>true</url>
               </value>
             </objProp>
             <objProp>
