@@ -31,5 +31,12 @@ public class JNDIResources {
     public static final String JAVASCRIPT_BASEDIR_KEY = "javascript.basedir";
     public static final String JAVASCRIPT_INSTALL_NAME_KEY = "javascript.install.name";
 
+    public static final String DOUBLE_RECORD_MAIL_HOST_KEY = "double.record.mail.host";
+    public static final String DOUBLE_RECORD_MAIL_PORT_KEY = "double.record.mail.port";
+    public static final String DOUBLE_RECORD_MAIL_USER_KEY = "double.record.mail.user";
+    public static final String DOUBLE_RECORD_MAIL_PASSWORD_KEY = "double.record.mail.password";
+    public static final String DOUBLE_RECORD_MAIL_FROM_KEY = "double.record.mail.from";
+    public static final String DOUBLE_RECORD_MAIL_RECIPIENT_KEY = "double.record.mail.recipients";
+
     public static final String RAWREPO_PROVIDER_ID = "rawrepo.provider.id";
 }

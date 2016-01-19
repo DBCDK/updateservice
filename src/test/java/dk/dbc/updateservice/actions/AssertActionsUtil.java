@@ -11,6 +11,7 @@ import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.*;
 import org.junit.Assert;
@@ -313,6 +314,15 @@ public class AssertActionsUtil {
         assertThat( updateClassificationsInEnrichmentRecordAction.getRawRepo(), is( rawRepo ) );
         assertThat( updateClassificationsInEnrichmentRecordAction.getUpdatingCommonRecord(), equalTo( commonRecord ) );
         assertThat( updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), equalTo( record ) );
+    }
+
+    public static void assertDoubleRecordCheckingAction( ServiceAction action, MarcRecord record, Scripter scripter ) {
+        assertThat( action, notNullValue() );
+        assertThat( action.getClass().getName(), equalTo( DoubleRecordCheckingAction.class.getName() ) );
+
+        DoubleRecordCheckingAction doubleRecordCheckingAction = (DoubleRecordCheckingAction)action;
+        Assert.assertThat( doubleRecordCheckingAction.getRecord(), is( record ) );
+        Assert.assertThat( doubleRecordCheckingAction.getScripter(), is( scripter ) );
     }
 
     public static void assertEnqueueRecordAction( ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype ) {

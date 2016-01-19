@@ -337,6 +337,7 @@ public class UpdateRequestActionTest {
         assertThat( updateOperationAction.getHoldingsItems(), is( holdingsItems ) );
         assertThat( updateOperationAction.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( updateOperationAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( updateOperationAction.getScripter(), is( scripter ) );
         assertThat( updateOperationAction.getRecord(), equalTo( record ) );
         assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );
         assertThat( updateOperationAction.getAuthentication(), is( request.getAuthentication() ) );

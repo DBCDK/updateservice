@@ -250,6 +250,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setOpenAgencyService( this.openAgencyService );
         updateOperationAction.setSolrService( this.solrService );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
+        updateOperationAction.setScripter( this.scripter );
         updateOperationAction.setSettings( settings );
 
         return updateOperationAction;

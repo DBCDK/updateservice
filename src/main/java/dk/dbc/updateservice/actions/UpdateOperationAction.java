@@ -11,6 +11,7 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
@@ -19,10 +20,7 @@ import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Properties;
-import java.util.ResourceBundle;
+import java.util.*;
 
 //-----------------------------------------------------------------------------
 
@@ -63,6 +61,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.openAgencyService = null;
         this.solrService = null;
         this.recordsHandler = null;
+        this.scripter = null;
         this.settings = null;
 
         this.messages = ResourceBundles.getBundle( this, "actions" );
@@ -116,6 +115,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         this.recordsHandler = recordsHandler;
     }
 
+    public Scripter getScripter() {
+        return scripter;
+    }
+
+    public void setScripter( Scripter scripter ) {
+        this.scripter = scripter;
+    }
+
     public Properties getSettings() {
         return settings;
     }
@@ -158,6 +165,9 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         if( recordsHandler == null ) {
             throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": recordsHandler is null" );
         }
+        if( scripter == null ) {
+            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": scripter is null" );
+        }
         if( solrService == null ) {
             throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": solrService is null" );
         }
@@ -177,6 +187,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 bizLogger.error( "Unable to update record: {}", checkResult );
                 return checkResult;
             }
+
+            List<DoubleRecordCheckingAction> doubleRecordActions = new ArrayList<>();
 
             AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction( this.record );
             authenticateRecordAction.setAuthenticator( this.authenticator );
@@ -203,6 +215,10 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setSettings( settings );
 
                     children.add( action );
+
+                    DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( rec );
+                    doubleRecordCheckingAction.setScripter( scripter );
+                    doubleRecordActions.add( doubleRecordCheckingAction );
                 }
                 else if( agencyId.equals( RawRepo.SCHOOL_COMMON_AGENCY ) ) {
                     UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord( rawRepo, rec );
@@ -244,6 +260,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
+            children.addAll( doubleRecordActions );
             return result = ServiceResult.newOkResult();
         }
         catch( ScripterException | OpenAgencyException ex ) {
@@ -427,6 +444,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * </p>
      */
     private LibraryRecordsHandler recordsHandler;
+    private Scripter scripter;
     private Properties settings;
 
     private ResourceBundle messages;
