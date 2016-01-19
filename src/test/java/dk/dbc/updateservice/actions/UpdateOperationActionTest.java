@@ -7,6 +7,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -79,6 +80,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
@@ -88,6 +91,7 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -157,6 +161,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, enrichmentRecord );
@@ -166,6 +172,7 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -235,6 +242,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( enrichmentRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, enrichmentRecord );
@@ -244,6 +253,7 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -313,6 +323,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
@@ -322,17 +334,20 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
         List<ServiceAction> children = instance.children();
-        assertThat( children.size(), is( 3 ) );
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), record, authenticator, authentication );
         AssertActionsUtil.assertUpdateCommonRecordAction( iterator.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems, openAgencyService );
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertDoubleRecordCheckingAction( iterator.next(), record, scripter );
+
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**
@@ -389,6 +404,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
@@ -398,6 +415,7 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
@@ -467,6 +485,8 @@ public class UpdateOperationActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
         when( recordsHandler.recordDataForRawRepo( eq( record ), eq( userId ), eq( groupId ) ) ).thenReturn( rawRepoRecords );
 
+        Scripter scripter = mock( Scripter.class );
+
         SolrService solrService = mock( SolrService.class );
 
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
@@ -476,6 +496,7 @@ public class UpdateOperationActionTest {
         instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
         instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
         instance.setSettings( settings );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
