@@ -94,10 +94,10 @@ public class DoubleRecordMailService {
 
                 // Send message
                 Transport.send( message );
-                bizLogger.info( "Sent message with subject '{}' successfully.", subject );
+                bizLogger.info( "Double Record Checker: Sent message with subject '{}' successfully.", subject );
             }
             catch( MessagingException ex ) {
-                bizLogger.warn( "Unable to send mail message to {}: {}", settings.getProperty( JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY ), ex.getMessage() );
+                bizLogger.warn( "Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty( JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY ), ex.getMessage() );
                 bizLogger.warn( "Mail message: {}\n{}", subject, body );
                 logger.warn( "Mail service error: ", ex );
             }
