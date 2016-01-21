@@ -8,6 +8,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
 import org.junit.Test;
 
 import java.util.ListIterator;
@@ -65,6 +66,7 @@ public class UpdateSchoolCommonRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );
@@ -120,6 +122,7 @@ public class UpdateSchoolCommonRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );
@@ -183,6 +186,7 @@ public class UpdateSchoolCommonRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );
@@ -242,6 +246,7 @@ public class UpdateSchoolCommonRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );
@@ -308,6 +313,7 @@ public class UpdateSchoolCommonRecordTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setProviderId( "xxx" );

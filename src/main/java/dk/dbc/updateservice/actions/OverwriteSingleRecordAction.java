@@ -19,6 +19,8 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 //-----------------------------------------------------------------------------
@@ -97,28 +99,6 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
-        if( groupId == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": groupId is null" );
-        }
-        if( holdingsItems == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": holdingsItems is null" );
-        }
-        if( openAgencyService == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": openAgencyService is null" );
-        }
-        if( recordsHandler == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": recordsHandler is null" );
-        }
-        if( solrService == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": solrService is null" );
-        }
-        if( settings == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": settings is null" );
-        }
-        if( messages == null ) {
-            throw new IllegalStateException( "Illegal state in " + getClass().getSimpleName() + ": messages is null" );
-        }
 
         ServiceResult result = ServiceResult.newOkResult();;
         try {

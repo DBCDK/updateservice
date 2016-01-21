@@ -8,10 +8,7 @@ import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
@@ -614,6 +611,7 @@ public class OverwriteVolumeRecordActionTest {
 
         OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction( rawRepo, record );
         instance.setGroupId( 700000 );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
         instance.setRecordsHandler( recordsHandler );

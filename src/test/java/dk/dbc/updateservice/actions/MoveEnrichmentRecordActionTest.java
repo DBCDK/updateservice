@@ -7,6 +7,7 @@ import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Test;
@@ -80,6 +81,7 @@ public class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
         instance.setCommonRecord( c2 );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setSettings( settings );
@@ -153,6 +155,7 @@ public class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
         instance.setCommonRecord( c2 );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setSettings( settings );
@@ -226,6 +229,7 @@ public class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
         instance.setCommonRecord( c2 );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setSettings( settings );
@@ -299,6 +303,7 @@ public class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction( rawRepo, e1 );
         instance.setCommonRecord( c2 );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
         instance.setSettings( settings );

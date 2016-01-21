@@ -43,7 +43,9 @@ public class UpdateVolumeRecord extends UpdateSingleRecord {
             OverwriteVolumeRecordAction action = new OverwriteVolumeRecordAction( rawRepo, record );
             action.setGroupId( getGroupId() );
             action.setHoldingsItems( getHoldingsItems() );
+            action.setOpenAgencyService( getOpenAgencyService() );
             action.setRecordsHandler( getRecordsHandler() );
+            action.setSolrService( getSolrService() );
             action.setSettings( settings );
 
             return action;
