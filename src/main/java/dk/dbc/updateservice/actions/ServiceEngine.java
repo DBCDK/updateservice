@@ -11,6 +11,7 @@ import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,7 @@ public class ServiceEngine {
             printActionHeader( action );
 
             StopWatch watch = new StopWatch();
+            action.checkState();
             ServiceResult actionResult = action.performAction();
             action.setTimeElapsed( watch.getElapsedTime() );
             action.setServiceResult( actionResult );
@@ -98,6 +100,9 @@ public class ServiceEngine {
             }
 
             return actionResult;
+        }
+        catch( IllegalStateException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             MDC.setContextMap( loggerKeys );

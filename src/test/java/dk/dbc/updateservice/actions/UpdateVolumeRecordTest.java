@@ -142,16 +142,10 @@ public class UpdateVolumeRecordTest {
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 1 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertOverwriteVolumeRecordAction( iterator.next(), rawRepo, volumeRecord, 700000, recordsHandler, holdingsItems );
 
-        OverwriteVolumeRecordAction action = (OverwriteVolumeRecordAction)children.get( 0 );
-        assertThat( action, notNullValue() );
-        assertThat( action.getRawRepo(), is( rawRepo ) );
-        assertThat( action.getRecord(), is( volumeRecord ) );
-        assertThat( action.getGroupId(), equalTo( 700000 ) );
-        assertThat( action.getHoldingsItems(), is( holdingsItems ) );
-        assertThat( action.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**

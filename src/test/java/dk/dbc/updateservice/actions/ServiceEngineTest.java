@@ -64,17 +64,14 @@ public class ServiceEngineTest {
         ServiceAction c1 = mock( ServiceAction.class );
         when( c1.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c1.children() ).thenReturn( null );
-        when( c1.parent() ).thenReturn( root );
 
         ServiceAction c2 = mock( ServiceAction.class );
         when( c2.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c2.children() ).thenReturn( null );
-        when( c2.parent() ).thenReturn( root );
 
         ServiceAction c3 = mock( ServiceAction.class );
         when( c3.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c3.children() ).thenReturn( null );
-        when( c3.parent() ).thenReturn( root );
 
         when( root.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( root.children() ).thenReturn( Arrays.asList( c1, c2, c3 ) );
@@ -100,17 +97,14 @@ public class ServiceEngineTest {
         ServiceAction c1 = mock( ServiceAction.class );
         when( c1.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c1.children() ).thenReturn( null );
-        when( c1.parent() ).thenReturn( root );
 
         ServiceAction c2 = mock( ServiceAction.class );
         when( c2.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c2.children() ).thenReturn( null );
-        when( c2.parent() ).thenReturn( root );
 
         ServiceAction c3 = mock( ServiceAction.class );
         when( c3.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c3.children() ).thenReturn( null );
-        when( c3.parent() ).thenReturn( root );
 
         ServiceResult err = ServiceResult.newErrorResult( UpdateStatusEnum.VALIDATION_ERROR, "error" );
         when( root.performAction() ).thenReturn( err );
@@ -138,17 +132,14 @@ public class ServiceEngineTest {
         ServiceAction c1 = mock( ServiceAction.class );
         when( c1.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c1.children() ).thenReturn( null );
-        when( c1.parent() ).thenReturn( root );
 
         ServiceAction c2 = mock( ServiceAction.class );
         when( c2.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c2.children() ).thenReturn( null );
-        when( c2.parent() ).thenReturn( root );
 
         ServiceAction c3 = mock( ServiceAction.class );
         when( c3.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c3.children() ).thenReturn( null );
-        when( c3.parent() ).thenReturn( root );
 
         ServiceResult warn = ServiceResult.newWarningResult( UpdateStatusEnum.VALIDATE_ONLY, "warning" );
         when( root.performAction() ).thenReturn( warn );
@@ -176,19 +167,16 @@ public class ServiceEngineTest {
         ServiceAction c1 = mock( ServiceAction.class );
         when( c1.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c1.children() ).thenReturn( null );
-        when( c1.parent() ).thenReturn( root );
 
         ServiceResult err = ServiceResult.newErrorResult( UpdateStatusEnum.VALIDATION_ERROR, "error" );
 
         ServiceAction c2 = mock( ServiceAction.class );
         when( c2.performAction() ).thenReturn( err );
         when( c2.children() ).thenReturn( null );
-        when( c2.parent() ).thenReturn( root );
 
         ServiceAction c3 = mock( ServiceAction.class );
         when( c3.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c3.children() ).thenReturn( null );
-        when( c3.parent() ).thenReturn( root );
 
         when( root.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( root.children() ).thenReturn( Arrays.asList( c1, c2, c3 ) );
@@ -219,19 +207,16 @@ public class ServiceEngineTest {
         ServiceAction c1 = mock( ServiceAction.class );
         when( c1.performAction() ).thenReturn( warn );
         when( c1.children() ).thenReturn( null );
-        when( c1.parent() ).thenReturn( root );
 
         ServiceResult err = ServiceResult.newErrorResult( UpdateStatusEnum.VALIDATION_ERROR, "error" );
 
         ServiceAction c2 = mock( ServiceAction.class );
         when( c2.performAction() ).thenReturn( err );
         when( c2.children() ).thenReturn( null );
-        when( c2.parent() ).thenReturn( root );
 
         ServiceAction c3 = mock( ServiceAction.class );
         when( c3.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( c3.children() ).thenReturn( null );
-        when( c3.parent() ).thenReturn( root );
 
         when( root.performAction() ).thenReturn( ServiceResult.newOkResult() );
         when( root.children() ).thenReturn( Arrays.asList( c1, c2, c3 ) );

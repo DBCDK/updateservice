@@ -10,6 +10,7 @@ import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -134,8 +135,10 @@ public class DeleteCommonRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
         DeleteCommonRecordAction instance = new DeleteCommonRecordAction( rawRepo, record );
+        instance.setSolrService( mock( SolrService.class ) );
         instance.setRecordsHandler( recordsHandler );
         instance.setHoldingsItems( holdingsItems );
+        instance.setProviderId( "xxx" );
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
