@@ -2,28 +2,18 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 
 //-----------------------------------------------------------------------------
 public abstract class AbstractAction implements ServiceAction {
     public AbstractAction( String name ) {
-        this( null, name );
-    }
-
-    public AbstractAction( ServiceAction parent, String name ) {
         this.name = name;
         this.children = new ArrayList<>();
         this.timeElapsed = -1;
