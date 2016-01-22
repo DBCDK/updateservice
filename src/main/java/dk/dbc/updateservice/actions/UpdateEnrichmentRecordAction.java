@@ -135,7 +135,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
             if( !rawRepo.recordExists( recordId, reader.agencyIdAsInteger() ) ) {
                 if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
-                    String message = messages.getString( "create.record.with.002.links" );
+                    String message = messages.getString( "update.record.with.002.links" );
 
                     bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
                     return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );

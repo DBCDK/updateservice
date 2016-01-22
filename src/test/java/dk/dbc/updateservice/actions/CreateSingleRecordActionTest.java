@@ -109,7 +109,7 @@ public class CreateSingleRecordActionTest {
         instance.setSolrService( solrService );
         instance.setProviderId( "xxx" );
 
-        String message = messages.getString( "create.record.with.002.links" );
+        String message = messages.getString( "update.record.with.002.links" );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
         assertThat( instance.children().isEmpty(), is( true ) );
     }

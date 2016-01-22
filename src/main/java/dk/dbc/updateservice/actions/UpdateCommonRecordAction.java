@@ -5,13 +5,16 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
 /**
@@ -32,6 +35,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         this.solrService = null;
         this.recordsHandler = null;
         this.settings = null;
+
+        this.messages = ResourceBundles.getBundle( this, "actions" );
     }
 
     public Integer getGroupId() {
@@ -98,6 +103,15 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             bizLogger.info( "Handling record:\n{}", record );
 
             MarcRecordReader reader = new MarcRecordReader( record );
+            if( !reader.markedForDeletion() ) {
+                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                    String message = messages.getString( "update.record.with.002.links" );
+
+                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+            }
+
             String parentId = reader.parentId();
             if( parentId != null && !parentId.isEmpty() ) {
                 action = new UpdateVolumeRecord( rawRepo, record );
@@ -159,4 +173,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      */
     private LibraryRecordsHandler recordsHandler;
     private Properties settings;
+
+    private ResourceBundle messages;
 }
