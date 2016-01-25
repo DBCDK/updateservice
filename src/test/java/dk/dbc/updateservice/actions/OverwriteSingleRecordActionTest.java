@@ -1412,8 +1412,7 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( c2 ) ) ).thenReturn( true );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c1 ), eq( c1 ) ) ).thenReturn( ServiceResult.newOkResult() );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c1 ) ) ).thenReturn( ServiceResult.newOkResult() );
 
         SolrService solrService = mock( SolrService.class );
 
@@ -1509,8 +1508,7 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( c2 ) ) ).thenReturn( true );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c1 ), eq( c1 ) ) ).thenReturn( ServiceResult.newOkResult() );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c1 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
 
         SolrService solrService = mock( SolrService.class );
 
@@ -1527,7 +1525,6 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
         AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
-        AssertActionsUtil.assertCreateEnrichmentAction( iterator.next(), rawRepo, c2, localAgencyId, c1RecordId );
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ), OverwriteSingleRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
@@ -1606,8 +1603,7 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( record ), eq( c2 ) ) ).thenReturn( true );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newOkResult() );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c1 ), eq( c1 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c1 ) ) ).thenReturn( ServiceResult.newOkResult() );
 
         SolrService solrService = mock( SolrService.class );
 
@@ -1701,8 +1697,7 @@ public class OverwriteSingleRecordActionTest {
         when( recordsHandler.hasClassificationData( eq( c1 ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationData( eq( record ) ) ).thenReturn( true );
         when( recordsHandler.hasClassificationsChanged( eq( c1 ), eq( record ) ) ).thenReturn( true );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c2 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
-        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( record ), eq( record ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
+        when( recordsHandler.shouldCreateEnrichmentRecords( eq( settings ), eq( c2 ), eq( c1 ) ) ).thenReturn( ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR ) );
 
         SolrService solrService = mock( SolrService.class );
 
