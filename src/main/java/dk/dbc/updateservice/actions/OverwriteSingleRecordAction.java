@@ -271,16 +271,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         if( !enrichmentIds.contains( new RecordId( recordId, holdingAgencyId ) ) ) {
                             bizLogger.warn( "No enrichments found for record '{}' for agency '{}' with holdings: {}", recordId, holdingAgencyId );
 
-                            ServiceResult linkRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, linkRecord, linkRecord );
-                            ServiceResult currentRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, currentRecord, currentRecord );
-
-                            logger.debug( "Linked record is published: {}", linkRecordShouldCreateEnrichments );
-                            logger.debug( "Current record is published: {}", currentRecordShouldCreateEnrichments );
-
-                            boolean isLinkRecordPublished = linkRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
-                            boolean isRequestRecordPublished = currentRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
-
-                            if( isLinkRecordPublished || isRequestRecordPublished ) {
+                            if( recordsHandler.shouldCreateEnrichmentRecords( settings, linkRecord, currentRecord ).getStatus() == UpdateStatusEnum.OK ) {
                                 CreateEnrichmentRecordWithClassificationsAction action = new CreateEnrichmentRecordWithClassificationsAction( rawRepo, holdingAgencyId );
                                 action.setUpdatingCommonRecord( linkRecord );
                                 action.setCurrentCommonRecord( linkRecord );
