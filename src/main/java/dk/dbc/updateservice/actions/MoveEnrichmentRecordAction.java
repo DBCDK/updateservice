@@ -156,22 +156,23 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             bizLogger.info( "Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId );
 
             if( recordsHandler.hasClassificationData( newEnrichmentRecord ) ) {
+                bizLogger.info( "Enrichment record has classifications. Creating sub action to update it." );
                 return createUpdateRecordAction( newEnrichmentRecord );
             }
 
             MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord( rawRepo.fetchRecord( recordId, RawRepo.RAWREPO_COMMON_LIBRARY ).getContent() );
 
-            ServiceResult currentCommonRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, currentCommonRecord, currentCommonRecord );
-            ServiceResult newCommonRecordShouldCreateEnrichments = recordsHandler.shouldCreateEnrichmentRecords( settings, commonRecord, commonRecord );
+            ServiceResult shouldCreateEnrichmentRecords = recordsHandler.shouldCreateEnrichmentRecords( settings, currentCommonRecord, commonRecord );
+            bizLogger.info( "Should we create enrichment records result: {}", shouldCreateEnrichmentRecords );
 
-            boolean isCurrentCommonRecordPublished = currentCommonRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
-            boolean isNewCommonRecordPublished = newCommonRecordShouldCreateEnrichments.getStatus() == UpdateStatusEnum.OK;
-
-            if( isCurrentCommonRecordPublished || isNewCommonRecordPublished ) {
+            if( shouldCreateEnrichmentRecords.getStatus() == UpdateStatusEnum.OK ) {
+                bizLogger.info( "Creating enrichment record with classifications, because the common record is published." );
                 return createUpdateRecordAndClassificationsAction( newEnrichmentRecord, currentCommonRecord );
             }
-
-            return createUpdateRecordAction( newEnrichmentRecord );
+            else {
+                bizLogger.info( "Creating enrichment record without classifications, because the common record is still in production." );
+                return createUpdateRecordAction( newEnrichmentRecord );
+            }
         }
         catch( ScripterException | UnsupportedEncodingException ex ) {
             throw new UpdateException( ex.getMessage(), ex );
