@@ -14,6 +14,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 //-----------------------------------------------------------------------------
@@ -35,6 +36,14 @@ public class DoubleRecordCheckingAction extends AbstractAction {
 
     public void setRecord( MarcRecord record ) {
         this.record = record;
+    }
+
+    public Properties getSettings() {
+        return settings;
+    }
+
+    public void setSettings( Properties settings ) {
+        this.settings = settings;
     }
 
     public Scripter getScripter() {
@@ -60,7 +69,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
         try {
             bizLogger.info( "Handling record:\n{}", record );
 
-            scripter.callMethod( ENTRY_POINT, Json.encode( record ) );
+            scripter.callMethod( ENTRY_POINT, Json.encode( record ), settings );
 
             return result = ServiceResult.newOkResult();
         }
@@ -93,6 +102,8 @@ public class DoubleRecordCheckingAction extends AbstractAction {
      * The record to check for double records.
      */
     private MarcRecord record;
+
+    private Properties settings;
 
     /**
      * JavaScript engine to execute the validation rules on the record.
