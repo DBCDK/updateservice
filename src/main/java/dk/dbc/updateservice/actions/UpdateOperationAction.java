@@ -189,6 +189,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     children.add( action );
 
                     DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( rec );
+                    doubleRecordCheckingAction.setSettings( settings );
                     doubleRecordCheckingAction.setScripter( scripter );
                     doubleRecordActions.add( doubleRecordCheckingAction );
                 }
