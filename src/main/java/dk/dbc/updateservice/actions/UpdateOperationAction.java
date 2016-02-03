@@ -175,7 +175,9 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 bizLogger.info( "" );
                 bizLogger.info( "Create sub actions for record:\n{}", rec );
 
-                Integer agencyId = new MarcRecordReader( rec ).agencyIdAsInteger();
+                MarcRecordReader reader = new MarcRecordReader( rec );
+                String recordId = reader.recordId();
+                Integer agencyId = reader.agencyIdAsInteger();
 
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
@@ -188,10 +190,12 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                     children.add( action );
 
-                    DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( rec );
-                    doubleRecordCheckingAction.setSettings( settings );
-                    doubleRecordCheckingAction.setScripter( scripter );
-                    doubleRecordActions.add( doubleRecordCheckingAction );
+                    if( !rawRepo.recordExists( recordId, agencyId ) ) {
+                        DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( rec );
+                        doubleRecordCheckingAction.setSettings( settings );
+                        doubleRecordCheckingAction.setScripter( scripter );
+                        doubleRecordActions.add( doubleRecordCheckingAction );
+                    }
                 }
                 else if( agencyId.equals( RawRepo.SCHOOL_COMMON_AGENCY ) ) {
                     UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord( rawRepo, rec );
