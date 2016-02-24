@@ -88,7 +88,7 @@ public class Scripter {
             String baseDir = settings.getProperty( JNDIResources.JAVASCRIPT_BASEDIR_KEY );
             String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
 
-            Environment envir = new Environment( false );
+            Environment envir = new Environment();
             envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
             envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME ) );
 
