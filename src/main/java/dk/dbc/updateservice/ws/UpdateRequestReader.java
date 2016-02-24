@@ -5,6 +5,8 @@ package dk.dbc.updateservice.ws;
 
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.service.api.Options;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
@@ -245,7 +247,44 @@ public class UpdateRequestReader {
             logger.exit( result );
         }
     }
-    
+
+    /**
+     * Reads any extra data associated with the SRU record.
+     * <p>
+     * If the request contains more than one record, then <code>null</code> is
+     * returned.
+     *
+     * @return The found records extra data as a {@link BibliographicRecordExtraData} or <code>null</code>
+     *         if the can not be converted or if no records exists.
+     */
+    public BibliographicRecordExtraData readRecordExtraData() {
+        logger.entry();
+        BibliographicRecordExtraData result = null;
+        List<Object> list = null;
+
+        try {
+            if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getExtraRecordData() != null) {
+                list = request.getBibliographicRecord().getExtraRecordData().getContent();
+            } else {
+                logger.warn("Unable to read record from request");
+            }
+
+            if (list != null) {
+                for (Object o : list) {
+                    if (o instanceof Node) {
+                        result = BibliographicRecordExtraDataDecoder.fromXml( new DOMSource((Node) o) );
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
