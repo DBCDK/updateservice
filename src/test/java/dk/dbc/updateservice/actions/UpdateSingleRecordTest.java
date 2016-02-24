@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -187,7 +188,70 @@ public class UpdateSingleRecordTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
         SolrService solrService = mock( SolrService.class );
+
+        UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
+        instance.setGroupId( 700000 );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertCommonDeleteRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Delete single common record with with holdings and no auth to export holdings.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record and no enrichments or children. The agency does not has auth
+     *          to export holdings.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Update a common record that is marked for deletion.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>DeleteCommonRecordAction: Action to delete a common record</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteRecord_WithHoldings_NoAuthExportHoldings() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
+        Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 710100 ) );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
+
+        SolrService solrService = mock( SolrService.class );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setGroupId( 700000 );
@@ -244,6 +308,7 @@ public class UpdateSingleRecordTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 710100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
@@ -303,6 +368,7 @@ public class UpdateSingleRecordTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 710100 ) );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
