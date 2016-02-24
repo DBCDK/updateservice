@@ -3,11 +3,14 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
+import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -107,13 +110,30 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             }
 
             if( reader.markedForDeletion() ) {
-                String solrQuery = SolrServiceIndexer.createSubfieldQuery( "002a", recordId );
                 boolean hasHoldings = !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty();
-                boolean has002Links = solrService.hasDocuments( solrQuery );
 
-                if( hasHoldings && !has002Links ) {
-                    String message = messages.getString( "delete.common.with.holdings.error" );
-                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                if( hasHoldings ) {
+                    AgencyNumber groupAgencyNumber = new AgencyNumber( groupId );
+                    bizLogger.info( "Found holdings for agency '{}'", groupAgencyNumber );
+
+                    boolean hasAuthExportHoldings = openAgencyService.hasFeature( groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+
+                    if( hasAuthExportHoldings ) {
+                        bizLogger.info( "Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+
+                        String solrQuery = SolrServiceIndexer.createSubfieldQuery( "002a", recordId );
+                        boolean has002Links = solrService.hasDocuments( solrQuery );
+
+                        if( !has002Links ) {
+                            String message = messages.getString( "delete.common.with.holdings.error" );
+
+                            bizLogger.info( "Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message );
+                            return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                        }
+                    }
+                    else {
+                        bizLogger.info( "Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+                    }
                 }
 
                 children.add( createDeleteRecordAction() );
@@ -122,6 +142,9 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
             children.add( createOverwriteRecordAction() );
             return ServiceResult.newOkResult();
+        }
+        catch( OpenAgencyException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             logger.exit();
