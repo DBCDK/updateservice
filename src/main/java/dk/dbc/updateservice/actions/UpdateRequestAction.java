@@ -8,12 +8,15 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Options;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -208,7 +211,7 @@ public class UpdateRequestAction extends AbstractAction {
     /**
      * Constructs an action to update the record from the request.
      */
-    private ServiceAction createUpdateOperation( MarcRecord record ) {
+    private ServiceAction createUpdateOperation( MarcRecord record ) throws UpdateException {
         UpdateOperationAction updateOperationAction = new UpdateOperationAction( rawRepo, record );
         updateOperationAction.setAuthenticator( this.authenticator );
         updateOperationAction.setAuthentication( request.getAuthentication() );
@@ -217,6 +220,28 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setSolrService( this.solrService );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
         updateOperationAction.setScripter( this.scripter );
+
+        boolean allowExtraRecordData = false;
+        if( settings.containsKey( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY )  ) {
+            allowExtraRecordData = Boolean.valueOf( settings.get( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY ).toString() );
+        }
+
+        if( allowExtraRecordData ) {
+            // Overwrite "settings" with provider name from RecordExtraData
+
+            BibliographicRecordExtraData bibliographicRecordExtraData = readRecordExtraData();
+            if( bibliographicRecordExtraData != null ) {
+                if( bibliographicRecordExtraData.getProviderName() == null ) {
+                    throw new UpdateException( messages.getString( "extra.record.data.provider.name.is.missing" ) );
+                }
+
+                String oldProviderName = settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID );
+                logger.info( "Overwrite provider id with new value from request. [{}] ==> [{}]", oldProviderName, bibliographicRecordExtraData.getProviderName() );
+
+                settings.put( JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName() );
+            }
+
+        }
         updateOperationAction.setSettings( settings );
 
         return updateOperationAction;
@@ -362,6 +387,43 @@ public class UpdateRequestAction extends AbstractAction {
                 for (Object o : list) {
                     if (o instanceof Node ) {
                         result = MarcConverter.createFromMarcXChange( new DOMSource( (Node) o ) );
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+        finally {
+            logger.exit( result );
+        }
+    }
+
+    /**
+     * Reads any extra data associated with the SRU record.
+     * <p>
+     * If the request contains more than one record, then <code>null</code> is
+     * returned.
+     *
+     * @return The found records extra data as a {@link BibliographicRecordExtraData} or <code>null</code>
+     *         if the can not be converted or if no records exists.
+     */
+    public BibliographicRecordExtraData readRecordExtraData() {
+        logger.entry();
+        BibliographicRecordExtraData result = null;
+        List<Object> list = null;
+
+        try {
+            if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getExtraRecordData() != null) {
+                list = request.getBibliographicRecord().getExtraRecordData().getContent();
+            } else {
+                logger.warn("Unable to read record from request");
+            }
+
+            if (list != null) {
+                for (Object o : list) {
+                    if (o instanceof Node) {
+                        result = BibliographicRecordExtraDataDecoder.fromXml( new DOMSource((Node) o) );
                         break;
                     }
                 }

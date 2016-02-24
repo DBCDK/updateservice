@@ -6,10 +6,13 @@ import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.client.BibliographicRecordExtraDataEncoder;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.*;
 import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceContext;
@@ -253,7 +256,7 @@ public class UpdateRequestActionTest {
         assertThat( validateOperationAction.getOkStatus(), is( UpdateStatusEnum.VALIDATE_ONLY ) );
         assertThat( validateOperationAction.getRecord(), equalTo( record ) );
         assertThat( validateOperationAction.getScripter(), is( scripter ) );
-        assertThat( validateOperationAction.getSettings(), is( settings ) );
+        assertThat( validateOperationAction.getSettings(), equalTo( settings ) );
     }
 
     /**
@@ -327,7 +330,7 @@ public class UpdateRequestActionTest {
         assertThat( validateOperationAction.getOkStatus(), is( UpdateStatusEnum.OK ) );
         assertThat( validateOperationAction.getRecord(), equalTo( record ) );
         assertThat( validateOperationAction.getScripter(), is( scripter ) );
-        assertThat( validateOperationAction.getSettings(), is( settings ) );
+        assertThat( validateOperationAction.getSettings(), equalTo( settings ) );
 
         child = children.get( 1 );
         assertTrue( child.getClass() == UpdateOperationAction.class );
@@ -341,6 +344,375 @@ public class UpdateRequestActionTest {
         assertThat( updateOperationAction.getRecord(), equalTo( record ) );
         assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );
         assertThat( updateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( updateOperationAction.getSettings(), equalTo( settings ) );
+    }
+
+    /**
+     * Test UpdateRequestAction.performAction() with a valid request for updating a record, but with extra record data
+     * with provider name.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A complete valid request with for validating a record.
+     *          <p>
+     *              No extra record settings in JNDI.
+     *          </p>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Perform the request.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Throw exception.
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        WebServiceContext webServiceContext = mock( WebServiceContext.class );
+
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+
+        Properties settings = new Properties();
+        settings.setProperty( JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging" );
+
+        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+        bibliographicRecordExtraData.setProviderName( "new_provider_name" );
+
+        BibliographicRecord bibRecord = BibliographicRecordFactory.newMarcRecord( record, bibliographicRecordExtraData );
+
+        Authentication auth = new Authentication();
+        auth.setGroupIdAut( "group" );
+        auth.setUserIdAut( "user" );
+        auth.setPasswordAut( "passwd" );
+        request.setAuthentication( auth );
+
+        request.setSchemaName( "book" );
+        request.setBibliographicRecord( bibRecord );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        assertThat( children.size(), is( 2 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == ValidateOperationAction.class );
+
+        ValidateOperationAction validateOperationAction = (ValidateOperationAction)child;
+        assertThat( validateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( validateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( validateOperationAction.getWebServiceContext(), is( webServiceContext ) );
+        assertThat( validateOperationAction.getValidateSchema(), equalTo( request.getSchemaName() ) );
+        assertThat( validateOperationAction.getOkStatus(), is( UpdateStatusEnum.OK ) );
+        assertThat( validateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( validateOperationAction.getScripter(), is( scripter ) );
+        assertThat( validateOperationAction.getSettings(), equalTo( settings ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == UpdateOperationAction.class );
+
+        UpdateOperationAction updateOperationAction = (UpdateOperationAction)child;
+        assertThat( updateOperationAction.getRawRepo(), is( rawRepo ) );
+        assertThat( updateOperationAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( updateOperationAction.getOpenAgencyService(), is( openAgencyService ) );
+        assertThat( updateOperationAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( updateOperationAction.getScripter(), is( scripter ) );
+        assertThat( updateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( updateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( updateOperationAction.getSettings(), equalTo( settings ) );
+    }
+
+    /**
+     * Test UpdateRequestAction.performAction() with a valid request for updating a record, but with extra record data
+     * with provider name.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A complete valid request with for validating a record.
+     *          <p>
+     *              JNDI settings with "false" in allow extra record data.
+     *          </p>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Perform the request.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Throw exception.
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        WebServiceContext webServiceContext = mock( WebServiceContext.class );
+
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+
+        Properties settings = new Properties();
+        settings.setProperty( JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging" );
+        settings.setProperty( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "False" );
+
+        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+        bibliographicRecordExtraData.setProviderName( "new_provider_name" );
+
+        BibliographicRecord bibRecord = BibliographicRecordFactory.newMarcRecord( record, bibliographicRecordExtraData );
+
+        Authentication auth = new Authentication();
+        auth.setGroupIdAut( "group" );
+        auth.setUserIdAut( "user" );
+        auth.setPasswordAut( "passwd" );
+        request.setAuthentication( auth );
+
+        request.setSchemaName( "book" );
+        request.setBibliographicRecord( bibRecord );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+        assertThat( children.size(), is( 2 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == ValidateOperationAction.class );
+
+        ValidateOperationAction validateOperationAction = (ValidateOperationAction)child;
+        assertThat( validateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( validateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( validateOperationAction.getWebServiceContext(), is( webServiceContext ) );
+        assertThat( validateOperationAction.getValidateSchema(), equalTo( request.getSchemaName() ) );
+        assertThat( validateOperationAction.getOkStatus(), is( UpdateStatusEnum.OK ) );
+        assertThat( validateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( validateOperationAction.getScripter(), is( scripter ) );
+        assertThat( validateOperationAction.getSettings(), equalTo( settings ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == UpdateOperationAction.class );
+
+        UpdateOperationAction updateOperationAction = (UpdateOperationAction)child;
+        assertThat( updateOperationAction.getRawRepo(), is( rawRepo ) );
+        assertThat( updateOperationAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( updateOperationAction.getOpenAgencyService(), is( openAgencyService ) );
+        assertThat( updateOperationAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( updateOperationAction.getScripter(), is( scripter ) );
+        assertThat( updateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( updateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( updateOperationAction.getSettings(), equalTo( settings ) );
+    }
+
+    /**
+     * Test UpdateRequestAction.performAction() with a valid request for updating a record, but with extra record data
+     * with provider name.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A complete valid request with for validating a record.
+     *          <p>
+     *              JNDI settings with "true" in allow extra record data.
+     *          </p>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Perform the request.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Throw exception.
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        WebServiceContext webServiceContext = mock( WebServiceContext.class );
+
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+
+        Properties settings = new Properties();
+        settings.setProperty( JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging" );
+        settings.setProperty( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "True" );
+
+        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+        bibliographicRecordExtraData.setProviderName( "new_provider_name" );
+
+        BibliographicRecord bibRecord = BibliographicRecordFactory.newMarcRecord( record, bibliographicRecordExtraData );
+
+        Authentication auth = new Authentication();
+        auth.setGroupIdAut( "group" );
+        auth.setUserIdAut( "user" );
+        auth.setPasswordAut( "passwd" );
+        request.setAuthentication( auth );
+
+        request.setSchemaName( "book" );
+        request.setBibliographicRecord( bibRecord );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        Properties expectedSettings = (Properties)settings.clone();
+        expectedSettings.setProperty( JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName() );
+
+        List<ServiceAction> children = instance.children();
+        assertThat( children.size(), is( 2 ) );
+
+        ServiceAction child = children.get( 0 );
+        assertTrue( child.getClass() == ValidateOperationAction.class );
+
+        ValidateOperationAction validateOperationAction = (ValidateOperationAction)child;
+        assertThat( validateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( validateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( validateOperationAction.getWebServiceContext(), is( webServiceContext ) );
+        assertThat( validateOperationAction.getValidateSchema(), equalTo( request.getSchemaName() ) );
+        assertThat( validateOperationAction.getOkStatus(), is( UpdateStatusEnum.OK ) );
+        assertThat( validateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( validateOperationAction.getScripter(), is( scripter ) );
+        assertThat( validateOperationAction.getSettings(), equalTo( settings ) );
+
+        child = children.get( 1 );
+        assertTrue( child.getClass() == UpdateOperationAction.class );
+
+        UpdateOperationAction updateOperationAction = (UpdateOperationAction)child;
+        assertThat( updateOperationAction.getRawRepo(), is( rawRepo ) );
+        assertThat( updateOperationAction.getHoldingsItems(), is( holdingsItems ) );
+        assertThat( updateOperationAction.getOpenAgencyService(), is( openAgencyService ) );
+        assertThat( updateOperationAction.getRecordsHandler(), is( recordsHandler ) );
+        assertThat( updateOperationAction.getScripter(), is( scripter ) );
+        assertThat( updateOperationAction.getRecord(), equalTo( record ) );
+        assertThat( updateOperationAction.getAuthenticator(), is( authenticator ) );
+        assertThat( updateOperationAction.getAuthentication(), is( request.getAuthentication() ) );
+        assertThat( updateOperationAction.getSettings(), equalTo( expectedSettings ) );
+    }
+
+    /**
+     * Test UpdateRequestAction.performAction() with a valid request for updating a record, but with extra record data
+     * with provider name with null value.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A complete valid request with for validating a record.
+     *          <p>
+     *              JNDI settings with "true" in allow extra record data.
+     *          </p>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Perform the request.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Throw exception.
+     *      </dd>
+     * </dl>
+     */
+    @Test( expected = UpdateException.class )
+    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData_ProviderNameIsNull() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        WebServiceContext webServiceContext = mock( WebServiceContext.class );
+
+        Authenticator authenticator = mock( Authenticator.class );
+        Scripter scripter = mock( Scripter.class );
+
+        Properties settings = new Properties();
+        settings.setProperty( JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging" );
+        settings.setProperty( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "True" );
+
+        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
+        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+
+        BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
+        bibliographicRecordExtraData.setProviderName( null );
+
+        BibliographicRecord bibRecord = BibliographicRecordFactory.newMarcRecord( record, bibliographicRecordExtraData );
+
+        Authentication auth = new Authentication();
+        auth.setGroupIdAut( "group" );
+        auth.setUserIdAut( "user" );
+        auth.setPasswordAut( "passwd" );
+        request.setAuthentication( auth );
+
+        request.setSchemaName( "book" );
+        request.setBibliographicRecord( bibRecord );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+
+        UpdateRequestAction instance = new UpdateRequestAction( rawRepo, request, webServiceContext );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setAuthenticator( authenticator );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
     }
 
     //-------------------------------------------------------------------------

@@ -45,6 +45,9 @@ helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 * *javascript.basedir*: Angiver rodkataloget hvor opencat-business distributionen ligger. Hvis man peger på sit projekt fra svn skal man
 pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
 * *javascript.install.name*: Navnet på den distribution fra https://svn.dbc.dk/repos/opencat-business/trunk/distributions/ man vil bruge.
+* *allow.extra.record.data*: True/False. True angiver at et request må indeholde ekstra data for posten. Hvis
+ settingen ikke er oprettet i Glassfish anvendes værdien "False".
+* *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
 
 Eksempler på hvordan ovenstående ressourcer sættes op via asadmin fra kommandolinien:
 asadmin set resources.custom-resource.updateservice/settings.property.javascript\\.basedir=/home/thl/NetBeansProjects/opencat-business/trunk

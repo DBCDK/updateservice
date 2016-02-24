@@ -70,6 +70,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
+            bizLogger.info( "Using provider id: '{}'", providerId );
             bizLogger.info( "Handling record:\n{}", record );
 
             if( providerId == null ) {
