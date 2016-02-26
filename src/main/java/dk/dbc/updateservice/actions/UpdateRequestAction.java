@@ -220,6 +220,7 @@ public class UpdateRequestAction extends AbstractAction {
         updateOperationAction.setSolrService( this.solrService );
         updateOperationAction.setRecordsHandler( this.recordsHandler );
         updateOperationAction.setScripter( this.scripter );
+        updateOperationAction.setSettings( settings );
 
         boolean allowExtraRecordData = false;
         if( settings.containsKey( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY )  ) {
@@ -238,11 +239,13 @@ public class UpdateRequestAction extends AbstractAction {
                 String oldProviderName = settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID );
                 logger.info( "Overwrite provider id with new value from request. [{}] ==> [{}]", oldProviderName, bibliographicRecordExtraData.getProviderName() );
 
-                settings.put( JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName() );
+                Properties newSettings = (Properties)settings.clone();
+                newSettings.put( JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName() );
+
+                updateOperationAction.setSettings( newSettings );
             }
 
         }
-        updateOperationAction.setSettings( settings );
 
         return updateOperationAction;
     }
