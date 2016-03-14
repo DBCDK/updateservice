@@ -3,12 +3,15 @@ package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
 
+import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
@@ -33,6 +36,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         super( "UpdateLocalRecord", rawRepo, record );
 
         this.holdingsItems = null;
+        this.openAgencyService = null;
         this.solrService = null;
         this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
@@ -44,6 +48,14 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
     public void setHoldingsItems( HoldingsItems holdingsItems ) {
         this.holdingsItems = holdingsItems;
+    }
+
+    public OpenAgencyService getOpenAgencyService() {
+        return openAgencyService;
+    }
+
+    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+        this.openAgencyService = openAgencyService;
     }
 
     public SolrService getSolrService() {
@@ -239,8 +251,12 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             }
 
             if( !holdingsItems.getAgenciesThatHasHoldingsFor( this.record ).isEmpty() ) {
-                String message = messages.getString( "delete.local.with.holdings.error" );
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                AgencyNumber agencyNumber = new AgencyNumber( new MarcRecordReader( record ).agencyId() );
+
+                if( openAgencyService.hasFeature( agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ) {
+                    String message = messages.getString( "delete.local.with.holdings.error" );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
             }
 
             children.add( new RemoveLinksAction( rawRepo, record ) );
@@ -255,6 +271,9 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add( enqueueRecordAction );
 
             return ServiceResult.newOkResult();
+        }
+        catch( OpenAgencyException ex ) {
+            throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
             logger.exit();
@@ -286,6 +305,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
             UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, mainRecord );
             action.setHoldingsItems( holdingsItems );
+            action.setOpenAgencyService( openAgencyService );
             action.setSolrService( solrService );
             action.setProviderId( providerId );
             this.children.add( action );
@@ -310,6 +330,11 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     private HoldingsItems holdingsItems;
+
+    /**
+     * Class to give access to the OpenAgency web service
+     */
+    private OpenAgencyService openAgencyService;
 
     /**
      * Class to give access to lookups for the rawrepo in solr.
