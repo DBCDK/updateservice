@@ -1,19 +1,14 @@
 //-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
-import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -39,8 +34,7 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testConstructor() throws Exception {
-        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         RawRepo rawRepo = mock( RawRepo.class );
 
         assertThat( new UpdateLocalRecordAction( rawRepo, record ), notNullValue() );
@@ -73,44 +67,33 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateSingleRecord_No002Links() throws Exception {
-        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+
+        String providerId = "xxx";
 
         RawRepo rawRepo = mock( RawRepo.class );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
 
+        instance.checkState();
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 3 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, UpdateLocalRecordAction.MIMETYPE );
 
-        ServiceAction child = children.get( 0 );
-        assertTrue( child.getClass() == StoreRecordAction.class );
-
-        StoreRecordAction storeRecordAction = (StoreRecordAction)child;
-        assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( storeRecordAction.getRecord(), is( record ) );
-        assertThat( storeRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
-
-        child = children.get( 1 );
-        assertTrue( child.getClass() == RemoveLinksAction.class );
-
-        RemoveLinksAction removeLinksAction = (RemoveLinksAction)child;
-        assertThat( removeLinksAction.getRawRepo(), is( rawRepo ) );
-        assertThat( removeLinksAction.getRecord(), is( record ) );
-
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**
@@ -134,16 +117,25 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateSingleRecord_With002Links() throws Exception {
-        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+
+        String providerId = "xxx";
 
         RawRepo rawRepo = mock( RawRepo.class );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( true );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         String message = messages.getString( "update.record.with.002.links" );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
@@ -177,51 +169,40 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateVolumeRecord_No002Links() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord mainRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE );
+        MarcRecord volumeRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
-        MarcRecordReader reader = new MarcRecordReader( record );
+        MarcRecordReader reader = new MarcRecordReader( volumeRecord );
         Integer agencyId = reader.agencyIdAsInteger();
         String parentId = reader.parentId();
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( volumeRecord ) ) ) ) ).thenReturn( false );
 
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, volumeRecord );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
 
-        when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
+        instance.checkState();
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 3 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction( iterator.next(), rawRepo, volumeRecord );
+        AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, volumeRecord, mainRecord );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, providerId, UpdateLocalRecordAction.MIMETYPE );
 
-        ServiceAction child = children.get( 0 );
-        assertTrue( child.getClass() == StoreRecordAction.class );
-
-        StoreRecordAction storeRecordAction = (StoreRecordAction)child;
-        assertThat( storeRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( storeRecordAction.getRecord(), is( record ) );
-        assertThat( storeRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
-
-        child = children.get( 1 );
-        assertTrue( child.getClass() == LinkRecordAction.class );
-
-        LinkRecordAction linkRecordAction = (LinkRecordAction)child;
-        assertThat( linkRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( linkRecordAction.getRecord(), is( record ) );
-        assertThat( linkRecordAction.getLinkToRecordId(), equalTo( new RecordId( parentId, agencyId ) ) );
-
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**
@@ -245,22 +226,30 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateVolumeRecord_With002Links() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
         MarcRecordReader reader = new MarcRecordReader( record );
         Integer agencyId = reader.agencyIdAsInteger();
         String parentId = reader.parentId();
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( true );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
 
-        when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
+        instance.checkState();
 
         String message = messages.getString( "update.record.with.002.links" );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
@@ -288,18 +277,29 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
         MarcRecordReader reader = new MarcRecordReader( record );
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         String parentId = reader.parentId();
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        String providerId = "xxx";
 
+        RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( false );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         String message = String.format( messages.getString( "reference.record.not.exist" ), recordId, agencyId, parentId, agencyId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
@@ -326,16 +326,28 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
         MarcRecordReader reader = new MarcRecordReader( record );
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         new MarcRecordWriter( record ).addOrReplaceSubfield( "014", "a", recordId );
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         String message = String.format( messages.getString( "parent.point.to.itself" ), recordId, agencyId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
@@ -363,11 +375,12 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_DeleteRecord_WithChildren() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         new MarcRecordWriter( record ).markForDeletion();
 
         String recordId = new MarcRecordReader( record ).recordId();
+
+        String providerId = "xxx";
 
         RawRepo rawRepo = mock( RawRepo.class );
 
@@ -375,7 +388,17 @@ public class UpdateLocalRecordActionTest {
         children.add( new RecordId( "xxx", 101010 ) );
         when( rawRepo.children( eq( record ) ) ).thenReturn( children );
 
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        SolrService solrService = mock( SolrService.class );
+
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         String message = String.format( messages.getString( "delete.record.children.error" ), recordId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
@@ -409,50 +432,38 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_DeleteVolumeRecord() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
         new MarcRecordWriter( record ).markForDeletion();
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<>() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<>() );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 3 ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, UpdateLocalRecordAction.MIMETYPE );
 
-        ServiceAction child = children.get( 0 );
-        assertTrue( child.getClass() == RemoveLinksAction.class );
-
-        RemoveLinksAction removeLinksAction = (RemoveLinksAction)child;
-        assertThat( removeLinksAction.getRawRepo(), is( rawRepo ) );
-        assertThat( removeLinksAction.getRecord(), is( record ) );
-
-        child = children.get( 1 );
-        assertTrue( child.getClass() == DeleteRecordAction.class );
-
-        DeleteRecordAction deleteRecordAction = (DeleteRecordAction)child;
-        assertThat( deleteRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( deleteRecordAction.getRecord(), is( record ) );
-        assertThat( deleteRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
-
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
+        assertThat( iterator.hasNext(), is( false ) );
     }
 
     /**
@@ -494,6 +505,8 @@ public class UpdateLocalRecordActionTest {
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
         when( rawRepo.recordExists( eq( mainRecordId ), eq( agencyId ) ) ).thenReturn( true );
         when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
@@ -506,15 +519,18 @@ public class UpdateLocalRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( mainRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
         SolrService solrService = mock( SolrService.class );
         when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
         instance.setSolrService( solrService );
-
-        String providerId = "xxx";
         instance.setProviderId( providerId );
+
+        instance.checkState();
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
@@ -549,26 +565,104 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
-        InputStream is = getClass().getResourceAsStream( VOLUME_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
-        Integer agencyId = new MarcRecordReader( record ).agencyIdAsInteger();
+        AgencyNumber agencyId = new AgencyNumber( new MarcRecordReader( record ).agencyIdAsInteger() );
         new MarcRecordWriter( record ).markForDeletion();
+
+        String providerId = "xxx";
 
         RawRepo rawRepo = mock( RawRepo.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         Set<Integer> holdings = new HashSet<>();
-        holdings.add( agencyId );
+        holdings.add( agencyId.getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( holdings );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
+
+        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
 
         String message = messages.getString( "delete.local.with.holdings.error" );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+    }
+
+    /**
+     * Test UpdateLocalRecordAction.performAction(): Delete volume record that has holdings and
+     * with no export of holdings the agency base.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          <ol>
+     *              <li>Holdings for the updated volume record.</li>
+     *              <li>Agency base has the setting "export of holdings" to false.</li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Delete the record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>DeleteRecordAction: Deletes the record</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *              <li>UpdateLocalRecordAction: Delete the main record <code>m</code></li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
+
+        AgencyNumber agencyId = new AgencyNumber( new MarcRecordReader( record ).agencyIdAsInteger() );
+        new MarcRecordWriter( record ).markForDeletion();
+
+        String providerId = "xxx";
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<>() );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        Set<Integer> holdings = new HashSet<>();
+        holdings.add( agencyId.getAgencyId() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( holdings );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
+
+        SolrService solrService = mock( SolrService.class );
+
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -597,46 +691,35 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_DeleteSingleRecord() throws Exception {
-        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         new MarcRecordWriter( record ).markForDeletion();
 
+        String providerId = "xxx";
+
         RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<>() );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<Integer>() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( new HashSet<>() );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+
+        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
 
-        List<ServiceAction> children = instance.children();
-        Assert.assertThat( children.size(), is( 3 ) );
-
-        ServiceAction child = children.get( 0 );
-        assertTrue( child.getClass() == RemoveLinksAction.class );
-
-        RemoveLinksAction removeLinksAction = (RemoveLinksAction)child;
-        assertThat( removeLinksAction.getRawRepo(), is( rawRepo ) );
-        assertThat( removeLinksAction.getRecord(), is( record ) );
-
-        child = children.get( 1 );
-        assertTrue( child.getClass() == DeleteRecordAction.class );
-
-        DeleteRecordAction deleteRecordAction = (DeleteRecordAction)child;
-        assertThat( deleteRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( deleteRecordAction.getRecord(), is( record ) );
-        assertThat( deleteRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
-
-        child = children.get( 2 );
-        assertTrue( child.getClass() == EnqueueRecordAction.class );
-
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction)child;
-        assertThat( enqueueRecordAction.getRawRepo(), is( rawRepo ) );
-        assertThat( enqueueRecordAction.getRecord(), is( record ) );
-        assertThat( enqueueRecordAction.getMimetype(), equalTo( UpdateLocalRecordAction.MIMETYPE ) );
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE );
     }
 
     /**
@@ -659,20 +742,32 @@ public class UpdateLocalRecordActionTest {
      */
     @Test
     public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
-        InputStream is = getClass().getResourceAsStream( BOOK_RECORD_RESOURCE );
-        MarcRecord record = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        Integer agencyId = new MarcRecordReader( record ).agencyIdAsInteger();
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+
+        AgencyNumber agencyId = new AgencyNumber( new MarcRecordReader( record ).agencyIdAsInteger() );
         new MarcRecordWriter( record ).markForDeletion();
+
+        String providerId = "xxx";
 
         RawRepo rawRepo = mock( RawRepo.class );
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         Set<Integer> holdings = new HashSet<>();
-        holdings.add( agencyId );
+        holdings.add( agencyId.getAgencyId() );
         when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( holdings );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
+
+        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
 
         when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<RecordId>() );
 
@@ -680,12 +775,75 @@ public class UpdateLocalRecordActionTest {
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
     }
 
+    /**
+     * Test UpdateLocalRecordAction.performAction(): Delete record that has holdings and
+     * with no export of holdings the agency base.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          <ol>
+     *              <li>Holdings for the updated record.</li>
+     *              <li>Agency base has the setting "export of holdings" to false.</li>
+     *          </ol>
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Delete the record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>StoreRecordAction: Store the record</li>
+     *              <li>RemoveLinksAction: Remove any existing links to other records</li>
+     *              <li>EnqueueRecordAction: Put the record in queue</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+
+        AgencyNumber agencyId = new AgencyNumber( new MarcRecordReader( record ).agencyIdAsInteger() );
+        new MarcRecordWriter( record ).markForDeletion();
+
+        String providerId = "xxx";
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.children( eq( record ) ) ).thenReturn( new HashSet<>() );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        Set<Integer> holdings = new HashSet<>();
+        holdings.add( agencyId.getAgencyId() );
+        when( holdingsItems.getAgenciesThatHasHoldingsFor( record ) ).thenReturn( holdings );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
+
+        SolrService solrService = mock( SolrService.class );
+
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setProviderId( providerId );
+
+        instance.checkState();
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction( iterator.next(), rawRepo, record );
+        AssertActionsUtil.assertDeleteRecordAction( iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE );
+        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE );
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
-
-    private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
-    private static final String VOLUME_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/volume.marc";
 
     private ResourceBundle messages;
 }
