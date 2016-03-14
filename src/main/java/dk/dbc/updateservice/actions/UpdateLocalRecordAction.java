@@ -136,7 +136,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
                     String message = messages.getString( "update.record.with.002.links" );
 
-                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    bizLogger.error( "Unable to create sub actions due to an error: {}", message );
                     return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                 }
             }
@@ -197,7 +197,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
                     String message = messages.getString( "update.record.with.002.links" );
 
-                    bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
+                    bizLogger.error( "Unable to create sub actions due to an error: {}", message );
                     return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                 }
             }
