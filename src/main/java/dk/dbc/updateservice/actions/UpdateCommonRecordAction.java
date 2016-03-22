@@ -99,7 +99,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            UpdateSingleRecord action = null;
+            UpdateSingleRecord action;
             bizLogger.info( "Handling record:\n{}", record );
 
             MarcRecordReader reader = new MarcRecordReader( record );
