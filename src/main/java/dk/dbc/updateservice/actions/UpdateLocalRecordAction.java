@@ -130,17 +130,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            MarcRecordReader reader = new MarcRecordReader( record );
-
-            if( !rawRepo.recordExists( reader.recordId(), reader.agencyIdAsInteger() ) ) {
-                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
-                    String message = messages.getString( "update.record.with.002.links" );
-
-                    bizLogger.error( "Unable to create sub actions due to an error: {}", message );
-                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
-                }
-            }
-
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, record );
             storeRecordAction.setMimetype( MIMETYPE );
             children.add( storeRecordAction );

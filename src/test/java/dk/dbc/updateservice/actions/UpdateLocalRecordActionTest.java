@@ -41,8 +41,7 @@ public class UpdateLocalRecordActionTest {
     }
 
     /**
-     * Test UpdateLocalRecordAction.performAction(): Create single record with no 002 links from
-     * other records.
+     * Test UpdateLocalRecordAction.performAction(): Create single record.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -66,7 +65,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord_No002Links() throws Exception {
+    public void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
 
         String providerId = "xxx";
@@ -97,54 +96,7 @@ public class UpdateLocalRecordActionTest {
     }
 
     /**
-     * Test UpdateLocalRecordAction.performAction(): Create single record with 002 links from
-     * other records.
-     *
-     * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          A single record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update the record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
-     *      </dd>
-     * </dl>
-     */
-    @Test
-    public void testPerformAction_CreateSingleRecord_With002Links() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock( RawRepo.class );
-
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( true );
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
-        instance.setProviderId( providerId );
-
-        instance.checkState();
-
-        String message = messages.getString( "update.record.with.002.links" );
-        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
-        assertThat( instance.children().isEmpty(), is( true ) );
-    }
-
-    /**
-     * Test UpdateLocalRecordAction.performAction(): Create volume record with no 002 links from
-     * other records.
+     * Test UpdateLocalRecordAction.performAction(): Create volume record.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -168,7 +120,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord_No002Links() throws Exception {
+    public void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE );
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
 
@@ -203,57 +155,6 @@ public class UpdateLocalRecordActionTest {
         AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, volumeRecord, providerId, UpdateLocalRecordAction.MIMETYPE );
 
         assertThat( iterator.hasNext(), is( false ) );
-    }
-
-    /**
-     * Test UpdateLocalRecordAction.performAction(): Create volume record with 002 links from
-     * other records.
-     *
-     * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          A rawrepo containing a main record m1.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update a record that points to <code>m1</code> in <code>014a</code>.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Return status: FAILED_UPDATE_INTERNAL_ERROR
-     *      </dd>
-     * </dl>
-     */
-    @Test
-    public void testPerformAction_CreateVolumeRecord_With002Links() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE );
-
-        MarcRecordReader reader = new MarcRecordReader( record );
-        Integer agencyId = reader.agencyIdAsInteger();
-        String parentId = reader.parentId();
-
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( parentId ), eq( agencyId ) ) ).thenReturn( true );
-
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
-        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( true );
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
-        instance.setProviderId( providerId );
-
-        instance.checkState();
-
-        String message = messages.getString( "update.record.with.002.links" );
-        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
-        assertThat( instance.children().isEmpty(), is( true ) );
     }
 
     /**
