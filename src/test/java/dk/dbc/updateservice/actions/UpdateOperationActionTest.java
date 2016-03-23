@@ -5,18 +5,17 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Authentication;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Properties;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -27,6 +26,10 @@ import static org.mockito.Mockito.when;
 
 //-----------------------------------------------------------------------------
 public class UpdateOperationActionTest {
+    public UpdateOperationActionTest() {
+        this.messages = ResourceBundles.getBundle( this, "actions" );
+    }
+
     /**
      * Test performAction(): Update a local record.
      *
@@ -351,6 +354,164 @@ public class UpdateOperationActionTest {
     }
 
     /**
+     * Test performAction(): Deletes a common record that exists.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          A rawrepo with a common record.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Try to delete the record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Create child actions:
+     *          <ol>
+     *              <li>AuthenticateRecordAction: Authentication of the record</li>
+     *              <li>UpdateCommonRecordAction: Update common record</li>
+     *              <li>UpdateEnrichmentRecordAction: Update DBC enrichment record</li>
+     *          </ol>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteCommonRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
+        Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        MarcRecordWriter recordWriter = new MarcRecordWriter( record );
+        recordWriter.markForDeletion();
+
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        MarcRecordWriter enrichmentWriter = new MarcRecordWriter( enrichmentRecord );
+        enrichmentWriter.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        Authenticator authenticator = mock( Authenticator.class );
+
+        Authentication authentication = mock( Authentication.class );
+        when( authentication.getGroupIdAut() ).thenReturn( GROUP_ID );
+        when( authentication.getUserIdAut() ).thenReturn( USER_ID );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( true );
+        when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( false );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
+        List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
+
+        Scripter scripter = mock( Scripter.class );
+
+        SolrService solrService = mock( SolrService.class );
+
+        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
+        instance.setAuthenticator( authenticator );
+        instance.setAuthentication( authentication );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children = instance.children();
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), record, authenticator, authentication );
+        AssertActionsUtil.assertUpdateCommonRecordAction( iterator.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems, openAgencyService );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
+
+        assertThat( iterator.hasNext(), is( false ) );
+    }
+
+    /**
+     * Test performAction(): Deletes a common record that does not exist.
+     *
+     * <dl>
+     *      <dt>Given</dt>
+     *      <dd>
+     *          An empty rawrepo.
+     *      </dd>
+     *      <dt>When</dt>
+     *      <dd>
+     *          Try to delete a common record.
+     *      </dd>
+     *      <dt>Then</dt>
+     *      <dd>
+     *          Return status: OK
+     *      </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        String recordId = AssertActionsUtil.getRecordId( record );
+        Integer agencyId = AssertActionsUtil.getAgencyId( record );
+
+        MarcRecordWriter recordWriter = new MarcRecordWriter( record );
+        recordWriter.markForDeletion();
+
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
+        MarcRecordWriter enrichmentWriter = new MarcRecordWriter( enrichmentRecord );
+        enrichmentWriter.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
+
+        Properties settings = new Properties();
+        settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
+
+        Authenticator authenticator = mock( Authenticator.class );
+
+        Authentication authentication = mock( Authentication.class );
+        when( authentication.getGroupIdAut() ).thenReturn( GROUP_ID );
+        when( authentication.getUserIdAut() ).thenReturn( USER_ID );
+
+        RawRepo rawRepo = mock( RawRepo.class );
+        when( rawRepo.recordExists( eq( recordId ), eq( agencyId ) ) ).thenReturn( false );
+        when( rawRepo.recordExists( eq( recordId ), eq( enrichmentAgencyId ) ) ).thenReturn( false );
+
+        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+
+        OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
+        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+
+        List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
+        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
+
+        Scripter scripter = mock( Scripter.class );
+
+        SolrService solrService = mock( SolrService.class );
+
+        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
+        instance.setAuthenticator( authenticator );
+        instance.setAuthentication( authentication );
+        instance.setHoldingsItems( holdingsItems );
+        instance.setOpenAgencyService( openAgencyService );
+        instance.setSolrService( solrService );
+        instance.setRecordsHandler( recordsHandler );
+        instance.setScripter( scripter );
+        instance.setSettings( settings );
+
+        String message = messages.getString( "operation.delete.non.existing.record" );
+        assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
+    }
+
+    /**
      * Test performAction(): Create a new common school enrichment record.
      *
      * <dl>
@@ -510,4 +671,6 @@ public class UpdateOperationActionTest {
 
     private String GROUP_ID = "700100";
     private String USER_ID = "netpunkt";
+
+    private ResourceBundle messages;
 }

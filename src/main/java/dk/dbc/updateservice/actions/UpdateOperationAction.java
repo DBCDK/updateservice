@@ -178,6 +178,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
 
+                if( reader.markedForDeletion() && !rawRepo.recordExists( recordId, agencyId ) ) {
+                    String message = String.format( messages.getString( "operation.delete.non.existing.record" ), recordId, agencyId );
+                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                }
+
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
