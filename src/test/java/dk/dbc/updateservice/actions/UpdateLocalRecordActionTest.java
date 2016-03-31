@@ -75,13 +75,9 @@ public class UpdateLocalRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -136,13 +132,9 @@ public class UpdateLocalRecordActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( volumeRecord ) ) ) ) ).thenReturn( false );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -192,12 +184,10 @@ public class UpdateLocalRecordActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -240,12 +230,10 @@ public class UpdateLocalRecordActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -291,12 +279,10 @@ public class UpdateLocalRecordActionTest {
 
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-        SolrService solrService = mock( SolrService.class );
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -346,13 +332,9 @@ public class UpdateLocalRecordActionTest {
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -422,13 +404,9 @@ public class UpdateLocalRecordActionTest {
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
-        SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", AssertActionsUtil.getRecordId( record ) ) ) ) ).thenReturn( false );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -483,12 +461,9 @@ public class UpdateLocalRecordActionTest {
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
-        SolrService solrService = mock( SolrService.class );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -548,12 +523,9 @@ public class UpdateLocalRecordActionTest {
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
 
-        SolrService solrService = mock( SolrService.class );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -605,12 +577,9 @@ public class UpdateLocalRecordActionTest {
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
-        SolrService solrService = mock( SolrService.class );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -660,12 +629,9 @@ public class UpdateLocalRecordActionTest {
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
-        SolrService solrService = mock( SolrService.class );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();
@@ -724,12 +690,9 @@ public class UpdateLocalRecordActionTest {
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
 
-        SolrService solrService = mock( SolrService.class );
-
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
         instance.setOpenAgencyService( openAgencyService );
-        instance.setSolrService( solrService );
         instance.setProviderId( providerId );
 
         instance.checkState();

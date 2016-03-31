@@ -37,7 +37,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
         this.holdingsItems = null;
         this.openAgencyService = null;
-        this.solrService = null;
         this.providerId = null;
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -56,14 +55,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
     public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
         this.openAgencyService = openAgencyService;
-    }
-
-    public SolrService getSolrService() {
-        return solrService;
-    }
-
-    public void setSolrService( SolrService solrService ) {
-        this.solrService = solrService;
     }
 
     public String getProviderId() {
@@ -182,15 +173,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
             }
 
-            if( !rawRepo.recordExists( recordId, agencyId ) ) {
-                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
-                    String message = messages.getString( "update.record.with.002.links" );
-
-                    bizLogger.error( "Unable to create sub actions due to an error: {}", message );
-                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
-                }
-            }
-
             StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, record );
             storeRecordAction.setMimetype( MIMETYPE );
             children.add( storeRecordAction );
@@ -295,7 +277,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             UpdateLocalRecordAction action = new UpdateLocalRecordAction( rawRepo, mainRecord );
             action.setHoldingsItems( holdingsItems );
             action.setOpenAgencyService( openAgencyService );
-            action.setSolrService( solrService );
             action.setProviderId( providerId );
             this.children.add( action );
 
@@ -324,11 +305,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * Class to give access to the OpenAgency web service
      */
     private OpenAgencyService openAgencyService;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
-    private SolrService solrService;
 
     private String providerId;
 
