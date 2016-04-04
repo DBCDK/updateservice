@@ -10,6 +10,12 @@ package dk.dbc.updateservice.ws;
  */
 public class JNDIResources {
     //-------------------------------------------------------------------------
+    //              Managed Executor Service Resources
+    //-------------------------------------------------------------------------
+
+    public static final String RAWREPO_CACHE_EXECUTOR_SERVICE = "concurrent/rawrepo";
+
+    //-------------------------------------------------------------------------
     //              JDBC Resources
     //-------------------------------------------------------------------------
 

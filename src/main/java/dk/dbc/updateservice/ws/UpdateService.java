@@ -127,6 +127,8 @@ public class UpdateService implements CatalogingUpdatePortType {
             logger.info( "MDC: {}", MDC.getCopyOfContextMap() );
             logger.info( "Request tracking id: {}", updateRecordRequest.getTrackingId() );
 
+            rawRepo.setAuthentication( updateRecordRequest.getAuthentication() );
+
             action = new UpdateRequestAction( rawRepo, updateRecordRequest, wsContext );
             action.setHoldingsItems( holdingsItems );
             action.setOpenAgencyService( openAgencyService );

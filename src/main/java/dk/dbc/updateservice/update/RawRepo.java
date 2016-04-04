@@ -11,10 +11,12 @@ import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -23,6 +25,7 @@ import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -33,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 
 //-----------------------------------------------------------------------------
@@ -65,6 +69,18 @@ public class RawRepo {
     public RawRepo( DataSource dataSourceReader, DataSource dataSourceWriter ) {
         this.dataSourceReader = dataSourceReader;
         this.dataSourceWriter = dataSourceWriter;
+    }
+
+    //-------------------------------------------------------------------------
+    //              Properties
+    //-------------------------------------------------------------------------
+
+    public Authentication getAuthentication() {
+        return authentication;
+    }
+
+    public void setAuthentication( Authentication authentication ) {
+        this.authentication = authentication;
     }
 
     //-------------------------------------------------------------------------
@@ -591,8 +607,29 @@ public class RawRepo {
     //              Helpers
     //-------------------------------------------------------------------------
 
+    /**
+     * Constructs a RawRepoDAO to access the rawrepo database.
+     *
+     * @param conn The JDBC connection to used to access the database.
+     *
+     * @return A RawRepoDAO.
+     *
+     * @throws RawRepoException      Throwed by RawRepoDAO in case of an error.
+     * @throws IllegalStateException If authentication is null.
+     */
     protected RawRepoDAO createDAO( Connection conn ) throws RawRepoException {
-        return RawRepoDAO.builder( conn ).build();
+        if( authentication == null ) {
+            String message = "Authentication instance must be initialized with not null";
+            throw new IllegalStateException( message );
+        }
+
+        RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder( conn );
+
+        OpenAgencyServiceFromURL.Builder openAgencyBuilder = OpenAgencyServiceFromURL.builder();
+        openAgencyBuilder = openAgencyBuilder.authentication( authentication.getUserIdAut(), authentication.getGroupIdAut(), authentication.getPasswordAut() );
+        rawRepoBuilder.openAgency( openAgencyBuilder.build( settings.getProperty( JNDIResources.OPENAGENCY_URL_KEY ) ), openAgencyExecutor );
+
+        return rawRepoBuilder.build();
     }
 
     public static String getRecordId( MarcRecord record ) {
@@ -692,6 +729,20 @@ public class RawRepo {
     private static XLogger logger = XLoggerFactory.getXLogger( RawRepo.class );
     private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
 
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
+
+    /**
+     * Authentication structure from the request.
+     * <p>
+     *     Is it used to initialize the openAgency service used with the RawRepo DAO instance.
+     * </p>
+     */
+    Authentication authentication;
+
+    @Resource( name = JNDIResources.RAWREPO_CACHE_EXECUTOR_SERVICE )
+    ManagedExecutorService openAgencyExecutor;
+
     /**
      * Injected DataSource to read from the rawrepo database.
      */
@@ -703,4 +754,6 @@ public class RawRepo {
      */
     @Resource( lookup = JNDIResources.JDBC_RAW_REPO_WRITABLE_NAME )
     private DataSource dataSourceWriter;
+
+
 }
