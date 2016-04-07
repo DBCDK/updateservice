@@ -84,7 +84,10 @@ public class DoubleRecordMailService {
                 message.setFrom( new InternetAddress( settings.getProperty( JNDIResources.DOUBLE_RECORD_MAIL_FROM_KEY ) ) );
 
                 // Set To: header field of the header.
-                message.addRecipient( Message.RecipientType.TO, new InternetAddress( settings.getProperty( JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY ) ) );
+                String receipientAddresses = settings.getProperty( JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY );
+                for( String addr : receipientAddresses.split( ";" ) ) {
+                    message.addRecipient( Message.RecipientType.TO, new InternetAddress( addr ) );
+                }
 
                 // Set Subject: header field
                 message.setSubject( subject );
