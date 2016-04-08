@@ -22,6 +22,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.Stateful;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -44,8 +45,7 @@ import java.util.Set;
 /**
  * EJB to provide access to the RawRepo database.
  */
-@Stateless
-@TransactionAttribute( TransactionAttributeType.NOT_SUPPORTED )
+@Stateful
 public class RawRepo {
     //-------------------------------------------------------------------------
     //              Types
@@ -64,11 +64,13 @@ public class RawRepo {
     public RawRepo() {
         this.dataSourceReader = null;
         this.dataSourceWriter = null;
+        this.authentication = null;
     }
 
     public RawRepo( DataSource dataSourceReader, DataSource dataSourceWriter ) {
         this.dataSourceReader = dataSourceReader;
         this.dataSourceWriter = dataSourceWriter;
+        this.authentication = null;
     }
 
     //-------------------------------------------------------------------------
@@ -383,7 +385,6 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record ) throws UpdateException {
         logger.entry( record );
 
@@ -404,7 +405,6 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void saveRecord( Record record, String parentId ) throws UpdateException {
         logger.entry( record );
 
@@ -472,7 +472,6 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void removeLinks( RecordId recId ) throws UpdateException {
         logger.entry( recId );
 
@@ -500,7 +499,6 @@ public class RawRepo {
      * @throws UpdateException In case of SQLException or RawRepoException, that exception
      *         encapsulated in an UpdateException.
      */
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void linkRecord( RecordId id, RecordId refer_id ) throws UpdateException {
         logger.entry( id, refer_id );
 
@@ -521,7 +519,6 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public void changedRecord( String provider, RecordId recId, String mimetype ) throws UpdateException {
         logger.entry( provider, recId, mimetype );
 
@@ -539,7 +536,6 @@ public class RawRepo {
         }
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
     public void purgeRecord( RecordId recordId ) throws UpdateException {
         logger.entry( recordId );
 
@@ -619,7 +615,7 @@ public class RawRepo {
      */
     protected RawRepoDAO createDAO( Connection conn ) throws RawRepoException {
         if( authentication == null ) {
-            String message = "Authentication instance must be initialized with not null";
+            String message = "'RawRepo.authentication' must be initialized with a valid instance.";
             throw new IllegalStateException( message );
         }
 
