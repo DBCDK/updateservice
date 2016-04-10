@@ -16,6 +16,7 @@ import dk.dbc.updateservice.service.api.*;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
 import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -109,7 +110,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @Override
     public UpdateRecordResult updateRecord( UpdateRecordRequest updateRecordRequest ) {
-        StopWatch watch = new StopWatch();
+        StopWatch watch = new Log4JStopWatch();
         UUID prefixId = UUID.randomUUID();
 
         MDC.put( REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId() );
@@ -171,7 +172,15 @@ public class UpdateService implements CatalogingUpdatePortType {
 
             if( watch != null ) {
                 bizLogger.info( "" );
-                bizLogger.info( "Processing request in {} ms", watch.getElapsedTime() );
+
+                String watchTag = "request.updaterecord";
+                if( action.hasValidateOnlyOption() ) {
+                    watchTag += ".validate";
+                }
+                else {
+                    watchTag += ".update";
+                }
+                watch.stop( watchTag );
             }
 
             bizLogger.exit( result );
@@ -194,7 +203,9 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     @Override
     public GetSchemasResult getSchemas( GetSchemasRequest getValidateSchemasRequest ) {
+        StopWatch watch = new Log4JStopWatch();
         try {
+
             MDC.put( TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId() );
 
             logger.entry( getValidateSchemasRequest );
@@ -228,6 +239,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             throw ex;
         }
         finally {
+            watch.stop( "request.getSchemas" );
             logger.exit();
             MDC.remove( TRACKING_ID_LOG_CONTEXT );
         }

@@ -187,6 +187,31 @@ public class UpdateRequestAction extends AbstractAction {
         MDCUtil.setupContextForRecord( readRecord() );
     }
 
+    /**
+     * Checks if the request is a validate only request.
+     * <p>
+     *     It is declared public so {@link dk.dbc.updateservice.ws.UpdateService} can use it.
+     * </p>
+     *
+     * @return Boolean value.
+     */
+    public boolean hasValidateOnlyOption() {
+        logger.entry();
+
+        try {
+            Options options = request.getOptions();
+            if( options != null && options.getOption() != null ) {
+                return options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY );
+            }
+
+            return false;
+        }
+        finally {
+            logger.exit();
+        }
+
+    }
+
     //-------------------------------------------------------------------------
     //              Helpers
     //-------------------------------------------------------------------------
@@ -248,23 +273,6 @@ public class UpdateRequestAction extends AbstractAction {
         }
 
         return updateOperationAction;
-    }
-
-    private boolean hasValidateOnlyOption() {
-        logger.entry();
-
-        try {
-            Options options = request.getOptions();
-            if( options != null && options.getOption() != null ) {
-                return options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY );
-            }
-
-            return false;
-        }
-        finally {
-            logger.exit();
-        }
-
     }
 
     /**

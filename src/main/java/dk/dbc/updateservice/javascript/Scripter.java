@@ -6,6 +6,7 @@ package dk.dbc.updateservice.javascript;
 import dk.dbc.jslib.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -58,14 +59,16 @@ public class Scripter {
 
         Object result = null;
         try {
-            StopWatch watch = new StopWatch();
             if( environment == null ) {
+                StopWatch watch = new Log4JStopWatch();
                 environment = createEnvironment();
+                watch.stop( "javascript.env.create" );
             }
 
+            StopWatch watch = new Log4JStopWatch();
             result = environment.callMethod( methodName, args );
+            watch.stop( "javascript.method." + methodName );
 
-            logger.info( "Scripter. Call function '{}:{}': {} ms", ENTRYPOINT_FILENAME, methodName, watch.getElapsedTime() );
             return result;
         }
         catch( Exception ex ) {
@@ -84,7 +87,6 @@ public class Scripter {
         logger.entry();
 
         try {
-            StopWatch watch = new StopWatch();
             String baseDir = settings.getProperty( JNDIResources.JAVASCRIPT_BASEDIR_KEY );
             String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
 
@@ -92,7 +94,6 @@ public class Scripter {
             envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
             envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME ) );
 
-            logger.info( "Scripter. Creating new environment: {} ms", watch.getElapsedTime() );
             return envir;
         }
         catch( Exception ex ) {

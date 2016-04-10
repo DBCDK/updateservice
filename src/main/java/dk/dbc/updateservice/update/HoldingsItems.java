@@ -8,6 +8,8 @@ import dk.dbc.holdingsitems.HoldingsItemsException;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -47,6 +49,7 @@ public class HoldingsItems {
 
     public Set<Integer> getAgenciesThatHasHoldingsFor( MarcRecord record ) throws UpdateException {
         logger.entry( record );
+        StopWatch watch = new Log4JStopWatch();
 
         Set<Integer> result = new HashSet<>();
         try {
@@ -59,12 +62,14 @@ public class HoldingsItems {
             return result;
         }
         finally {
+            watch.stop( "holdingsItems.getAgenciesThatHasHoldingsForId.MarcRecord" );
             logger.exit( result );
         }
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsForId( String recordId ) throws UpdateException {
         logger.entry( recordId );
+        StopWatch watch = new Log4JStopWatch();
 
         Set<Integer> result = new HashSet<>();
         try( Connection conn = dataSource.getConnection() ) {
@@ -78,6 +83,7 @@ public class HoldingsItems {
             throw new UpdateException( ex.getMessage(), ex );
         }
         finally {
+            watch.stop( "holdingsItems.getAgenciesThatHasHoldingsForId.String" );
             logger.exit( result );
         }
     }
@@ -87,7 +93,14 @@ public class HoldingsItems {
     //-------------------------------------------------------------------------
 
     protected HoldingsItemsDAO createDAO( Connection conn ) throws HoldingsItemsException {
-        return HoldingsItemsDAO.newInstance( conn );
+        StopWatch watch = new Log4JStopWatch();
+
+        try {
+            return HoldingsItemsDAO.newInstance( conn );
+        }
+        finally {
+            watch.stop( "holdingsItems.createDAO" );
+        }
     }
 
     //-------------------------------------------------------------------------

@@ -7,6 +7,7 @@ import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -66,9 +67,10 @@ public class ServiceEngine {
 
             printActionHeader( action );
 
-            StopWatch watch = new StopWatch();
+            StopWatch watch = new Log4JStopWatch();
             action.checkState();
             ServiceResult actionResult = action.performAction();
+            watch.stop( "action." + action.name() );
             action.setTimeElapsed( watch.getElapsedTime() );
             action.setServiceResult( actionResult );
 
