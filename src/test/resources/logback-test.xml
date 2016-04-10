@@ -9,6 +9,20 @@
         </encoder>
     </appender>
 
+    <!-- ************************************************************* -->
+    <!-- Logging                                                       -->
+    <!-- ************************************************************* -->
+
+    <appender name="Perf4jStatistics" class="org.perf4j.logback.AsyncCoalescingStatisticsAppender">
+        <param name="TimeSlice" value="3000" />
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <logger name="org.perf4j.TimingLogger">
+        <level value="INFO"/>
+        <appender-ref ref="Perf4jStatistics"/>
+    </logger>
+
     <root level="debug">
         <appender-ref ref="FILE" />
     </root>
