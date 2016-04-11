@@ -4,6 +4,8 @@ package dk.dbc.updateservice.update;
 //-----------------------------------------------------------------------------
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -57,6 +59,7 @@ public class DoubleRecordMailService {
      */
     public void sendMessage( String subject, String body ) {
         logger.entry( subject, body );
+        StopWatch watch = new Log4JStopWatch( "service.mail" );
 
         try {
             // Setup Mail server properties
@@ -106,6 +109,7 @@ public class DoubleRecordMailService {
             }
         }
         finally {
+            watch.stop();
             logger.exit();
         }
     }

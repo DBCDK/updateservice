@@ -8,6 +8,8 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -28,14 +30,24 @@ import java.util.Properties;
 public class OpenAgencyService {
     @PostConstruct
     public void init() {
-        OpenAgencyServiceFromURL.Builder builder = OpenAgencyServiceFromURL.builder();
-        builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
+        logger.entry();
+        StopWatch watch = new Log4JStopWatch( "service.openagency.init" );
 
-        libraryRules = builder.build( settings.getProperty( JNDIResources.OPENAGENCY_URL_KEY ) ).libraryRules();
+        try {
+            OpenAgencyServiceFromURL.Builder builder = OpenAgencyServiceFromURL.builder();
+            builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
+
+            libraryRules = builder.build( settings.getProperty( JNDIResources.OPENAGENCY_URL_KEY ) ).libraryRules();
+        }
+        finally {
+            watch.stop();
+            logger.exit();
+        }
     }
 
     public boolean hasFeature( String agencyId, LibraryRuleHandler.Rule feature ) throws OpenAgencyException {
         logger.entry( agencyId, feature );
+        StopWatch watch = new Log4JStopWatch( "service.openagency.hasfeature" );
 
         Boolean result = null;
         try {
@@ -61,6 +73,7 @@ public class OpenAgencyService {
             throw ex;
         }
         finally {
+            watch.stop();
             logger.exit( result );
         }
     }
