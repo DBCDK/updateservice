@@ -6,6 +6,8 @@ package dk.dbc.updateservice.update;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -38,18 +40,21 @@ public class SolrService {
 
     public boolean hasDocuments( String q ) throws UpdateException {
         logger.entry( q );
+        StopWatch watch = new Log4JStopWatch( "service.solr.hasdocuments" );
 
         Boolean result = null;
         try {
             return result = hits( q ) != 0L;
         }
         finally {
+            watch.stop();
             logger.exit( result );
         }
     }
 
     public long hits( String q ) throws UpdateException {
         logger.entry();
+        StopWatch watch = new Log4JStopWatch( "service.solr.hits" );
 
         URL solrUrl = null;
         try {
@@ -103,6 +108,7 @@ public class SolrService {
             throw new UpdateException( "Unable to connect to url " + solrUrl.toString() + ": " + ex.getMessage(), ex );
         }
         finally {
+            watch.stop();
             logger.exit();
         }
     }

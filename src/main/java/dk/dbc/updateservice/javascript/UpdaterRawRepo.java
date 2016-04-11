@@ -10,6 +10,8 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -48,6 +50,7 @@ public class UpdaterRawRepo {
 	 */
 	public static MarcRecord fetchRecord( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
+		StopWatch watch = new Log4JStopWatch( "rawrepo.fetchRecord" );
 
 		MarcRecord result = null;
 		try( Connection con = getConnection() ) {
@@ -64,6 +67,7 @@ public class UpdaterRawRepo {
 			return result;
 		}
 		finally {
+			watch.stop();
 			logger.exit( result );
 		}
 	}
@@ -83,6 +87,7 @@ public class UpdaterRawRepo {
 	 */
 	public static Boolean recordExists( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException {
 		logger.entry( recordId, libraryNo );
+        StopWatch watch = new Log4JStopWatch( "rawrepo.recordExists" );
 		boolean result = false;
 
 		try( Connection con = getConnection() ) {
@@ -110,6 +115,8 @@ public class UpdaterRawRepo {
 	 */
 	public static List<MarcRecord> getRelationsChildren( String recordId, String libraryNo ) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
 		logger.entry( recordId, libraryNo );
+        StopWatch watch = new Log4JStopWatch( "rawrepo.getRelationsChildren" );
+
 		List<MarcRecord> result = null;
 
 		try( Connection con = getConnection() ) {
@@ -126,6 +133,7 @@ public class UpdaterRawRepo {
 			return result;
 		}
 		finally {
+            watch.stop();
 			logger.exit( result );
 		}
 	}

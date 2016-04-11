@@ -6,6 +6,8 @@ import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -27,12 +29,19 @@ import java.util.Properties;
 public class ForsService {
     @PostConstruct
     public void init() {
-        forsRightsCache = new ForsRights.RightsCache( CACHE_ENTRY_TIMEOUT );
+        StopWatch watch = new Log4JStopWatch( "service.forsrights.init" );
 
-        ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
-        builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
+        try {
+            forsRightsCache = new ForsRights.RightsCache( CACHE_ENTRY_TIMEOUT );
 
-        forsRights = builder.build( settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) ).forsRights( forsRightsCache );
+            ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
+            builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
+
+            forsRights = builder.build( settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) ).forsRights( forsRightsCache );
+        }
+        finally {
+            watch.stop();
+        }
     }
 
     /**
@@ -46,12 +55,14 @@ public class ForsService {
      */
     public ForsRights.RightSet forsRights( String userId, String groupId, String passwd ) throws ForsRightsException {
         logger.entry( userId, groupId, "****" );
+        StopWatch watch = new Log4JStopWatch( "service.forsrights.rights" );
 
         try {
             bizLogger.info( "Authenticating user {}/{} against forsright at {}", userId, groupId, settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) );
             return forsRights.lookupRight( userId, groupId, passwd, null );
         }
         finally {
+            watch.stop();
             logger.exit();
         }
     }
@@ -68,12 +79,14 @@ public class ForsService {
 	 */
 	public ForsRights.RightSet forsRightsWithIp( String userId, String groupId, String passwd, String ipAddress ) throws ForsRightsException {
         logger.entry( userId, groupId, "****", ipAddress );
+        StopWatch watch = new Log4JStopWatch( "service.forsrights.rightsWithIp" );
 
         try {
             bizLogger.info( "Authenticating user {}/{} with ip-address {} against forsright at {}", userId, groupId, ipAddress, settings.getProperty( JNDIResources.FORSRIGHTS_URL_KEY ) );
             return forsRights.lookupRight( userId, groupId, passwd, ipAddress );
         }
         finally {
+            watch.stop();
             logger.exit();
         }
 	}
