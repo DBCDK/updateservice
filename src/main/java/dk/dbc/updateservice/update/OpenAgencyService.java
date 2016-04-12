@@ -15,10 +15,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
-import javax.ejb.Stateless;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -26,7 +23,7 @@ import java.util.Properties;
 /**
  * EJB to access the OpenAgency web service.
  */
-@Stateless
+@Singleton
 public class OpenAgencyService {
     @PostConstruct
     public void init() {
@@ -37,12 +34,16 @@ public class OpenAgencyService {
             OpenAgencyServiceFromURL.Builder builder = OpenAgencyServiceFromURL.builder();
             builder = builder.connectTimeout( CONNECT_TIMEOUT ).requestTimeout( REQUEST_TIMEOUT );
 
-            libraryRules = builder.build( settings.getProperty( JNDIResources.OPENAGENCY_URL_KEY ) ).libraryRules();
+            service = builder.build( settings.getProperty( JNDIResources.OPENAGENCY_URL_KEY ) );
         }
         finally {
             watch.stop();
             logger.exit();
         }
+    }
+
+    public OpenAgencyServiceFromURL getService() {
+        return service;
     }
 
     public boolean hasFeature( String agencyId, LibraryRuleHandler.Rule feature ) throws OpenAgencyException {
@@ -51,7 +52,7 @@ public class OpenAgencyService {
 
         Boolean result = null;
         try {
-            result = libraryRules.isAllowed( agencyId, feature );
+            result = service.libraryRules().isAllowed( agencyId, feature );
 
             bizLogger.info( "Agency '{}' is allowed to use feature '{}': {}", agencyId, feature, result );
             return result;
@@ -93,5 +94,5 @@ public class OpenAgencyService {
     @Resource( lookup = JNDIResources.SETTINGS_NAME )
     private Properties settings;
 
-    private LibraryRuleHandler libraryRules;
+    private OpenAgencyServiceFromURL service;
 }
