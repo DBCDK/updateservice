@@ -45,6 +45,8 @@ helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 * *javascript.basedir*: Angiver rodkataloget hvor opencat-business distributionen ligger. Hvis man peger på sit projekt fra svn skal man
 pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
 * *javascript.install.name*: Navnet på den distribution fra https://svn.dbc.dk/repos/opencat-business/trunk/distributions/ man vil bruge.
+* *javascript.pool.size*: Heltal som angiver hvor mange Nashorn/Rhino engines som skal oprettes i det JavaScript Engine pool som Update anvender 
+ til JavaScript. Et udgangspunkt vil være intervallet mellem *thread-pool.size / 2* og *thread-pool.size*.
 * *allow.extra.record.data*: True/False. True angiver at et request må indeholde ekstra data for posten. Hvis
  settingen ikke er oprettet i Glassfish anvendes værdien "False".
 * *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.

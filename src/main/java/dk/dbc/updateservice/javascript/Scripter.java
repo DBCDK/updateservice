@@ -2,72 +2,54 @@
 package dk.dbc.updateservice.javascript;
 
 //-----------------------------------------------------------------------------
-
-import dk.dbc.jslib.*;
-import dk.dbc.updateservice.ws.JNDIResources;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
-import javax.ejb.LocalBean;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import java.io.*;
-import java.util.Properties;
 
 //-----------------------------------------------------------------------------
 /**
- * Created by stp on 03/12/14.
+ * Scripter EJB to execute a JavaScript function and returns the result from
+ * the engine.
  */
 @Stateless
-@LocalBean
 public class Scripter {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
-
-    public Scripter() {
-        this.settings = null;
-        this.environment = null;
-    }
-
-    public Scripter( Properties settings ) {
-        this.settings = settings;
-        this.environment = null;
-    }
-
     //-------------------------------------------------------------------------
     //              Script interface
     //-------------------------------------------------------------------------
 
     /**
      * Calls a function in a JavaScript environment and returns the result.
+     * <p>
+     *     A JavaScript engine is obtained from the singleton ScripterPool. After
+     *     execution it is returned to the pool. We want for an engine to be
+     *     available if the pool is empty.
      * <p/>
-     * The JavaScript environment is created and cached by the filename.
+     * <p>
+     *     The engine is always returned to the pool, even in case of JavaScript
+     *     exceptions.
+     * </p>
      *
      * @param methodName Name of the function to call.
      * @param args       Arguments to the function.
      *
      * @return The result of the JavaScript function.
      *
-     * @throws ScripterException Encapsulate any exception from Rhino or is throwned
-     *         in case of an error. For instance if the file can not be loaded.
+     * @throws ScripterException Encapsulate any exception from the JavaScript engine or
+     *         is throwned in case of an error.
      */
     public Object callMethod( String methodName, Object... args ) throws ScripterException {
         logger.entry( methodName, args );
 
         Object result = null;
+        ScripterEnvironment environment = null;
         try {
-            if( environment == null ) {
-                StopWatch watch = new Log4JStopWatch();
-                environment = createEnvironment();
-                watch.stop( "javascript.env.create" );
-            }
+            logger.debug( "Take scripter environment from pool" );
+            environment = pool.take();
 
-            StopWatch watch = new Log4JStopWatch();
+            logger.debug( "Call function: '{}'", methodName );
             result = environment.callMethod( methodName, args );
-            watch.stop( "javascript.method." + methodName );
 
             return result;
         }
@@ -75,109 +57,19 @@ public class Scripter {
             throw new ScripterException( ex.getMessage(), ex );
         }
         finally {
-            logger.exit( result );
-        }
-    }
-
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
-
-    private Environment createEnvironment() throws ScripterException {
-        logger.entry();
-
-        try {
-            String baseDir = settings.getProperty( JNDIResources.JAVASCRIPT_BASEDIR_KEY );
-            String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-
-            Environment envir = new Environment();
-            envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
-            envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME ) );
-
-            return envir;
-        }
-        catch( Exception ex ) {
-            throw new ScripterException( ex.getMessage(), ex );
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    private ModuleHandler createModulesHandler( String baseDir, String installName ) {
-        logger.entry();
-
-        try {
-            ModuleHandler handler = new ModuleHandler();
-            String modulesDir;
-
-            modulesDir = String.format( MODULES_PATH_PATTERN, baseDir, installName );
-            handler.registerHandler( "file", new FileSchemeHandler( modulesDir ) );
-            addSearchPathsFromSettingsFile( handler, "file", modulesDir );
-
-            modulesDir = String.format( MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME );
-            handler.registerHandler( COMMON_INSTALL_NAME, new FileSchemeHandler( modulesDir ) );
-            addSearchPathsFromSettingsFile( handler, COMMON_INSTALL_NAME, modulesDir );
-
-            handler.registerHandler( "classpath", new ClasspathSchemeHandler( this.getClass().getClassLoader() ) );
-            addSearchPathsFromSettingsFile( handler, "classpath", getClass().getResourceAsStream( "jsmodules.settings" ) );
-
-            return handler;
-        }
-        catch( IOException ex ) {
-            logger.warn( "Unable to load properties from resource 'jsmodules.settings'" );
-            logger.error( ex.getMessage(), ex );
-
-            return null;
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    private void addSearchPathsFromSettingsFile( ModuleHandler handler, String schemeName, String modulesDir ) {
-        logger.entry( handler, schemeName, modulesDir );
-
-        String fileName = modulesDir + "/settings.properties";
-        try {
-            File file = new File( fileName );
-
-            addSearchPathsFromSettingsFile( handler, schemeName, new FileInputStream( file ) );
-        }
-        catch( FileNotFoundException ex ) {
-            logger.warn( "The file '{}' does not exist.", fileName );
-        }
-        catch( IOException ex ) {
-            logger.warn( "Unable to load properties from file '{}'", fileName );
-            logger.error( ex.getMessage(), ex );
-        }
-        finally {
-            logger.exit();
-        }
-    }
-
-    private void addSearchPathsFromSettingsFile( ModuleHandler handler, String schemeName, InputStream is ) throws IOException {
-        logger.entry( handler, schemeName, is );
-
-        try {
-            Properties props = new Properties();
-            props.load( is );
-
-            if( !props.containsKey( "modules.search.path" ) ) {
-                logger.warn( "Search path for modules is not specified" );
-                return;
-            }
-
-            String moduleSearchPathString = props.getProperty( "modules.search.path" );
-            if( moduleSearchPathString != null && !moduleSearchPathString.isEmpty() ) {
-                String[] moduleSearchPath = moduleSearchPathString.split( ";" );
-                for( String s : moduleSearchPath ) {
-                    handler.addSearchPath( new SchemeURI( schemeName + ":" + s ) );
+            try {
+                // 'environment' will be null if we where unable to take it from the scripter pool.
+                // If that is the case we do not want to put null back into the pool.
+                if( environment != null ) {
+                    logger.debug( "Put scripter environment back to the pool" );
+                    pool.put( environment );
                 }
             }
-        }
-        finally {
-            logger.exit();
+            catch( InterruptedException ex ) {
+                throw new ScripterException( ex.getMessage(), ex );
+            }
+
+            logger.exit( result );
         }
     }
 
@@ -187,19 +79,9 @@ public class Scripter {
 
     private static final XLogger logger = XLoggerFactory.getXLogger( Scripter.class );
 
-    private static final String COMMON_INSTALL_NAME = "common";
-    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
-    private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
-    private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
-
     /**
      * Resource to lookup the product name for authentication.
      */
-    @Resource( lookup = JNDIResources.SETTINGS_NAME )
-    private Properties settings;
-
-    /**
-     * Environment for our Rhino JavaScript engine.
-     */
-    private Environment environment;
+    @EJB
+    private ScripterPool pool;
 }
