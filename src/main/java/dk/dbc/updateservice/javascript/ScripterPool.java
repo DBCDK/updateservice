@@ -53,7 +53,7 @@ public class ScripterPool {
     /**
      * Constructs engines for a pool in separate threads.
      * <p>
-     *     The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
+     *     The return value from {@link dk.dbc.updateservice.javascri xpt.ScripterEnvironmentFactory.newEnvironment()}
      *     is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
      *     {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
      *     is created.
