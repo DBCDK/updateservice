@@ -193,13 +193,6 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     action.setSettings( settings );
 
                     children.add( action );
-
-                    if( !rawRepo.recordExists( recordId, agencyId ) ) {
-                        DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( rec );
-                        doubleRecordCheckingAction.setSettings( settings );
-                        doubleRecordCheckingAction.setScripter( scripter );
-                        doubleRecordActions.add( doubleRecordCheckingAction );
-                    }
                 }
                 else if( agencyId.equals( RawRepo.SCHOOL_COMMON_AGENCY ) ) {
                     UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord( rawRepo, rec );
@@ -239,6 +232,16 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                         children.add( action );
                     }
                 }
+            }
+            MarcRecordReader reader = new MarcRecordReader( record );
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
+            if( !reader.markedForDeletion() && ! reader.isDBCRecord() &&
+                !rawRepo.recordExists( recordId, agencyId ) && agencyId.equals( RawRepo.COMMON_LIBRARY ) ) {
+                DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( record );
+                doubleRecordCheckingAction.setSettings( settings );
+                doubleRecordCheckingAction.setScripter( scripter );
+                doubleRecordActions.add( doubleRecordCheckingAction );
             }
 
             children.addAll( doubleRecordActions );

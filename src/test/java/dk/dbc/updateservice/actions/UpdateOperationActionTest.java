@@ -24,6 +24,8 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+// TODO : Pt indeholder testposterne i de fleste test ikke noget der hænger sammen - det bør rettes op
+// da det kan virke ret forvirrende. Senest hvis det skal opensources.
 //-----------------------------------------------------------------------------
 public class UpdateOperationActionTest {
     public UpdateOperationActionTest() {
@@ -304,6 +306,10 @@ public class UpdateOperationActionTest {
         writer.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
+        MarcRecordWriter updwriter = new MarcRecordWriter( updateRecord );
+        updwriter.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
+
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
 
@@ -324,13 +330,13 @@ public class UpdateOperationActionTest {
 
         List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-        when( recordsHandler.recordDataForRawRepo( eq( record ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
+        when( recordsHandler.recordDataForRawRepo( eq( updateRecord ), eq( USER_ID ), eq( GROUP_ID ) ) ).thenReturn( rawRepoRecords );
 
         Scripter scripter = mock( Scripter.class );
 
         SolrService solrService = mock( SolrService.class );
 
-        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, record );
+        UpdateOperationAction instance = new UpdateOperationAction( rawRepo, updateRecord );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
         instance.setHoldingsItems( holdingsItems );
@@ -345,12 +351,35 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = instance.children();
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), record, authenticator, authentication );
+        AssertActionsUtil.assertAuthenticateRecordAction( iterator.next(), updateRecord, authenticator, authentication );
         AssertActionsUtil.assertUpdateCommonRecordAction( iterator.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems, openAgencyService );
         AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
-        AssertActionsUtil.assertDoubleRecordCheckingAction( iterator.next(), record, scripter );
 
         assertThat( iterator.hasNext(), is( false ) );
+
+        updwriter.addOrReplaceSubfield( "996", "a", "810010");
+
+        UpdateOperationAction instance1 = new UpdateOperationAction( rawRepo, updateRecord );
+        instance1.setAuthenticator( authenticator );
+        instance1.setAuthentication( authentication );
+        instance1.setHoldingsItems( holdingsItems );
+        instance1.setOpenAgencyService( openAgencyService );
+        instance1.setSolrService( solrService );
+        instance1.setRecordsHandler( recordsHandler );
+        instance1.setScripter( scripter );
+        instance1.setSettings( settings );
+
+        assertThat( instance1.performAction(), equalTo( ServiceResult.newOkResult() ) );
+
+        List<ServiceAction> children1 = instance1.children();
+
+        ListIterator<ServiceAction> iterator1 = children1.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction( iterator1.next(), updateRecord, authenticator, authentication );
+        AssertActionsUtil.assertUpdateCommonRecordAction( iterator1.next(), rawRepo, record, Integer.valueOf( GROUP_ID, 10 ), recordsHandler, holdingsItems, openAgencyService );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator1.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertDoubleRecordCheckingAction( iterator1.next(), updateRecord, scripter );
+
+        assertThat( iterator1.hasNext(), is( false ) );
     }
 
     /**
