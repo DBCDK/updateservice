@@ -309,6 +309,7 @@ public class UpdateOperationActionTest {
         MarcRecord updateRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         MarcRecordWriter updwriter = new MarcRecordWriter( updateRecord );
         updwriter.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
+        Integer agencyIdUpd = AssertActionsUtil.getAgencyId( updateRecord );
 
         Properties settings = new Properties();
         settings.put( JNDIResources.RAWREPO_PROVIDER_ID, "xxx" );
@@ -327,6 +328,7 @@ public class UpdateOperationActionTest {
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
         when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+        when( openAgencyService.hasFeature( agencyIdUpd.toString(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) ).thenReturn( true );
 
         List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );

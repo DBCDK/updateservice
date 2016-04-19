@@ -167,6 +167,10 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             authenticateRecordAction.setAuthentication( this.authentication );
             this.children.add( authenticateRecordAction );
 
+            MarcRecordReader updReader = new MarcRecordReader( record );
+            String updRecordId = updReader.recordId();
+            Integer updAgencyId = updReader.agencyIdAsInteger();
+
             bizLogger.info( "Split record into records to store in rawrepo." );
             List<MarcRecord> records = recordsHandler.recordDataForRawRepo( record, authentication.getUserIdAut(), authentication.getGroupIdAut() );
 
@@ -184,6 +188,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
 
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                    if ( !updReader.markedForDeletion() && ! openAgencyService.hasFeature( updAgencyId.toString(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) ) {
+                        String message = String.format( messages.getString( "common.record.creation.not.allowed" ), updAgencyId );
+                        System.out.println("WOMBAT" + message);
+                        return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                    }
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
                     action.setGroupId( Integer.valueOf( this.authentication.getGroupIdAut(), 10 ) );
                     action.setRecordsHandler( recordsHandler );
@@ -233,11 +242,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             }
-            MarcRecordReader reader = new MarcRecordReader( record );
-            String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
-            if( !reader.markedForDeletion() && ! reader.isDBCRecord() &&
-                !rawRepo.recordExists( recordId, agencyId ) && agencyId.equals( RawRepo.COMMON_LIBRARY ) ) {
+            if( !updReader.markedForDeletion() && ! updReader.isDBCRecord() &&
+                !rawRepo.recordExists( updRecordId, updAgencyId ) && updAgencyId.equals( RawRepo.COMMON_LIBRARY ) ) {
                 DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( record );
                 doubleRecordCheckingAction.setSettings( settings );
                 doubleRecordCheckingAction.setScripter( scripter );
