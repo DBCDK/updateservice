@@ -27,6 +27,7 @@
     <logger name="org.perf4j.TimingLogger">
         <level value="INFO"/>
         <appender-ref ref="Perf4jStatistics"/>
+        <appender-ref ref="FILE"/>
     </logger>
 
     <!-- ************************************************************* -->

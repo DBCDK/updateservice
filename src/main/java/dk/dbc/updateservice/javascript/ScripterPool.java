@@ -50,6 +50,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Singleton
 @Startup
 public class ScripterPool {
+    public enum Status {
+        ST_CREATE_ENVS,
+        ST_OK
+    }
+
     /**
      * Constructs engines for a pool in separate threads.
      * <p>
@@ -66,6 +71,7 @@ public class ScripterPool {
 
         try {
             logger.debug( "Starting creation of javascript environments." );
+            status = Status.ST_CREATE_ENVS;
 
             int poolSize = Integer.valueOf( settings.getProperty( JNDIResources.JAVASCRIPT_POOL_SIZE_KEY ) );
             logger.debug( "Pool size: {}", poolSize );
@@ -100,6 +106,10 @@ public class ScripterPool {
         int queueSize = -1;
 
         try {
+            if( status == Status.ST_CREATE_ENVS ) {
+                return null;
+            }
+
             queueSize = environments.size();
 
             logger.info( "Take environment from queue with size: {}", queueSize );
@@ -128,13 +138,30 @@ public class ScripterPool {
         StopWatch watch = new Log4JStopWatch( "javascript.env.put" );
 
         try {
-            logger.debug( "Put environment into the pool" );
-            environments.put( environment );
+            if( status == Status.ST_CREATE_ENVS ) {
+                int poolSize = Integer.valueOf( settings.getProperty( JNDIResources.JAVASCRIPT_POOL_SIZE_KEY ) );
+
+                logger.debug( "Put new environment into the pool" );
+                environments.put( environment );
+
+                if( environments.size() == poolSize ) {
+                    logger.debug( "ScripterPool is initialized and ready to be used!" );
+                    status = Status.ST_OK;
+                }
+            }
+            else {
+                logger.debug( "Put environment back into the pool" );
+                environments.put( environment );
+            }
         }
         finally {
             watch.stop();
             logger.exit();
         }
+    }
+
+    public Status getStatus() {
+        return status;
     }
 
     //-------------------------------------------------------------------------
@@ -156,4 +183,6 @@ public class ScripterPool {
      */
     @EJB
     ScripterEnvironmentFactory scripterEnvironmentFactory;
+
+    Status status;
 }

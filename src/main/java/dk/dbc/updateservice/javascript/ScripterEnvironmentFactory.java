@@ -9,6 +9,7 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
@@ -44,6 +45,7 @@ public class ScripterEnvironmentFactory {
         try {
             Environment environment = createEnvironment( settings );
             ScripterEnvironment scripterEnvironment = new ScripterEnvironment( environment );
+            initTemplates( scripterEnvironment );
             pool.put( scripterEnvironment );
 
             logger.info( "Created and added new javascript environment" );
@@ -161,6 +163,19 @@ public class ScripterEnvironmentFactory {
         }
     }
 
+    void initTemplates( ScripterEnvironment environment ) throws ScripterException {
+        logger.entry();
+        StopWatch watch = new Log4JStopWatch( "javascript.env.create.templates" );
+
+        try {
+            environment.callMethod( "initTemplates", settings );
+        }
+        finally {
+            watch.stop();
+            logger.exit();
+        }
+    }
+
     //-------------------------------------------------------------------------
     //              Members
     //-------------------------------------------------------------------------
@@ -171,4 +186,10 @@ public class ScripterEnvironmentFactory {
     private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
     private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
+
+    /**
+     * JNDI settings.
+     */
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
 }
