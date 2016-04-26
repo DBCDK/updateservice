@@ -327,8 +327,8 @@ public class UpdateOperationActionTest {
         HoldingsItems holdingsItems = mock( HoldingsItems.class );
 
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
-        when( openAgencyService.hasFeature( agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
-        when( openAgencyService.hasFeature( agencyIdUpd.toString(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) ).thenReturn( true );
+        when( openAgencyService.hasFeature( authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS ) ).thenReturn( true );
+        when( openAgencyService.hasFeature( authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) ).thenReturn( true );
 
         List<MarcRecord> rawRepoRecords = Arrays.asList( record, enrichmentRecord );
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
