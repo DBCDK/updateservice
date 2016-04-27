@@ -189,7 +189,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
                     if ( !updReader.markedForDeletion() && ! openAgencyService.hasFeature( authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) ) {
-                        String message = String.format( messages.getString( "common.record.creation.not.allowed" ), updAgencyId );
+                        String message = String.format( messages.getString( "common.record.creation.not.allowed" ), authentication.getGroupIdAut() );
                         return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                     }
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction( rawRepo, rec );
