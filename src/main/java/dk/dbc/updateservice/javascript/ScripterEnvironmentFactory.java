@@ -29,7 +29,6 @@ public class ScripterEnvironmentFactory {
      *    All errors are written to the log.
      * </p>
      *
-     * @param pool The pool to add the new engine to.
      * @param settings JNDI-settings required to construct the engine.
      *
      * @return Future with a boolean value. <code>true</code> - the engine is created and added to the pool.
