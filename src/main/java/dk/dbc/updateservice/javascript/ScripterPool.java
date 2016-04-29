@@ -80,10 +80,15 @@ public class ScripterPool {
 
             for( int i = 0; i < poolSize; i++ ) {
                 logger.debug( "Starting javascript environments factory: {}", i + 1 );
-                scripterEnvironmentFactory.newEnvironment( this, settings );
+                try {
+                    put( scripterEnvironmentFactory.newEnvironment( settings ) );
+                }
+                catch( InterruptedException | ScripterException ex ) {
+                    logger.error( ex.getMessage(), ex );
+                }
             }
 
-            logger.debug( "Done creating executors for javascript environments" );
+            logger.debug( "Done creating {} javascript environments", poolSize );
         }
         finally {
             logger.exit();

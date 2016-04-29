@@ -36,24 +36,17 @@ public class ScripterEnvironmentFactory {
      * <code>false</code> - some error occurred.
      *
      */
-    @Asynchronous
-    public Future<Boolean> newEnvironment( ScripterPool pool, Properties settings ) {
+    public ScripterEnvironment newEnvironment( Properties settings ) throws ScripterException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch( "javascript.env.create" );
 
-        Future<Boolean> result = null;
+        ScripterEnvironment result = null;
         try {
             Environment environment = createEnvironment( settings );
             ScripterEnvironment scripterEnvironment = new ScripterEnvironment( environment );
             initTemplates( scripterEnvironment );
-            pool.put( scripterEnvironment );
 
-            logger.info( "Created and added new javascript environment" );
-            return result = new AsyncResult<>( true );
-        }
-        catch( InterruptedException | ScripterException ex ) {
-            logger.catching( XLogger.Level.ERROR, ex );
-            return result = new AsyncResult<>( false );
+            return result = scripterEnvironment;
         }
         finally {
             watch.stop();
