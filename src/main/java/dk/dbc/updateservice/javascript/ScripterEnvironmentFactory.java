@@ -46,7 +46,7 @@ public class ScripterEnvironmentFactory {
      * <code>false</code> - some error occurred.
      *
      */
-    ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
+    public ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch( "javascript.env.create" );
 
