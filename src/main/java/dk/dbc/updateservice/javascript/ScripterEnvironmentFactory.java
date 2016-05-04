@@ -1,7 +1,5 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.javascript;
 
-//-----------------------------------------------------------------------------
 import dk.dbc.jslib.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
@@ -10,19 +8,32 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.AsyncResult;
-import javax.ejb.Asynchronous;
 import javax.ejb.Stateless;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
-import java.util.concurrent.Future;
 
-//-----------------------------------------------------------------------------
 /**
  * JavaScript engine factory to construct a new engine asynchronous.
  */
 @Stateless
 public class ScripterEnvironmentFactory {
+    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironmentFactory.class );
+
+    private static final String COMMON_INSTALL_NAME = "common";
+    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
+    private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
+    private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
+
+    /**
+     * JNDI settings.
+     */
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
+
     /**
      * Constructs a new engine and adds is to the parsed pool.
      * <p>
@@ -35,7 +46,7 @@ public class ScripterEnvironmentFactory {
      * <code>false</code> - some error occurred.
      *
      */
-    public ScripterEnvironment newEnvironment( Properties settings ) throws ScripterException {
+    ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch( "javascript.env.create" );
 
@@ -52,10 +63,6 @@ public class ScripterEnvironmentFactory {
             logger.exit( result );
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
 
     private Environment createEnvironment( Properties settings ) throws ScripterException {
         logger.entry();
@@ -167,21 +174,4 @@ public class ScripterEnvironmentFactory {
             logger.exit();
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironmentFactory.class );
-
-    private static final String COMMON_INSTALL_NAME = "common";
-    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
-    private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
-    private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
-
-    /**
-     * JNDI settings.
-     */
-    @Resource( lookup = JNDIResources.SETTINGS_NAME )
-    private Properties settings;
 }
