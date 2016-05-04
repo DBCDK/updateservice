@@ -13,24 +13,27 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Singleton pool of ScripterEnvironment's
  * <p>
- * This singleton EJB implements Updates pool of JavaScript engines. Is has methods
- * to take and put engines to the pool.
+ *     This singleton EJB implements Updates pool of JavaScript engines. Is has methods
+ *     to take and put engines to the pool.
  * </p>
  * <p>
- * Each environment is created at startup of the application in separate threads. The
- * pool does not wait for the engines to be fully created before it returns control back to
- * the Web Application Server. So it is posible to receive requests before an engine is
- * ready. This will cause the request to wait for an engine, before executing any JavaScript.
+ *     Each environment is created at startup of the application in separate threads. The
+ *     pool does not wait for the engines to be fully created before it returns control back to
+ *     the Web Application Server. So it is posible to receive requests before an engine is
+ *     ready. This will cause the request to wait for an engine, before executing any JavaScript.
  * </p>
  * <p>
- * Basic usage of the EJB will be:
- * <code>
- * <pre>
+ *     Basic usage of the EJB will be:
+ *     <code>
+ *         <pre>
  *             @EJB
  *             ScripterPool pool;
  *
@@ -40,14 +43,14 @@ import java.util.concurrent.LinkedBlockingQueue;
  *                 pool.put( e );
  *             }
  *         </pre>
- * </code>
- * Remember handling of exceptions so ypu always put the environment back into the pool.
+ *     </code>
+ *     Remember handling of exceptions so ypu always put the environment back into the pool.
  * </p>
  */
 @Singleton
 @Startup
 public class ScripterPool {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ScripterPool.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterPool.class );
 
     private BlockingQueue<ScripterEnvironment> environments;
 
@@ -63,7 +66,7 @@ public class ScripterPool {
     @EJB
     ScripterEnvironmentFactory scripterEnvironmentFactory;
 
-    private Status status;
+    Status status;
 
     public enum Status {
         ST_CREATE_ENVS,
@@ -73,10 +76,10 @@ public class ScripterPool {
     /**
      * Constructs engines for a pool in separate threads.
      * <p>
-     * The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
-     * is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
-     * {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
-     * is created.
+     *     The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
+     *     is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
+     *     {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
+     *     is created.
      * </p>
      */
     @PostConstruct
@@ -89,21 +92,29 @@ public class ScripterPool {
             int poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
             logger.debug("Pool size: {}", poolSize);
 
-            this.environments = new LinkedBlockingQueue<>(poolSize);
-
-            for (int i = 0; i < poolSize; i++) {
-                logger.debug("Starting javascript environments factory: {}", i + 1);
-                try {
-                    put(scripterEnvironmentFactory.newEnvironment(settings));
-                } catch (InterruptedException | ScripterException ex) {
-                    logger.error(ex.getMessage(), ex);
-                }
-            }
-
-            logger.debug("Done creating {} javascript environments", poolSize);
+            environments = new LinkedBlockingQueue<>(poolSize);
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            executorService.submit((Callable<Void>) () -> {
+                initializeJavascriptEnvironments(poolSize);
+                return null;
+            });
+            logger.debug("Started creating {} javascript environments", poolSize);
         } finally {
             logger.exit();
         }
+    }
+
+    private void initializeJavascriptEnvironments(int poolSize) {
+        logger.entry(poolSize);
+        for (int i = 0; i < poolSize; i++) {
+            logger.debug("Starting javascript environments factory: {}", i + 1);
+            try {
+                put(scripterEnvironmentFactory.newEnvironment(settings));
+            } catch (InterruptedException | ScripterException ex) {
+                logger.error(ex.getMessage(), ex);
+            }
+        }
+        logger.exit();
     }
 
     /**
@@ -115,7 +126,7 @@ public class ScripterPool {
      * @return the head of this pool
      * @throws InterruptedException if interrupted while waiting
      */
-    ScripterEnvironment take() throws InterruptedException {
+    public ScripterEnvironment take() throws InterruptedException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         int queueSize = -1;
@@ -139,17 +150,17 @@ public class ScripterPool {
      * Inserts the specified element at the tail of this queue, waiting if necessary for
      * space to become available.
      * <p>
-     * <b>Description copied from class:</b> {@link java.util.concurrent.LinkedBlockingQueue}
+     *     <b>Description copied from class:</b> {@link java.util.concurrent.LinkedBlockingQueue}
      * </p>
      *
      * @param environment the element to add
+     *
      * @throws InterruptedException if interrupted while waiting
      * @throws NullPointerException if the specified element is null
      */
     public void put(ScripterEnvironment environment) throws InterruptedException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("javascript.env.put");
-
         try {
             if (status == Status.ST_CREATE_ENVS) {
                 int poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
