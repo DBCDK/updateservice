@@ -168,7 +168,11 @@ public class UpdateService implements CatalogingUpdatePortType {
 
         MDC.put(REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
         MDC.put(PREFIX_ID_LOG_CONTEXT, prefixId.toString());
-        MDC.put(TRACKING_ID_LOG_CONTEXT, prefixId.toString());
+        String trackingId = prefixId.toString();
+        if (updateRecordRequest.getTrackingId() != null) {
+            trackingId = updateRecordRequest.getTrackingId();
+        }
+        MDC.put(TRACKING_ID_LOG_CONTEXT, trackingId);
 
         logger.entry(updateRecordRequest);
 
