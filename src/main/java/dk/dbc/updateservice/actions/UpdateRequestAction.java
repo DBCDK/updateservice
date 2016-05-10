@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -31,18 +28,57 @@ import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-//-----------------------------------------------------------------------------
 /**
  * Action to handle a complete Update request.
  * <p/>
  * This action verifies the request and and creates a new action:
  * <ol>
- *     <li>ValidateOperationAction: To validate the record from the request.</li>
+ * <li>ValidateOperationAction: To validate the record from the request.</li>
  * </ol>
  */
 public class UpdateRequestAction extends AbstractAction {
-    public UpdateRequestAction( RawRepo rawRepo, UpdateRecordRequest request, WebServiceContext webServiceContext ) {
-        super( "UpdateRequestAction" );
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+
+    // Defines SRU constant for the RecordSchema tag to accept marcxchange 1.1.
+    private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
+
+    // Defines SRU constant for the RecordPacking tag to accept xml.
+    private static final String RECORD_PACKING_XML = "xml";
+
+    // RawRepo EJB to write records to the RawRepo.
+    private RawRepo rawRepo;
+
+    // Class to give access to the holdings database.
+    private HoldingsItems holdingsItems;
+
+    // Class to give access to the OpenAgency web service
+    private OpenAgencyService openAgencyService;
+
+    // Class to give access to lookups for the rawrepo in solr.
+    private SolrService solrService;
+
+    /**
+     * Class to give access to the JavaScript engine to handle records.
+     * <p>
+     * The LibraryRecordsHandler is used to check records for changes in
+     * classifications.
+     * </p>
+     */
+    private LibraryRecordsHandler recordsHandler;
+
+    private UpdateRecordRequest request;
+    private WebServiceContext webServiceContext;
+
+    private Authenticator authenticator;
+
+    private Scripter scripter;
+    private Properties settings;
+
+    private ResourceBundle messages;
+
+    public UpdateRequestAction(RawRepo rawRepo, UpdateRecordRequest request, WebServiceContext webServiceContext) {
+        super("UpdateRequestAction");
 
         this.rawRepo = rawRepo;
         this.holdingsItems = null;
@@ -57,14 +93,14 @@ public class UpdateRequestAction extends AbstractAction {
         this.scripter = null;
         this.settings = null;
 
-        this.messages = ResourceBundles.getBundle( this, "actions" );
+        this.messages = ResourceBundles.getBundle(this, "actions");
     }
 
     public RawRepo getRawRepo() {
         return rawRepo;
     }
 
-    public void setRawRepo( RawRepo rawRepo ) {
+    public void setRawRepo(RawRepo rawRepo) {
         this.rawRepo = rawRepo;
     }
 
@@ -72,7 +108,7 @@ public class UpdateRequestAction extends AbstractAction {
         return holdingsItems;
     }
 
-    public void setHoldingsItems( HoldingsItems holdingsItems ) {
+    public void setHoldingsItems(HoldingsItems holdingsItems) {
         this.holdingsItems = holdingsItems;
     }
 
@@ -80,7 +116,7 @@ public class UpdateRequestAction extends AbstractAction {
         return openAgencyService;
     }
 
-    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+    public void setOpenAgencyService(OpenAgencyService openAgencyService) {
         this.openAgencyService = openAgencyService;
     }
 
@@ -88,7 +124,7 @@ public class UpdateRequestAction extends AbstractAction {
         return solrService;
     }
 
-    public void setSolrService( SolrService solrService ) {
+    public void setSolrService(SolrService solrService) {
         this.solrService = solrService;
     }
 
@@ -96,7 +132,7 @@ public class UpdateRequestAction extends AbstractAction {
         return recordsHandler;
     }
 
-    public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
+    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
         this.recordsHandler = recordsHandler;
     }
 
@@ -104,7 +140,7 @@ public class UpdateRequestAction extends AbstractAction {
         return request;
     }
 
-    public void setRequest( UpdateRecordRequest request ) {
+    public void setRequest(UpdateRecordRequest request) {
         this.request = request;
     }
 
@@ -112,7 +148,7 @@ public class UpdateRequestAction extends AbstractAction {
         return webServiceContext;
     }
 
-    public void setWebServiceContext( WebServiceContext webServiceContext ) {
+    public void setWebServiceContext(WebServiceContext webServiceContext) {
         this.webServiceContext = webServiceContext;
     }
 
@@ -120,7 +156,7 @@ public class UpdateRequestAction extends AbstractAction {
         return authenticator;
     }
 
-    public void setAuthenticator( Authenticator authenticator ) {
+    public void setAuthenticator(Authenticator authenticator) {
         this.authenticator = authenticator;
     }
 
@@ -128,7 +164,7 @@ public class UpdateRequestAction extends AbstractAction {
         return scripter;
     }
 
-    public void setScripter( Scripter scripter ) {
+    public void setScripter(Scripter scripter) {
         this.scripter = scripter;
     }
 
@@ -136,7 +172,7 @@ public class UpdateRequestAction extends AbstractAction {
         return settings;
     }
 
-    public void setSettings( Properties settings ) {
+    public void setSettings(Properties settings) {
         this.settings = settings;
     }
 
@@ -144,7 +180,6 @@ public class UpdateRequestAction extends AbstractAction {
      * Performs this actions and may create any child actions.
      *
      * @return A list of ValidationError to be reported in the web service response.
-     *
      * @throws UpdateException In case of an error.
      */
     @Override
@@ -154,43 +189,42 @@ public class UpdateRequestAction extends AbstractAction {
         try {
             logRequest();
 
-            if( request.getBibliographicRecord() == null ) {
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString( "request.record.is.missing" ) );
+            if (request.getBibliographicRecord() == null) {
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString("request.record.is.missing"));
             }
 
-            if( !isRecordSchemaValid() ) {
-                bizLogger.warn( "Unknown record schema: {}", request.getBibliographicRecord().getRecordSchema() );
-                return ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+            if (!isRecordSchemaValid()) {
+                bizLogger.warn("Unknown record schema: {}", request.getBibliographicRecord().getRecordSchema());
+                return ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA);
             }
 
-            if( !isRecordPackingValid() ) {
-                bizLogger.warn( "Unknown record packing: {}", request.getBibliographicRecord().getRecordPacking() );
-                return ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+            if (!isRecordPackingValid()) {
+                bizLogger.warn("Unknown record packing: {}", request.getBibliographicRecord().getRecordPacking());
+                return ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA);
             }
 
             MarcRecord record = readRecord();
-            children.add( createValidateOperation( record ) );
+            children.add(createValidateOperation(record));
 
-            if( !hasValidateOnlyOption() ) {
-                children.add( createUpdateOperation( record ) );
+            if (!hasValidateOnlyOption()) {
+                children.add(createUpdateOperation(record));
             }
 
-            return ServiceResult.newStatusResult( okStatusFromRequest() );
-        }
-        finally {
+            return ServiceResult.newStatusResult(okStatusFromRequest());
+        } finally {
             logger.exit();
         }
     }
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord( readRecord() );
+        MDCUtil.setupContextForRecord(readRecord());
     }
 
     /**
      * Checks if the request is a validate only request.
      * <p>
-     *     It is declared public so {@link dk.dbc.updateservice.ws.UpdateService} can use it.
+     * It is declared public so {@link dk.dbc.updateservice.ws.UpdateService} can use it.
      * </p>
      *
      * @return Boolean value.
@@ -200,35 +234,30 @@ public class UpdateRequestAction extends AbstractAction {
 
         try {
             Options options = request.getOptions();
-            if( options != null && options.getOption() != null ) {
-                return options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY );
+            if (options != null && options.getOption() != null) {
+                return options.getOption().contains(UpdateOptionEnum.VALIDATE_ONLY);
             }
 
             return false;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
 
     }
 
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
-
     /**
      * Constructs an action to validate the record from the request.
      */
-    private ServiceAction createValidateOperation( MarcRecord record ) {
+    private ServiceAction createValidateOperation(MarcRecord record) {
         ValidateOperationAction validateOperationAction = new ValidateOperationAction();
-        validateOperationAction.setAuthenticator( this.authenticator );
-        validateOperationAction.setAuthentication( request.getAuthentication() );
-        validateOperationAction.setWebServiceContext( this.webServiceContext );
-        validateOperationAction.setValidateSchema( readSchemaName() );
-        validateOperationAction.setOkStatus( okStatusFromRequest() );
-        validateOperationAction.setRecord( record );
-        validateOperationAction.setScripter( this.scripter );
-        validateOperationAction.setSettings( this.settings );
+        validateOperationAction.setAuthenticator(this.authenticator);
+        validateOperationAction.setAuthentication(request.getAuthentication());
+        validateOperationAction.setWebServiceContext(this.webServiceContext);
+        validateOperationAction.setValidateSchema(readSchemaName());
+        validateOperationAction.setOkStatus(okStatusFromRequest());
+        validateOperationAction.setRecord(record);
+        validateOperationAction.setScripter(this.scripter);
+        validateOperationAction.setSettings(this.settings);
 
         return validateOperationAction;
     }
@@ -236,38 +265,38 @@ public class UpdateRequestAction extends AbstractAction {
     /**
      * Constructs an action to update the record from the request.
      */
-    private ServiceAction createUpdateOperation( MarcRecord record ) throws UpdateException {
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction( rawRepo, record );
-        updateOperationAction.setAuthenticator( this.authenticator );
-        updateOperationAction.setAuthentication( request.getAuthentication() );
-        updateOperationAction.setHoldingsItems( this.holdingsItems );
-        updateOperationAction.setOpenAgencyService( this.openAgencyService );
-        updateOperationAction.setSolrService( this.solrService );
-        updateOperationAction.setRecordsHandler( this.recordsHandler );
-        updateOperationAction.setScripter( this.scripter );
-        updateOperationAction.setSettings( settings );
+    private ServiceAction createUpdateOperation(MarcRecord record) throws UpdateException {
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(rawRepo, record);
+        updateOperationAction.setAuthenticator(this.authenticator);
+        updateOperationAction.setAuthentication(request.getAuthentication());
+        updateOperationAction.setHoldingsItems(this.holdingsItems);
+        updateOperationAction.setOpenAgencyService(this.openAgencyService);
+        updateOperationAction.setSolrService(this.solrService);
+        updateOperationAction.setRecordsHandler(this.recordsHandler);
+        updateOperationAction.setScripter(this.scripter);
+        updateOperationAction.setSettings(settings);
 
         boolean allowExtraRecordData = false;
-        if( settings.containsKey( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY )  ) {
-            allowExtraRecordData = Boolean.valueOf( settings.get( JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY ).toString() );
+        if (settings.containsKey(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY)) {
+            allowExtraRecordData = Boolean.valueOf(settings.get(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY).toString());
         }
 
-        if( allowExtraRecordData ) {
+        if (allowExtraRecordData) {
             // Overwrite "settings" with provider name from RecordExtraData
 
             BibliographicRecordExtraData bibliographicRecordExtraData = readRecordExtraData();
-            if( bibliographicRecordExtraData != null ) {
-                if( bibliographicRecordExtraData.getProviderName() == null ) {
-                    throw new UpdateException( messages.getString( "extra.record.data.provider.name.is.missing" ) );
+            if (bibliographicRecordExtraData != null) {
+                if (bibliographicRecordExtraData.getProviderName() == null) {
+                    throw new UpdateException(messages.getString("extra.record.data.provider.name.is.missing"));
                 }
 
-                String oldProviderName = settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID );
-                logger.info( "Overwrite provider id with new value from request. [{}] ==> [{}]", oldProviderName, bibliographicRecordExtraData.getProviderName() );
+                String oldProviderName = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID);
+                logger.info("Overwrite provider id with new value from request. [{}] ==> [{}]", oldProviderName, bibliographicRecordExtraData.getProviderName());
 
-                Properties newSettings = (Properties)settings.clone();
-                newSettings.put( JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName() );
+                Properties newSettings = (Properties) settings.clone();
+                newSettings.put(JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName());
 
-                updateOperationAction.setSettings( newSettings );
+                updateOperationAction.setSettings(newSettings);
             }
 
         }
@@ -282,14 +311,12 @@ public class UpdateRequestAction extends AbstractAction {
         logger.entry();
 
         try {
-            if( hasValidateOnlyOption() ) {
+            if (hasValidateOnlyOption()) {
                 return UpdateStatusEnum.VALIDATE_ONLY;
-            }
-            else {
+            } else {
                 return UpdateStatusEnum.OK;
             }
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -301,7 +328,7 @@ public class UpdateRequestAction extends AbstractAction {
      * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}
      *
      * @return Returns <code>true</code> if the record scheme is equal to
-     *         {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
+     * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
      */
     private boolean isRecordSchemaValid() {
         logger.entry();
@@ -315,9 +342,8 @@ public class UpdateRequestAction extends AbstractAction {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -328,7 +354,7 @@ public class UpdateRequestAction extends AbstractAction {
      * {@link #RECORD_PACKING_XML}
      *
      * @return Returns <code>true</code> if the record packing is equal to
-     *         {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
+     * {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
      */
     public boolean isRecordPackingValid() {
         logger.entry();
@@ -342,9 +368,8 @@ public class UpdateRequestAction extends AbstractAction {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -353,7 +378,7 @@ public class UpdateRequestAction extends AbstractAction {
      * request.
      *
      * @return The validation scheme if it can be read from the request, the
-     *         empty string otherwise.
+     * empty string otherwise.
      */
     private String readSchemaName() {
         logger.entry();
@@ -367,9 +392,8 @@ public class UpdateRequestAction extends AbstractAction {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -380,7 +404,7 @@ public class UpdateRequestAction extends AbstractAction {
      * returned.
      *
      * @return The found record as a {@link MarcRecord} or <code>null</code>
-     *         if the can not be converted or if no records exists.
+     * if the can not be converted or if no records exists.
      */
     public MarcRecord readRecord() {
         logger.entry();
@@ -396,17 +420,16 @@ public class UpdateRequestAction extends AbstractAction {
 
             if (list != null) {
                 for (Object o : list) {
-                    if (o instanceof Node ) {
-                        result = MarcConverter.createFromMarcXChange( new DOMSource( (Node) o ) );
+                    if (o instanceof Node) {
+                        result = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
                         break;
                     }
                 }
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -417,7 +440,7 @@ public class UpdateRequestAction extends AbstractAction {
      * returned.
      *
      * @return The found records extra data as a {@link BibliographicRecordExtraData} or <code>null</code>
-     *         if the can not be converted or if no records exists.
+     * if the can not be converted or if no records exists.
      */
     public BibliographicRecordExtraData readRecordExtraData() {
         logger.entry();
@@ -434,106 +457,48 @@ public class UpdateRequestAction extends AbstractAction {
             if (list != null) {
                 for (Object o : list) {
                     if (o instanceof Node) {
-                        result = BibliographicRecordExtraDataDecoder.fromXml( new DOMSource((Node) o) );
+                        result = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
                         break;
                     }
                 }
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
     private void logRequest() {
-        if( webServiceContext != null && webServiceContext.getMessageContext() != null ) {
+        if (webServiceContext != null && webServiceContext.getMessageContext() != null) {
             MessageContext mc = webServiceContext.getMessageContext();
-            HttpServletRequest req = (HttpServletRequest) mc.get( MessageContext.SERVLET_REQUEST );
+            HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
 
-            bizLogger.info( "REQUEST:" );
-            bizLogger.info( "======================================" );
-            bizLogger.info( "Auth type: {}", req.getAuthType() );
-            bizLogger.info( "Context path: {}", req.getContextPath() );
-            bizLogger.info( "Content type: {}", req.getContentType() );
-            bizLogger.info( "Content length: {}", req.getContentLengthLong() );
-            bizLogger.info( "URI: {}", req.getRequestURI() );
-            bizLogger.info( "Client address: {}", req.getRemoteAddr() );
-            bizLogger.info( "Client host: {}", req.getRemoteHost() );
-            bizLogger.info( "Client port: {}", req.getRemotePort() );
-            bizLogger.info( "Headers" );
-            bizLogger.info( "--------------------------------------" );
-            bizLogger.info( "" );
+            bizLogger.info("REQUEST:");
+            bizLogger.info("======================================");
+            bizLogger.info("Auth type: {}", req.getAuthType());
+            bizLogger.info("Context path: {}", req.getContextPath());
+            bizLogger.info("Content type: {}", req.getContentType());
+            bizLogger.info("Content length: {}", req.getContentLengthLong());
+            bizLogger.info("URI: {}", req.getRequestURI());
+            bizLogger.info("Client address: {}", req.getRemoteAddr());
+            bizLogger.info("Client host: {}", req.getRemoteHost());
+            bizLogger.info("Client port: {}", req.getRemotePort());
+            bizLogger.info("Headers");
+            bizLogger.info("--------------------------------------");
+            bizLogger.info("");
             Enumeration<String> headerNames = req.getHeaderNames();
-            while( headerNames.hasMoreElements() ) {
+            while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
-                bizLogger.info( "{}: {}", name, req.getHeader( name ) );
+                bizLogger.info("{}: {}", name, req.getHeader(name));
             }
-            bizLogger.info( "--------------------------------------" );
+            bizLogger.info("--------------------------------------");
         }
 
-        bizLogger.info( "" );
-        bizLogger.info( "Template name: {}", readSchemaName() );
-        bizLogger.info( "ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False" );
-        bizLogger.info( "Request record: \n{}", readRecord() );
-        bizLogger.info( "======================================" );
+        bizLogger.info("");
+        bizLogger.info("Template name: {}", readSchemaName());
+        bizLogger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
+        bizLogger.info("Request record: \n{}", readRecord());
+        bizLogger.info("======================================");
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateRequestAction.class );
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
-
-    /**
-     * Defines SRU constant for the RecordSchema tag to accept marcxchange
-     * 1.1.
-     */
-    private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
-
-    /**
-     * Defines SRU constant for the RecordPacking tag to accept xml.
-     */
-    private static final String RECORD_PACKING_XML = "xml";
-
-    /**
-     * RawRepo EJB to write records to the RawRepo.
-     */
-    private RawRepo rawRepo;
-
-    /**
-     * Class to give access to the holdings database.
-     */
-    private HoldingsItems holdingsItems;
-
-    /**
-     * Class to give access to the OpenAgency web service
-     */
-    private OpenAgencyService openAgencyService;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
-    private SolrService solrService;
-
-    /**
-     * Class to give access to the JavaScript engine to handle records.
-     * <p>
-     *      The LibraryRecordsHandler is used to check records for changes in
-     *      classifications.
-     * </p>
-     */
-    private LibraryRecordsHandler recordsHandler;
-
-    private UpdateRecordRequest request;
-    private WebServiceContext webServiceContext;
-
-    private Authenticator authenticator;
-
-    private Scripter scripter;
-    private Properties settings;
-
-    private ResourceBundle messages;
 }
