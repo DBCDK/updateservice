@@ -8,14 +8,14 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -67,10 +67,10 @@ public class ScripterPool {
     ScripterEnvironmentFactory scripterEnvironmentFactory;
 
     Status status;
-
     public enum Status {
         ST_CREATE_ENVS,
         ST_OK
+
     }
 
     /**
@@ -93,18 +93,22 @@ public class ScripterPool {
             logger.debug("Pool size: {}", poolSize);
 
             environments = new LinkedBlockingQueue<>(poolSize);
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            executorService.submit((Callable<Void>) () -> {
-                initializeJavascriptEnvironments(poolSize);
-                return null;
-            });
+            try {
+                // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
+                ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
+                scripterPool.initializeJavascriptEnvironments(poolSize);
+            } catch (NamingException e) {
+                e.printStackTrace();
+            }
+
             logger.debug("Started creating {} javascript environments", poolSize);
         } finally {
             logger.exit();
         }
     }
 
-    private void initializeJavascriptEnvironments(int poolSize) {
+    @Asynchronous
+    public void initializeJavascriptEnvironments(int poolSize) {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
             logger.debug("Starting javascript environments factory: {}", i + 1);
