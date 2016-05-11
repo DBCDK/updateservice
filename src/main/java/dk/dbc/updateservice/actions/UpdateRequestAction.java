@@ -12,7 +12,12 @@ import dk.dbc.updateservice.service.api.Options;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -188,6 +193,11 @@ public class UpdateRequestAction extends AbstractAction {
 
         try {
             logRequest();
+
+            if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
+                String message = String.format(messages.getString("agency.is.not.allowed.for.this.instance"), request.getAuthentication().getGroupIdAut());
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message);
+            }
 
             if (request.getBibliographicRecord() == null) {
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString("request.record.is.missing"));
@@ -500,5 +510,23 @@ public class UpdateRequestAction extends AbstractAction {
         bizLogger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
         bizLogger.info("Request record: \n{}", readRecord());
         bizLogger.info("======================================");
+    }
+
+    private boolean isAgencyIdAllowedToUseUpdateOnThisInstance() throws UpdateException {
+        logger.entry();
+        boolean res = true;
+        try {
+            if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE_KEY) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY) == null) {
+                throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE_KEY + "' not found");
+            }
+            boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
+
+            if (isProduction && request != null && request.getAuthentication() != null && request.getAuthentication().getGroupIdAut() != null &&  request.getAuthentication().getGroupIdAut().startsWith("13")) {
+                res = false;
+            }
+            return res;
+        } finally {
+            logger.exit(res);
+        }
     }
 }

@@ -1,4 +1,3 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
@@ -36,7 +35,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-//-----------------------------------------------------------------------------
 public class UpdateRequestActionTest {
     private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
 
@@ -72,7 +70,6 @@ public class UpdateRequestActionTest {
 
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
 
         RawRepo rawRepo = mock(RawRepo.class);
         HoldingsItems holdingsItems = mock(HoldingsItems.class);
@@ -87,9 +84,43 @@ public class UpdateRequestActionTest {
         instance.setRecordsHandler(recordsHandler);
         instance.setAuthenticator(authenticator);
         instance.setScripter(scripter);
-        instance.setSettings(settings);
+        instance.setSettings(getDefaultProperties());
 
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, this.messages.getString("request.record.is.missing"))));
+    }
+
+    @Test
+    public void test13LibraryInProduction() throws Exception {
+        UpdateRecordRequest request = new UpdateRecordRequest();
+        WebServiceContext webServiceContext = mock(WebServiceContext.class);
+
+        BibliographicRecord bibRecord = BibliographicRecordFactory.loadMarcRecordInLineFormat(BOOK_RECORD_RESOURCE);
+        request.setBibliographicRecord(bibRecord);
+        Authentication authentication = new Authentication();
+        authentication.setUserIdAut("user");
+        authentication.setGroupIdAut("131010");
+        authentication.setPasswordAut("password");
+        request.setAuthentication(authentication);
+
+        RawRepo rawRepo = mock(RawRepo.class);
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
+        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
+        SolrService solrService = mock(SolrService.class);
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
+        Authenticator authenticator = mock(Authenticator.class);
+        Scripter scripter = mock(Scripter.class);
+
+        UpdateRequestAction instance = new UpdateRequestAction(rawRepo, request, webServiceContext);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setOpenAgencyService(openAgencyService);
+        instance.setSolrService(solrService);
+        instance.setRecordsHandler(recordsHandler);
+        instance.setAuthenticator(authenticator);
+        instance.setScripter(scripter);
+        instance.setSettings(getDefaultProperties());
+
+        String message = String.format(messages.getString("agency.is.not.allowed.for.this.instance"), request.getAuthentication().getGroupIdAut());
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message)));
     }
 
     /**
@@ -126,7 +157,6 @@ public class UpdateRequestActionTest {
         LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
 
         UpdateRequestAction instance = new UpdateRequestAction(rawRepo, request, webServiceContext);
         instance.setHoldingsItems(holdingsItems);
@@ -135,7 +165,7 @@ public class UpdateRequestActionTest {
         instance.setRecordsHandler(recordsHandler);
         instance.setAuthenticator(authenticator);
         instance.setScripter(scripter);
-        instance.setSettings(settings);
+        instance.setSettings(getDefaultProperties());
 
         bibRecord.setRecordSchema(null);
         assertThat(instance.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA)));
@@ -178,7 +208,6 @@ public class UpdateRequestActionTest {
         LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
 
         UpdateRequestAction instance = new UpdateRequestAction(rawRepo, request, webServiceContext);
         instance.setHoldingsItems(holdingsItems);
@@ -187,7 +216,7 @@ public class UpdateRequestActionTest {
         instance.setRecordsHandler(recordsHandler);
         instance.setAuthenticator(authenticator);
         instance.setScripter(scripter);
-        instance.setSettings(settings);
+        instance.setSettings(getDefaultProperties());
 
         bibRecord.setRecordPacking(null);
         assertThat(instance.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA)));
@@ -221,7 +250,6 @@ public class UpdateRequestActionTest {
 
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
 
         InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
         MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
@@ -251,7 +279,7 @@ public class UpdateRequestActionTest {
         instance.setRecordsHandler(recordsHandler);
         instance.setAuthenticator(authenticator);
         instance.setScripter(scripter);
-        instance.setSettings(settings);
+        instance.setSettings(getDefaultProperties());
 
         assertThat(instance.performAction(), equalTo(ServiceResult.newValidateOnlyResult()));
 
@@ -269,7 +297,7 @@ public class UpdateRequestActionTest {
         assertThat(validateOperationAction.getOkStatus(), is(UpdateStatusEnum.VALIDATE_ONLY));
         assertThat(validateOperationAction.getRecord(), equalTo(record));
         assertThat(validateOperationAction.getScripter(), is(scripter));
-        assertThat(validateOperationAction.getSettings(), equalTo(settings));
+        assertThat(validateOperationAction.getSettings(), equalTo(getDefaultProperties()));
     }
 
     /**
@@ -297,7 +325,6 @@ public class UpdateRequestActionTest {
 
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
 
         InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
         MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
@@ -325,7 +352,7 @@ public class UpdateRequestActionTest {
         instance.setRecordsHandler(recordsHandler);
         instance.setAuthenticator(authenticator);
         instance.setScripter(scripter);
-        instance.setSettings(settings);
+        instance.setSettings(getDefaultProperties());
 
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -343,7 +370,7 @@ public class UpdateRequestActionTest {
         assertThat(validateOperationAction.getOkStatus(), is(UpdateStatusEnum.OK));
         assertThat(validateOperationAction.getRecord(), equalTo(record));
         assertThat(validateOperationAction.getScripter(), is(scripter));
-        assertThat(validateOperationAction.getSettings(), equalTo(settings));
+        assertThat(validateOperationAction.getSettings(), equalTo(getDefaultProperties()));
 
         child = children.get(1);
         assertTrue(child.getClass() == UpdateOperationAction.class);
@@ -357,7 +384,7 @@ public class UpdateRequestActionTest {
         assertThat(updateOperationAction.getRecord(), equalTo(record));
         assertThat(updateOperationAction.getAuthenticator(), is(authenticator));
         assertThat(updateOperationAction.getAuthentication(), is(request.getAuthentication()));
-        assertThat(updateOperationAction.getSettings(), equalTo(settings));
+        assertThat(updateOperationAction.getSettings(), equalTo(getDefaultProperties()));
     }
 
     /**
@@ -390,7 +417,7 @@ public class UpdateRequestActionTest {
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
 
-        Properties settings = new Properties();
+        Properties settings = getDefaultProperties();
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
 
         InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
@@ -488,7 +515,7 @@ public class UpdateRequestActionTest {
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
 
-        Properties settings = new Properties();
+        Properties settings = getDefaultProperties();
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
         settings.setProperty(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "False");
 
@@ -587,7 +614,7 @@ public class UpdateRequestActionTest {
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
 
-        Properties settings = new Properties();
+        Properties settings = getDefaultProperties();
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
         settings.setProperty(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "True");
 
@@ -689,7 +716,7 @@ public class UpdateRequestActionTest {
         Authenticator authenticator = mock(Authenticator.class);
         Scripter scripter = mock(Scripter.class);
 
-        Properties settings = new Properties();
+        Properties settings = getDefaultProperties();
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
         settings.setProperty(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "True");
 
@@ -726,5 +753,11 @@ public class UpdateRequestActionTest {
         instance.setSettings(settings);
 
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+    }
+
+    private Properties getDefaultProperties() {
+        Properties properties = new Properties();
+        properties.put(JNDIResources.UPDATE_PROD_STATE_KEY, "true");
+        return properties;
     }
 }
