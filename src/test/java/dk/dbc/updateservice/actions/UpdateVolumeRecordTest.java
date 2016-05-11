@@ -194,7 +194,7 @@ public class UpdateVolumeRecordTest {
         OpenAgencyService openAgencyService = mock( OpenAgencyService.class );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord( rawRepo, volumeRecord );
         instance.setGroupId( 700000 );

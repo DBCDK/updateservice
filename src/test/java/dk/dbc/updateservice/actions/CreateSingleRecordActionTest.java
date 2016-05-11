@@ -60,7 +60,7 @@ public class CreateSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
         instance.setSolrService( solrService );
@@ -103,7 +103,7 @@ public class CreateSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( true );
 
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
         instance.setSolrService( solrService );
@@ -141,7 +141,7 @@ public class CreateSingleRecordActionTest {
         when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( 700300 ) );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         CreateSingleRecordAction instance = new CreateSingleRecordAction( rawRepo, record );
         instance.setSolrService( solrService );

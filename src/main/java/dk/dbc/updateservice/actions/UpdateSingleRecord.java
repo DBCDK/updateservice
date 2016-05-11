@@ -121,7 +121,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                     if( hasAuthExportHoldings ) {
                         bizLogger.info( "Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
 
-                        String solrQuery = SolrServiceIndexer.createSubfieldQuery( "002a", recordId );
+                        String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId );
                         boolean has002Links = solrService.hasDocuments( solrQuery );
 
                         if( !has002Links ) {
