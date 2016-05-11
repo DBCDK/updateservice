@@ -50,6 +50,7 @@ pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
 * *allow.extra.record.data*: True/False. True angiver at et request må indeholde ekstra data for posten. Hvis
  settingen ikke er oprettet i Glassfish anvendes værdien "False".
 * *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
+* *prod.state*: Angiver om update kører i produktion eller ej, og derfor om 13 biblioteker må sende poster ind. Kan være True/true eller False/false.
 
 Eksempler på hvordan ovenstående ressourcer sættes op via asadmin fra kommandolinien:
 asadmin set resources.custom-resource.updateservice/settings.property.javascript\\.basedir=/home/thl/NetBeansProjects/opencat-business/trunk

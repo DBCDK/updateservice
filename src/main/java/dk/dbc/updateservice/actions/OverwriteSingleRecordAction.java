@@ -301,6 +301,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         }
 
                         if (!enrichmentIds.contains(new RecordId(recordId, holdingAgencyId))) {
+                            // TODO: gad vide hvad den sidste holdingsværdi skulle have været??
                             bizLogger.warn("No enrichments found for record '{}' for agency '{}' with holdings: {}", recordId, holdingAgencyId);
 
                             if (recordsHandler.shouldCreateEnrichmentRecords(settings, linkRecord, currentRecord).getStatus() == UpdateStatusEnum.OK) {
@@ -318,6 +319,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         }
                     }
                 } else {
+                    // TODO: jeg vil næsten antage at parameteren 'recordId' mangler her?
                     bizLogger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.");
                 }
 
