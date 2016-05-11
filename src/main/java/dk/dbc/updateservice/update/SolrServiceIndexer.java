@@ -7,7 +7,7 @@ package dk.dbc.updateservice.update;
  * lookup with the SolrService EJB.
  */
 public class SolrServiceIndexer {
-    public static String createSubfieldQuery( String fieldAndSubfield, String value ) {
+    public static String createSubfieldQueryDBCOnly( String fieldAndSubfield, String value ) {
         return String.format( SUBFIELD_QUERY, fieldAndSubfield, value );
     }
 
@@ -15,5 +15,5 @@ public class SolrServiceIndexer {
     //              Members
     //-------------------------------------------------------------------------
 
-    private static String SUBFIELD_QUERY = "marc.%s:\"%s\"";
+    private static String SUBFIELD_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
 }

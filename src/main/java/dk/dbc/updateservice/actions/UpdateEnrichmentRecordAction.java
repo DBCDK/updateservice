@@ -134,7 +134,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             }
 
             if( !rawRepo.recordExists( recordId, reader.agencyIdAsInteger() ) ) {
-                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", reader.recordId() ) ) ) {
                     String message = messages.getString( "update.record.with.002.links" );
 
                     bizLogger.error( "Unable to create sub actions due to an error: {}", message );

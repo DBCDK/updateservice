@@ -76,7 +76,7 @@ public class CreateVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
@@ -134,7 +134,7 @@ public class CreateVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( true );
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
@@ -185,7 +185,7 @@ public class CreateVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
@@ -234,7 +234,7 @@ public class CreateVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );
@@ -283,7 +283,7 @@ public class CreateVolumeRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( volumeRecord ) ).thenReturn( AssertActionsUtil.createAgenciesSet() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", volumeRecordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", volumeRecordId ) ) ) ).thenReturn( false );
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction( rawRepo, volumeRecord );
         instance.setHoldingsItems( holdingsItems );

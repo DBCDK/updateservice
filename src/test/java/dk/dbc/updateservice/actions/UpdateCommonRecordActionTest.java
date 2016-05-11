@@ -130,7 +130,7 @@ public class UpdateCommonRecordActionTest {
         when( recordsHandler.hasClassificationData( record ) ).thenReturn( false );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( true );
         Properties settings = mock( Properties.class );
 
         UpdateCommonRecordAction instance = new UpdateCommonRecordAction( rawRepo, record );

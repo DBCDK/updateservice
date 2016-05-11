@@ -68,7 +68,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             }
 
             MarcRecordReader reader = new MarcRecordReader( record );
-            if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQuery( "002a", reader.recordId() ) ) ) {
+            if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", reader.recordId() ) ) ) {
                 String message = messages.getString( "update.record.with.002.links" );
 
                 bizLogger.error( "Unable to create sub actions doing to an error: {}", message );

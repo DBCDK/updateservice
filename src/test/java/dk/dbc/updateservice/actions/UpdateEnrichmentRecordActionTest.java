@@ -104,7 +104,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
@@ -183,7 +183,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( true );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
@@ -243,7 +243,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
@@ -322,7 +322,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( true );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
@@ -387,7 +387,7 @@ public class UpdateEnrichmentRecordActionTest {
         LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, enrichmentRecord );
         instance.setHoldingsItems( mock( HoldingsItems.class ) );
@@ -445,7 +445,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( new MarcRecord() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setHoldingsItems( holdingsItems );
@@ -504,7 +504,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenReturn( record );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setDecoder( decoder );
@@ -551,7 +551,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( recordsHandler.correctLibraryExtendedRecord( eq( commonRecordData ), eq( record ) ) ).thenThrow( new ScripterException( "error" ) );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );
@@ -603,7 +603,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsForId( eq( recordId ) ) ).thenReturn( new HashSet<Integer>() );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );
@@ -662,7 +662,7 @@ public class UpdateEnrichmentRecordActionTest {
         when( holdingsItems.getAgenciesThatHasHoldingsFor( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( agencyId ) );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction( rawRepo, record );
         instance.setRecordsHandler( recordsHandler );

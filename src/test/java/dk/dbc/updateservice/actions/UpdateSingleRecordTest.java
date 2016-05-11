@@ -251,7 +251,7 @@ public class UpdateSingleRecordTest {
         when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( false );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setGroupId( 700000 );
@@ -311,7 +311,7 @@ public class UpdateSingleRecordTest {
         when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( false );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( false );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setGroupId( 700000 );
@@ -371,7 +371,7 @@ public class UpdateSingleRecordTest {
         when( openAgencyService.hasFeature( "700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS ) ).thenReturn( true );
 
         SolrService solrService = mock( SolrService.class );
-        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQuery( "002a", recordId ) ) ) ).thenReturn( true );
+        when( solrService.hasDocuments( eq( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId ) ) ) ).thenReturn( true );
 
         UpdateSingleRecord instance = new UpdateSingleRecord( rawRepo, record );
         instance.setGroupId( 700000 );
