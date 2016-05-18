@@ -64,7 +64,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             }
 
             if( !rawRepo.recordExists( parentId, agencyId ) ) {
-                String message = messages.getString( "reference.record.not.exist" );
+                String message = String.format( messages.getString( "reference.record.not.exist" ), recordId, agencyId, parentId, agencyId );
 
                 bizLogger.error( "Unable to create sub actions doing to an error: {}", message );
                 return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
