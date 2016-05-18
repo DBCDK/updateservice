@@ -289,7 +289,7 @@ public class CreateVolumeRecordActionTest {
         instance.setHoldingsItems( holdingsItems );
         instance.setSolrService( solrService );
 
-        String message = messages.getString( "reference.record.not.exist" );
+        String message = String.format( messages.getString( "reference.record.not.exist" ), volumeRecordId, agencyId, mainRecordId, agencyId );
         assertThat( instance.performAction(), equalTo( ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message ) ) );
         assertThat( instance.children().isEmpty(), is( true ) );
     }
