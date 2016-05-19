@@ -3,10 +3,7 @@ package dk.dbc.updateservice.update;
 
 //-----------------------------------------------------------------------------
 
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcReader;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcXchangeFactory;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
 import dk.dbc.iscrum.utils.ResourceBundles;
@@ -570,11 +567,13 @@ public class RawRepo {
     }
 
     public static String getRecordId( MarcRecord record ) {
-        return MarcReader.getRecordValue( record, "001", "a" );
+        MarcRecordReader mm = new MarcRecordReader( record );
+        return mm.getValue( "001", "a" );
     }
 
     public static String getAgencyId( MarcRecord record ) {
-        return MarcReader.getRecordValue( record, "001", "b" );
+        MarcRecordReader mm = new MarcRecordReader( record );
+        return mm.getValue( "001", "b" );
     }
 
     public static boolean isSchoolEnrichment( Integer agencyId ) {
