@@ -61,7 +61,7 @@ public class SolrService {
             if( settings.containsKey( "solr.url" ) ) {
                 String url = settings.getProperty( "solr.url" );
 
-                solrUrl = new URL( String.format( SOLR_QUERY_URL, url, URLEncoder.encode( q ) ) );
+                solrUrl = new URL( String.format( SOLR_QUERY_URL, url, URLEncoder.encode( q, "UTF-8" ) ) );
                 Map<String, Object> response = callSolr( solrUrl );
 
                 if( response == null ) {
