@@ -9,8 +9,21 @@ import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.*;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.javascript.ScripterPool;
+import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
+import dk.dbc.updateservice.service.api.GetSchemasRequest;
+import dk.dbc.updateservice.service.api.GetSchemasResult;
+import dk.dbc.updateservice.service.api.Options;
+import dk.dbc.updateservice.service.api.Schema;
+import dk.dbc.updateservice.service.api.SchemasStatusEnum;
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.validate.Validator;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -25,6 +38,8 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
@@ -89,6 +104,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     public static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @Resource
     WebServiceContext wsContext;
 
@@ -98,27 +114,38 @@ public class UpdateService implements CatalogingUpdatePortType {
     /**
      * EJB for authentication.
      */
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     Authenticator authenticator;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private Scripter scripter;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private RawRepo rawRepo;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private HoldingsItems holdingsItems;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private OpenAgencyService openAgencyService;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private SolrService solrService;
+
+    @SuppressWarnings("EjbEnvironmentInspection")
+    @EJB
+    private ScripterPool scripterPool;
 
     /**
      * EJB for record validation.
      */
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private Validator validator;
 
@@ -165,6 +192,17 @@ public class UpdateService implements CatalogingUpdatePortType {
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         StopWatch watch = new Log4JStopWatch();
         UUID prefixId = UUID.randomUUID();
+
+        if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
+            MessageContext messageContext = wsContext.getMessageContext();
+            HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
+            try {
+                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), "Updateservice is not ready yet, try again later");
+            } catch (IOException e) {
+                logger.catching(XLogger.Level.ERROR, e);
+                return null;
+            }
+        }
 
         MDC.put(REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
         MDC.put(PREFIX_ID_LOG_CONTEXT, prefixId.toString());
@@ -216,22 +254,20 @@ public class UpdateService implements CatalogingUpdatePortType {
             writer = convertUpdateErrorToResponse(ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR);
             return result = writer.getResponse();
         } finally {
-            if (engine != null && action != null) {
+            if (engine != null) {
                 bizLogger.info("");
                 bizLogger.info("Executed action:");
                 engine.printActions(action);
             }
 
-            if (watch != null) {
-                bizLogger.info("");
-                String watchTag = "request.updaterecord";
-                if (action.hasValidateOnlyOption()) {
-                    watchTag += ".validate";
-                } else {
-                    watchTag += ".update";
-                }
-                watch.stop(watchTag);
+            bizLogger.info("");
+            String watchTag = "request.updaterecord";
+            if (action != null && action.hasValidateOnlyOption()) {
+                watchTag += ".validate";
+            } else {
+                watchTag += ".update";
             }
+            watch.stop(watchTag);
             bizLogger.exit(result);
             MDC.clear();
         }

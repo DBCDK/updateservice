@@ -22,14 +22,14 @@ public class StatusService {
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
-    ScripterPool pool;
+    ScripterPool scripterPool;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response get() throws Exception {
         logger.entry();
         try {
-            return Response.ok(pool.getStatus().toString(), MediaType.TEXT_PLAIN).build();
+            return Response.ok(scripterPool.getStatus().toString(), MediaType.TEXT_PLAIN).build();
         } finally {
             logger.exit();
         }
