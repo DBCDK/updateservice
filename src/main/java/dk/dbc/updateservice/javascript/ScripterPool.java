@@ -10,6 +10,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Lock;
+import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.naming.InitialContext;
@@ -49,10 +52,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 @Singleton
 @Startup
+@Lock(LockType.READ)
 public class ScripterPool {
     private static final XLogger logger = XLoggerFactory.getXLogger( ScripterPool.class );
 
     private BlockingQueue<ScripterEnvironment> environments;
+
+    private int initializedEnvironments = 0;
+
+    private int poolSize;
 
     /**
      * JNDI settings.
@@ -63,14 +71,14 @@ public class ScripterPool {
     /**
      * Asynchronous EJB to create new engines.
      */
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     ScripterEnvironmentFactory scripterEnvironmentFactory;
 
-    Status status;
     public enum Status {
+        ST_NA,
         ST_CREATE_ENVS,
         ST_OK
-
     }
 
     /**
@@ -87,33 +95,34 @@ public class ScripterPool {
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
-            status = Status.ST_CREATE_ENVS;
 
-            int poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
-            logger.debug("Pool size: {}", poolSize);
+            poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+            logger.info("Pool size: {}", poolSize);
 
             environments = new LinkedBlockingQueue<>(poolSize);
             try {
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
-                scripterPool.initializeJavascriptEnvironments(poolSize);
+                scripterPool.initializeJavascriptEnvironments();
             } catch (NamingException e) {
-                e.printStackTrace();
+                logger.catching(XLogger.Level.ERROR, e);
+                throw new EJBException("Updateservice could not initialize Javascript environments", e);
             }
 
-            logger.debug("Started creating {} javascript environments", poolSize);
+            logger.info("Started creating {} javascript environments", poolSize);
         } finally {
             logger.exit();
         }
     }
 
     @Asynchronous
-    public void initializeJavascriptEnvironments(int poolSize) {
+    public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
-            logger.debug("Starting javascript environments factory: {}", i + 1);
+            logger.info("Starting javascript environments factory: {}", i + 1);
             try {
-                put(scripterEnvironmentFactory.newEnvironment(settings));
+                ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
+                put(scripterEnvironment);
             } catch (InterruptedException | ScripterException ex) {
                 logger.error(ex.getMessage(), ex);
             }
@@ -136,13 +145,10 @@ public class ScripterPool {
         int queueSize = -1;
 
         try {
-            if (status == Status.ST_CREATE_ENVS) {
+            if (initializedEnvironments == 0) {
                 return null;
             }
-
-            queueSize = environments.size();
-
-            logger.info("Take environment from queue with size: {}", queueSize);
+            logger.info("Take environment from queue with size: {}", environments.size());
             return environments.take();
         } finally {
             watch.stop("javascript.env.take." + queueSize);
@@ -166,15 +172,13 @@ public class ScripterPool {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("javascript.env.put");
         try {
-            if (status == Status.ST_CREATE_ENVS) {
-                int poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
-
+            if (initializedEnvironments < poolSize) {
                 logger.debug("Put new environment into the pool");
                 environments.put(environment);
+                initializedEnvironments += 1;
 
-                if (environments.size() == poolSize) {
-                    logger.debug("ScripterPool is initialized and ready to be used!");
-                    status = Status.ST_OK;
+                if (initializedEnvironments == poolSize) {
+                    logger.info("ScripterPool is initialized and ready to be used!");
                 }
             } else {
                 logger.debug("Put environment back into the pool");
@@ -187,6 +191,12 @@ public class ScripterPool {
     }
 
     public Status getStatus() {
-        return status;
+        if (initializedEnvironments == 0) {
+            return Status.ST_NA;
+        } else if (initializedEnvironments < poolSize) {
+            return Status.ST_CREATE_ENVS;
+        } else {
+            return Status.ST_OK;
+        }
     }
 }
