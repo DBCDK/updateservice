@@ -297,17 +297,21 @@ public class UpdateOperationActionTest {
      */
     @Test
     public void testPerformAction_CreateCommonRecord() throws Exception {
+        // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         String recordId = AssertActionsUtil.getRecordId( record );
         Integer agencyId = AssertActionsUtil.getAgencyId( record );
 
+        // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE );
         MarcRecordWriter writer = new MarcRecordWriter( enrichmentRecord );
         writer.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId( enrichmentRecord );
 
+        // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
         MarcRecordWriter updwriter = new MarcRecordWriter( updateRecord );
+        updwriter.addOrReplaceSubfield( "001", "a", "206111600" );
         updwriter.addOrReplaceSubfield( "001", "b", RawRepo.COMMON_LIBRARY.toString() );
         Integer agencyIdUpd = AssertActionsUtil.getAgencyId( updateRecord );
 
@@ -338,6 +342,9 @@ public class UpdateOperationActionTest {
 
         SolrService solrService = mock( SolrService.class );
 
+        // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
+        // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
+        // this shall not create an doublerecord action
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, updateRecord );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
@@ -359,6 +366,9 @@ public class UpdateOperationActionTest {
 
         assertThat( iterator.hasNext(), is( false ) );
 
+        // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
+        // Same as before but owner of updating record set to 810010
+        // this shall create an doublerecord action
         updwriter.addOrReplaceSubfield( "996", "a", "810010");
 
         UpdateOperationAction instance1 = new UpdateOperationAction( rawRepo, updateRecord );
