@@ -1,7 +1,6 @@
 package dk.dbc.updateservice.ws;
 
 import com.sun.xml.ws.developer.SchemaValidation;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.actions.ServiceEngine;
@@ -50,7 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.UUID;
 
 /**
@@ -106,7 +104,7 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     public static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
 
-    private ResourceBundle messages;
+//    private ResourceBundle messages;
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @Resource
@@ -168,7 +166,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             if (recordsHandler == null) {
                 this.recordsHandler = new LibraryRecordsHandler(scripter);
             }
-            messages = ResourceBundles.getBundle(this, "messages");
+//            this.messages = ResourceBundles.getBundle(this, "messages");
         } catch (MissingResourceException ex) {
             logger.error("Unable to load resource", ex);
         } finally {
@@ -202,10 +200,11 @@ public class UpdateService implements CatalogingUpdatePortType {
             MessageContext messageContext = wsContext.getMessageContext();
             HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
             try {
-                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), messages.getString("update.service.unavabilable"));
+//                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), messages.getString("update.service.unavailable"));
+                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), "Updateservice er ikke klar endnu, prøv igen senere");
             } catch (IOException e) {
                 logger.catching(XLogger.Level.ERROR, e);
-                throw new EJBException("Cannot return 504 service unavailable");
+                return null;
             }
         }
 
