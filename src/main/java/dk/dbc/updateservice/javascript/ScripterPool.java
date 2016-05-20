@@ -1,5 +1,6 @@
 package dk.dbc.updateservice.javascript;
 
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -148,7 +149,8 @@ public class ScripterPool {
             if (initializedEnvironments == 0) {
                 return null;
             }
-            logger.info("Take environment from queue with size: {}", environments.size());
+            queueSize = environments.size();
+            logger.info("Take environment from queue with size: {}", queueSize);
             return environments.take();
         } finally {
             watch.stop("javascript.env.take." + queueSize);

@@ -28,10 +28,12 @@ public class StatusService {
     @Produces(MediaType.TEXT_PLAIN)
     public Response get() throws Exception {
         logger.entry();
+        String res = null;
         try {
-            return Response.ok(scripterPool.getStatus().toString(), MediaType.TEXT_PLAIN).build();
+            res = scripterPool.getStatus().toString();
+            return Response.ok(res, MediaType.TEXT_PLAIN).build();
         } finally {
-            logger.exit();
+            logger.exit(res);
         }
     }
 }
