@@ -43,6 +43,8 @@ public class ScripterEnvironment {
             return result;
         }
         catch( Exception ex ) {
+            logger.error ("mvs hest ScripterEnvironment");
+            logger.catching (ex);
             throw new ScripterException( ex.getMessage(), ex );
         }
         finally {

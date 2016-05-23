@@ -78,10 +78,15 @@ public class ValidateSchemaAction extends AbstractAction {
 
         ServiceResult result = null;
         try {
+            logger.debug("mvs hest checkTemplate");
+            logger.debug("mvs hest checkTemplate groupId: " + groupId);
+            logger.debug("mvs hest validate schema : " + validateSchema);
+            logger.debug("mvs hest settings : " + settings);
             Object jsResult = scripter.callMethod( "checkTemplate", validateSchema, groupId, settings );
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
+            logger.debug("mvs hest #1");
             if (jsResult instanceof Boolean) {
                 Boolean validateSchemaFound = (Boolean)jsResult;
                 if( validateSchemaFound ) {
@@ -89,16 +94,20 @@ public class ValidateSchemaAction extends AbstractAction {
                     return result = ServiceResult.newOkResult();
                 }
 
+            logger.debug("mvs hest #2");
                 bizLogger.error( "Validating schema '{}' failed", validateSchema );
                 return result = ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
             }
 
+            logger.debug("mvs hest #3");
             String message = String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate");
             bizLogger.info( "Validating schema '{}'. Executing error: {}", validateSchema, message );
+            logger.debug("mvs hest #4");
             return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, message );
 
         }
         catch( ScripterException ex ) {
+            logger.debug("mvs hest #5");
             bizLogger.info( "Validating schema '{}'. Executing error: {}", validateSchema, ex.getMessage() );
             return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, ex.getMessage() );
         }

@@ -54,6 +54,11 @@ public class Scripter {
             return result;
         }
         catch( Exception ex ) {
+            logger.error("mvs hest scripter #1");
+            logger.error("message : " + ex.getMessage());
+            logger.error(String.valueOf(ex));
+            logger.catching(ex);
+            ex.printStackTrace();
             throw new ScripterException( ex.getMessage(), ex );
         }
         finally {
@@ -66,6 +71,8 @@ public class Scripter {
                 }
             }
             catch( InterruptedException ex ) {
+                logger.error("message : " + ex.getMessage());
+                ex.printStackTrace();
                 throw new ScripterException( ex.getMessage(), ex );
             }
 
