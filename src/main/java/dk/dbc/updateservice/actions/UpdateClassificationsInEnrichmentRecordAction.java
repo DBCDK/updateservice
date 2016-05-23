@@ -2,7 +2,9 @@
 package dk.dbc.updateservice.actions;
 
 //-----------------------------------------------------------------------------
+
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
@@ -10,17 +12,28 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 //-----------------------------------------------------------------------------
+
 /**
  * Updates the classifications in a enrichment record from the classifications
  * from a common record.
  */
 public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichmentRecordWithClassificationsAction {
-    public UpdateClassificationsInEnrichmentRecordAction( RawRepo rawRepo ) {
-        this( rawRepo, null );
+    /**
+     * Enrichment record that needs to update its classifications.
+     */
+    private MarcRecord enrichmentRecord;
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
+    private final static String RECATEGORIZATION_STRING="UPDATE posttypeskift";
+    private final static String RECLASSIFICATION_STRING="UPDATE opstillingsændring";
+
+
+
+    public UpdateClassificationsInEnrichmentRecordAction(RawRepo rawRepo) {
+        this(rawRepo, null);
     }
 
-    public UpdateClassificationsInEnrichmentRecordAction( RawRepo rawRepo, MarcRecord enrichmentRecord ) {
-        super( rawRepo );
+    public UpdateClassificationsInEnrichmentRecordAction(RawRepo rawRepo, MarcRecord enrichmentRecord) {
+        super(rawRepo);
 
         this.enrichmentRecord = enrichmentRecord;
     }
@@ -29,7 +42,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
         return enrichmentRecord;
     }
 
-    public void setEnrichmentRecord( MarcRecord enrichmentRecord ) {
+    public void setEnrichmentRecord(MarcRecord enrichmentRecord) {
         this.enrichmentRecord = enrichmentRecord;
     }
 
@@ -37,7 +50,6 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
      * updates the classifications in the enrichment record.
      *
      * @return The enrichment record after its classifications has been updated.
-     *
      * @throws ScripterException In case of en JavaScript error.
      */
     @Override
@@ -45,37 +57,32 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
         logger.entry();
 
         try {
-            if( updatingCommonRecord == null ) {
-                throw new IllegalStateException( "updatingCommonRecord is not assigned a value" );
+            if (updatingCommonRecord == null) {
+                throw new IllegalStateException("updatingCommonRecord is not assigned a value");
             }
 
-            if( enrichmentRecord == null ) {
-                throw new IllegalStateException( "enrichmentRecord is not assigned a value" );
+            if (enrichmentRecord == null) {
+                throw new IllegalStateException("enrichmentRecord is not assigned a value");
             }
 
-            if( recordsHandler == null ) {
-                throw new IllegalStateException( "recordsHandler is not assigned a value" );
+            if (recordsHandler == null) {
+                throw new IllegalStateException("recordsHandler is not assigned a value");
             }
 
-            MarcRecord record = this.recordsHandler.updateLibraryExtendedRecord( this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord );
-            MarcRecordWriter writer = new MarcRecordWriter( record );
+            MarcRecord record = this.recordsHandler.updateLibraryExtendedRecord(this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord);
+
+            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordWriter writer = new MarcRecordWriter(record);
+
+            // Fix for story #1910 , 1911
+            if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING )) {
+                writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
+            }
             writer.sort();
 
             return record;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateClassificationsInEnrichmentRecordAction.class );
-
-    /**
-     * Enrichment record that needs to update its classifications.
-     */
-    private MarcRecord enrichmentRecord;
 }
