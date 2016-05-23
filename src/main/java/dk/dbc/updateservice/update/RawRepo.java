@@ -649,8 +649,8 @@ public class RawRepo {
     //              Constants
     //-------------------------------------------------------------------------
 
-    public static final Integer RAWREPO_COMMON_LIBRARY = 191919;
-    public static final Integer COMMON_LIBRARY = 870970;
+    public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
+    public static final Integer COMMON_LIBRARY = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
