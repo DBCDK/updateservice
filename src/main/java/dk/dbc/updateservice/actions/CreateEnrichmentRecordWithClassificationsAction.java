@@ -117,7 +117,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-        logger.error("mvs #1");
         try {
             bizLogger.info("Current common record:\n{}", currentCommonRecord);
             bizLogger.info("Updating common record:\n{}", updatingCommonRecord);
@@ -165,11 +164,9 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.debug("entering createRecord");
         MarcRecord result = null;
         try {
-        logger.debug("mvs : createLibraryExtendedRecord");
             result = recordsHandler.createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(result);
             MarcRecordReader reader = new MarcRecordReader(result);
-
 
             // Fix for story #1910 , 1911
             if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING )) {
