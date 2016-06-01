@@ -345,6 +345,7 @@ public class UpdateOperationActionTest {
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
+        updwriter.addOrReplaceSubfield( "001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString() );
         UpdateOperationAction instance = new UpdateOperationAction( rawRepo, updateRecord );
         instance.setAuthenticator( authenticator );
         instance.setAuthentication( authentication );
