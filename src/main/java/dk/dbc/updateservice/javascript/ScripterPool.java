@@ -151,6 +151,8 @@ public class ScripterPool {
             }
             queueSize = environments.size();
             logger.info("Take environment from queue with size: {}", queueSize);
+            logger.info("initializedEnvironments : " , initializedEnvironments);
+            logger.info("environments: " , environments);
             return environments.take();
         } finally {
             watch.stop("javascript.env.take." + queueSize);
