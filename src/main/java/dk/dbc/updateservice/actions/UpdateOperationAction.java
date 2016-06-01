@@ -188,8 +188,9 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
 
                 if( agencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
-                    if ( !updReader.markedForDeletion() && ! openAgencyService.hasFeature( authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) &&
-                        !rawRepo.recordExists( updRecordId, updAgencyId ) ) {
+                    if ( !updReader.markedForDeletion() &&
+                         ! openAgencyService.hasFeature( authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD ) &&
+                         !rawRepo.recordExists( updRecordId, updAgencyId ) ) {
                         String message = String.format( messages.getString( "common.record.creation.not.allowed" ), authentication.getGroupIdAut() );
                         return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
                     }
@@ -242,6 +243,10 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             }
+            bizLogger.info( "Delete ?:{}", updReader.markedForDeletion() );
+            bizLogger.info( "isDBC ?:{}", updReader.isDBCRecord() );
+            bizLogger.info( "rawr exist ?:{}", rawRepo.recordExists( updRecordId, updAgencyId));
+            bizLogger.info( "ag id ?:{}", updAgencyId);
             if( !updReader.markedForDeletion() && ! updReader.isDBCRecord() &&
                 !rawRepo.recordExists( updRecordId, updAgencyId ) && updAgencyId.equals( RawRepo.COMMON_LIBRARY ) ) {
                 DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( record );
