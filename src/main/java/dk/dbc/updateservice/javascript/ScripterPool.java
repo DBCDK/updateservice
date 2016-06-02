@@ -183,7 +183,10 @@ public class ScripterPool {
                 initializedEnvironments += 1;
 
                 if (initializedEnvironments == poolSize) {
+
                     logger.info("ScripterPool is initialized and ready to be used!");
+                    logger.info("initializedEnvironments : " , initializedEnvironments);
+                    logger.info("poolsize : " , poolSize);
                 }
             } else {
                 logger.debug("Put environment back into the pool");
