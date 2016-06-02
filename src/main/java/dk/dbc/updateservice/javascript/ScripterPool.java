@@ -101,10 +101,14 @@ public class ScripterPool {
             logger.info("Pool size: {}", poolSize);
 
             environments = new LinkedBlockingQueue<>(poolSize);
+            logger.error("mvs #0.5");
             try {
+                logger.error("mvs #1");
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
+                logger.error("mvs #2");
                 scripterPool.initializeJavascriptEnvironments();
+                logger.error("mvs #3");
                 logger.error("mvs hest are we exiting the init ? ");
             } catch (NamingException e) {
                 logger.catching(XLogger.Level.ERROR, e);
