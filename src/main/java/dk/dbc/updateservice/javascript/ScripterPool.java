@@ -105,7 +105,7 @@ public class ScripterPool {
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
                 scripterPool.initializeJavascriptEnvironments();
-                logger.error ("mvs hest are we exiting the init ? ")
+                logger.error ("mvs hest are we exiting the init ? ");
             } catch (NamingException e) {
                 logger.catching(XLogger.Level.ERROR, e);
                 throw new EJBException("Updateservice could not initialize Javascript environments", e);
