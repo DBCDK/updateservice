@@ -25,19 +25,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Singleton pool of ScripterEnvironment's
  * <p>
- *     This singleton EJB implements Updates pool of JavaScript engines. Is has methods
- *     to take and put engines to the pool.
+ * This singleton EJB implements Updates pool of JavaScript engines. Is has methods
+ * to take and put engines to the pool.
  * </p>
  * <p>
- *     Each environment is created at startup of the application in separate threads. The
- *     pool does not wait for the engines to be fully created before it returns control back to
- *     the Web Application Server. So it is posible to receive requests before an engine is
- *     ready. This will cause the request to wait for an engine, before executing any JavaScript.
+ * Each environment is created at startup of the application in separate threads. The
+ * pool does not wait for the engines to be fully created before it returns control back to
+ * the Web Application Server. So it is posible to receive requests before an engine is
+ * ready. This will cause the request to wait for an engine, before executing any JavaScript.
  * </p>
  * <p>
- *     Basic usage of the EJB will be:
- *     <code>
- *         <pre>
+ * Basic usage of the EJB will be:
+ * <code>
+ * <pre>
  *             @EJB
  *             ScripterPool pool;
  *
@@ -47,15 +47,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  *                 pool.put( e );
  *             }
  *         </pre>
- *     </code>
- *     Remember handling of exceptions so ypu always put the environment back into the pool.
+ * </code>
+ * Remember handling of exceptions so ypu always put the environment back into the pool.
  * </p>
  */
 @Singleton
 @Startup
 @Lock(LockType.READ)
 public class ScripterPool {
-    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterPool.class );
+    private static final XLogger logger = XLoggerFactory.getXLogger(ScripterPool.class);
 
     private BlockingQueue<ScripterEnvironment> environments;
 
@@ -85,10 +85,10 @@ public class ScripterPool {
     /**
      * Constructs engines for a pool in separate threads.
      * <p>
-     *     The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
-     *     is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
-     *     {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
-     *     is created.
+     * The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
+     * is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
+     * {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
+     * is created.
      * </p>
      */
     @PostConstruct
@@ -105,7 +105,7 @@ public class ScripterPool {
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
                 scripterPool.initializeJavascriptEnvironments();
-                logger.error ("mvs hest are we exiting the init ? ");
+                logger.error("mvs hest are we exiting the init ? ");
             } catch (NamingException e) {
                 logger.catching(XLogger.Level.ERROR, e);
                 throw new EJBException("Updateservice could not initialize Javascript environments", e);
@@ -152,8 +152,8 @@ public class ScripterPool {
             }
             queueSize = environments.size();
             logger.info("Take environment from queue with size: {}", queueSize);
-            logger.info("initializedEnvironments : " , initializedEnvironments);
-            logger.info("environments: " , environments);
+            logger.info("initializedEnvironments : ", initializedEnvironments);
+            logger.info("environments: ", environments);
             return environments.take();
         } finally {
             watch.stop("javascript.env.take." + queueSize);
@@ -165,11 +165,10 @@ public class ScripterPool {
      * Inserts the specified element at the tail of this queue, waiting if necessary for
      * space to become available.
      * <p>
-     *     <b>Description copied from class:</b> {@link java.util.concurrent.LinkedBlockingQueue}
+     * <b>Description copied from class:</b> {@link java.util.concurrent.LinkedBlockingQueue}
      * </p>
      *
      * @param environment the element to add
-     *
      * @throws InterruptedException if interrupted while waiting
      * @throws NullPointerException if the specified element is null
      */
@@ -181,13 +180,22 @@ public class ScripterPool {
                 logger.debug("Put new environment into the pool");
                 environments.put(environment);
                 initializedEnvironments += 1;
-                    logger.info("mvs hest");
-                    logger.info("initializedEnvironments : " , initializedEnvironments);
-                    logger.info("poolsize : " , poolSize);
+
+                logger.info("mvs hest");
+                logger.info("initializedEnvironments : ", initializedEnvironments);
+                logger.info("poolsize : ", poolSize);
+
+                logger.info("are we null");
+                if (initializedEnvironments == 0) {
+                    logger.info("initializedEnvironments == 0");
+                }
+                if (poolSize == 0) {
+                    logger.info("poolSize == 0 ");
+                }
 
                 if (initializedEnvironments == poolSize) {
-                    logger.info("initializedEnvironments : " , initializedEnvironments);
-                    logger.info("poolsize : " , poolSize);
+                    logger.info("initializedEnvironments : ", initializedEnvironments);
+                    logger.info("poolsize : ", poolSize);
                     logger.info("ScripterPool is initialized and ready to be used!");
                 }
             } else {
