@@ -181,12 +181,14 @@ public class ScripterPool {
                 logger.debug("Put new environment into the pool");
                 environments.put(environment);
                 initializedEnvironments += 1;
-
-                if (initializedEnvironments == poolSize) {
-
-                    logger.info("ScripterPool is initialized and ready to be used!");
+                    logger.info("mvs hest");
                     logger.info("initializedEnvironments : " , initializedEnvironments);
                     logger.info("poolsize : " , poolSize);
+
+                if (initializedEnvironments == poolSize) {
+                    logger.info("initializedEnvironments : " , initializedEnvironments);
+                    logger.info("poolsize : " , poolSize);
+                    logger.info("ScripterPool is initialized and ready to be used!");
                 }
             } else {
                 logger.debug("Put environment back into the pool");
