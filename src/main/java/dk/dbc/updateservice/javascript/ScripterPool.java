@@ -93,8 +93,9 @@ public class ScripterPool {
      * is created.
      * </p>
      */
+    // changed name to postconstruct
     @PostConstruct
-    public void init() {
+    public void postConstruct() {
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
@@ -130,7 +131,7 @@ public class ScripterPool {
         }
     }
 
-   // @Asynchronous
+    @Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
