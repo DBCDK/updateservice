@@ -8,6 +8,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
@@ -54,6 +55,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Singleton
 @Startup
 @Lock(LockType.READ)
+
 public class ScripterPool {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterPool.class);
 
@@ -94,6 +96,7 @@ public class ScripterPool {
      * </p>
      */
     // changed name to postconstruct
+    @PreDestroy
     @PostConstruct
     public void postConstruct() {
         logger.entry();
@@ -131,7 +134,7 @@ public class ScripterPool {
         }
     }
 
-    //@Asynchronous
+    @Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
