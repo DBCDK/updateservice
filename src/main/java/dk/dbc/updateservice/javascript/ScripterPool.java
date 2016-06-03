@@ -59,8 +59,10 @@ public class ScripterPool {
 
     private BlockingQueue<ScripterEnvironment> environments;
 
+    // replace with atomic int
     private int initializedEnvironments = 0;
 
+    // replace with atomic int
     private int poolSize;
 
     /**
@@ -100,12 +102,19 @@ public class ScripterPool {
             poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
             logger.info("Pool size: {}", poolSize);
 
+
+            logger.info("mvs system hashcode");
+            logger.info("System.identityHashCode(this) : " ,  System.identityHashCode(this));
+            logger.info("this.hashCode(): " ,  this.hashCode());
+            logger.info("this : " , this );
+
             environments = new LinkedBlockingQueue<>(poolSize);
             logger.error("mvs #0.5");
             try {
                 logger.error("mvs #1");
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
+
                 logger.error("mvs #2");
                 scripterPool.initializeJavascriptEnvironments();
                 logger.error("mvs #3");
@@ -121,7 +130,7 @@ public class ScripterPool {
         }
     }
 
-    @Asynchronous
+   // @Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
