@@ -114,7 +114,7 @@ public class ScripterPool {
 
             environments = new LinkedBlockingQueue<>(poolSize);
             logger.error("mvs #0.5");
-            try {
+//            try {
                 logger.error("mvs #1");
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
                 //ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
@@ -127,7 +127,7 @@ public class ScripterPool {
 //                logger.catching(XLogger.Level.ERROR, e);
 //                throw new EJBException("Updateservice could not initialize Javascript environments", e);
 //            }
-
+//            }
             logger.info("Started creating {} javascript environments", poolSize);
         } finally {
             logger.exit();
