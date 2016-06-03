@@ -108,25 +108,25 @@ public class ScripterPool {
 
 
             logger.info("mvs system hashcode");
-            logger.info("System.identityHashCode(this) : " ,  System.identityHashCode(this));
-            logger.info("this.hashCode(): " ,  this.hashCode());
-            logger.info("this : " , this );
+            logger.info("System.identityHashCode(this) : ", System.identityHashCode(this));
+            logger.info("this.hashCode(): ", this.hashCode());
+            logger.info("this : ", this);
 
             environments = new LinkedBlockingQueue<>(poolSize);
             logger.error("mvs #0.5");
             try {
                 logger.error("mvs #1");
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
-                ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
+                //ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
 
                 logger.error("mvs #2");
-                scripterPool.initializeJavascriptEnvironments();
+                initializeJavascriptEnvironments();
                 logger.error("mvs #3");
                 logger.error("mvs hest are we exiting the init ? ");
-            } catch (NamingException e) {
-                logger.catching(XLogger.Level.ERROR, e);
-                throw new EJBException("Updateservice could not initialize Javascript environments", e);
-            }
+//            } catch (NamingException e) {
+//                logger.catching(XLogger.Level.ERROR, e);
+//                throw new EJBException("Updateservice could not initialize Javascript environments", e);
+//            }
 
             logger.info("Started creating {} javascript environments", poolSize);
         } finally {
@@ -137,16 +137,19 @@ public class ScripterPool {
     @Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
-        for (int i = 0; i < poolSize; i++) {
-            logger.info("Starting javascript environments factory: {}", i + 1);
-            try {
-                ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
-                put(scripterEnvironment);
-            } catch (InterruptedException | ScripterException ex) {
-                logger.error(ex.getMessage(), ex);
+        try {
+            for (int i = 0; i < poolSize; i++) {
+                logger.info("Starting javascript environments factory: {}", i + 1);
+                try {
+                    ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
+                    put(scripterEnvironment);
+                } catch (InterruptedException | ScripterException ex) {
+                    logger.error(ex.getMessage(), ex);
+                }
             }
+        } finally {
+            logger.exit();
         }
-        logger.exit();
     }
 
     /**
