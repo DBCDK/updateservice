@@ -22,6 +22,7 @@ import javax.naming.NamingException;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Singleton pool of ScripterEnvironment's
@@ -62,10 +63,10 @@ public class ScripterPool {
     private BlockingQueue<ScripterEnvironment> environments;
 
     // replace with atomic int
-    private int initializedEnvironments = 0;
+    private AtomicInteger initializedEnvironments = new AtomicInteger();
 
     // replace with atomic int
-    private int poolSize;
+    private AtomicInteger poolSize = new AtomicInteger();
 
     /**
      * JNDI settings.
@@ -96,14 +97,13 @@ public class ScripterPool {
      * </p>
      */
     // changed name to postconstruct
-    @PreDestroy
     @PostConstruct
     public void postConstruct() {
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
 
-            poolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+            poolSize.getAndSet( Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY)));
             logger.info("Pool size: {}", poolSize);
 
 
@@ -112,22 +112,21 @@ public class ScripterPool {
             logger.info("this.hashCode(): ", this.hashCode());
             logger.info("this : ", this);
 
-            environments = new LinkedBlockingQueue<>(poolSize);
+            environments = new LinkedBlockingQueue<>(poolSize.intValue());
             logger.error("mvs #0.5");
-//            try {
+            try {
                 logger.error("mvs #1");
                 // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
-                //ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
+                ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
 
                 logger.error("mvs #2");
                 initializeJavascriptEnvironments();
                 logger.error("mvs #3");
                 logger.error("mvs hest are we exiting the init ? ");
-//            } catch (NamingException e) {
-//                logger.catching(XLogger.Level.ERROR, e);
-//                throw new EJBException("Updateservice could not initialize Javascript environments", e);
-//            }
-//            }
+            } catch (NamingException e) {
+                logger.catching(XLogger.Level.ERROR, e);
+                throw new EJBException("Updateservice could not initialize Javascript environments", e);
+            }
             logger.info("Started creating {} javascript environments", poolSize);
         } finally {
             logger.exit();
@@ -138,7 +137,7 @@ public class ScripterPool {
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         try {
-            for (int i = 0; i < poolSize; i++) {
+            for (int i = 0; i < poolSize.get(); i++) {
                 logger.info("Starting javascript environments factory: {}", i + 1);
                 try {
                     ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
@@ -167,7 +166,7 @@ public class ScripterPool {
         int queueSize = -1;
 
         try {
-            if (initializedEnvironments == 0) {
+            if (initializedEnvironments.get() == 0) {
                 return null;
             }
             queueSize = environments.size();
@@ -196,24 +195,24 @@ public class ScripterPool {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("javascript.env.put");
         try {
-            if (initializedEnvironments < poolSize) {
+            if (initializedEnvironments.get() < poolSize.get()) {
                 logger.debug("Put new environment into the pool");
                 environments.put(environment);
-                initializedEnvironments += 1;
+                initializedEnvironments.getAndAdd(1);
 
                 logger.info("mvs hest");
                 logger.info("initializedEnvironments : ", initializedEnvironments);
                 logger.info("poolsize : ", poolSize);
 
                 logger.info("are we null");
-                if (initializedEnvironments == 0) {
+                if (initializedEnvironments.intValue() == 0) {
                     logger.info("initializedEnvironments == 0");
                 }
-                if (poolSize == 0) {
+                if (poolSize.intValue() == 0) {
                     logger.info("poolSize == 0 ");
                 }
 
-                if (initializedEnvironments == poolSize) {
+                if (initializedEnvironments.intValue() == poolSize.intValue()) {
                     logger.info("initializedEnvironments : ", initializedEnvironments);
                     logger.info("poolsize : ", poolSize);
                     logger.info("ScripterPool is initialized and ready to be used!");
@@ -229,9 +228,9 @@ public class ScripterPool {
     }
 
     public Status getStatus() {
-        if (initializedEnvironments == 0) {
+        if (initializedEnvironments.intValue() == 0) {
             return Status.ST_NA;
-        } else if (initializedEnvironments < poolSize) {
+        } else if (initializedEnvironments.intValue() < poolSize.intValue()) {
             return Status.ST_CREATE_ENVS;
         } else {
             return Status.ST_OK;
