@@ -131,7 +131,7 @@ public class ScripterPool {
         }
     }
 
-    @Asynchronous
+    //@Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry(poolSize);
         for (int i = 0; i < poolSize; i++) {
