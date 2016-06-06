@@ -220,7 +220,7 @@ public class ScripterPool {
      */
     public void put(ScripterEnvironment environment) throws InterruptedException {
         logger.entry();
-        StopWatch watch = new Log4JStopWatch("javascript.env.put");
+        //StopWatch watch = new Log4JStopWatch("javascript.env.put");
         try {
             if (initializedEnvironments.get() < poolSize.get()) {
                 logger.debug("Put new environment into the pool");
@@ -254,7 +254,7 @@ public class ScripterPool {
 //                environments.put(environment);
             }
         } finally {
-            watch.stop();
+          //  watch.stop();
             logger.exit();
         }
     }
