@@ -57,8 +57,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </p>
  */
 
-@Singleton
-@Startup
+//@Singleton
+//@Startup
 @Lock(LockType.READ)
 
 public class ScripterPool {
