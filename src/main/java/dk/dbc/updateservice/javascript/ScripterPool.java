@@ -103,19 +103,19 @@ public class ScripterPool {
     @PostConstruct
     //@PreDestroy
     public void postConstruct() {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            // hack to circumvent the lazy load of ejbs.
-            logger.error("sleep failed : ");
-            logger.catching(e);
-            System.exit(-1);
-        }
+//        try {
+//            Thread.sleep(5000);
+//        } catch (InterruptedException e) {
+//            // hack to circumvent the lazy load of ejbs.
+//            logger.error("sleep failed : ");
+//            logger.catching(e);
+//            System.exit(-1);
+//        }
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
 
-            poolSize.getAndSet( Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY)));
+            poolSize.getAndSet(Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY)));
             logger.info("Pool size: {}", poolSize);
 
 
@@ -124,7 +124,13 @@ public class ScripterPool {
             logger.info("this.hashCode(): ", this.hashCode());
             logger.info("this : ", this);
 
-            environments = new LinkedBlockingQueue<>(poolSize.intValue());
+            // added default val of 1
+            if (poolSize.intValue() < 0) {
+                environments = new LinkedBlockingQueue<>(1);
+            } else {
+                environments = new LinkedBlockingQueue<>(poolSize.intValue());
+            }
+
             logger.error("mvs #0.5");
             try {
                 logger.error("mvs #1");
@@ -152,10 +158,10 @@ public class ScripterPool {
             for (int i = 0; i < poolSize.get(); i++) {
                 logger.info("Starting javascript environments factory: {}", i + 1);
                 try {
-                    logger.error ("mvs initializeJavascriptEnvironments 1# ");
-                    logger.error ("mvs initializeJavascriptEnvironments settings " , settings);
+                    logger.error("mvs initializeJavascriptEnvironments 1# ");
+                    logger.error("mvs initializeJavascriptEnvironments settings ", settings);
                     ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
-                    logger.error ("mvs initializeJavascriptEnvironments 2# ");
+                    logger.error("mvs initializeJavascriptEnvironments 2# ");
                     put(scripterEnvironment);
                 } catch (InterruptedException | ScripterException ex) {
                     logger.error(ex.getMessage(), ex);
