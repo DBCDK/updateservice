@@ -247,8 +247,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             bizLogger.info( "isDBC ?:{}", updReader.isDBCRecord() );
             bizLogger.info( "rawr exist ?:{}", rawRepo.recordExists( updRecordId, updAgencyId));
             bizLogger.info( "ag id ?:{}", updAgencyId);
+            bizLogger.info( "what if ?:{}", !updReader.markedForDeletion() && ! updReader.isDBCRecord() &&
+                    !rawRepo.recordExists( updRecordId, updAgencyId ) && updAgencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) );
             if( !updReader.markedForDeletion() && ! updReader.isDBCRecord() &&
                 !rawRepo.recordExists( updRecordId, updAgencyId ) && updAgencyId.equals( RawRepo.RAWREPO_COMMON_LIBRARY ) ) {
+                bizLogger.info( "DONDERKOPF");
                 DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction( record );
                 doubleRecordCheckingAction.setSettings( settings );
                 doubleRecordCheckingAction.setScripter( scripter );
