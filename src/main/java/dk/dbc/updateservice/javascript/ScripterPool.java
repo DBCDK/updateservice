@@ -100,8 +100,10 @@ public class ScripterPool {
      * </p>
      */
     // changed name to postconstruct
-    @PreDestroy
-    public void postConstruct() {
+    @PostConstruct
+    //@PreDestroy
+    public void postConstruct() throws InterruptedException {
+        Thread.sleep(5000);
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
