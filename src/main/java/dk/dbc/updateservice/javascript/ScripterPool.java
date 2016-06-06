@@ -224,7 +224,9 @@ public class ScripterPool {
         try {
             if (initializedEnvironments.get() < poolSize.get()) {
                 logger.debug("Put new environment into the pool");
-                environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+                logger.debug("Added timeout");
+                boolean result = environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+                logger.debug("timeout result: " + result);
 //                environments.put(environment);
                 initializedEnvironments.getAndAdd(1);
 
@@ -246,8 +248,9 @@ public class ScripterPool {
                 }
             } else {
                 logger.debug("Put environment back into the pool");
-                logger.debug("Added timeout of 1000 ms");
-                environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+                logger.debug("Added timeout");
+                boolean result = environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+                logger.debug("timeout result: " + result);
 //                environments.put(environment);
             }
         } finally {
