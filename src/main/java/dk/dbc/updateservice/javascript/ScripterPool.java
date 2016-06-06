@@ -97,7 +97,7 @@ public class ScripterPool {
      * </p>
      */
     // changed name to postconstruct
-    @PostConstruct
+    @PreDestroy
     public void postConstruct() {
         logger.entry();
         try {
@@ -200,7 +200,6 @@ public class ScripterPool {
                 environments.put(environment);
                 initializedEnvironments.getAndAdd(1);
 
-                logger.info("mvs hest");
                 logger.info("initializedEnvironments : ", initializedEnvironments);
                 logger.info("poolsize : ", poolSize);
 
