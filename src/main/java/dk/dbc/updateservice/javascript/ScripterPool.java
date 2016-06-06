@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </p>
  */
 
-@DependsOn ("JNDIBean")
 @Singleton
 @Startup
 @Lock(LockType.READ)
