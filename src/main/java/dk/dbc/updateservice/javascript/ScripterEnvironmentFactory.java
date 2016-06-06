@@ -47,7 +47,7 @@ public class ScripterEnvironmentFactory {
      *
      */
     public ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
-        logger.entry();
+        logger.entry(settings);
         StopWatch watch = new Log4JStopWatch( "javascript.env.create" );
 
         ScripterEnvironment result = null;
