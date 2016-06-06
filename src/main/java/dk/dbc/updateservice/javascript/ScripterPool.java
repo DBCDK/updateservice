@@ -224,7 +224,8 @@ public class ScripterPool {
         try {
             if (initializedEnvironments.get() < poolSize.get()) {
                 logger.debug("Put new environment into the pool");
-                environments.put(environment);
+                environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+//                environments.put(environment);
                 initializedEnvironments.getAndAdd(1);
 
                 logger.info("initializedEnvironments : ", initializedEnvironments);
