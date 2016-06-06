@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
+import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Lock;
@@ -53,6 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Remember handling of exceptions so ypu always put the environment back into the pool.
  * </p>
  */
+
+@DependsOn ("JNDIBean")
 @Singleton
 @Startup
 @Lock(LockType.READ)
@@ -71,9 +74,10 @@ public class ScripterPool {
     /**
      * JNDI settings.
      */
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = "updateservice/settings")
     private Properties settings;
-
+//    @EJB
+//    JNDIBean jndiBean;
     /**
      * Asynchronous EJB to create new engines.
      */
