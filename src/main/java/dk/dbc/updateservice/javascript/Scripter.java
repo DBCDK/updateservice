@@ -15,9 +15,12 @@ import javax.ejb.Stateless;
  */
 @Stateless
 public class Scripter {
-    //-------------------------------------------------------------------------
-    //              Script interface
-    //-------------------------------------------------------------------------
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( Scripter.class );
+
+//    private ScripterPool pool;
+    @EJB
+    private MvsScripterPool pool;
 
     /**
      * Calls a function in a JavaScript environment and returns the result.
@@ -83,11 +86,5 @@ public class Scripter {
     //              Members
     //-------------------------------------------------------------------------
 
-    private static final XLogger logger = XLoggerFactory.getXLogger( Scripter.class );
 
-    /**
-     * Resource to lookup the product name for authentication.
-     */
-    @EJB
-    private ScripterPool pool;
 }
