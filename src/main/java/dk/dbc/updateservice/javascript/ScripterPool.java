@@ -16,6 +16,7 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Lock;
 import javax.ejb.LockType;
+import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.naming.InitialContext;
@@ -23,6 +24,7 @@ import javax.naming.NamingException;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -61,6 +63,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScripterPool {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterPool.class);
+
+
+    @Resource
+    SessionContext sessionContext;
 
     private BlockingQueue<ScripterEnvironment> environments;
 
@@ -239,7 +245,9 @@ public class ScripterPool {
                 }
             } else {
                 logger.debug("Put environment back into the pool");
-                environments.put(environment);
+                logger.debug("Added timeout of 1000 ms");
+                environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
+//                environments.put(environment);
             }
         } finally {
             watch.stop();
