@@ -31,7 +31,7 @@ public class ScripterEnvironmentFactory {
     /**
      * JNDI settings.
      */
-    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    @Resource( lookup = "updateservice/settings" )
     private Properties settings;
 
     /**
