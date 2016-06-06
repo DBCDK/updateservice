@@ -13,6 +13,8 @@ import javax.ejb.Lock;
 import javax.ejb.LockType;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
@@ -39,7 +41,9 @@ public class MvsScripterPool {
     }
 
     //asynch
-    private BlockingQueue<ScripterEnvironment> environments = new LinkedBlockingQueue<>();
+    //private BlockingQueue<ScripterEnvironment> environments = new LinkedBlockingQueue<>();
+    //synch
+    private List<ScripterEnvironment> environments = new ArrayList<>();
 
     /**
      * Synchronous EJB to create new engines.
@@ -84,13 +88,11 @@ public class MvsScripterPool {
             logger.info("Starting javascript environments factory: {}");
             try {
                 logger.error("mvs initializeJavascriptEnvironments 1# ");
-                environments.put(scripterEnvironmentFactory.newEnvironment(settings));
+                environments.add(scripterEnvironmentFactory.newEnvironment(settings));
                 logger.error("mvs initializeJavascriptEnvironments 2# ");
                 logger.error("mvs environments.size() : ", environments.size());
             } catch (ScripterException ex) {
                 logger.error(ex.getMessage(), ex);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         } finally {
             logger.exit();
@@ -100,7 +102,8 @@ public class MvsScripterPool {
     public ScripterEnvironment take() throws InterruptedException {
         logger.entry();
         try {
-            return environments.take();
+            //return environments.take();
+            return environments.get(0);
         } finally {
             logger.exit();
         }
@@ -109,8 +112,9 @@ public class MvsScripterPool {
     public void put(ScripterEnvironment environment) throws InterruptedException {
         logger.entry(environment);
         try {
-            boolean result = environments.offer(environment, 1000, TimeUnit.MILLISECONDS);
-            logger.error("mvs put : " + result);
+            //boolean result = environments.offer(environment, 1000, TimeUnit.MILLISECONDS);
+            environments.add(environment);
+            //logger.error("mvs put : " + result);
             logger.error("mvs environments.size() post put : ", environments.size());
         } finally {
             logger.exit();
@@ -120,7 +124,8 @@ public class MvsScripterPool {
     public Status getStatus() {
         logger.entry();
         try {
-            if (environments.peek() != null) {
+//            if (environments.peek() != null) {
+            if (environments.size() != 0) {
                 logger.info("returning st_ok");
                 return Status.ST_OK;
             }
