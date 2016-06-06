@@ -140,7 +140,10 @@ public class ScripterPool {
             for (int i = 0; i < poolSize.get(); i++) {
                 logger.info("Starting javascript environments factory: {}", i + 1);
                 try {
+                    logger.error ("mvs initializeJavascriptEnvironments 1# ");
+                    logger.error ("mvs initializeJavascriptEnvironments settings " , settings);
                     ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
+                    logger.error ("mvs initializeJavascriptEnvironments 2# ");
                     put(scripterEnvironment);
                 } catch (InterruptedException | ScripterException ex) {
                     logger.error(ex.getMessage(), ex);
