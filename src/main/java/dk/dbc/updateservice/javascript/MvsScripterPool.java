@@ -77,7 +77,7 @@ public class MvsScripterPool {
         }
     }
 
-    @Asynchronous
+    //@Asynchronous
     public void initializeJavascriptEnvironments() {
         logger.entry();
         try {
