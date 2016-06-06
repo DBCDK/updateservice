@@ -102,8 +102,15 @@ public class ScripterPool {
     // changed name to postconstruct
     @PostConstruct
     //@PreDestroy
-    public void postConstruct() throws InterruptedException {
-        Thread.sleep(5000);
+    public void postConstruct() {
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            // hack to circumvent the lazy load of ejbs.
+            logger.error("sleep failed : ");
+            logger.catching(e);
+            System.exit(-1);
+        }
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
