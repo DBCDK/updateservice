@@ -62,6 +62,7 @@ public class MvsScripterPool {
             logger.debug("Starting creation of mvs javascript environments.");
             // calling non asynch method to work around ejb proxy naming not being created prior to postconstruct
             // glassfish specific error
+            logger.error("mvs hest running synched with array :");
             dummyWorkAroundToGetEJBProxySetStraight();
             initializeJavascriptEnvironments();
             logger.info("Started creating {} javascript environments");
