@@ -62,6 +62,7 @@ public class SolrService {
                 String url = settings.getProperty( "solr.url" );
 
                 solrUrl = new URL( String.format( SOLR_QUERY_URL, url, URLEncoder.encode( q, "UTF-8" ) ) );
+                logger.warn( "Solr call query: {} -> {}", q, solrUrl );
                 Map<String, Object> response = callSolr( solrUrl );
 
                 if( response == null ) {

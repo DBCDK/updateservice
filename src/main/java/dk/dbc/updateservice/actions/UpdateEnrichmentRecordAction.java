@@ -227,7 +227,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             Integer agencyId = reader.agencyIdAsInteger();
 
             if( !rawRepo.recordExists( recordId, agencyId ) ) {
-                bizLogger.info( "The enrichment record {{}:{}} does not exist, so no actions is added for deletion." );
+                bizLogger.info( "The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId );
                 return ServiceResult.newOkResult();
             }
 
