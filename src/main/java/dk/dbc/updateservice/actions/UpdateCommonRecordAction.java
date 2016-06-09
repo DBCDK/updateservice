@@ -104,6 +104,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader( record );
             if( !reader.markedForDeletion() ) {
+                bizLogger.info( "Update single");
                 if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", reader.recordId() ) ) ) {
                     String message = messages.getString( "update.record.with.002.links" );
 
@@ -114,9 +115,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             String parentId = reader.parentId();
             if( parentId != null && !parentId.isEmpty() ) {
+                bizLogger.info( "Update vol:\n{}", parentId );
                 action = new UpdateVolumeRecord( rawRepo, record );
             }
             else {
+                bizLogger.info( "Update single");
                 action = new UpdateSingleRecord( rawRepo, record );
             }
 
