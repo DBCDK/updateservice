@@ -162,6 +162,7 @@ public class UpdateService implements CatalogingUpdatePortType {
     @PostConstruct
     public void init() {
         logger.entry();
+
         try {
             if (recordsHandler == null) {
                 this.recordsHandler = new LibraryRecordsHandler(scripter);
@@ -224,8 +225,8 @@ public class UpdateService implements CatalogingUpdatePortType {
 
         UpdateRecordResult result = null;
         try {
-            logger.info("MDC: {}", MDC.getCopyOfContextMap());
-            logger.info("Request tracking id: {}", updateRecordRequest.getTrackingId());
+            logger.info("MDC: " + MDC.getCopyOfContextMap());
+            logger.info("Request tracking id: " + updateRecordRequest.getTrackingId());
 
             action = new UpdateRequestAction(rawRepo, updateRecordRequest, wsContext);
             action.setHoldingsItems(holdingsItems);
