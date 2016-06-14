@@ -13,7 +13,6 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
 
-//-----------------------------------------------------------------------------
 /**
  * Action to check that the validate scheme name from the request is a valid
  * name.
@@ -23,6 +22,15 @@ import java.util.Properties;
  * </p>
  */
 public class ValidateSchemaAction extends AbstractAction {
+
+    private static final XLogger logger = XLoggerFactory.getXLogger( ValidateSchemaAction.class );
+    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+
+    private String validateSchema;
+    private Scripter scripter;
+    private String groupId;
+    private Properties settings;
+
     public ValidateSchemaAction( String validateSchema, Scripter scripter, Properties settings ) {
         super( "ValidateSchemaAction" );
 
@@ -119,16 +127,4 @@ public class ValidateSchemaAction extends AbstractAction {
     @Override
     public void setupMDCContext() {
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( ValidateSchemaAction.class );
-    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
-
-    private String validateSchema;
-    private Scripter scripter;
-    private String groupId;
-    private Properties settings;
 }
