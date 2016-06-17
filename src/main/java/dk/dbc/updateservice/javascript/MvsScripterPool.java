@@ -62,11 +62,9 @@ public class MvsScripterPool {
             logger.debug("Starting creation of mvs javascript environments.");
             // calling non asynch method to work around ejb proxy naming not being created prior to postconstruct
             // glassfish specific error
-            logger.error("mvs hest running synched with array :");
             dummyWorkAroundToGetEJBProxySetStraight();
             initializeJavascriptEnvironments();
             logger.info("Started creating {} javascript environments");
-            logger.info("mvs size environments", environments.size());
         } finally {
             logger.exit();
         }
@@ -91,7 +89,7 @@ public class MvsScripterPool {
                 logger.error("mvs initializeJavascriptEnvironments 1# ");
                 environments.add(scripterEnvironmentFactory.newEnvironment(settings));
                 logger.error("mvs initializeJavascriptEnvironments 2# ");
-                logger.error("mvs environments.size() : ", environments.size());
+                logger.error("mvs environments.size() : " + environments.size());
             } catch (ScripterException ex) {
                 logger.error(ex.getMessage(), ex);
             }

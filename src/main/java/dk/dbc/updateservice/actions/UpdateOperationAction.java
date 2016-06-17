@@ -233,7 +233,17 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     String message = String.format(messages.getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
                 }
-
+                // if the service is running in fbs mode add subfield d in field 001 with new date in the format: ÅÅÅÅMMDD
+                // story #1934
+                String valOf001 = reader.getValue("001", "d");
+                if (null == valOf001) {
+                    String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
+                    if (StringUtils.isNotEmpty(mode) && mode.equals("fbs")) {
+                        MarcRecordWriter writer = new MarcRecordWriter(rec);
+                        writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+                        logger.info("Adding new date to field 001 , subfield d : " + rec);
+                    }
+                }
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     if (!updReader.markedForDeletion() &&
                             !openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
@@ -275,15 +285,6 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                         children.add(action);
                     } else {
-                        // if the service is running in fbs mode add subfield d in field 001 with new date in the format: ÅÅÅÅMMDD
-                        // story #1934
-                        String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-                        if (StringUtils.isNotEmpty(mode) && mode.equals("fbs")) {
-                            MarcRecordWriter writer = new MarcRecordWriter(rec);
-                            writer.addOrReplaceSubfield("001", "d",  new SimpleDateFormat("yyyyMMdd").format(new Date()));
-                            logger.info("Adding new date to field 001 , subfield d : " + rec);
-                        }
-
                         UpdateLocalRecordAction action = new UpdateLocalRecordAction(rawRepo, rec);
                         action.setHoldingsItems(holdingsItems);
                         action.setOpenAgencyService(openAgencyService);
