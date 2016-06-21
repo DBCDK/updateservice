@@ -207,7 +207,17 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 return checkResult;
             }
 
-            List<DoubleRecordCheckingAction> doubleRecordActions = new ArrayList<>();
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            String valOf001 = reader.getValue("001", "d");
+            if (StringUtils.isEmpty(valOf001)) {
+                String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
+                if (StringUtils.isNotEmpty(mode) && mode.equals("fbs")) {
+                    MarcRecordWriter writer = new MarcRecordWriter(record);
+                    writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+                    logger.info("Adding new date to field 001 , subfield d : " + record);
+                }
+            }
 
             AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(this.record);
             authenticateRecordAction.setAuthenticator(this.authenticator);
@@ -218,6 +228,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
 
+            List<DoubleRecordCheckingAction> doubleRecordActions = new ArrayList<>();
+
             bizLogger.info("Split record into records to store in rawrepo.");
             List<MarcRecord> records = recordsHandler.recordDataForRawRepo(record, authentication.getUserIdAut(), authentication.getGroupIdAut());
 
@@ -225,7 +237,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 bizLogger.info("");
                 bizLogger.info("Create sub actions for record:\n{}", rec);
 
-                MarcRecordReader reader = new MarcRecordReader(rec);
+                reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
 
@@ -233,17 +245,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                     String message = String.format(messages.getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
                 }
-                // if the service is running in fbs mode add subfield d in field 001 with new date in the format: ÅÅÅÅMMDD
-                // story #1934
-                String valOf001 = reader.getValue("001", "d");
-                if (null == valOf001) {
-                    String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-                    if (StringUtils.isNotEmpty(mode) && mode.equals("fbs")) {
-                        MarcRecordWriter writer = new MarcRecordWriter(rec);
-                        writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
-                        logger.info("Adding new date to field 001 , subfield d : " + rec);
-                    }
-                }
+
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     if (!updReader.markedForDeletion() &&
                             !openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
