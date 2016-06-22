@@ -201,7 +201,6 @@ public class UpdateService implements CatalogingUpdatePortType {
             MessageContext messageContext = wsContext.getMessageContext();
             HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
             try {
-//                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), messages.getString("update.service.unavailable"));
                 httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), "Updateservice er ikke klar endnu, prøv igen senere");
             } catch (IOException e) {
                 logger.catching(XLogger.Level.ERROR, e);
