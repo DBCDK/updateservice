@@ -7,9 +7,9 @@ import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.javascript.MvsScripterPool;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
@@ -142,7 +142,7 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
-    private MvsScripterPool scripterPool;
+    private ScripterPool scripterPool;
 
     /**
      * EJB for record validation.
@@ -197,7 +197,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
         UUID prefixId = UUID.randomUUID();
 
-        if (scripterPool.getStatus() == MvsScripterPool.Status.ST_NA) {
+        if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
             MessageContext messageContext = wsContext.getMessageContext();
             HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
             try {

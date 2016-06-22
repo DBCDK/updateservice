@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.rest;
 
-import dk.dbc.updateservice.javascript.MvsScripterPool;
+import dk.dbc.updateservice.javascript.ScripterPool;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -22,7 +22,7 @@ public class StatusService {
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
-    MvsScripterPool scripterPool;
+    ScripterPool scripterPool;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

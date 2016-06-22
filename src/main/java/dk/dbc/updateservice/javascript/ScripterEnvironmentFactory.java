@@ -19,7 +19,6 @@ import java.util.Properties;
 /**
  * JavaScript engine factory to construct a new engine asynchronous.
  */
-@Stateless
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironmentFactory.class );
 
@@ -28,11 +27,6 @@ public class ScripterEnvironmentFactory {
     private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
     private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
 
-    /**
-     * JNDI settings.
-     */
-    @Resource( lookup = "updateservice/settings" )
-    private Properties settings;
 
     /**
      * Constructs a new engine and adds is to the parsed pool.
@@ -44,6 +38,7 @@ public class ScripterEnvironmentFactory {
      *
      * @return Future with a boolean value. <code>true</code> - the engine is created and added to the pool.
      * <code>false</code> - some error occurred.
+     * @throws ScripterException on errors from JS.
      *
      */
     public ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
@@ -54,7 +49,7 @@ public class ScripterEnvironmentFactory {
         try {
             Environment environment = createEnvironment( settings );
             ScripterEnvironment scripterEnvironment = new ScripterEnvironment( environment );
-            initTemplates( scripterEnvironment );
+            initTemplates( scripterEnvironment, settings);
 
             return result = scripterEnvironment;
         }
@@ -162,7 +157,8 @@ public class ScripterEnvironmentFactory {
         }
     }
 
-    void initTemplates( ScripterEnvironment environment ) throws ScripterException {
+
+    void initTemplates( ScripterEnvironment environment, Properties settings) throws ScripterException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch( "javascript.env.create.templates" );
 
@@ -174,4 +170,5 @@ public class ScripterEnvironmentFactory {
             logger.exit();
         }
     }
+
 }
