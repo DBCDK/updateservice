@@ -20,7 +20,7 @@ public class Scripter {
 
 //    private ScripterPool pool;
     @EJB
-    private MvsScripterPool pool;
+    private ScripterPool pool;
 
     /**
      * Calls a function in a JavaScript environment and returns the result.

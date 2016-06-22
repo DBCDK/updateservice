@@ -1,30 +1,24 @@
 package dk.dbc.updateservice.javascript;
 
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+import org.slf4j.profiler.Profiler;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
-import javax.ejb.Asynchronous;
-import javax.ejb.DependsOn;
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
+import javax.ejb.ConcurrencyManagement;
+import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import javax.enterprise.concurrent.ManagedThreadFactory;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -46,49 +40,52 @@ import java.util.concurrent.atomic.AtomicInteger;
  *             @EJB
  *             ScripterPool pool;
  *
- *             public void method() {
- *                 ScripterEnvironment e = pool.take();
- *                 e.callMethod( "func" );
- *                 pool.put( e );
- *             }
- *         </pre>
+ *             void f() throws InterruptedException, ScripterException {
+ *                    ScripterEnvironment e;
+ *                    try {
+ *                        e = pool.take();
+ *                        e.callMethod("func");
+ *                    } finally {
+ *                        if (e != null) {
+ *                            pool.put( e );
+ *                        }
+ *                    }
+ *              }
+ * </pre>
  * </code>
  * Remember handling of exceptions so ypu always put the environment back into the pool.
  * </p>
  */
 
-//@Singleton
-//@Startup
-@Lock(LockType.READ)
-
+@Singleton
+@Startup
+@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class ScripterPool {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterPool.class);
-
+    private int active_javaScriptPoolSize =5;
 
     @Resource
     SessionContext sessionContext;
 
-    private BlockingQueue<ScripterEnvironment> environments;
+    // Hardcoded Max size of environments
+    private final static int MAX_NUMBER_OF_ENVIROMENTS=100;
+    private final static int MIN_NUMBER_OF_ENVIROMENTS=5;
+
+    // defencive code.. make room for double size of MAX to avoid blocking on put
+    private static final BlockingQueue<ScripterEnvironment> environments=new ArrayBlockingQueue(2 * MAX_NUMBER_OF_ENVIROMENTS);
 
     // replace with atomic int
-    private AtomicInteger initializedEnvironments = new AtomicInteger();
+    private static final AtomicInteger initializedEnvironments = new AtomicInteger();
 
-    // replace with atomic int
-    private AtomicInteger poolSize = new AtomicInteger();
+    private static final AtomicInteger bugxxxx = new AtomicInteger(0);
+
+
 
     /**
      * JNDI settings.
      */
     @Resource(lookup = "updateservice/settings")
     private Properties settings;
-//    @EJB
-//    JNDIBean jndiBean;
-    /**
-     * Asynchronous EJB to create new engines.
-     */
-    @SuppressWarnings("EjbEnvironmentInspection")
-    @EJB
-    ScripterEnvironmentFactory scripterEnvironmentFactory;
 
     public enum Status {
         ST_NA,
@@ -98,76 +95,68 @@ public class ScripterPool {
 
     /**
      * Constructs engines for a pool in separate threads.
-     * <p>
-     * The return value from {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}
-     * is not used since the pool is parsed to {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()}.
-     * {@link dk.dbc.updateservice.javascript.ScripterEnvironmentFactory.newEnvironment()} will add the new engine to the pool then it
-     * is created.
-     * </p>
      */
     // changed name to postconstruct
     @PostConstruct
-    //@PreDestroy
     public void postConstruct() {
-//        try {
-//            Thread.sleep(5000);
-//        } catch (InterruptedException e) {
-//            // hack to circumvent the lazy load of ejbs.
-//            logger.error("sleep failed : ");
-//            logger.catching(e);
-//            System.exit(-1);
-//        }
+
+        logger.error("bugxx  unlocked {} ", bugxxxx.get());
+        synchronized ( bugxxxx ) {
+            logger.error("bugxx   {} ", bugxxxx.get());
+            if( bugxxxx.get() > 0  ) {
+                bugxxxx.incrementAndGet();
+                logger.error("Ups.. postConstruct called multiple time on Singleton "+ScripterPool.class.getName()+" .. ignoring");
+                return;
+            }
+        }
+
+
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
 
-            poolSize.getAndSet(Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY)));
-            logger.info("Pool size: {}", poolSize);
+            int javaScriptPoolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+
+            if( javaScriptPoolSize < MIN_NUMBER_OF_ENVIROMENTS ) javaScriptPoolSize = MIN_NUMBER_OF_ENVIROMENTS;
+            if( javaScriptPoolSize > MAX_NUMBER_OF_ENVIROMENTS ) javaScriptPoolSize = 100;
+
+            logger.info("Pool size: {}", javaScriptPoolSize);
 
 
-            logger.info("mvs system hashcode");
-            logger.info("System.identityHashCode(this) : ", System.identityHashCode(this));
-            logger.info("this.hashCode(): ", this.hashCode());
-            logger.info("this : ", this);
+            active_javaScriptPoolSize =javaScriptPoolSize;
+            final ScripterEnvironmentFactory scripterEnvironmentFactory=new ScripterEnvironmentFactory();
 
-            // added default val of 1
-            if (poolSize.intValue() < 0) {
-                environments = new LinkedBlockingQueue<>(1);
-            } else {
-                environments = new LinkedBlockingQueue<>(poolSize.intValue());
-            }
+            // Not the JAVAEE way...glassfish is broken.
+            // Just start as Daemon Thread
+            // Thread jsInitThreads=managedThreadFactory.newThread(() -> {
+            Thread jsInitThreads=new Thread(() -> {
+                //final XLogger logger = XLoggerFactory.getXLogger("ScripterPool.PostConstruct.InitThread");
+                final XLogger logger = XLoggerFactory.getXLogger(this.getClass());
+                logger.info("Starting Creating {} JS enviroments ", active_javaScriptPoolSize);
+                Profiler profiler = new Profiler("JS init thread");
+                for (int i = 0; i < active_javaScriptPoolSize; i++) {
+                    try {
+                        profiler.start("JS enviroment "+i);
+                        ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
+                        environments.put(scripterEnvironment);
+                        logger.info(" Environment added to ready queue");
+                    } catch (InterruptedException e) {
+                        logger.error("JavaScript Environment creation failed ", e);
+                        e.printStackTrace();
+                    } catch (ScripterException e) {
+                        logger.error("JavaScript Environment creation failed ", e);
+                        e.printStackTrace();
+                    } finally {
 
-            try {
-                // This "ugly hack" (the javaee way) is done because initializeJavascriptEnvironments needs to be called asynchnous
-                ScripterPool scripterPool = InitialContext.doLookup("java:global/updateservice-1.0-SNAPSHOT/ScripterPool");
-
-                scripterPool.initializeJavascriptEnvironments();
-            } catch (NamingException e) {
-                logger.catching(XLogger.Level.ERROR, e);
-                throw new EJBException("Updateservice could not initialize Javascript environments", e);
-            }
-            logger.info("Started creating {} javascript environments", poolSize);
-        } finally {
-            logger.exit();
-        }
-    }
-
-    @Asynchronous
-    public void initializeJavascriptEnvironments() {
-        logger.entry(poolSize);
-        try {
-            for (int i = 0; i < poolSize.get(); i++) {
-                logger.info("Starting javascript environments factory: {}", i + 1);
-                try {
-                    logger.error("mvs initializeJavascriptEnvironments 1# ");
-                    logger.error("mvs initializeJavascriptEnvironments settings ", settings);
-                    ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
-                    logger.error("mvs initializeJavascriptEnvironments 2# ");
-                    put(scripterEnvironment);
-                } catch (InterruptedException | ScripterException ex) {
-                    logger.error(ex.getMessage(), ex);
+                        logger.error("Finally");
+                    }
                 }
-            }
+
+                logger.info("JS init thread done:\n{}",profiler.stop());
+            });
+
+            jsInitThreads.setDaemon( true );
+            jsInitThreads.start();
         } finally {
             logger.exit();
         }
@@ -185,19 +174,12 @@ public class ScripterPool {
     public ScripterEnvironment take() throws InterruptedException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        int queueSize = -1;
 
         try {
-            if (initializedEnvironments.get() == 0) {
-                return null;
-            }
-            queueSize = environments.size();
-            logger.info("Take environment from queue with size: {}", queueSize);
-            logger.info("initializedEnvironments : ", initializedEnvironments);
-            logger.info("environments: ", environments);
+            logger.info("Take environment from queue with size: {}", environments.size());
             return environments.take();
         } finally {
-            watch.stop("javascript.env.take." + queueSize);
+            watch.stop("javascript.env.take." );
             logger.exit();
         }
     }
@@ -215,41 +197,11 @@ public class ScripterPool {
      */
     public void put(ScripterEnvironment environment) throws InterruptedException {
         logger.entry();
-        //StopWatch watch = new Log4JStopWatch("javascript.env.put");
+        StopWatch watch = new Log4JStopWatch("javascript.env.put");
         try {
-            if (initializedEnvironments.get() < poolSize.get()) {
-                logger.debug("Put new environment into the pool");
-                logger.debug("Added timeout");
-                boolean result = environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
-                logger.debug("timeout result: " + result);
-//                environments.put(environment);
-                initializedEnvironments.getAndAdd(1);
-
-                logger.info("initializedEnvironments : ", initializedEnvironments);
-                logger.info("poolsize : ", poolSize);
-
-                logger.info("are we null");
-                if (initializedEnvironments.intValue() == 0) {
-                    logger.info("initializedEnvironments == 0");
-                }
-                if (poolSize.intValue() == 0) {
-                    logger.info("poolSize == 0 ");
-                }
-
-                if (initializedEnvironments.intValue() == poolSize.intValue()) {
-                    logger.info("initializedEnvironments : ", initializedEnvironments);
-                    logger.info("poolsize : ", poolSize);
-                    logger.info("ScripterPool is initialized and ready to be used!");
-                }
-            } else {
-                logger.debug("Put environment back into the pool");
-                logger.debug("Added timeout");
-                boolean result = environments.offer(environment, 1000,TimeUnit.MILLISECONDS);
-                logger.debug("timeout result: " + result);
-//                environments.put(environment);
-            }
+            environments.put( environment );
         } finally {
-          //  watch.stop();
+            watch.stop();
             logger.exit();
         }
     }
@@ -257,7 +209,7 @@ public class ScripterPool {
     public Status getStatus() {
         if (initializedEnvironments.intValue() == 0) {
             return Status.ST_NA;
-        } else if (initializedEnvironments.intValue() < poolSize.intValue()) {
+        } else if (initializedEnvironments.intValue() < active_javaScriptPoolSize) {
             return Status.ST_CREATE_ENVS;
         } else {
             return Status.ST_OK;
