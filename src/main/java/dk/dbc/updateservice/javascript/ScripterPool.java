@@ -139,6 +139,7 @@ public class ScripterPool {
                         profiler.start("JS enviroment "+i);
                         ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
                         environments.put(scripterEnvironment);
+                        initializedEnvironments.incrementAndGet();
                         logger.info(" Environment added to ready queue");
                     } catch (InterruptedException e) {
                         logger.error("JavaScript Environment creation failed ", e);

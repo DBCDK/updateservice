@@ -30,9 +30,8 @@ public class StatusService {
         logger.entry();
         String res = null;
         try {
-            //res = scripterPool.getStatus().toString();
-            res ="ST_OK";
-            return Response.ok("ST_OK", MediaType.TEXT_PLAIN).build();
+            res = scripterPool.getStatus().toString();
+            return Response.ok(res, MediaType.TEXT_PLAIN).build();
         } finally {
             logger.exit(res);
         }
