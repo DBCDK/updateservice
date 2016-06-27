@@ -1,20 +1,15 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.update;
 
-//-----------------------------------------------------------------------------
-
-import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
-import dk.dbc.iscrum.utils.Exceptions;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.openagency.client.*;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -22,7 +17,8 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.*;
+import javax.ejb.EJB;
+import javax.ejb.Stateful;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
@@ -37,26 +33,49 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
-//-----------------------------------------------------------------------------
-
 /**
  * EJB to provide access to the RawRepo database.
  */
 @Stateful
 public class RawRepo {
-    //-------------------------------------------------------------------------
-    //              Types
-    //-------------------------------------------------------------------------
+    public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
+    public static final Integer COMMON_LIBRARY = 191919;
+    public static final Integer SCHOOL_COMMON_AGENCY = 300000;
+    public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
+    public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
+
+    /**
+     * Logger instance to write entries to the log files.
+     */
+    private static XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
+    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+
+    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    private Properties settings;
+
+    @Resource(name = JNDIResources.RAWREPO_CACHE_EXECUTOR_SERVICE)
+    ManagedExecutorService openAgencyExecutor;
+
+    @EJB
+    OpenAgencyService openAgency;
+
+    /**
+     * Injected DataSource to read from the rawrepo database.
+     */
+    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_READONLY_NAME)
+    private DataSource dataSourceReader;
+
+    /**
+     * Injected DataSource to write to the rawrepo database.
+     */
+    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_WRITABLE_NAME)
+    private DataSource dataSourceWriter;
 
     public enum RecordType {
         COMMON_TYPE,
         ENRICHMENT_TYPE,
         LOCAL_TYPE
     }
-
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
 
     public RawRepo() {
         this.dataSourceReader = null;
@@ -67,10 +86,6 @@ public class RawRepo {
         this.dataSourceReader = dataSourceReader;
         this.dataSourceWriter = dataSourceWriter;
     }
-
-    //-------------------------------------------------------------------------
-    //              Business logic
-    //-------------------------------------------------------------------------
 
     /**
      * Returns a Set of local agencies for a record.
@@ -491,10 +506,6 @@ public class RawRepo {
         }
     }
 
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
-
     /**
      * Constructs a RawRepoDAO to access the rawrepo database.
      *
@@ -590,47 +601,4 @@ public class RawRepo {
             logger.exit();
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Constants
-    //-------------------------------------------------------------------------
-
-    public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
-    public static final Integer COMMON_LIBRARY = 191919;
-    public static final Integer SCHOOL_COMMON_AGENCY = 300000;
-    public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
-    public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    /**
-     * Logger instance to write entries to the log files.
-     */
-    private static XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
-    private Properties settings;
-
-    @Resource(name = JNDIResources.RAWREPO_CACHE_EXECUTOR_SERVICE)
-    ManagedExecutorService openAgencyExecutor;
-
-    @EJB
-    OpenAgencyService openAgency;
-
-    /**
-     * Injected DataSource to read from the rawrepo database.
-     */
-    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_READONLY_NAME)
-    private DataSource dataSourceReader;
-
-    /**
-     * Injected DataSource to write to the rawrepo database.
-     */
-    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_WRITABLE_NAME)
-    private DataSource dataSourceWriter;
-
-
 }
