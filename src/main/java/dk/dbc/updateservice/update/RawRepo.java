@@ -482,7 +482,7 @@ public class RawRepo {
             StringWriter recData = new StringWriter();
             marshaller.marshal(jAXBElement, recData);
 
-            logger.info("Marshelled record: {}", recData.toString());
+            logger.info("Marshalled record: {}", recData.toString());
             result = recData.toString().getBytes("UTF-8");
 
             return result;

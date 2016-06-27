@@ -56,7 +56,7 @@ public class RawRepoEncoder {
             StringWriter recData = new StringWriter();
             marshaller.marshal( jAXBElement, recData );
 
-            logger.info( "Marshelled record: {}", recData.toString() );
+            logger.info( "Marshalled record: {}", recData.toString() );
             result = recData.toString().getBytes( ENCODING );
 
             return result;
