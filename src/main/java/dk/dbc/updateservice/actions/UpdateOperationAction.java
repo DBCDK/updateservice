@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
@@ -23,9 +20,12 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
-
-//-----------------------------------------------------------------------------
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -219,10 +219,10 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
-            AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(this.record);
-            authenticateRecordAction.setAuthenticator(this.authenticator);
-            authenticateRecordAction.setAuthentication(this.authentication);
-            this.children.add(authenticateRecordAction);
+            AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(record);
+            authenticateRecordAction.setAuthenticator(authenticator);
+            authenticateRecordAction.setAuthentication(authentication);
+            children.add(authenticateRecordAction);
 
             MarcRecordReader updReader = new MarcRecordReader(record);
             String updRecordId = updReader.recordId();
@@ -254,7 +254,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                         return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
                     }
                     UpdateCommonRecordAction action = new UpdateCommonRecordAction(rawRepo, rec);
-                    action.setGroupId(Integer.valueOf(this.authentication.getGroupIdAut(), 10));
+                    action.setGroupId(Integer.valueOf(authentication.getGroupIdAut(), 10));
                     action.setRecordsHandler(recordsHandler);
                     action.setOpenAgencyService(openAgencyService);
                     action.setSolrService(solrService);
@@ -271,9 +271,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                     children.add(action);
                 } else {
-                    if (commonRecordExists(records, rec) &&
-                            (agencyId.equals(RawRepo.COMMON_LIBRARY) ||
-                                    openAgencyService.hasFeature(this.authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
+                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
                         UpdateEnrichmentRecordAction action;
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             action = new UpdateSchoolEnrichmentRecordAction(rawRepo, rec);
@@ -300,10 +298,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             bizLogger.info("isDBC ?:{}", updReader.isDBCRecord());
             bizLogger.info("rawr exist ?:{}", rawRepo.recordExists(updRecordId, updAgencyId));
             bizLogger.info("ag id ?:{}", updAgencyId);
-            bizLogger.info("what if ?:{}", !updReader.markedForDeletion() && !updReader.isDBCRecord() &&
-                    !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-            if (!updReader.markedForDeletion() && !updReader.isDBCRecord() &&
-                    !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+            bizLogger.info("what if ?:{}", !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY));
+            if (!updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                 bizLogger.info("DONDERKOPF");
                 DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction(record);
                 doubleRecordCheckingAction.setSettings(settings);
@@ -444,5 +440,4 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             return result;
         }
     }
-
 }

@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.ws;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -17,7 +14,6 @@ import org.w3c.dom.Node;
 import javax.xml.transform.dom.DOMSource;
 import java.util.List;
 
-//-----------------------------------------------------------------------------
 /**
  * Helper class to read the contents of an {@link UpdateRecordRequest}
  * <p>
@@ -40,9 +36,26 @@ import java.util.List;
  * @author stp
  */
 public class UpdateRequestReader {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
+    /**
+     * Defines SRU constant for the RecordSchema tag to accept marcxchange
+     * 1.1.
+     */
+    private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
+
+    /**
+     * Defines SRU constant for the RecordPacking tag to accept xml.
+     */
+    private static final String RECORD_PACKING_XML = "xml";
+
+    /**
+     * Logger instance to write entries to the log files.
+     */
+    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
+
+    /**
+     * Request instance to read informations from.
+     */
+    private final UpdateRecordRequest request;
 
     /**
      * Constructs an instance with a {@link UpdateRecordRequest}
@@ -55,10 +68,6 @@ public class UpdateRequestReader {
         logger.exit();
     }
         
-    //-------------------------------------------------------------------------
-    //              Public interface
-    //-------------------------------------------------------------------------
-
     /**
      * Returns the user id in the request.
      *
@@ -284,29 +293,4 @@ public class UpdateRequestReader {
             logger.exit( result );
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    /**
-     * Defines SRU constant for the RecordSchema tag to accept marcxchange
-     * 1.1.
-     */
-    private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
-
-    /**
-     * Defines SRU constant for the RecordPacking tag to accept xml.
-     */
-    private static final String RECORD_PACKING_XML = "xml";
-    
-    /**
-     * Logger instance to write entries to the log files.
-     */
-    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-    
-    /**
-     * Request instance to read informations from.
-     */
-    private final UpdateRecordRequest request;
 }
