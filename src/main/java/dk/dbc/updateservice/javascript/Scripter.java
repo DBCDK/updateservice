@@ -1,14 +1,11 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.javascript;
 
-//-----------------------------------------------------------------------------
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 
-//-----------------------------------------------------------------------------
 /**
  * Scripter EJB to execute a JavaScript function and returns the result from
  * the engine.
@@ -16,75 +13,64 @@ import javax.ejb.Stateless;
 @Stateless
 public class Scripter {
 
-    private static final XLogger logger = XLoggerFactory.getXLogger( Scripter.class );
+    private static final XLogger logger = XLoggerFactory.getXLogger(Scripter.class);
 
-//    private ScripterPool pool;
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private ScripterPool pool;
 
     /**
      * Calls a function in a JavaScript environment and returns the result.
      * <p>
-     *     A JavaScript engine is obtained from the singleton ScripterPool. After
-     *     execution it is returned to the pool. We want for an engine to be
-     *     available if the pool is empty.
+     * A JavaScript engine is obtained from the singleton ScripterPool. After
+     * execution it is returned to the pool. We want for an engine to be
+     * available if the pool is empty.
      * <p/>
      * <p>
-     *     The engine is always returned to the pool, even in case of JavaScript
-     *     exceptions.
+     * The engine is always returned to the pool, even in case of JavaScript
+     * exceptions.
      * </p>
      *
      * @param methodName Name of the function to call.
      * @param args       Arguments to the function.
-     *
      * @return The result of the JavaScript function.
-     *
      * @throws ScripterException Encapsulate any exception from the JavaScript engine or
-     *         is throwned in case of an error.
+     *                           is throwned in case of an error.
      */
-    public Object callMethod( String methodName, Object... args ) throws ScripterException {
-        logger.entry( methodName, args );
+    public Object callMethod(String methodName, Object... args) throws ScripterException {
+        logger.entry(methodName, args);
 
         Object result = null;
         ScripterEnvironment environment = null;
         try {
-            logger.debug( "Take scripter environment from pool" );
+            logger.debug("Take scripter environment from pool");
             environment = pool.take();
 
-            logger.debug( "Call function: '{}'", methodName );
-            result = environment.callMethod( methodName, args );
+            logger.debug("Call function: '{}'", methodName);
+            result = environment.callMethod(methodName, args);
 
             return result;
-        }
-        catch( Exception ex ) {
+        } catch (Exception ex) {
             logger.error("message : " + ex.getMessage());
             logger.error(String.valueOf(ex));
             logger.catching(ex);
             ex.printStackTrace();
-            throw new ScripterException( ex.getMessage(), ex );
-        }
-        finally {
+            throw new ScripterException(ex.getMessage(), ex);
+        } finally {
             try {
                 // 'environment' will be null if we where unable to take it from the scripter pool.
                 // If that is the case we do not want to put null back into the pool.
-                if( environment != null ) {
-                    logger.debug( "Put scripter environment back to the pool" );
-                    pool.put( environment );
+                if (environment != null) {
+                    logger.debug("Put scripter environment back to the pool");
+                    pool.put(environment);
                 }
-            }
-            catch( InterruptedException ex ) {
+            } catch (InterruptedException ex) {
                 logger.error("message : " + ex.getMessage());
                 ex.printStackTrace();
-                throw new ScripterException( ex.getMessage(), ex );
+                throw new ScripterException(ex.getMessage(), ex);
             }
 
-            logger.exit( result );
+            logger.exit(result);
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-
 }

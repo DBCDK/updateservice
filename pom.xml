@@ -50,9 +50,6 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- ************************************************************* -->
-        <!-- Java EE                                                       -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-api</artifactId>
@@ -70,18 +67,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- Updateservice                                                 -->
-        <!-- ************************************************************* -->
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>updateservice-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- ************************************************************* -->
-        <!-- iScrum Commons                                                -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>dk.dbc.iscrum</groupId>
             <artifactId>iscrum-records</artifactId>
@@ -93,9 +78,6 @@
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- DBC                                                           -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-access</artifactId>
@@ -116,10 +98,6 @@
             <artifactId>openagency-ws-client</artifactId>
             <version>2.26-SNAPSHOT</version>
         </dependency>
-
-        <!-- ************************************************************* -->
-        <!-- DBC JsLib                                                     -->
-        <!-- ************************************************************* -->
 
         <dependency>
             <groupId>dk.dbc</groupId>
@@ -146,9 +124,6 @@
             <artifactId>jscommon</artifactId>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- Perf4j                                                        -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>org.perf4j</groupId>
             <artifactId>perf4j</artifactId>
@@ -156,27 +131,18 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- Apache Jackson                                                -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>1.9.11</version>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- Java Mail                                                     -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.5.0</version>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- Logging                                                       -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-ext</artifactId>
@@ -192,9 +158,6 @@
             <version>1.7.7</version>
         </dependency>
 
-        <!-- ************************************************************* -->
-        <!-- JUnit                                                         -->
-        <!-- ************************************************************* -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -316,6 +279,23 @@
                             <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-forsrights</id>
+                        <phase>generate-sources</phase>
+                    </execution>
+
+                    <execution>
+                        <goals>
+                            <goal>wsimport</goal>
+                        </goals>
+                        <configuration>
+                            <wsdlFiles>
+                                <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
+                            </wsdlFiles>
+                            <wsdlLocation>META-INF/wsdl/update/catalogingUpdate.wsdl</wsdlLocation>
+                            <wsdlDirectory>${basedir}/src/wsdl/update</wsdlDirectory>
+                            <packageName>dk.dbc.updateservice.service.api</packageName>
+                            <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
+                        </configuration>
+                        <id>wsimport-generate-catalogingUpdate</id>
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>

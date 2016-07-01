@@ -104,8 +104,6 @@ public class UpdateService implements CatalogingUpdatePortType {
      */
     public static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
 
-//    private ResourceBundle messages;
-
     @SuppressWarnings("EjbEnvironmentInspection")
     @Resource
     WebServiceContext wsContext;
@@ -162,12 +160,10 @@ public class UpdateService implements CatalogingUpdatePortType {
     @PostConstruct
     public void init() {
         logger.entry();
-
         try {
             if (recordsHandler == null) {
                 this.recordsHandler = new LibraryRecordsHandler(scripter);
             }
-//            this.messages = ResourceBundles.getBundle(this, "messages");
         } catch (MissingResourceException ex) {
             logger.error("Unable to load resource", ex);
         } finally {
@@ -195,7 +191,6 @@ public class UpdateService implements CatalogingUpdatePortType {
     @Override
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         StopWatch watch = new Log4JStopWatch();
-        UUID prefixId = UUID.randomUUID();
 
         if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
             MessageContext messageContext = wsContext.getMessageContext();
@@ -208,13 +203,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             }
         }
 
-        MDC.put(REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
-        MDC.put(PREFIX_ID_LOG_CONTEXT, prefixId.toString());
-        String trackingId = prefixId.toString();
-        if (updateRecordRequest.getTrackingId() != null) {
-            trackingId = updateRecordRequest.getTrackingId();
-        }
-        MDC.put(TRACKING_ID_LOG_CONTEXT, trackingId);
+        logMdcUpdateMethodEntry(updateRecordRequest);
 
         logger.entry(updateRecordRequest);
 
@@ -227,14 +216,7 @@ public class UpdateService implements CatalogingUpdatePortType {
             logger.info("MDC: " + MDC.getCopyOfContextMap());
             logger.info("Request tracking id: " + updateRecordRequest.getTrackingId());
 
-            action = new UpdateRequestAction(rawRepo, updateRecordRequest, wsContext);
-            action.setHoldingsItems(holdingsItems);
-            action.setOpenAgencyService(openAgencyService);
-            action.setSolrService(solrService);
-            action.setRecordsHandler(recordsHandler);
-            action.setAuthenticator(authenticator);
-            action.setScripter(scripter);
-            action.setSettings(settings);
+            action = createUpdateRequestAction(updateRecordRequest);
 
             engine = new ServiceEngine();
             engine.setLoggerKeys(MDC.getCopyOfContextMap());
@@ -258,23 +240,50 @@ public class UpdateService implements CatalogingUpdatePortType {
             writer = convertUpdateErrorToResponse(ex, UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR);
             return result = writer.getResponse();
         } finally {
-            if (engine != null) {
-                bizLogger.info("");
-                bizLogger.info("Executed action:");
-                engine.printActions(action);
-            }
-
-            bizLogger.info("");
-            String watchTag = "request.updaterecord";
-            if (action != null && action.hasValidateOnlyOption()) {
-                watchTag += ".validate";
-            } else {
-                watchTag += ".update";
-            }
-            watch.stop(watchTag);
-            bizLogger.exit(result);
-            MDC.clear();
+            updateServiceFinallyClenaup(watch, action, engine, result);
         }
+    }
+
+    private void logMdcUpdateMethodEntry(UpdateRecordRequest updateRecordRequest) {
+        UUID prefixId = UUID.randomUUID();
+        MDC.put(REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
+        MDC.put(PREFIX_ID_LOG_CONTEXT, prefixId.toString());
+        String trackingId = prefixId.toString();
+        if (updateRecordRequest.getTrackingId() != null) {
+            trackingId = updateRecordRequest.getTrackingId();
+        }
+        MDC.put(TRACKING_ID_LOG_CONTEXT, trackingId);
+    }
+
+    private UpdateRequestAction createUpdateRequestAction(UpdateRecordRequest updateRecordRequest) {
+        UpdateRequestAction action = new UpdateRequestAction(rawRepo, updateRecordRequest, wsContext);
+        action.setHoldingsItems(holdingsItems);
+        action.setOpenAgencyService(openAgencyService);
+        action.setSolrService(solrService);
+        action.setRecordsHandler(recordsHandler);
+        action.setAuthenticator(authenticator);
+        action.setScripter(scripter);
+        action.setSettings(settings);
+        return action;
+    }
+
+    private void updateServiceFinallyClenaup(StopWatch watch, UpdateRequestAction action, ServiceEngine engine, UpdateRecordResult result) {
+        if (engine != null) {
+            bizLogger.info("");
+            bizLogger.info("Executed action:");
+            engine.printActions(action);
+        }
+
+        bizLogger.info("");
+        String watchTag = "request.updaterecord";
+        if (action != null && action.hasValidateOnlyOption()) {
+            watchTag += ".validate";
+        } else {
+            watchTag += ".update";
+        }
+        watch.stop(watchTag);
+        bizLogger.exit(result);
+        MDC.clear();
     }
 
     /**
