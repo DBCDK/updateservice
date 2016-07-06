@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -360,7 +361,11 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 rawRepoAgencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
             }
 
-            if (!rawRepo.children(new RecordId(recordId, rawRepoAgencyId)).isEmpty()) {
+            RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
+            logger.debug("UpdateOperationAction.checkRecordForUpdatability().newRecordId: " + newRecordId);
+            Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
+            logger.debug("UpdateOperationAction.checkRecordForUpdatability().recordIdSet: " + recordIdSet);
+            if (!recordIdSet.isEmpty()) {
                 String message = String.format(messages.getString("delete.record.children.error"), recordId);
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
             }
