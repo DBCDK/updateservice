@@ -17,6 +17,8 @@ import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.List;
+
 //-----------------------------------------------------------------------------
 
 /**

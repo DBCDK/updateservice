@@ -92,26 +92,20 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         ServiceResult res = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
-            bizLogger.info("mvs 1#");
 
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String parentId = reader.parentId();
             if (reader.markedForDeletion()) {
-                bizLogger.info("mvs 2#");
                 if (parentId == null) {
-                    bizLogger.info("mvs 3#");
                     return res = performSingleDeleteAction();
                 }
-                bizLogger.info("mvs 4#");
                 return res = performVolumeDeleteAction();
             }
 
             if (parentId == null) {
-                bizLogger.info("mvs 5#");
                 return res = performUpdateSingleRecordAction();
             }
 
-            bizLogger.info("mvs 6#");
             return res = performUpdateVolumeRecordAction(parentId);
         } finally {
             logger.exit(res);

@@ -11,7 +11,7 @@ import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-//-----------------------------------------------------------------------------
+//------------------------------------½-----------------------------------------
 
 /**
  * Updates the classifications in a enrichment record from the classifications

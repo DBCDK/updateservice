@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 //-----------------------------------------------------------------------------
 public class CreateEnrichmentRecordWithClassificationsActionTest {
     /**
-     * Test CreateEnrichmentRecordAction.performAction(): Create enrichment record.
+     * Test CreateEnrichmentRecordActionForlinkedRecords.performAction(): Create enrichment record.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -106,7 +106,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
     }
 
     /**
-     * Test CreateEnrichmentRecordAction.performAction(): Create enrichment record.
+     * Test CreateEnrichmentRecordActionForlinkedRecords.performAction(): Create enrichment record.
      *
      * <dl>
      *      <dt>Given</dt>
@@ -182,7 +182,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
     }
 
     /**
-     * Test CreateEnrichmentRecordAction.performAction(): Create enrichment record.
+     * Test CreateEnrichmentRecordActionForlinkedRecords.performAction(): Create enrichment record.
      *
      * <dl>
      *      <dt>Given</dt>
