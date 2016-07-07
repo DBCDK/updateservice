@@ -69,6 +69,7 @@ public class HoldingsItems {
 
     public Set<Integer> getAgenciesThatHasHoldingsForId( String recordId ) throws UpdateException {
         logger.entry( recordId );
+        logger.info( "getAgenciesThatHasHoldingsForId : " + recordId );
         StopWatch watch = new Log4JStopWatch();
 
         Set<Integer> result = new HashSet<>();

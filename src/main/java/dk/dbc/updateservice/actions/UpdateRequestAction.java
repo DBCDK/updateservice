@@ -492,6 +492,7 @@ public class UpdateRequestAction extends AbstractAction {
             bizLogger.info("Content length: {}", req.getContentLengthLong());
             bizLogger.info("URI: {}", req.getRequestURI());
             bizLogger.info("Client address: {}", req.getRemoteAddr());
+            // This takes 5 seconds ??
             bizLogger.info("Client host: {}", req.getRemoteHost());
             bizLogger.info("Client port: {}", req.getRemotePort());
             bizLogger.info("Headers");
