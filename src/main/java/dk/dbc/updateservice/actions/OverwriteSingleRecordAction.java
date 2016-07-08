@@ -3,40 +3,23 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
-import dk.dbc.updateservice.update.SolrService;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.*;
 
-/**
- * Created by stp on 10/08/15.
- */
-public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
+class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
@@ -73,7 +56,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     private Properties settings;
 
-    public OverwriteSingleRecordAction(RawRepo rawRepo, MarcRecord record) {
+    OverwriteSingleRecordAction(RawRepo rawRepo, MarcRecord record) {
         super("OverwriteSingleRecordAction", rawRepo, record);
         this.groupId = null;
         this.holdingsItems = null;
@@ -161,7 +144,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
+    MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
         MarcRecord result = null;
         try {
@@ -187,7 +170,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
+    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
         logger.entry(currentRecord);
         List<ServiceAction> result = new ArrayList<>();
         try {
@@ -340,7 +323,7 @@ public class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
 
-    protected ServiceResult performActionsFor002Links() throws ScripterException, UpdateException, UnsupportedEncodingException {
+    ServiceResult performActionsFor002Links() throws ScripterException, UpdateException, UnsupportedEncodingException {
         logger.entry();
 
         ServiceResult result = ServiceResult.newOkResult();
