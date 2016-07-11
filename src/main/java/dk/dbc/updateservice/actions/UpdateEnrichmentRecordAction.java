@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
@@ -19,18 +16,28 @@ import org.slf4j.ext.XLoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.ResourceBundle;
 
-//-----------------------------------------------------------------------------
 /**
  * Action to update an enrichment record.
  * <p>
- *     This action does not actual update the enrichment record, but creates child
- *     actions to do the actual update. The record is checked for integrity so
- *     the data model is not violated.
+ * This action does not actual update the enrichment record, but creates child
+ * actions to do the actual update. The record is checked for integrity so
+ * the data model is not violated.
  * </p>
  */
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
-    public UpdateEnrichmentRecordAction( RawRepo rawRepo, MarcRecord record ) {
-        super( "UpdateEnrichmentRecordAction", rawRepo, record );
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
+
+    private RawRepoDecoder decoder;
+    private LibraryRecordsHandler recordsHandler;
+    private HoldingsItems holdingsItems;
+    private SolrService solrService;
+    private String providerId;
+    private ResourceBundle messages;
+
+    public UpdateEnrichmentRecordAction(RawRepo rawRepo, MarcRecord record) {
+        super("UpdateEnrichmentRecordAction", rawRepo, record);
 
         this.decoder = new RawRepoDecoder();
         this.recordsHandler = null;
@@ -38,10 +45,10 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         this.solrService = null;
         this.providerId = null;
 
-        this.messages = ResourceBundles.getBundle( this, "actions" );
+        this.messages = ResourceBundles.getBundle(this, "actions");
     }
 
-    public void setDecoder( RawRepoDecoder decoder ) {
+    public void setDecoder(RawRepoDecoder decoder) {
         this.decoder = decoder;
     }
 
@@ -49,7 +56,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         return recordsHandler;
     }
 
-    public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
+    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
         this.recordsHandler = recordsHandler;
     }
 
@@ -57,7 +64,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         return holdingsItems;
     }
 
-    public void setHoldingsItems( HoldingsItems holdingsItems ) {
+    public void setHoldingsItems(HoldingsItems holdingsItems) {
         this.holdingsItems = holdingsItems;
     }
 
@@ -65,7 +72,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         return solrService;
     }
 
-    public void setSolrService( SolrService solrService ) {
+    public void setSolrService(SolrService solrService) {
         this.solrService = solrService;
     }
 
@@ -73,34 +80,33 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         return providerId;
     }
 
-    public void setProviderId( String providerId ) {
+    public void setProviderId(String providerId) {
         this.providerId = providerId;
     }
 
     /**
      * Constructs child actions to update or delete the enrichment record.
      * <p>
-     *     An enrichment record is updated as follows:
-     *     <ol>
-     *         <li>
-     *             If it is marked for deletion when creates actions for
-     *             deletion and return.
-     *         </li>
-     *         <li>
-     *             Correct classification data in the enrichment record from
-     *             the common record. If the record is empty then create child
-     *             actions for deletion and return.
-     *         </li>
-     *         <li>
-     *             Create child actions to save the enrichment record in rawrepo.
-     *         </li>
-     *     </ol>
+     * An enrichment record is updated as follows:
+     * <ol>
+     * <li>
+     * If it is marked for deletion when creates actions for
+     * deletion and return.
+     * </li>
+     * <li>
+     * Correct classification data in the enrichment record from
+     * the common record. If the record is empty then create child
+     * actions for deletion and return.
+     * </li>
+     * <li>
+     * Create child actions to save the enrichment record in rawrepo.
+     * </li>
+     * </ol>
      * </p>
      * <b>Note:</b> This implementation assumes that the common record exists in
      * rawrepo so the record being updated or deleted is an enrichment record.
      *
      * @return Service result with OK.
-     *
      * @throws UpdateException In case of an error.
      */
     @Override
@@ -108,58 +114,56 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            bizLogger.info( "Handling record:\n{}", record );
+            bizLogger.info("Handling record:\n{}", record);
 
-            MarcRecordReader reader = new MarcRecordReader( record );
-            if( reader.markedForDeletion() ) {
+            MarcRecordReader reader = new MarcRecordReader(record);
+            if (reader.markedForDeletion()) {
                 return performDeletionAction();
             }
 
             String recordId = reader.recordId();
 
             String parentId = reader.parentId();
-            if( parentId != null && !parentId.isEmpty() ) {
+            if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
-                String message = String.format( messages.getString( "enrichment.has.parent" ), recordId, agencyId );
+                String message = String.format(messages.getString("enrichment.has.parent"), recordId, agencyId);
 
-                bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
             }
 
-            if( !rawRepo.recordExists( recordId, commonRecordAgencyId() ) ) {
-                String message = String.format( messages.getString( "record.does.not.exist" ), recordId );
+            if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
+                String message = String.format(messages.getString("record.does.not.exist"), recordId);
 
-                bizLogger.warn( "Unable to update enrichment record doing to an error: {}", message );
-                return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
             }
 
-            if( !rawRepo.recordExists( recordId, reader.agencyIdAsInteger() ) ) {
-                if( solrService.hasDocuments( SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", reader.recordId() ) ) ) {
-                    String message = messages.getString( "update.record.with.002.links" );
+            if (!rawRepo.recordExists(recordId, reader.agencyIdAsInteger())) {
+                if (solrService.hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
+                    String message = messages.getString("update.record.with.002.links");
 
-                    bizLogger.error( "Unable to create sub actions due to an error: {}", message );
-                    return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                    bizLogger.error("Unable to create sub actions due to an error: {}", message);
+                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
                 }
             }
 
-            Record commonRecord = rawRepo.fetchRecord( recordId, commonRecordAgencyId() );
-            MarcRecord enrichmentRecord = recordsHandler.correctLibraryExtendedRecord( decoder.decodeRecord( commonRecord.getContent() ), record );
+            Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
+            MarcRecord enrichmentRecord = recordsHandler.correctLibraryExtendedRecord(decoder.decodeRecord(commonRecord.getContent()), record);
 
-            bizLogger.info( "Correct content of enrichment record." );
-            bizLogger.info( "Old content:\n{}", record );
-            bizLogger.info( "New content:\n{}", enrichmentRecord );
+            bizLogger.info("Correct content of enrichment record.");
+            bizLogger.info("Old content:\n{}", record);
+            bizLogger.info("New content:\n{}", enrichmentRecord);
 
-            if( enrichmentRecord.isEmpty() ) {
+            if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
 
-            return performSaveRecord( enrichmentRecord );
-        }
-        catch( UnsupportedEncodingException | ScripterException ex ) {
-            logger.error( "Update error: " + ex.getMessage(), ex );
-            throw new UpdateException( ex.getMessage(), ex );
-        }
-        finally {
+            return performSaveRecord(enrichmentRecord);
+        } catch (UnsupportedEncodingException | ScripterException ex) {
+            logger.error("Update error: " + ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
             logger.exit();
         }
     }
@@ -168,36 +172,34 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * Creates child actions to update an enrichment record that is not
      * marked for deletion.
      * <p>
-     *     Enrichment records are updated as follows:
-     *     <ol>
-     *         <li>Store the record.</li>
-     *         <li>Link it to the common record.</li>
-     *         <li>Enqueue the record.</li>
-     *     </ol>
+     * Enrichment records are updated as follows:
+     * <ol>
+     * <li>Store the record.</li>
+     * <li>Link it to the common record.</li>
+     * <li>Enqueue the record.</li>
+     * </ol>
      * </p>
      *
      * @return OK.
-     *
      * @throws UpdateException In case of critical errors.
      */
-    private ServiceResult performSaveRecord( MarcRecord enrichmentRecord ) throws UpdateException {
+    private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) throws UpdateException {
         logger.entry();
 
         try {
-            String recordId = new MarcRecordReader( record ).recordId();
+            String recordId = new MarcRecordReader(record).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction( rawRepo, enrichmentRecord );
-            storeRecordAction.setMimetype( MIMETYPE );
-            children.add( storeRecordAction );
+            StoreRecordAction storeRecordAction = new StoreRecordAction(rawRepo, enrichmentRecord);
+            storeRecordAction.setMimetype(MIMETYPE);
+            children.add(storeRecordAction);
 
-            LinkRecordAction linkRecordAction = new LinkRecordAction( rawRepo, enrichmentRecord );
-            linkRecordAction.setLinkToRecordId( new RecordId( recordId, commonRecordAgencyId() ) );
-            children.add( linkRecordAction );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, enrichmentRecord, providerId, MIMETYPE ) );
+            LinkRecordAction linkRecordAction = new LinkRecordAction(rawRepo, enrichmentRecord);
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, commonRecordAgencyId()));
+            children.add(linkRecordAction);
+            children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, enrichmentRecord, providerId, MIMETYPE));
 
             return ServiceResult.newOkResult();
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -206,42 +208,40 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * Creates child actions to update a record that is
      * marked for deletion.
      * <p>
-     *     Records are deleted as follows:
-     *     <ol>
-     *         <li>Remove existing links to other records.</li>
-     *         <li>Store the record and mark it as deleted.</li>
-     *         <li>Enqueue the record.</li>
-     *     </ol>
+     * Records are deleted as follows:
+     * <ol>
+     * <li>Remove existing links to other records.</li>
+     * <li>Store the record and mark it as deleted.</li>
+     * <li>Enqueue the record.</li>
+     * </ol>
      * </p>
      *
      * @return OK.
-     *
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performDeletionAction() throws UpdateException {
         logger.entry();
 
         try {
-            MarcRecordReader reader = new MarcRecordReader( record );
+            MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            if( !rawRepo.recordExists( recordId, agencyId ) ) {
-                bizLogger.info( "The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId );
+            if (!rawRepo.recordExists(recordId, agencyId)) {
+                bizLogger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
                 return ServiceResult.newOkResult();
             }
 
-            bizLogger.info( "Creating sub actions to delete enrichment record successfully" );
-            children.add( new RemoveLinksAction( rawRepo, record ) );
+            bizLogger.info("Creating sub actions to delete enrichment record successfully");
+            children.add(new RemoveLinksAction(rawRepo, record));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction( rawRepo, record );
-            deleteRecordAction.setMimetype( MIMETYPE );
-            children.add( deleteRecordAction );
-            children.add( EnqueueRecordAction.newEnqueueAction( rawRepo, record, providerId, MIMETYPE ) );
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(rawRepo, record);
+            deleteRecordAction.setMimetype(MIMETYPE);
+            children.add(deleteRecordAction);
+            children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, record, providerId, MIMETYPE));
 
             return ServiceResult.newOkResult();
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -249,27 +249,4 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     protected Integer commonRecordAgencyId() {
         return RawRepo.RAWREPO_COMMON_LIBRARY;
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateEnrichmentRecordAction.class );
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
-
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
-
-    private RawRepoDecoder decoder;
-    private LibraryRecordsHandler recordsHandler;
-
-    private HoldingsItems holdingsItems;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
-    private SolrService solrService;
-
-    private String providerId;
-
-    private ResourceBundle messages;
 }
