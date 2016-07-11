@@ -17,57 +17,41 @@ import java.util.List;
 /**
  * Helper class to read the contents of an {@link UpdateRecordRequest}
  * <p>
- * The {@link UpdateRecordRequest} contains the arguments of an updateRecord 
+ * The {@link UpdateRecordRequest} contains the arguments of an updateRecord
  * request of the web service {@link UpdateService#updateRecord(UpdateRecordRequest)}.
  * <p>
  * This class provides helper functions to read informations from the request
- * and will include checks to ensure the information is valid. It can be used 
+ * and will include checks to ensure the information is valid. It can be used
  * like this:
  * <pre>
  *  UpdateRecordRequest request = ...
- * 
+ *
  *  UpdateRequestReader reader = new UpdateRequestReader( request );
  *  if( !reader.isRecordSchemaValid() ) {
  *      throw EJBException( ... );
  *  }
  * </pre>
- * 
- * 
+ *
  * @author stp
  */
 public class UpdateRequestReader {
-    /**
-     * Defines SRU constant for the RecordSchema tag to accept marcxchange
-     * 1.1.
-     */
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestReader.class);
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
-
-    /**
-     * Defines SRU constant for the RecordPacking tag to accept xml.
-     */
     private static final String RECORD_PACKING_XML = "xml";
 
-    /**
-     * Logger instance to write entries to the log files.
-     */
-    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-
-    /**
-     * Request instance to read informations from.
-     */
     private final UpdateRecordRequest request;
 
     /**
      * Constructs an instance with a {@link UpdateRecordRequest}
-     * 
+     *
      * @param request The request structure to read from.
-     */    
-    public UpdateRequestReader( UpdateRecordRequest request ) {
-        logger.entry( request );
+     */
+    public UpdateRequestReader(UpdateRecordRequest request) {
+        logger.entry(request);
         this.request = request;
         logger.exit();
     }
-        
+
     /**
      * Returns the user id in the request.
      *
@@ -83,9 +67,8 @@ public class UpdateRequestReader {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -99,13 +82,12 @@ public class UpdateRequestReader {
         String result = "";
 
         try {
-            if( request.getAuthentication() != null ) {
+            if (request.getAuthentication() != null) {
                 result = request.getAuthentication().getGroupIdAut();
             }
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -119,30 +101,29 @@ public class UpdateRequestReader {
         String result = "****";
 
         try {
-            if( request.getAuthentication() != null ) {
+            if (request.getAuthentication() != null) {
                 return request.getAuthentication().getPasswordAut();
             }
 
             result = "";
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
     /**
      * Checks if the request contains a valid record packing.
      * <p>
-     * The valid record packing is defined by the contant 
+     * The valid record packing is defined by the contant
      * {@link #RECORD_PACKING_XML}
-     * 
-     * @return Returns <code>true</code> if the record packing is equal to 
-     *         {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
+     *
+     * @return Returns <code>true</code> if the record packing is equal to
+     * {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
      */
     public boolean isRecordPackingValid() {
         logger.entry();
-        
+
         boolean result = false;
         try {
             if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordPacking() != null) {
@@ -152,24 +133,23 @@ public class UpdateRequestReader {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
-    
+
     /**
      * Checks if the request contains a valid record scheme.
      * <p>
-     * The valid record scheme is defined by the contant 
+     * The valid record scheme is defined by the contant
      * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}
-     * 
-     * @return Returns <code>true</code> if the record scheme is equal to 
-     *         {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
+     *
+     * @return Returns <code>true</code> if the record scheme is equal to
+     * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
      */
     public boolean isRecordSchemaValid() {
         logger.entry();
-        
+
         boolean result = false;
         try {
             if (request != null && request.getBibliographicRecord() != null && request.getBibliographicRecord().getRecordSchema() != null) {
@@ -179,32 +159,31 @@ public class UpdateRequestReader {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
     public boolean hasValidationOnlyOption() {
         Options options = request.getOptions();
 
-        if( options != null && options.getOption() != null ) {
-            return options.getOption().contains( UpdateOptionEnum.VALIDATE_ONLY );
+        if (options != null && options.getOption() != null) {
+            return options.getOption().contains(UpdateOptionEnum.VALIDATE_ONLY);
         }
 
         return false;
     }
 
     /**
-     * Reads the validation scheme, also known as the template name, of the 
+     * Reads the validation scheme, also known as the template name, of the
      * request.
-     * 
-     * @return The validation scheme if it can be read from the request, the 
-     *         empty string otherwise.
+     *
+     * @return The validation scheme if it can be read from the request, the
+     * empty string otherwise.
      */
     public String readSchemaName() {
         logger.entry();
-        
+
         String result = "";
         try {
             if (request != null) {
@@ -214,20 +193,19 @@ public class UpdateRequestReader {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
     /**
      * Reads the SRU record from the request and returns it.
      * <p>
-     * If the request contains more than one record, then <code>null</code> is 
+     * If the request contains more than one record, then <code>null</code> is
      * returned.
-     * 
+     *
      * @return The found record as a {@link MarcRecord} or <code>null</code>
-     *         if the can not be converted or if no records exists.
+     * if the can not be converted or if no records exists.
      */
     public MarcRecord readRecord() {
         logger.entry();
@@ -251,9 +229,8 @@ public class UpdateRequestReader {
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -264,7 +241,7 @@ public class UpdateRequestReader {
      * returned.
      *
      * @return The found records extra data as a {@link BibliographicRecordExtraData} or <code>null</code>
-     *         if the can not be converted or if no records exists.
+     * if the can not be converted or if no records exists.
      */
     public BibliographicRecordExtraData readRecordExtraData() {
         logger.entry();
@@ -281,16 +258,15 @@ public class UpdateRequestReader {
             if (list != null) {
                 for (Object o : list) {
                     if (o instanceof Node) {
-                        result = BibliographicRecordExtraDataDecoder.fromXml( new DOMSource((Node) o) );
+                        result = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
                         break;
                     }
                 }
             }
 
             return result;
-        }
-        finally {
-            logger.exit( result );
+        } finally {
+            logger.exit(result);
         }
     }
 }

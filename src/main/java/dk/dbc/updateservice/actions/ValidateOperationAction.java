@@ -15,48 +15,13 @@ import java.util.Properties;
  * Action that setup actions to validate a record.
  */
 public class ValidateOperationAction extends AbstractAction {
-    /**
-     * Class to authenticate the user against the forsrights web service.
-     */
     private Authenticator authenticator;
-
-    /**
-     * Authentication members from the request.
-     * <p/>
-     * Group, username and password.
-     */
     private Authentication authentication;
     private WebServiceContext webServiceContext;
-
-    /**
-     * Schema name to use to validate the record.
-     */
     private String validateSchema;
-
-    /**
-     * The record to validate.
-     */
     private MarcRecord record;
-
-    /**
-     * Status to use if the validation succeed without no errors.
-     * <p/>
-     * We use two different statuses for success:
-     * <ul>
-     * <li>UpdateStatusEnum.VALIDATE_ONLY: If we only validates the record.</li>
-     * <li>UpdateStatusEnum.OK: If we updates the record.</li>
-     * </ul>
-     */
     private UpdateStatusEnum okStatus;
-
-    /**
-     * JavaScript engine to execute the validation rules on the record.
-     */
     private Scripter scripter;
-
-    /**
-     * Settings that is required by the JavaScript implementation.
-     */
     private Properties settings;
 
     public ValidateOperationAction() {

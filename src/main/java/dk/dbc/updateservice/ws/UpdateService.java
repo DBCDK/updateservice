@@ -53,23 +53,23 @@ import java.util.UUID;
 
 /**
  * Implements the Update web service.
- *
+ * <p>
  * The web services uses 3 EJB's to implement its functionality:
  * <dl>
- *  <dt>Validator</dt>
- *  <dd>
- *      Validates a record by using an JavaScript engine. This EJB also has
- *      the responsibility to return a list of valid validation schemes.
- *  </dd>
- *  <dt>Updater</dt>
- *  <dd>
- *      Updates a record in the rawrepo.
- *  </dd>
- *  <dt>JSEngine</dt>
- *  <dd>EJB to execute JavaScript.</dd>
+ * <dt>Validator</dt>
+ * <dd>
+ * Validates a record by using an JavaScript engine. This EJB also has
+ * the responsibility to return a list of valid validation schemes.
+ * </dd>
+ * <dt>Updater</dt>
+ * <dd>
+ * Updates a record in the rawrepo.
+ * </dd>
+ * <dt>JSEngine</dt>
+ * <dd>EJB to execute JavaScript.</dd>
  * </dl>
  * Graphically it looks like this:
- *
+ * <p>
  * <img src="doc-files/ejbs.png" alt="ejbs.png">
  *
  * @author stp
@@ -83,26 +83,11 @@ import java.util.UUID;
 @SchemaValidation
 @Stateless
 public class UpdateService implements CatalogingUpdatePortType {
-    /**
-     * Logger instance to write entries to the log files.
-     */
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
-    /**
-     * MDC constant for tackingId in the log files.
-     */
-    public static final String REQUEST_ID_LOG_CONTEXT = "requestId";
-
-    /**
-     * MDC constant for tackingId in the log files.
-     */
-    public static final String PREFIX_ID_LOG_CONTEXT = "prefixId";
-
-    /**
-     * MDC constant for tackingId in the log files.
-     */
-    public static final String TRACKING_ID_LOG_CONTEXT = "trackingId";
+    public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
+    public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
+    public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @Resource
@@ -111,9 +96,6 @@ public class UpdateService implements CatalogingUpdatePortType {
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
-    /**
-     * EJB for authentication.
-     */
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     Authenticator authenticator;
@@ -142,9 +124,6 @@ public class UpdateService implements CatalogingUpdatePortType {
     @EJB
     private ScripterPool scripterPool;
 
-    /**
-     * EJB for record validation.
-     */
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private Validator validator;
@@ -176,16 +155,14 @@ public class UpdateService implements CatalogingUpdatePortType {
      * <p>
      * This operation has 2 uses:
      * <ol>
-     *  <li>Validation of the record only.</li>
-     *  <li>Validation and update of the record</li>
+     * <li>Validation of the record only.</li>
+     * <li>Validation and update of the record</li>
      * </ol>
      * The actual operation is specified in the request by {@link Options}
      *
      * @param updateRecordRequest The request.
-     *
      * @return Returns an instance of UpdateRecordResult with the status of the
-     *         status and result of the update.
-     *
+     * status and result of the update.
      * @throws EJBException in the case of an error.
      */
     @Override
@@ -246,13 +223,13 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     private void logMdcUpdateMethodEntry(UpdateRecordRequest updateRecordRequest) {
         UUID prefixId = UUID.randomUUID();
-        MDC.put(REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
-        MDC.put(PREFIX_ID_LOG_CONTEXT, prefixId.toString());
+        MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
+        MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
         String trackingId = prefixId.toString();
         if (updateRecordRequest.getTrackingId() != null) {
             trackingId = updateRecordRequest.getTrackingId();
         }
-        MDC.put(TRACKING_ID_LOG_CONTEXT, trackingId);
+        MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
 
     private UpdateRequestAction createUpdateRequestAction(UpdateRecordRequest updateRecordRequest) {
@@ -288,15 +265,13 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     /**
      * WS operation to return a list of validation schemes.
-     *
+     * <p>
      * The actual lookup of validation schemes is done by the Validator EJB
      * ({@link Validator#getValidateSchemas ()})
      *
      * @param getValidateSchemasRequest The request.
-     *
      * @return Returns an instance of GetValidateSchemasResult with the list of
-     *         validation schemes.
-     *
+     * validation schemes.
      * @throws EJBException In case of an error.
      */
     @Override
@@ -304,7 +279,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
         try {
 
-            MDC.put(TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId());
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId());
 
             logger.entry(getValidateSchemasRequest);
             bizLogger.info(Json.encodePretty(getValidateSchemasRequest));
@@ -335,7 +310,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         } finally {
             watch.stop("request.getSchemas");
             logger.exit();
-            MDC.remove(TRACKING_ID_LOG_CONTEXT);
+            MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }
 

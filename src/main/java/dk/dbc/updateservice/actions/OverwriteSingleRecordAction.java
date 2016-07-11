@@ -17,43 +17,22 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
-    /**
-     * Group id of the user.
-     */
     private Integer groupId;
-
-    /**
-     * Class to give access to the holdings database.
-     */
     private HoldingsItems holdingsItems;
-
-    /**
-     * Class to give access to the OpenAgency web service
-     */
     private OpenAgencyService openAgencyService;
-
-    /**
-     * Class to give access to the JavaScript engine to handle records.
-     * <p>
-     * The LibraryRecordsHandler is used to check records for changes in
-     * classifications.
-     * </p>
-     */
     private LibraryRecordsHandler recordsHandler;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
     private SolrService solrService;
-
     private Properties settings;
 
     OverwriteSingleRecordAction(RawRepo rawRepo, MarcRecord record) {
@@ -196,7 +175,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             MarcRecord extRecordData = decoder.decodeRecord(extRecord.getContent());
                             if (!recordsHandler.hasClassificationData(extRecordData)) {
                                 logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                                result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord,id));
+                                result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id));
                             }
                         } else if (groupId.equals(id)) {
                             bizLogger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
@@ -220,8 +199,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-
-    private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData( MarcRecord extRecordData ,  MarcRecord currentRecord, Integer id ){
+    private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord currentRecord, Integer id) {
         logger.entry(extRecordData, currentRecord, id);
         UpdateClassificationsInEnrichmentRecordAction action = null;
         try {
@@ -288,7 +266,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         logger.entry(holdingAgencyId, currentRecord);
         CreateEnrichmentRecordActionForlinkedRecords action = null;
         try {
-            action = new CreateEnrichmentRecordActionForlinkedRecords(rawRepo, holdingAgencyId,arrayOfRecordsWithHoldings);
+            action = new CreateEnrichmentRecordActionForlinkedRecords(rawRepo, holdingAgencyId, arrayOfRecordsWithHoldings);
             action.setCurrentCommonRecord(currentRecord);
             action.setUpdatingCommonRecord(record);
             action.setRecordsHandler(recordsHandler);

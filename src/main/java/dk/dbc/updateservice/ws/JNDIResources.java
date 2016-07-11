@@ -1,7 +1,5 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.ws;
 
-//-----------------------------------------------------------------------------
 /**
  * Contains public accessible contants of all the JNDI resources, that is used
  * be all application.

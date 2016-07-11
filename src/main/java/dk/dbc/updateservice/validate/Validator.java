@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.validate;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -21,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-//-----------------------------------------------------------------------------
 /**
  *
  * @author stp
@@ -29,9 +25,13 @@ import java.util.Properties;
 @Stateless
 @LocalBean
 public class Validator {
-    //-------------------------------------------------------------------------
-    //              Business logic
-    //-------------------------------------------------------------------------
+    private static final XLogger logger = XLoggerFactory.getXLogger( Validator.class );
+
+    @EJB
+    private Scripter scripter;
+
+    @Resource( lookup = JNDIResources.SETTINGS_NAME )
+    private Properties settings;
 
     public List<Schema> getValidateSchemas( String groupId ) throws ScripterException {
         logger.entry();
@@ -55,16 +55,4 @@ public class Validator {
             logger.exit( result );
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( Validator.class );
-
-    @EJB
-    private Scripter scripter;
-    
-    @Resource( lookup = JNDIResources.SETTINGS_NAME )
-    private Properties settings; 
 }

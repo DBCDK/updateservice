@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
@@ -11,22 +8,15 @@ import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-//------------------------------------½-----------------------------------------
-
 /**
  * Updates the classifications in a enrichment record from the classifications
  * from a common record.
  */
 public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichmentRecordWithClassificationsAction {
-    /**
-     * Enrichment record that needs to update its classifications.
-     */
-    private MarcRecord enrichmentRecord;
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
-    private final static String RECATEGORIZATION_STRING="UPDATE posttypeskift";
-    private final static String RECLASSIFICATION_STRING="UPDATE opstillingsændring";
-
-
+    private final static String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
+    private final static String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
+    private MarcRecord enrichmentRecord;
 
     public UpdateClassificationsInEnrichmentRecordAction(RawRepo rawRepo) {
         this(rawRepo, null);
@@ -75,7 +65,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             MarcRecordWriter writer = new MarcRecordWriter(record);
 
             // Fix for story #1910 , 1911
-            if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING )) {
+            if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
                 writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
             }
             writer.sort();

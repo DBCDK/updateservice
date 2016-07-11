@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.ws;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
@@ -14,7 +11,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 
-//-----------------------------------------------------------------------------
 /**
  * Class to generate a complete response.
  * <p>
@@ -23,49 +19,37 @@ import java.util.List;
  *  UpdateResponseWriter writer = new UpdateResponseWriter();
  *  writer.addValidateResults( valErrorsList );
  *  writer.setUpdateStatus( UpdateStatusEnum.VALIDATION_ERROR );
- * 
+ *
  *  UpdateRecordResult response = writer.getResponse();
  * </pre>
- * After the sequence the variable <code>response</code> will contain a 
+ * After the sequence the variable <code>response</code> will contain a
  * complete valid response that can be returned thought the JavaEE container.
- * 
+ *
  * @author stp
  */
 public class UpdateResponseWriter {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateResponseWriter.class);
+    private UpdateRecordResult response;
 
-    /**
-     * Basic constructor, that constructs the internal response.
-     */
     public UpdateResponseWriter() {
         this.response = new UpdateRecordResult();
-        this.response.setUpdateStatus( UpdateStatusEnum.OK );
+        this.response.setUpdateStatus(UpdateStatusEnum.OK);
     }
-    
-    //-------------------------------------------------------------------------
-    //              Properties
-    //-------------------------------------------------------------------------
-    
+
     public UpdateRecordResult getResponse() {
         return response;
     }
-    
-    //-------------------------------------------------------------------------
-    //              Helper functions
-    //-------------------------------------------------------------------------
 
     /**
      * Adds a list of validation errors to the response.
      * <p>
      * If the list is empty then the response is not changed. In this case the
      * function is a nop.
-     * 
+     *
      * @param valErrors List of validation errors.
      */
-    public void addValidateResults( List<ValidationError> valErrors ) {
-        logger.entry( valErrors );
+    public void addValidateResults(List<ValidationError> valErrors) {
+        logger.entry(valErrors);
 
         try {
             if (!valErrors.isEmpty()) {
@@ -76,7 +60,7 @@ public class UpdateResponseWriter {
                     HashMap<String, Object> params = err.getParams();
                     Object value;
 
-                    entry.setWarningOrError( err.getType() );
+                    entry.setWarningOrError(err.getType());
 
                     value = params.get("url");
                     if (value != null) {
@@ -103,8 +87,7 @@ public class UpdateResponseWriter {
 
                 this.response.setValidateInstance(instance);
             }
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -117,34 +100,33 @@ public class UpdateResponseWriter {
      *
      * @param entries List of validation errors.
      */
-    public void addValidateEntries( List<ValidateEntry> entries ) {
-        logger.entry( entries );
+    public void addValidateEntries(List<ValidateEntry> entries) {
+        logger.entry(entries);
 
         try {
-            if( entries.isEmpty() ) {
+            if (entries.isEmpty()) {
                 return;
             }
 
             ValidateInstance instance = new ValidateInstance();
-            for( ValidateEntry entry : entries ) {
-                instance.getValidateEntry().add( entry );
+            for (ValidateEntry entry : entries) {
+                instance.getValidateEntry().add(entry);
             }
 
             this.response.setValidateInstance(instance);
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
 
     /**
      * Sets the update status in the response.
-     * 
+     *
      * @param value The update status.
      */
-    public void setUpdateStatus( UpdateStatusEnum value ) {
+    public void setUpdateStatus(UpdateStatusEnum value) {
         logger.entry();
-        this.response.setUpdateStatus( value );
+        this.response.setUpdateStatus(value);
         logger.exit();
     }
 
@@ -153,23 +135,9 @@ public class UpdateResponseWriter {
      *
      * @param error The error to set in the response.
      */
-    public void setError( dk.dbc.updateservice.service.api.Error error ) {
+    public void setError(dk.dbc.updateservice.service.api.Error error) {
         logger.entry();
-        response.setError( error );
+        response.setError(error);
         logger.exit();
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    /**
-     * Logger instance to write entries to the log files.
-     */
-    private final XLogger logger = XLoggerFactory.getXLogger( this.getClass() );
-    
-    /**
-     * Response that each helper method writes to, to construct a complete response.
-     */
-    private UpdateRecordResult response;    
 }

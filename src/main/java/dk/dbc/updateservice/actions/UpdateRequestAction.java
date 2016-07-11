@@ -522,7 +522,7 @@ public class UpdateRequestAction extends AbstractAction {
             }
             boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
 
-            if (isProduction && request != null && request.getAuthentication() != null && request.getAuthentication().getGroupIdAut() != null &&  request.getAuthentication().getGroupIdAut().startsWith("13")) {
+            if (isProduction && request != null && request.getAuthentication() != null && request.getAuthentication().getGroupIdAut() != null && request.getAuthentication().getGroupIdAut().startsWith("13")) {
                 res = false;
             }
             return res;

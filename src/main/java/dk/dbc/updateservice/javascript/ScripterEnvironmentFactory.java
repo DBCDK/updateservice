@@ -1,14 +1,16 @@
 package dk.dbc.updateservice.javascript;
 
-import dk.dbc.jslib.*;
+import dk.dbc.jslib.ClasspathSchemeHandler;
+import dk.dbc.jslib.Environment;
+import dk.dbc.jslib.FileSchemeHandler;
+import dk.dbc.jslib.ModuleHandler;
+import dk.dbc.jslib.SchemeURI;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateless;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,12 +23,10 @@ import java.util.Properties;
  */
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironmentFactory.class );
-
     private static final String COMMON_INSTALL_NAME = "common";
     private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
     private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
-
 
     /**
      * Constructs a new engine and adds is to the parsed pool.
@@ -157,7 +157,6 @@ public class ScripterEnvironmentFactory {
         }
     }
 
-
     void initTemplates( ScripterEnvironment environment, Properties settings) throws ScripterException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch( "javascript.env.create.templates" );
@@ -170,5 +169,4 @@ public class ScripterEnvironmentFactory {
             logger.exit();
         }
     }
-
 }
