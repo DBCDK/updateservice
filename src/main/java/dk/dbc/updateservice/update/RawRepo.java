@@ -38,17 +38,13 @@ import java.util.Set;
  */
 @Stateful
 public class RawRepo {
+    private static XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
+    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
     public static final Integer COMMON_LIBRARY = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
-
-    /**
-     * Logger instance to write entries to the log files.
-     */
-    private static XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
@@ -522,8 +518,7 @@ public class RawRepo {
             RawRepoDAO dao = rawRepoBuilder.build();
 
             return dao;
-        }
-        finally {
+        } finally {
             watch.stop("rawrepo.createDAO");
         }
     }

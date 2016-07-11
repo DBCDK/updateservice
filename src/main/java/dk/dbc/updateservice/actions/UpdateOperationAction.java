@@ -47,49 +47,17 @@ import java.util.Set;
  * </ol>
  */
 public class UpdateOperationAction extends AbstractRawRepoAction {
-
-
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    /**
-     * Authroticator EJB to authenticate the parsed record.
-     */
     private Authenticator authenticator;
-
-    /**
-     * Authentication members from the request.
-     * <p/>
-     * Group, username and password.
-     */
     private Authentication authentication;
-
-    /**
-     * Class to give access to the holdings database.
-     */
     private HoldingsItems holdingsItems;
-
-    /**
-     * Class to give access to the OpenAgency web service
-     */
     private OpenAgencyService openAgencyService;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
     private SolrService solrService;
-
-    /**
-     * Class to give access to the JavaScript engine to handle records.
-     * <p>
-     * The LibraryRecordsHandler is used to check records for changes in
-     * classifications.
-     * </p>
-     */
     private LibraryRecordsHandler recordsHandler;
     private Scripter scripter;
     private Properties settings;
-
     private ResourceBundle messages;
 
     /**

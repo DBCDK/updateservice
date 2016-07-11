@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -20,13 +17,24 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-//-----------------------------------------------------------------------------
 /**
  * Action to create, overwrite or delete a single record.
  */
 public class UpdateSingleRecord extends AbstractRawRepoAction {
-    public UpdateSingleRecord( RawRepo rawRepo, MarcRecord record ) {
-        super( "UpdateSingleRecord", rawRepo, record );
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateSingleRecord.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
+
+    private Integer groupId;
+    private HoldingsItems holdingsItems;
+    private OpenAgencyService openAgencyService;
+    private SolrService solrService;
+    private LibraryRecordsHandler recordsHandler;
+    protected Properties settings;
+    private ResourceBundle messages;
+
+    public UpdateSingleRecord(RawRepo rawRepo, MarcRecord record) {
+        super("UpdateSingleRecord", rawRepo, record);
 
         this.groupId = null;
         this.holdingsItems = null;
@@ -35,14 +43,14 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         this.recordsHandler = null;
         this.settings = null;
 
-        this.messages = ResourceBundles.getBundle( this, "actions" );
+        this.messages = ResourceBundles.getBundle(this, "actions");
     }
 
     public Integer getGroupId() {
         return groupId;
     }
 
-    public void setGroupId( Integer groupId ) {
+    public void setGroupId(Integer groupId) {
         this.groupId = groupId;
     }
 
@@ -50,7 +58,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         return holdingsItems;
     }
 
-    public void setHoldingsItems( HoldingsItems holdingsItems ) {
+    public void setHoldingsItems(HoldingsItems holdingsItems) {
         this.holdingsItems = holdingsItems;
     }
 
@@ -58,7 +66,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         return openAgencyService;
     }
 
-    public void setOpenAgencyService( OpenAgencyService openAgencyService ) {
+    public void setOpenAgencyService(OpenAgencyService openAgencyService) {
         this.openAgencyService = openAgencyService;
     }
 
@@ -66,7 +74,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         return solrService;
     }
 
-    public void setSolrService( SolrService solrService ) {
+    public void setSolrService(SolrService solrService) {
         this.solrService = solrService;
     }
 
@@ -74,7 +82,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         return recordsHandler;
     }
 
-    public void setRecordsHandler( LibraryRecordsHandler recordsHandler ) {
+    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
         this.recordsHandler = recordsHandler;
     }
 
@@ -82,7 +90,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         return settings;
     }
 
-    public void setSettings( Properties settings ) {
+    public void setSettings(Properties settings) {
         this.settings = settings;
     }
 
@@ -90,7 +98,6 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * Performs this actions and may create any child actions.
      *
      * @return A ServiceResult to be reported in the web service response.
-     *
      * @throws UpdateException In case of an error.
      */
     @Override
@@ -98,55 +105,52 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            bizLogger.info( "Handling record:\n{}", record );
+            bizLogger.info("Handling record:\n{}", record);
 
-            MarcRecordReader reader = new MarcRecordReader( record );
+            MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            if( !rawRepo.recordExists( recordId, agencyId ) ) {
-                children.add( createCreateRecordAction() );
+            if (!rawRepo.recordExists(recordId, agencyId)) {
+                children.add(createCreateRecordAction());
                 return ServiceResult.newOkResult();
             }
 
-            if( reader.markedForDeletion() ) {
-                boolean hasHoldings = !holdingsItems.getAgenciesThatHasHoldingsFor( record ).isEmpty();
+            if (reader.markedForDeletion()) {
+                boolean hasHoldings = !holdingsItems.getAgenciesThatHasHoldingsFor(record).isEmpty();
 
-                if( hasHoldings ) {
-                    AgencyNumber groupAgencyNumber = new AgencyNumber( groupId );
-                    bizLogger.info( "Found holdings for agency '{}'", groupAgencyNumber );
+                if (hasHoldings) {
+                    AgencyNumber groupAgencyNumber = new AgencyNumber(groupId);
+                    bizLogger.info("Found holdings for agency '{}'", groupAgencyNumber);
 
-                    boolean hasAuthExportHoldings = openAgencyService.hasFeature( groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+                    boolean hasAuthExportHoldings = openAgencyService.hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
 
-                    if( hasAuthExportHoldings ) {
-                        bizLogger.info( "Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+                    if (hasAuthExportHoldings) {
+                        bizLogger.info("Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
 
-                        String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly( "002a", recordId );
-                        boolean has002Links = solrService.hasDocuments( solrQuery );
+                        String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
+                        boolean has002Links = solrService.hasDocuments(solrQuery);
 
-                        if( !has002Links ) {
-                            String message = messages.getString( "delete.common.with.holdings.error" );
+                        if (!has002Links) {
+                            String message = messages.getString("delete.common.with.holdings.error");
 
-                            bizLogger.info( "Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message );
-                            return ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message );
+                            bizLogger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
+                            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
                         }
-                    }
-                    else {
-                        bizLogger.info( "Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS );
+                    } else {
+                        bizLogger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     }
                 }
 
-                children.add( createDeleteRecordAction() );
+                children.add(createDeleteRecordAction());
                 return ServiceResult.newOkResult();
             }
 
-            children.add( createOverwriteRecordAction() );
+            children.add(createOverwriteRecordAction());
             return ServiceResult.newOkResult();
-        }
-        catch( OpenAgencyException ex ) {
-            throw new UpdateException( ex.getMessage(), ex );
-        }
-        finally {
+        } catch (OpenAgencyException ex) {
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
             logger.exit();
         }
     }
@@ -158,13 +162,12 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            CreateSingleRecordAction action = new CreateSingleRecordAction( rawRepo, record );
-            action.setSolrService( solrService );
-            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+            CreateSingleRecordAction action = new CreateSingleRecordAction(rawRepo, record);
+            action.setSolrService(solrService);
+            action.setProviderId(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
 
             return action;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -176,17 +179,16 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            OverwriteSingleRecordAction action = new OverwriteSingleRecordAction( rawRepo, record );
-            action.setGroupId( groupId );
-            action.setHoldingsItems( holdingsItems );
-            action.setOpenAgencyService( openAgencyService );
-            action.setRecordsHandler( recordsHandler );
-            action.setSolrService( solrService );
-            action.setSettings( settings );
+            OverwriteSingleRecordAction action = new OverwriteSingleRecordAction(rawRepo, record);
+            action.setGroupId(groupId);
+            action.setHoldingsItems(holdingsItems);
+            action.setOpenAgencyService(openAgencyService);
+            action.setRecordsHandler(recordsHandler);
+            action.setSolrService(solrService);
+            action.setSettings(settings);
 
             return action;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
@@ -198,57 +200,15 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            DeleteCommonRecordAction action = new DeleteCommonRecordAction( rawRepo, record );
-            action.setRecordsHandler( recordsHandler );
-            action.setHoldingsItems( holdingsItems );
-            action.setSolrService( solrService );
-            action.setProviderId( settings.getProperty( JNDIResources.RAWREPO_PROVIDER_ID ) );
+            DeleteCommonRecordAction action = new DeleteCommonRecordAction(rawRepo, record);
+            action.setRecordsHandler(recordsHandler);
+            action.setHoldingsItems(holdingsItems);
+            action.setSolrService(solrService);
+            action.setProviderId(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
 
             return action;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( UpdateSingleRecord.class );
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
-
-    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
-
-    /**
-     * Group id of the user.
-     */
-    private Integer groupId;
-
-    /**
-     * Class to give access to the holdings database.
-     */
-    private HoldingsItems holdingsItems;
-
-    /**
-     * Class to give access to the OpenAgency web service
-     */
-    private OpenAgencyService openAgencyService;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
-    private SolrService solrService;
-
-    /**
-     * Class to give access to the JavaScript engine to handle records.
-     * <p>
-     *      The LibraryRecordsHandler is used to check records for changes in
-     *      classifications.
-     * </p>
-     */
-    private LibraryRecordsHandler recordsHandler;
-    protected Properties settings;
-
-    private ResourceBundle messages;
 }

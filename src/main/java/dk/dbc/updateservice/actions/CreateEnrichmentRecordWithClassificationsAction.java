@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
@@ -16,10 +13,6 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import java.util.List;
-
-//-----------------------------------------------------------------------------
 
 /**
  * Action to create a new enrichment record from a common record.
@@ -37,9 +30,32 @@ import java.util.List;
  * </p>
  */
 public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAction {
+    private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
+    private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
+    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
-    private final static String RECATEGORIZATION_STRING="UPDATE posttypeskift";
-    private final static String RECLASSIFICATION_STRING="UPDATE opstillingsændring";
+    protected RawRepo rawRepo;
+    private Integer agencyId;
+    private String providerId;
+    protected LibraryRecordsHandler recordsHandler;
+    protected MarcRecord currentCommonRecord;
+    protected MarcRecord updatingCommonRecord;
+
+    /**
+     * Record id to assign to the new enrichment record.
+     * <p>
+     * Normally we use the record id from the common record that is used to create
+     * the enrichment record. But in a special case where we create an enrichment
+     * in the process of merging two common records with field 002 we need to assign the
+     * enrichment record to another common record.
+     * </p>
+     * <p>
+     * This property is used in that case. In other cases this member will be null.
+     * </p>
+     */
+    protected String commonRecordId;
 
     public CreateEnrichmentRecordWithClassificationsAction(RawRepo rawRepo) {
         this(rawRepo, null);
@@ -171,7 +187,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             MarcRecordReader reader = new MarcRecordReader(result);
 
             // Fix for story #1910 , 1911
-            if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING )) {
+            if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
                 writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
             }
 
@@ -184,57 +200,4 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             logger.exit(result);
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
-
-    /**
-     * RawRepo EJB to write records to the RawRepo.
-     */
-    protected RawRepo rawRepo;
-
-    /**
-     * Records handler to create an enrichment record thought JavaScript.
-     */
-    protected LibraryRecordsHandler recordsHandler;
-
-    /**
-     * The current version of the common record that is begin updated.
-     * <p>
-     * This member may be null.
-     * </p>
-     */
-    protected MarcRecord currentCommonRecord;
-
-    /**
-     * Common record that is being updated.
-     */
-    protected MarcRecord updatingCommonRecord;
-
-    /**
-     * Record id to assign to the new enrichment record.
-     * <p>
-     * Normally we use the record id from the common record that is used to create
-     * the enrichment record. But in a special case where we create an enrichment
-     * in the process of merging two common records with field 002 we need to assign the
-     * enrichment record to another common record.
-     * </p>
-     * <p>
-     * This property is used in that case. In other cases this member will be null.
-     * </p>
-     */
-    protected String commonRecordId;
-
-    /**
-     * Agency id of the library that will own the produced enrichment record.
-     */
-    private Integer agencyId;
-
-    private String providerId;
 }

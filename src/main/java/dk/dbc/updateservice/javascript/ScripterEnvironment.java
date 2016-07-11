@@ -1,20 +1,20 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.javascript;
 
-//-----------------------------------------------------------------------------
 import dk.dbc.jslib.Environment;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-//-----------------------------------------------------------------------------
 /**
  * Implements a scripter environment that holds an JavaScript engine to execute
  * functions on it.
  */
 public class ScripterEnvironment {
-    public ScripterEnvironment( Environment environment ) {
+    private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironment.class);
+    private Environment environment;
+
+    public ScripterEnvironment(Environment environment) {
         this.environment = environment;
     }
 
@@ -25,37 +25,25 @@ public class ScripterEnvironment {
      *
      * @param methodName Name of the function to call.
      * @param args       Arguments to the function.
-     *
      * @return The result of the JavaScript function.
-     *
      * @throws ScripterException Encapsulate any exception from Rhino or is throwned
-     *         in case of an error. For instance if the file can not be loaded.
+     *                           in case of an error. For instance if the file can not be loaded.
      */
-    public Object callMethod( String methodName, Object... args ) throws ScripterException {
-        logger.entry( methodName, args );
+    public Object callMethod(String methodName, Object... args) throws ScripterException {
+        logger.entry(methodName, args);
 
         Object result = null;
         try {
             StopWatch watch = new Log4JStopWatch();
-            result = environment.callMethod( methodName, args );
-            watch.stop( "javascript.method." + methodName );
+            result = environment.callMethod(methodName, args);
+            watch.stop("javascript.method." + methodName);
 
             return result;
-        }
-        catch( Exception ex ) {
-            logger.catching (ex);
-            throw new ScripterException( ex.getMessage(), ex );
-        }
-        finally {
-            logger.exit( result );
+        } catch (Exception ex) {
+            logger.catching(ex);
+            throw new ScripterException(ex.getMessage(), ex);
+        } finally {
+            logger.exit(result);
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironment.class );
-
-    private Environment environment;
 }

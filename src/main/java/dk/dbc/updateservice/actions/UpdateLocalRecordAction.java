@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -22,8 +19,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-//-----------------------------------------------------------------------------
-
 /**
  * Action to update a local record.
  * <p>
@@ -33,18 +28,12 @@ import java.util.Set;
  * </p>
  */
 public class UpdateLocalRecordAction extends AbstractRawRepoAction {
-
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
-
     private HoldingsItems holdingsItems;
-
     private OpenAgencyService openAgencyService;
-
     private String providerId;
-
     private ResourceBundle messages;
 
     public UpdateLocalRecordAction(RawRepo rawRepo, MarcRecord record) {
@@ -291,5 +280,4 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             logger.exit(result);
         }
     }
-
 }

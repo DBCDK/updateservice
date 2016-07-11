@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.update;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -18,8 +15,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-//-----------------------------------------------------------------------------
-
 /**
  * Class to manipulate library records for a local library. Local records and
  * local extended records.
@@ -28,17 +23,14 @@ import java.util.Properties;
  * @author stp
  */
 public class LibraryRecordsHandler {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
+    private final XLogger logger = XLoggerFactory.getXLogger(this.getClass());
+    static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
+
+    private Scripter scripter;
 
     public LibraryRecordsHandler(Scripter scripter) {
         this.scripter = scripter;
     }
-
-    //-------------------------------------------------------------------------
-    //              Library records
-    //-------------------------------------------------------------------------
 
     /**
      * Tests if a record contains any classification data.
@@ -324,13 +316,4 @@ public class LibraryRecordsHandler {
             logger.exit(mf);
         }
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private final XLogger logger = XLoggerFactory.getXLogger(this.getClass());
-    static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
-
-    private Scripter scripter;
 }

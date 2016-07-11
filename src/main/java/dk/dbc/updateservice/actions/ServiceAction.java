@@ -1,13 +1,9 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.updateservice.update.UpdateException;
 
 import java.util.List;
 
-//-----------------------------------------------------------------------------
 /**
  * This interface defines the contract between the ServiceEngine and all the
  * actions that it can execute.

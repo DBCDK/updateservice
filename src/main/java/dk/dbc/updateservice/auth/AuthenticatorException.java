@@ -7,7 +7,7 @@ import javax.ejb.ApplicationException;
  */
 @ApplicationException
 public class AuthenticatorException extends Exception {
-    public AuthenticatorException( String message, Throwable ex ) {
-        super( message, ex );
+    public AuthenticatorException(String message, Throwable ex) {
+        super(message, ex);
     }
 }

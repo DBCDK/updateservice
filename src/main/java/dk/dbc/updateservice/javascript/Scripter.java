@@ -12,7 +12,6 @@ import javax.ejb.Stateless;
  */
 @Stateless
 public class Scripter {
-
     private static final XLogger logger = XLoggerFactory.getXLogger(Scripter.class);
 
     @SuppressWarnings("EjbEnvironmentInspection")

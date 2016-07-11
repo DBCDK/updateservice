@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -23,8 +20,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-//-----------------------------------------------------------------------------
-
 /**
  * Action to create a new enrichment record from a common record.
  * <p>
@@ -40,8 +35,6 @@ import java.util.List;
  * </p>
  */
 public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction {
-
-
     private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private final static String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
@@ -50,28 +43,11 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
     static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
     private List<MarcRecord> listOfRecordsToFetchClassificationDataFrom;
-    /**
-     * RawRepo EJB to write records to the RawRepo.
-     */
+    private Integer agencyId;
+    private String providerId;
     protected RawRepo rawRepo;
-
-    /**
-     * Records handler to create an enrichment record thought JavaScript.
-     */
     protected LibraryRecordsHandler recordsHandler;
-
-
-    /**
-     * The current version of the common record that is begin updated.
-     * <p>
-     * This member may be null.
-     * </p>
-     */
     protected MarcRecord currentCommonRecord;
-
-    /**
-     * Common record that is being updated.
-     */
     protected MarcRecord updatingCommonRecord;
 
     /**
@@ -87,13 +63,6 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
      * </p>
      */
     protected String commonRecordId;
-
-    /**
-     * Agency id of the library that will own the produced enrichment record.
-     */
-    private Integer agencyId;
-
-    private String providerId;
 
 
     public CreateEnrichmentRecordActionForlinkedRecords(RawRepo rawRepo, Integer agencyId, List<MarcRecord> listOfRecordsToFetchClassificationDataFrom) {

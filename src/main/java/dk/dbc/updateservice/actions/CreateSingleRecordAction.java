@@ -1,11 +1,7 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -14,25 +10,26 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.ResourceBundle;
-
-//-----------------------------------------------------------------------------
 
 /**
  * This action is used to create a new common record.
  */
 public class CreateSingleRecordAction extends AbstractRawRepoAction {
+    private static final XLogger logger = XLoggerFactory.getXLogger(CreateSingleRecordAction.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
+
+    private SolrService solrService;
+    private String providerId;
+    private ResourceBundle messages;
+
     public CreateSingleRecordAction(RawRepo rawRepo, MarcRecord record) {
         super("CreateSingleRecordAction", rawRepo, record);
-
         this.solrService = null;
-
         this.messages = ResourceBundles.getBundle(this, "actions");
     }
 
@@ -51,20 +48,6 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
     public void setProviderId(String providerId) {
         this.providerId = providerId;
     }
-
-
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateSingleRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-
-    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
-
-    /**
-     * Class to give access to lookups for the rawrepo in solr.
-     */
-    private SolrService solrService;
-
-    private String providerId;
-    private ResourceBundle messages;
 
     /**
      * Performs this actions and may create any child actions.
@@ -105,5 +88,4 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             logger.exit();
         }
     }
-
 }
