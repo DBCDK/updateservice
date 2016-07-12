@@ -1,23 +1,26 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.update;
 
-//-----------------------------------------------------------------------------
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 
 import java.util.Date;
 import java.util.Set;
 
-//-----------------------------------------------------------------------------
 /**
- *
  * @author stp
  */
 public class RawRepoRecordMock implements Record {
-    //-------------------------------------------------------------------------
-    //              Constructors
-    //-------------------------------------------------------------------------
-    
+    private RecordId id;
+    private byte[] content;
+    private String mimeType;
+    private Date created;
+    private Date modified;
+    private String trackingId;
+    private boolean original;
+    private boolean deleted;
+    private boolean enriched;
+    private Set<RecordId> references;
+
     public RawRepoRecordMock() {
         this.id = null;
         this.content = null;
@@ -30,48 +33,45 @@ public class RawRepoRecordMock implements Record {
         this.references = null;
     }
 
-    public RawRepoRecordMock( String id, int library ) {
+    public RawRepoRecordMock(String id, int library) {
         this();
-        this.id = new RecordId( id, library );
+        this.id = new RecordId(id, library);
     }
 
-    //-------------------------------------------------------------------------
-    //              Properties
-    //-------------------------------------------------------------------------
     @Override
     public RecordId getId() {
         return id;
     }
 
-    public void setId( RecordId id ) {
+    public void setId(RecordId id) {
         this.id = id;
     }
-     
+
     @Override
     public byte[] getContent() {
         return content;
     }
 
     @Override
-    public void setContent( byte[] content ) {
+    public void setContent(byte[] content) {
         this.content = content;
     }
 
     public String getMimeType() {
-		return mimeType;
-	}
+        return mimeType;
+    }
 
-	public void setMimeType(String mimeType) {
-		this.mimeType = mimeType;
-	}
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
+    }
 
-	@Override
+    @Override
     public Date getCreated() {
         return created;
     }
 
     @Override
-    public void setCreated( Date created ) {
+    public void setCreated(Date created) {
         this.created = created;
     }
 
@@ -81,7 +81,7 @@ public class RawRepoRecordMock implements Record {
     }
 
     @Override
-    public void setModified( Date modified ) {
+    public void setModified(Date modified) {
         this.modified = modified;
     }
 
@@ -90,7 +90,7 @@ public class RawRepoRecordMock implements Record {
         return trackingId;
     }
 
-    public void setTrackingId( String trackingId ) {
+    public void setTrackingId(String trackingId) {
         this.trackingId = trackingId;
     }
 
@@ -99,50 +99,35 @@ public class RawRepoRecordMock implements Record {
         return original;
     }
 
-    public void setOriginal( boolean original ) {
+    public void setOriginal(boolean original) {
         this.original = original;
     }
 
-	public boolean isDeleted() {
-		return deleted;
-	}
+    public boolean isDeleted() {
+        return deleted;
+    }
 
-	public void setDeleted(boolean deleted) {
-		this.deleted = deleted;
-	}
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 
-	public boolean isEnriched() {
-		return enriched;
-	}
+    public boolean isEnriched() {
+        return enriched;
+    }
 
-	public void setEnriched(boolean enriched) {
-		this.enriched = enriched;
-	}
+    public void setEnriched(boolean enriched) {
+        this.enriched = enriched;
+    }
 
     public String getEnrichmentTrail() {
         return "";
     }
-    
+
     public Set<RecordId> getReferences() {
         return references;
     }
 
-    public void setReferences( Set<RecordId> references ) {
+    public void setReferences(Set<RecordId> references) {
         this.references = references;
     }
-        
-    //-------------------------------------------------------------------------
-    //              Attributes
-    //-------------------------------------------------------------------------
-    
-    private RecordId id;
-    private byte[] content;
-    private String mimeType;
-    private Date created;
-    private Date modified;
-    private String trackingId;
-    private boolean original;
-    private boolean deleted;
-    private boolean enriched;
-    private Set<RecordId> references;
 }

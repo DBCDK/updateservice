@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.Scripter;
@@ -17,22 +14,22 @@ import java.util.Properties;
  * Action to check that the validate scheme name from the request is a valid
  * name.
  * <p>
- *     The action is using a Scripter to call JavaScript code to validate the
- *     schema name.
+ * The action is using a Scripter to call JavaScript code to validate the
+ * schema name.
  * </p>
  */
 public class ValidateSchemaAction extends AbstractAction {
 
-    private static final XLogger logger = XLoggerFactory.getXLogger( ValidateSchemaAction.class );
-    private final XLogger bizLogger = XLoggerFactory.getXLogger( BusinessLoggerFilter.LOGGER_NAME );
+    private static final XLogger logger = XLoggerFactory.getXLogger(ValidateSchemaAction.class);
+    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private String validateSchema;
     private Scripter scripter;
     private String groupId;
     private Properties settings;
 
-    public ValidateSchemaAction( String validateSchema, Scripter scripter, Properties settings ) {
-        super( "ValidateSchemaAction" );
+    public ValidateSchemaAction(String validateSchema, Scripter scripter, Properties settings) {
+        super("ValidateSchemaAction");
 
         this.validateSchema = validateSchema;
         this.scripter = scripter;
@@ -52,7 +49,7 @@ public class ValidateSchemaAction extends AbstractAction {
         return groupId;
     }
 
-    public void setGroupId( String groupId ) {
+    public void setGroupId(String groupId) {
         this.groupId = groupId;
     }
 
@@ -64,54 +61,51 @@ public class ValidateSchemaAction extends AbstractAction {
      * Performs this actions and may create any child actions.
      *
      * @return A list of ValidationError to be reported in the web service response.
-     *
      * @throws UpdateException In case of an error.
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
 
-        if( validateSchema == null ) {
-            throw new IllegalArgumentException( "validateSchema must not be (null)" );
+        if (validateSchema == null) {
+            throw new IllegalArgumentException("validateSchema must not be (null)");
         }
-        if( scripter == null ) {
-            throw new IllegalArgumentException( "scripter must not be (null)" );
+        if (scripter == null) {
+            throw new IllegalArgumentException("scripter must not be (null)");
         }
-        if( groupId == null ) {
-            throw new IllegalArgumentException( "groupId must not be (null)" );
+        if (groupId == null) {
+            throw new IllegalArgumentException("groupId must not be (null)");
         }
-        if( settings == null ) {
-            throw new IllegalArgumentException( "settings must not be (null)" );
+        if (settings == null) {
+            throw new IllegalArgumentException("settings must not be (null)");
         }
 
         ServiceResult result = null;
         try {
-            Object jsResult = scripter.callMethod( "checkTemplate", validateSchema, groupId, settings );
+            Object jsResult = scripter.callMethod("checkTemplate", validateSchema, groupId, settings);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof Boolean) {
-                Boolean validateSchemaFound = (Boolean)jsResult;
-                if( validateSchemaFound ) {
-                    bizLogger.info( "Validating schema '{}' successfully", validateSchema );
+                Boolean validateSchemaFound = (Boolean) jsResult;
+                if (validateSchemaFound) {
+                    bizLogger.info("Validating schema '{}' successfully", validateSchema);
                     return result = ServiceResult.newOkResult();
                 }
 
-                bizLogger.error( "Validating schema '{}' failed", validateSchema );
-                return result = ServiceResult.newStatusResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA );
+                bizLogger.error("Validating schema '{}' failed", validateSchema);
+                return result = ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA);
             }
 
-            String message = String.format( "The JavaScript function %s must return a boolean value.", "checkTemplate");
-            bizLogger.info( "Validating schema '{}'. Executing error: {}", validateSchema, message );
-            return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, message );
+            String message = String.format("The JavaScript function %s must return a boolean value.", "checkTemplate");
+            bizLogger.info("Validating schema '{}'. Executing error: {}", validateSchema, message);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA, message);
 
-        }
-        catch( ScripterException ex ) {
-            bizLogger.info( "Validating schema '{}'. Executing error: {}", validateSchema, ex.getMessage() );
-            return result = ServiceResult.newErrorResult( UpdateStatusEnum.FAILED_INVALID_SCHEMA, ex.getMessage() );
-        }
-        finally {
-            logger.exit( result );
+        } catch (ScripterException ex) {
+            bizLogger.info("Validating schema '{}'. Executing error: {}", validateSchema, ex.getMessage());
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_INVALID_SCHEMA, ex.getMessage());
+        } finally {
+            logger.exit(result);
         }
     }
 
