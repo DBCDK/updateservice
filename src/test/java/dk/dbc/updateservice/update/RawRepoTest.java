@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.update;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
@@ -27,9 +24,6 @@ import static org.mockito.Mockito.when;
  * Created by stp on 18/12/14.
  */
 public class RawRepoTest {
-    //-------------------------------------------------------------------------
-    //              Mocking
-    //-------------------------------------------------------------------------
 
     @Mock
     DataSource dataSourceReader;
@@ -47,77 +41,69 @@ public class RawRepoTest {
 
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
-            super( dataSourceReader, dataSourceWriter );
+            super(dataSourceReader, dataSourceWriter);
         }
 
         @Override
-        protected RawRepoDAO createDAO( Connection conn ) throws RawRepoException {
+        protected RawRepoDAO createDAO(Connection conn) throws RawRepoException {
             return rawRepoDAO;
         }
     }
 
-    //-------------------------------------------------------------------------
-    //              Tests of RawRepo.agenciesForRecord
-    //-------------------------------------------------------------------------
-
-    @Test( expected = IllegalArgumentException.class )
+    @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_MarcRecord_RecordIsNull() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord( (MarcRecord) ( null ) );
+        rawRepo.agenciesForRecord((MarcRecord) (null));
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_MarcRecord_RecordIsNotFound() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord( new MarcRecord() );
+        rawRepo.agenciesForRecord(new MarcRecord());
     }
 
     @Test
     public void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
         String recId = "12346578";
-        MarcRecord record = createRecord( recId, "700400" );
+        MarcRecord record = createRecord(recId, "700400");
 
         Set<Integer> daoAgencies = new HashSet<>();
-        daoAgencies.add( 700400 );
-        daoAgencies.add( RawRepo.RAWREPO_COMMON_LIBRARY );
+        daoAgencies.add(700400);
+        daoAgencies.add(RawRepo.RAWREPO_COMMON_LIBRARY);
 
-        when( dataSourceReader.getConnection() ).thenReturn( null );
-        when( rawRepoDAO.allAgenciesForBibliographicRecordId( eq( recId ) ) ).thenReturn( daoAgencies );
+        when(dataSourceReader.getConnection()).thenReturn(null);
+        when(rawRepoDAO.allAgenciesForBibliographicRecordId(eq(recId))).thenReturn(daoAgencies);
 
         RawRepo rawRepo = new MockRawRepo();
-        Set<Integer> agencies = rawRepo.agenciesForRecord( record );
-        assertEquals( 1, agencies.size() );
-        assertTrue( agencies.contains( 700400 ) );
+        Set<Integer> agencies = rawRepo.agenciesForRecord(record);
+        assertEquals(1, agencies.size());
+        assertTrue(agencies.contains(700400));
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_String_RecordIdIsNull() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord( (String)(null) );
+        rawRepo.agenciesForRecord((String) (null));
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_String_RecordIdIsEmpty() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord( "" );
+        rawRepo.agenciesForRecord("");
     }
 
-    //-------------------------------------------------------------------------
-    //              Helpers
-    //-------------------------------------------------------------------------
-
-    private MarcRecord createRecord( String id, String agencyId ) {
+    private MarcRecord createRecord(String id, String agencyId) {
         MarcRecord record = new MarcRecord();
 
-        MarcField field = new MarcField( "001", "00" );
+        MarcField field = new MarcField("001", "00");
 
-        if( id != null ) {
-            field.getSubfields().add( new MarcSubField( "a", id ) );
+        if (id != null) {
+            field.getSubfields().add(new MarcSubField("a", id));
         }
-        if( agencyId != null ) {
-            field.getSubfields().add( new MarcSubField( "b", agencyId ) );
+        if (agencyId != null) {
+            field.getSubfields().add(new MarcSubField("b", agencyId));
         }
-        record.getFields().add( field );
+        record.getFields().add(field);
 
         return record;
     }

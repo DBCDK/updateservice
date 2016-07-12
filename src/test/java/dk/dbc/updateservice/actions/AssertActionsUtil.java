@@ -10,7 +10,14 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.service.api.Authentication;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoEncoder;
+import dk.dbc.updateservice.update.RawRepoRecordMock;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Assert;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -120,10 +127,6 @@ public class AssertActionsUtil {
     public static Integer getAgencyId(MarcRecord record) {
         return new MarcRecordReader(record).agencyIdAsInteger();
     }
-
-    //-------------------------------------------------------------------------
-    //              Asserts
-    //-------------------------------------------------------------------------
 
     public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, Authentication authentication) throws UpdateException {
         assertThat(action, notNullValue());
