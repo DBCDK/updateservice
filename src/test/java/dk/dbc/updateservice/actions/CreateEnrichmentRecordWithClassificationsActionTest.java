@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordFactory;
@@ -27,8 +24,10 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//-----------------------------------------------------------------------------
 public class CreateEnrichmentRecordWithClassificationsActionTest {
+    private static final String COMMON_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/common_enrichment.marc";
+    private static final String ENRICHMENT_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/enrichment.marc";
+
     /**
      * Test CreateEnrichmentRecordActionForlinkedRecords.performAction(): Create enrichment record.
      *
@@ -228,11 +227,4 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
 
         instance.performAction();
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final String COMMON_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/common_enrichment.marc";
-    private static final String ENRICHMENT_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/enrichment.marc";
 }

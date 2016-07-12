@@ -1,4 +1,3 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
@@ -21,316 +20,311 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//-----------------------------------------------------------------------------
 public class UpdateSchoolCommonRecordTest {
+    private ResourceBundle messages;
+
     public UpdateSchoolCommonRecordTest() {
-        this.messages = ResourceBundles.getBundle( this, "actions" );
+        this.messages = ResourceBundles.getBundle(this, "actions");
     }
 
     /**
      * Test performAction(): Create new single common school record with no school
      * enrichments in rawrepo.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          A rawrepo with a common record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update a common school record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Create child actions:
-     *          <ol>
-     *              <li>UpdateEnrichmentRecordAction: Update the common school record</li>
-     *          </ol>
-     *          Return status: OK
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * A rawrepo with a common record.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update a common school record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Create child actions:
+     * <ol>
+     * <li>UpdateEnrichmentRecordAction: Update the common school record</li>
+     * </ol>
+     * Return status: OK
+     * </dd>
      * </dl>
      */
     @Test
     public void testPerformAction_CreateRecord_WithNoSchoolEnrichments() throws Exception {
-        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE );
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( false );
+        RawRepo rawRepo = mock(RawRepo.class);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
 
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
 
-        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
-        instance.setSolrService( mock( SolrService.class ) );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(rawRepo, record);
+        instance.setSolrService(mock(SolrService.class));
+        instance.setRecordsHandler(recordsHandler);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setProviderId("xxx");
 
-        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems);
 
-        assertThat( iterator.hasNext(), is( false ) );
+        assertThat(iterator.hasNext(), is(false));
     }
 
     /**
      * Test performAction(): Updates a single common school record with no school
      * enrichments in rawrepo.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Rawrepo with:
-     *          <ul>
-     *              <li>A common record <code>c1</code></li>
-     *              <li>A common school record <code>s1</code></li>
-     *          </ul>
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update the common school record <code>s1</code> with new data.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Create child actions:
-     *          <ol>
-     *              <li>UpdateEnrichmentRecordAction: Update the common school record</li>
-     *          </ol>
-     *          Return status: OK
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Rawrepo with:
+     * <ul>
+     * <li>A common record <code>c1</code></li>
+     * <li>A common school record <code>s1</code></li>
+     * </ul>
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update the common school record <code>s1</code> with new data.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Create child actions:
+     * <ol>
+     * <li>UpdateEnrichmentRecordAction: Update the common school record</li>
+     * </ol>
+     * Return status: OK
+     * </dd>
      * </dl>
      */
     @Test
     public void testPerformAction_UpdateRecord_WithNoSchoolEnrichments() throws Exception {
-        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE );
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( true );
+        RawRepo rawRepo = mock(RawRepo.class);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
 
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
 
-        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
-        instance.setSolrService( mock( SolrService.class ) );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(rawRepo, record);
+        instance.setSolrService(mock(SolrService.class));
+        instance.setRecordsHandler(recordsHandler);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setProviderId("xxx");
 
-        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems);
 
-        assertThat( iterator.hasNext(), is( false ) );
+        assertThat(iterator.hasNext(), is(false));
     }
 
     /**
      * Test performAction(): Create new single common school record with existing school
      * enrichments in rawrepo.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Rawrepo:
-     *          <ul>
-     *              <li>Common record.</li>
-     *              <li>Enrichment record for a school library.</li>
-     *          </ul>
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Create a common school record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Create child actions:
-     *          <ol>
-     *              <li>UpdateEnrichmentRecordAction: Update the common school record</li>
-     *              <li>LinkRecordAction: Link the school enrichment record to the common school record.</li>
-     *              <li>EnqueueRecordAction: Enqueue the school enrichment record.</li>
-     *          </ol>
-     *          Return status: OK
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Rawrepo:
+     * <ul>
+     * <li>Common record.</li>
+     * <li>Enrichment record for a school library.</li>
+     * </ul>
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Create a common school record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Create child actions:
+     * <ol>
+     * <li>UpdateEnrichmentRecordAction: Update the common school record</li>
+     * <li>LinkRecordAction: Link the school enrichment record to the common school record.</li>
+     * <li>EnqueueRecordAction: Enqueue the school enrichment record.</li>
+     * </ol>
+     * Return status: OK
+     * </dd>
      * </dl>
      */
     @Test
     public void testPerformAction_CreateRecord_WithSchoolEnrichments() throws Exception {
-        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        MarcRecord schoolRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.SCHOOL_RECORD_RESOURCE );
-        Integer schoolAgencyId = AssertActionsUtil.getAgencyId( schoolRecord );
+        MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
+        Integer schoolAgencyId = AssertActionsUtil.getAgencyId(schoolRecord);
 
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE );
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( false );
-        when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( schoolAgencyId ) );
-        when( rawRepo.fetchRecord( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( schoolRecord, MarcXChangeMimeType.ENRICHMENT ) );
+        RawRepo rawRepo = mock(RawRepo.class);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(schoolAgencyId))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
+        when(rawRepo.agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
+        when(rawRepo.fetchRecord(eq(recordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
 
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
 
-        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
-        instance.setSolrService( mock( SolrService.class ) );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(rawRepo, record);
+        instance.setSolrService(mock(SolrService.class));
+        instance.setRecordsHandler(recordsHandler);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setProviderId("xxx");
 
-        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems );
-        AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, schoolRecord, record );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, schoolRecord, "xxx", UpdateEnrichmentRecordAction.MIMETYPE );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, schoolRecord, record);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, schoolRecord, "xxx", UpdateEnrichmentRecordAction.MIMETYPE);
 
-        assertThat( iterator.hasNext(), is( false ) );
+        assertThat(iterator.hasNext(), is(false));
     }
 
     /**
      * Test performAction(): Delete a single common school record with no school
      * enrichments in rawrepo.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Rawrepo with:
-     *          <ul>
-     *              <li>A common record <code>c1</code></li>
-     *              <li>A common school record <code>s1</code></li>
-     *          </ul>
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Delete the common school record <code>s1</code> with new data.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Create child actions:
-     *          <ol>
-     *              <li>UpdateEnrichmentRecordAction: Update the common school record</li>
-     *          </ol>
-     *          Return status: OK
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Rawrepo with:
+     * <ul>
+     * <li>A common record <code>c1</code></li>
+     * <li>A common school record <code>s1</code></li>
+     * </ul>
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Delete the common school record <code>s1</code> with new data.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Create child actions:
+     * <ol>
+     * <li>UpdateEnrichmentRecordAction: Update the common school record</li>
+     * </ol>
+     * Return status: OK
+     * </dd>
      * </dl>
      */
     @Test
     public void testPerformAction_DeleteRecord_WithNoSchoolEnrichments() throws Exception {
-        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE );
-        MarcRecordWriter writer = new MarcRecordWriter( record );
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( true );
+        RawRepo rawRepo = mock(RawRepo.class);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
 
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
 
-        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
-        instance.setSolrService( mock( SolrService.class ) );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(rawRepo, record);
+        instance.setSolrService(mock(SolrService.class));
+        instance.setRecordsHandler(recordsHandler);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setProviderId("xxx");
 
-        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems);
 
-        assertThat( iterator.hasNext(), is( false ) );
+        assertThat(iterator.hasNext(), is(false));
     }
 
     /**
      * Test performAction(): Delete a single common school record with existing school
      * enrichments in rawrepo.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Rawrepo:
-     *          <ul>
-     *              <li>Common record.</li>
-     *              <li>Common school record.</li>
-     *              <li>Enrichment record for a school library.</li>
-     *          </ul>
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Delete the common school record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Create child actions:
-     *          <ol>
-     *              <li>LinkRecordAction: Link the school enrichment record to the common record.</li>
-     *              <li>EnqueueRecordAction: Enqueue the school enrichment record.</li>
-     *              <li>UpdateEnrichmentRecordAction: Update the common school record</li>
-     *          </ol>
-     *          Return status: OK
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Rawrepo:
+     * <ul>
+     * <li>Common record.</li>
+     * <li>Common school record.</li>
+     * <li>Enrichment record for a school library.</li>
+     * </ul>
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Delete the common school record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Create child actions:
+     * <ol>
+     * <li>LinkRecordAction: Link the school enrichment record to the common record.</li>
+     * <li>EnqueueRecordAction: Enqueue the school enrichment record.</li>
+     * <li>UpdateEnrichmentRecordAction: Update the common school record</li>
+     * </ol>
+     * Return status: OK
+     * </dd>
      * </dl>
      */
     @Test
     public void testPerformAction_DeleteRecord_WithSchoolEnrichments() throws Exception {
-        MarcRecord commonRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE );
-        String recordId = AssertActionsUtil.getRecordId( commonRecord );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        MarcRecord schoolRecord = AssertActionsUtil.loadRecord( AssertActionsUtil.SCHOOL_RECORD_RESOURCE );
-        Integer schoolAgencyId = AssertActionsUtil.getAgencyId( schoolRecord );
+        MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
+        Integer schoolAgencyId = AssertActionsUtil.getAgencyId(schoolRecord);
 
-        MarcRecord record = AssertActionsUtil.loadRecord( AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE );
-        MarcRecordWriter writer = new MarcRecordWriter( record );
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        RawRepo rawRepo = mock( RawRepo.class );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.RAWREPO_COMMON_LIBRARY ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( true );
-        when( rawRepo.recordExists( eq( recordId ), eq( RawRepo.SCHOOL_COMMON_AGENCY ) ) ).thenReturn( true );
-        when( rawRepo.agenciesForRecord( eq( record ) ) ).thenReturn( AssertActionsUtil.createAgenciesSet( schoolAgencyId ) );
-        when( rawRepo.fetchRecord( eq( recordId ), eq( schoolAgencyId ) ) ).thenReturn( AssertActionsUtil.createRawRepoRecord( schoolRecord, MarcXChangeMimeType.ENRICHMENT ) );
+        RawRepo rawRepo = mock(RawRepo.class);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(schoolAgencyId))).thenReturn(true);
+        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
+        when(rawRepo.fetchRecord(eq(recordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
+        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
 
-        HoldingsItems holdingsItems = mock( HoldingsItems.class );
+        HoldingsItems holdingsItems = mock(HoldingsItems.class);
 
-        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord( rawRepo, record );
-        instance.setSolrService( mock( SolrService.class ) );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setHoldingsItems( holdingsItems );
-        instance.setProviderId( "xxx" );
+        UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(rawRepo, record);
+        instance.setSolrService(mock(SolrService.class));
+        instance.setRecordsHandler(recordsHandler);
+        instance.setHoldingsItems(holdingsItems);
+        instance.setProviderId("xxx");
 
-        assertThat( instance.performAction(), equalTo( ServiceResult.newOkResult() ) );
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertLinkRecordAction( iterator.next(), rawRepo, schoolRecord, commonRecord );
-        AssertActionsUtil.assertEnqueueRecordAction( iterator.next(), rawRepo, schoolRecord, "xxx", UpdateEnrichmentRecordAction.MIMETYPE );
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction( iterator.next(), rawRepo, record, recordsHandler, holdingsItems );
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, schoolRecord, commonRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, schoolRecord, "xxx", UpdateEnrichmentRecordAction.MIMETYPE);
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems);
 
-        assertThat( iterator.hasNext(), is( false ) );
+        assertThat(iterator.hasNext(), is(false));
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private ResourceBundle messages;
 }

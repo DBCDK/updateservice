@@ -1,4 +1,3 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
@@ -18,8 +17,10 @@ import static org.mockito.Matchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//-----------------------------------------------------------------------------
 public class UpdateClassificationsInEnrichmentRecordActionTest {
+    private static final String COMMON_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/common_enrichment.marc";
+    private static final String ENRICHMENT_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/enrichment.marc";
+
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
      * with wrong state.
@@ -175,11 +176,4 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
 
         assertThat( instance.createRecord(), equalTo( newEnrichmentRecord ) );
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private static final String COMMON_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/common_enrichment.marc";
-    private static final String ENRICHMENT_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/enrichment.marc";
 }
