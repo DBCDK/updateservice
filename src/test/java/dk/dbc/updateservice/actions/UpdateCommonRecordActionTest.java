@@ -1,7 +1,4 @@
-//-----------------------------------------------------------------------------
 package dk.dbc.updateservice.actions;
-
-//-----------------------------------------------------------------------------
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
@@ -23,8 +20,9 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-//-----------------------------------------------------------------------------
 public class UpdateCommonRecordActionTest {
+    private ResourceBundle messages;
+
     public UpdateCommonRecordActionTest() {
         this.messages = ResourceBundles.getBundle( this, "actions" );
     }
@@ -281,10 +279,4 @@ public class UpdateCommonRecordActionTest {
         assertThat( action.getOpenAgencyService(), is( openAgencyService ) );
         assertThat( action.getRecordsHandler(), is( recordsHandler ) );
     }
-
-    //-------------------------------------------------------------------------
-    //              Members
-    //-------------------------------------------------------------------------
-
-    private ResourceBundle messages;
 }
