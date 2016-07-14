@@ -38,8 +38,8 @@ import java.util.Set;
  */
 @Stateful
 public class RawRepo {
-    private static XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
     public static final Integer COMMON_LIBRARY = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
