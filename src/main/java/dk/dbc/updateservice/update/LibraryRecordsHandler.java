@@ -23,7 +23,7 @@ import java.util.Properties;
  * @author stp
  */
 public class LibraryRecordsHandler {
-    private final XLogger logger = XLoggerFactory.getXLogger(this.getClass());
+    private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
     static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
 
     private Scripter scripter;
