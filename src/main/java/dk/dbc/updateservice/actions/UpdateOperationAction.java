@@ -205,6 +205,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             for (MarcRecord rec : records) {
                 bizLogger.info("");
                 bizLogger.info("Create sub actions for record:\n{}", rec);
+                logger.info("Create sub actions for record:\n" + rec);
 
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
@@ -216,6 +217,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
 
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                    logger.info("Subaction, agencyId: " + agencyId + ", = RawRepo.RAWREPO_COMMON_LIBRARY");
                     if (!updReader.markedForDeletion() &&
                             !openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
@@ -232,6 +234,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                     children.add(action);
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
+                    logger.info("Subaction, agencyId: " + agencyId + ", = RawRepo.SCHOOL_COMMON_AGENCY");
                     UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord(rawRepo, rec);
                     action.setRecordsHandler(recordsHandler);
                     action.setHoldingsItems(holdingsItems);
@@ -240,11 +243,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                     children.add(action);
                 } else {
+                    logger.info("Subaction, agencyId: " + agencyId + ", ELSE part");
                     if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
                         UpdateEnrichmentRecordAction action;
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
+                            logger.info("Subaction, agencyId: " + agencyId + ", UpdateSchoolEnrichmentRecordAction");
                             action = new UpdateSchoolEnrichmentRecordAction(rawRepo, rec);
                         } else {
+                            logger.info("Subaction, agencyId: " + agencyId + ", UpdateEnrichmentRecordAction");
                             action = new UpdateEnrichmentRecordAction(rawRepo, rec);
                         }
                         action.setRecordsHandler(recordsHandler);
@@ -254,6 +260,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                         children.add(action);
                     } else {
+                        logger.info("Subaction, agencyId: " + agencyId + ", UpdateLocalRecordAction");
                         UpdateLocalRecordAction action = new UpdateLocalRecordAction(rawRepo, rec);
                         action.setHoldingsItems(holdingsItems);
                         action.setOpenAgencyService(openAgencyService);
