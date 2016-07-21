@@ -250,6 +250,7 @@ public class LibraryRecordsHandler {
     public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String userId, String groupId) throws ScripterException {
         logger.entry(record);
 
+        logger.info("Before rawrepo updateservice javascript, record: " + record);
         List<MarcRecord> result = null;
         try {
             Object jsResult;
@@ -267,6 +268,7 @@ public class LibraryRecordsHandler {
 
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
+                logger.info("After rawrepo updateservice javascript, List<MarcRecord>: " + result);
                 return result;
             }
 

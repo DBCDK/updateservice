@@ -25,6 +25,8 @@ import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.validate.Validator;
+import org.apache.commons.lang3.builder.RecursiveToStringStyle;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -169,6 +171,7 @@ public class UpdateService implements CatalogingUpdatePortType {
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         StopWatch watch = new Log4JStopWatch();
 
+
         if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
             MessageContext messageContext = wsContext.getMessageContext();
             HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
@@ -181,6 +184,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         }
 
         logMdcUpdateMethodEntry(updateRecordRequest);
+        logger.info("Entering Updateservice, updateRecordRequest: " + UpdateService.objectToStringReflection(updateRecordRequest));
 
         logger.entry(updateRecordRequest);
 
@@ -375,4 +379,9 @@ public class UpdateService implements CatalogingUpdatePortType {
 
         return writer;
     }
+
+    public static String objectToStringReflection(Object object) {
+        return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
+    }
+
 }
