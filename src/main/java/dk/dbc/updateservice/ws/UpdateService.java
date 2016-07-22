@@ -13,6 +13,7 @@ import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
+import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.Options;
 import dk.dbc.updateservice.service.api.Schema;
 import dk.dbc.updateservice.service.api.SchemasStatusEnum;
@@ -43,6 +44,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.ws.WebServiceContext;
@@ -385,10 +387,12 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     private String marshal(UpdateRecordRequest updateRecordRequest) {
         try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
             StringWriter stringWriter = new StringWriter();
             JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(updateRecordRequest, stringWriter);
+            marshaller.marshal(jAXBElement, stringWriter);
             return stringWriter.toString();
         } catch (JAXBException e) {
             logger.warn("Got an error while marshalling input request, using reflectiong instead:");
