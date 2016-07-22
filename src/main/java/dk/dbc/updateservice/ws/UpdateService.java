@@ -42,9 +42,13 @@ import javax.jws.WebService;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -184,9 +188,8 @@ public class UpdateService implements CatalogingUpdatePortType {
         }
 
         logMdcUpdateMethodEntry(updateRecordRequest);
-        logger.info("Entering Updateservice, updateRecordRequest: " + UpdateService.objectToStringReflection(updateRecordRequest));
-
         logger.entry(updateRecordRequest);
+        logger.info("Entering Updateservice, marshal(updateRecordRequest):\n" + marshal(updateRecordRequest));
 
         UpdateResponseWriter writer = new UpdateResponseWriter();
         UpdateRequestAction action = null;
@@ -380,7 +383,22 @@ public class UpdateService implements CatalogingUpdatePortType {
         return writer;
     }
 
-    public static String objectToStringReflection(Object object) {
+    private String marshal(UpdateRecordRequest updateRecordRequest) {
+        try {
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(updateRecordRequest, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.warn("Got an error while marshalling input request, using reflectiong instead:");
+            logger.info(objectToStringReflection(updateRecordRequest));
+            logger.catching(e);
+            return null;
+        }
+    }
+
+    private String objectToStringReflection(Object object) {
         return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
     }
 
