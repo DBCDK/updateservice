@@ -53,7 +53,7 @@ public class LibraryRecordsHandler {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
             }
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.trace("Result from hasClassificationData JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof Boolean) {
                 logger.exit();
@@ -93,7 +93,7 @@ public class LibraryRecordsHandler {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationsChanged", ex);
             }
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from hasClassificationsChanged JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof Boolean) {
                 return ((Boolean) jsResult);
@@ -133,7 +133,7 @@ public class LibraryRecordsHandler {
             Object jsResult = scripter.callMethod(CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME,
                     settings, Json.encode(currentCommonRecord), Json.encode(updatingCommonRecord));
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from shouldCreateEnrichmentRecords JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 return result = Json.decode(jsResult.toString(), ServiceResult.class);
@@ -169,7 +169,7 @@ public class LibraryRecordsHandler {
 
             jsResult = scripter.callMethod("createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, agencyId);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from createLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
@@ -207,7 +207,7 @@ public class LibraryRecordsHandler {
 
             jsResult = scripter.callMethod("updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from updateLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
@@ -233,7 +233,7 @@ public class LibraryRecordsHandler {
 
             jsResult = scripter.callMethod("correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from correctLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
@@ -264,7 +264,7 @@ public class LibraryRecordsHandler {
                 jsResult = false;
             }
 
-            logger.debug("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
@@ -305,7 +305,7 @@ public class LibraryRecordsHandler {
             } catch (IOException ex) {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
             }
-            logger.debug("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from recategorizationNoteFieldFactory JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (!(jsResult instanceof String)) {
                 throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");

@@ -176,8 +176,6 @@ public class UpdateService implements CatalogingUpdatePortType {
     @Override
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         StopWatch watch = new Log4JStopWatch();
-
-
         if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
             MessageContext messageContext = wsContext.getMessageContext();
             HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
@@ -188,7 +186,6 @@ public class UpdateService implements CatalogingUpdatePortType {
                 return null;
             }
         }
-
         logMdcUpdateMethodEntry(updateRecordRequest);
         logger.entry(updateRecordRequest);
         logger.info("Entering Updateservice, marshal(updateRecordRequest):\n" + marshal(updateRecordRequest));

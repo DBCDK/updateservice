@@ -123,7 +123,7 @@ public class ValidateRecordAction extends AbstractAction {
             bizLogger.info("Handling record:\n{}", record);
 
             Object jsResult = scripter.callMethod("validateRecord", schemaName, Json.encode(record), settings);
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from validateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             List<ValidationError> errors = Json.decodeArray(jsResult.toString(), ValidationError.class);
             result = new ServiceResult();

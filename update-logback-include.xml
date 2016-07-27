@@ -41,7 +41,7 @@
     <!-- ************************************************************* -->
     <!-- RawRepo                                                       -->
     <!-- ************************************************************* -->
-    <logger name="dk.dbc.rawrepo.RawRepoDAO" level="DEBUG"">
+    <logger name="dk.dbc.rawrepo.RawRepoDAO" level="DEBUG">
         <level value="DEBUG"/>
         <appender-ref ref="FILE"/>
     </logger>

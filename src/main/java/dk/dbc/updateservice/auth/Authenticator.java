@@ -91,7 +91,7 @@ public class Authenticator {
             ObjectMapper mapper = new ObjectMapper();
             Object jsResult = scripter.callMethod("authenticateRecord", mapper.writeValueAsString(record), userId, groupId, settings);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof String) {
                 List<ValidationError> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, ValidationError.class));
