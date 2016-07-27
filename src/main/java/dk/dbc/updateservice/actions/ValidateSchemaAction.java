@@ -84,7 +84,7 @@ public class ValidateSchemaAction extends AbstractAction {
         try {
             Object jsResult = scripter.callMethod("checkTemplate", validateSchema, groupId, settings);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from checkTemplate JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof Boolean) {
                 Boolean validateSchemaFound = (Boolean) jsResult;

@@ -40,7 +40,7 @@ public class Validator {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Object jsResult = scripter.callMethod( "getValidateSchemas", groupId, settings );
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from getValidateSchemas JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             Schema[] names = mapper.readValue(jsResult.toString(), Schema[].class);
             result.addAll(Arrays.asList(names));

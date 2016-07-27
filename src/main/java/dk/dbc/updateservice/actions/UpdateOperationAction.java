@@ -299,6 +299,9 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(rec);
             String recordId = reader.recordId();
 
+            if (rawRepo == null) {
+                logger.info("UpdateOperationAction.commonRecordExists(), rawRepo is NULL");
+            }
             if (rawRepo.recordExists(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
                 return true;
             }
