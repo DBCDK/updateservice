@@ -196,6 +196,9 @@ public class LibraryRecordsHandler {
      */
     public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
+        logger.info("THL LibraryRecordsHandler.updateLibraryExtendedRecord, currentCommonRecord:\n" + currentCommonRecord);
+        logger.info("THL LibraryRecordsHandler.updateLibraryExtendedRecord, updatingCommonRecord:\n" + updatingCommonRecord);
+        logger.info("THL LibraryRecordsHandler.updateLibraryExtendedRecord, enrichmentRecord:\n" + enrichmentRecord);
 
         Object jsResult = null;
 
@@ -223,7 +226,8 @@ public class LibraryRecordsHandler {
 
     public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
         logger.entry(commonRecord, enrichmentRecord);
-
+        logger.info("THL LibraryRecordsHandler.correctLibraryExtendedRecord, commonRecord:\n" + commonRecord);
+        logger.info("THL LibraryRecordsHandler.correctLibraryExtendedRecord, enrichmentRecord:\n" + enrichmentRecord);
         Object jsResult = null;
 
         try {
@@ -250,7 +254,9 @@ public class LibraryRecordsHandler {
     public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String userId, String groupId) throws ScripterException {
         logger.entry(record);
 
-        logger.info("Before rawrepo updateservice javascript, record: " + record);
+        logger.info("THL LibraryRecordsHandler.recordDataForRawRepo, userId: " + userId);
+        logger.info("THL LibraryRecordsHandler.recordDataForRawRepo, groupId: " + groupId);
+        logger.info("THL LibraryRecordsHandler.recordDataForRawRepo, record:\n" + record);
         List<MarcRecord> result = null;
         try {
             Object jsResult;
