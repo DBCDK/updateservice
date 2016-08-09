@@ -42,24 +42,20 @@ public class LibraryRecordsHandler {
      */
     public boolean hasClassificationData(MarcRecord record) throws ScripterException {
         logger.entry(record);
-
         Object jsResult = null;
         try {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String json = mapper.writeValueAsString(record);
                 jsResult = scripter.callMethod("hasClassificationData", json);
+                logger.debug("Result from hasClassificationData JS ({}): {}", jsResult.getClass().getName(), jsResult);
             } catch (IOException ex) {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
             }
-
-            logger.trace("Result from hasClassificationData JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof Boolean) {
                 logger.exit();
                 return ((Boolean) jsResult);
             }
-
             throw new ScripterException("The JavaScript function %s must return a boolean value.", "hasClassificationData");
         } finally {
             logger.exit(jsResult);
@@ -80,25 +76,20 @@ public class LibraryRecordsHandler {
      */
     public boolean hasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) throws ScripterException {
         logger.entry(oldRecord, newRecord);
-
         Object jsResult = null;
         try {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String jsonOldRecord = mapper.writeValueAsString(oldRecord);
                 String jsonNewRecord = mapper.writeValueAsString(newRecord);
-
                 jsResult = scripter.callMethod("hasClassificationsChanged", jsonOldRecord, jsonNewRecord);
             } catch (IOException ex) {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationsChanged", ex);
             }
-
             logger.debug("Result from hasClassificationsChanged JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof Boolean) {
                 return ((Boolean) jsResult);
             }
-
             throw new ScripterException("The JavaScript function %s must return a boolean value.", "hasClassificationsChanged");
         } finally {
             logger.exit(jsResult);
@@ -127,18 +118,17 @@ public class LibraryRecordsHandler {
      */
     public ServiceResult shouldCreateEnrichmentRecords(Properties settings, MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord) throws ScripterException {
         logger.entry(settings, currentCommonRecord, updatingCommonRecord);
-
         ServiceResult result = null;
         try {
-            Object jsResult = scripter.callMethod(CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME,
-                    settings, Json.encode(currentCommonRecord), Json.encode(updatingCommonRecord));
-
+            logger.info("THL settings.........................: " + settings);
+            logger.info("THL Json.encode(currentCommonRecord).: " + Json.encode(currentCommonRecord));
+            logger.info("THL Json.encode(updatingCommonRecord): " + Json.encode(updatingCommonRecord));
+            Object jsResult = scripter.callMethod(CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, settings, Json.encode(currentCommonRecord), Json.encode(updatingCommonRecord));
+            logger.info("THL jsResult = " + jsResult);
             logger.debug("Result from shouldCreateEnrichmentRecords JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 return result = Json.decode(jsResult.toString(), ServiceResult.class);
             }
-
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME));
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, ex);
@@ -158,7 +148,7 @@ public class LibraryRecordsHandler {
      * <code>libraryRecord</code> may have changed.
      * @throws ScripterException
      */
-    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, int agencyId) throws ScripterException {
+    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, agencyId);
 
         Object jsResult = null;
@@ -166,15 +156,11 @@ public class LibraryRecordsHandler {
             ObjectMapper mapper = new ObjectMapper();
             String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
             String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-
-            jsResult = scripter.callMethod("createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, agencyId);
-
+            jsResult = scripter.callMethod("createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, Integer.parseInt(agencyId));
             logger.debug("Result from createLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
             }
-
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "createLibraryExtendedRecord"));
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: createLibraryExtendedRecord", ex);
@@ -202,15 +188,11 @@ public class LibraryRecordsHandler {
             String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
             String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
             String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
-
             jsResult = scripter.callMethod("updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
-
             logger.debug("Result from updateLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
             }
-
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "updateLibraryExtendedRecord"));
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: updateLibraryExtendedRecord", ex);
@@ -222,20 +204,15 @@ public class LibraryRecordsHandler {
     public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
         logger.entry(commonRecord, enrichmentRecord);
         Object jsResult = null;
-
         try {
             ObjectMapper mapper = new ObjectMapper();
             String jsonCommonRecord = mapper.writeValueAsString(commonRecord);
             String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
-
             jsResult = scripter.callMethod("correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
-
             logger.debug("Result from correctLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
             }
-
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "correctLibraryExtendedRecord"));
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: correctLibraryExtendedRecord", ex);
@@ -251,22 +228,18 @@ public class LibraryRecordsHandler {
             Object jsResult;
             ObjectMapper mapper = new ObjectMapper();
             String jsonRecord = mapper.writeValueAsString(record);
-
             try {
                 jsResult = scripter.callMethod("recordDataForRawRepo", jsonRecord, userId, groupId);
             } catch (IllegalStateException ex) {
                 logger.error("Error when executing JavaScript function: recordDataForRawRepo", ex);
                 jsResult = false;
             }
-
             logger.debug("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
                 logger.info("After rawrepo updateservice javascript, List<MarcRecord>: " + result);
                 return result;
             }
-
             throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);
@@ -288,7 +261,6 @@ public class LibraryRecordsHandler {
 
     public MarcField fetchNoteField(MarcRecord record) throws ScripterException {
         logger.entry(record);
-
         // TODO create function for this, very similar code in all of the above
         MarcField mf = null;
         Object jsResult;
@@ -301,12 +273,10 @@ public class LibraryRecordsHandler {
                 throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
             }
             logger.debug("Result from recategorizationNoteFieldFactory JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (!(jsResult instanceof String)) {
                 throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
             }
             return mf = mapper.readValue((String) jsResult, MarcField.class);
-
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);
         } finally {
