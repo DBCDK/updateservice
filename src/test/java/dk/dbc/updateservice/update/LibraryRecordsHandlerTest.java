@@ -19,8 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LibraryRecordsHandlerTest {
-    private static final String SCRIPTER_FILENAME = "somefile.js";
-
     private Scripter scripter;
 
     @Before
@@ -52,7 +50,7 @@ public class LibraryRecordsHandlerTest {
 
         String currentCommonRecordArgument = Json.encode(currentCommonRecord);
         String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
-        ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason");
+        ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "reason");
         String scripterResult = Json.encode(scripterReason);
         when(scripter.callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
                 isNull(Properties.class),
@@ -66,9 +64,8 @@ public class LibraryRecordsHandlerTest {
     @Test
     public void testServiceResultAsJson() throws Exception {
         ServiceResult scripterReason = ServiceResult.newOkResult();
-        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"OK\",\"serviceError\":null,\"entries\":[]}"));
-
-        scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "reason");
-        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"FAILED_UPDATE_INTERNAL_ERROR\",\"serviceError\":null,\"entries\":[{\"warningOrError\":\"ERROR\",\"urlForDocumentation\":null,\"ordinalPositionOfField\":null,\"ordinalPositionOfSubField\":null,\"message\":\"reason\"}]}"));
+        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"OK\",\"entries\":[],\"doubleRecordKey\":null,\"serviceErrorList\":null}"));
+        scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "reason");
+        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"FAILED\",\"entries\":[{\"type\":\"ERROR\",\"code\":null,\"params\":{\"param\":[{\"value\":\"reason\",\"key\":\"message\"}]}}],\"doubleRecordKey\":null,\"serviceErrorList\":[{\"type\":\"ERROR\",\"code\":null,\"params\":{\"param\":[{\"value\":\"reason\",\"key\":\"message\"}]}}]}"));
     }
 }
