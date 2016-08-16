@@ -302,7 +302,7 @@ public class RawRepo {
      */
     public boolean recordExists(String recordId, Integer agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
-        logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId="+ agencyId);
+        logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
 
         boolean result = false;
@@ -310,12 +310,17 @@ public class RawRepo {
             logger.info("RawRepo.recordExists, dataSourceReader == NULL");
         }
         try (Connection conn = dataSourceReader.getConnection()) {
+            if (conn == null) {
+                logger.info("RawRepo.recordExists, conn == NULL");
+            }
             try {
                 RawRepoDAO dao = createDAO(conn);
                 if (dao == null) {
                     logger.info("RawRepo.recordExists, dao == NULL");
                 }
+                logger.info("RawRepo.recordExists, PRE dao.recordExists");
                 result = dao.recordExists(recordId, agencyId);
+                logger.info("RawRepo.recordExists, POST dao.recordExists");
                 return result;
             } catch (RawRepoException e) {
                 if (conn != null) {
