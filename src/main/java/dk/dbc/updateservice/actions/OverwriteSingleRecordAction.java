@@ -366,7 +366,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         }
                     }
                 } else {
-                    bizLogger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.");
+                    bizLogger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.", recordId);
                 }
                 Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
 
