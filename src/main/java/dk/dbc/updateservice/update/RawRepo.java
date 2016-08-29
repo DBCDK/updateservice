@@ -18,8 +18,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
-import javax.ejb.Stateful;
-import javax.enterprise.concurrent.ManagedExecutorService;
+import javax.ejb.Stateless;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -36,7 +35,7 @@ import java.util.Set;
 /**
  * EJB to provide access to the RawRepo database.
  */
-@Stateful
+@Stateless
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
@@ -48,9 +47,6 @@ public class RawRepo {
 
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
-
-    @Resource(name = JNDIResources.RAWREPO_CACHE_EXECUTOR_SERVICE)
-    ManagedExecutorService openAgencyExecutor;
 
     @EJB
     OpenAgencyService openAgency;
@@ -528,7 +524,7 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
-            rawRepoBuilder.openAgency(openAgency.getService(), openAgencyExecutor);
+            rawRepoBuilder.openAgency(openAgency.getService(), null);
             RawRepoDAO dao = rawRepoBuilder.build();
 
             return dao;

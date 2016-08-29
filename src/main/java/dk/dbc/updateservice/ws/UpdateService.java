@@ -199,30 +199,20 @@ public class UpdateService implements CatalogingUpdatePortType {
             logger.info("MDC: " + MDC.getCopyOfContextMap());
             logger.info("Request tracking id: " + updateRecordRequest.getTrackingId());
             action = createUpdateRequestAction(updateRecordRequest);
-            logger.info("1#");
 
             engine = new ServiceEngine();
-            logger.info("2#");
             engine.setLoggerKeys(MDC.getCopyOfContextMap());
-            logger.info("3#");
             ServiceResult serviceResult = engine.executeAction(action);
-            logger.info("4#");
             if (serviceResult.getServiceError() != null) {
-                logger.info("5#");
                 writer.setUpdateStatus(null);
                 writer.setError(serviceResult.getServiceError());
-                logger.info("6#");
             } else {
-                logger.info("7#");
                 writer.setUpdateStatus(serviceResult.getStatus());
                 writer.addValidateEntries(serviceResult.getEntries());
-                logger.info("8#");
             }
 
             result = writer.getResponse();
-            logger.info("9#");
             bizLogger.info("Returning response:\n{}", Json.encodePretty(result));
-            logger.info("10#");
             return result;
         } catch (Throwable ex) {
             bizLogger.error("Caught Exception: {}", findServiceException(ex).getMessage());
