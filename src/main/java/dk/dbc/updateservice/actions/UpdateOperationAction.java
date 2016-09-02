@@ -188,6 +188,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
+            // This breaks the fail early convention if the authentification fails , the code below will still  be evaluated
             AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(record);
             authenticateRecordAction.setAuthenticator(authenticator);
             authenticateRecordAction.setAuthentication(authentication);
@@ -218,6 +219,18 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     logger.info("Subaction, agencyId: " + agencyId + ", = RawRepo.RAWREPO_COMMON_LIBRARY");
+                    logger.info("!updReader.markedForDeletion(): " + updReader.markedForDeletion());
+                    logger.info("openAgencyService is null ? " + (openAgencyService == null));
+                    logger.info("authentication is null ? " + (authentication == null));
+                    logger.info("rawRepo is null ? " + (rawRepo == null));
+                    logger.info("!updReader.markedForDeletion(): " + !updReader.markedForDeletion());
+
+                    logger.info("openAgencyService.hasFeature ... " + openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD));
+                    logger.info("authentication.getGroupIdAut(): " + authentication.getGroupIdAut());
+                    logger.info("LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD: " + LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD);
+                    logger.info("updReader.markedForDeletion(): " + updReader.markedForDeletion());
+                    logger.info("rawRepo.recordExists(updRecordId, updAgencyId): " + rawRepo.recordExists(updRecordId, updAgencyId));
+
                     if (!updReader.markedForDeletion() &&
                             !openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {

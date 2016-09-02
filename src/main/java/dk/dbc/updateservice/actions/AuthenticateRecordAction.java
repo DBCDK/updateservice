@@ -120,7 +120,7 @@ public class AuthenticateRecordAction extends AbstractAction {
             String agencyId = reader.agencyId();
             if (result.hasErrors()) {
                 bizLogger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut());
-                result.setStatus(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR);
+                result.setStatus(UpdateStatusEnum.FAILED_INVALID_AGENCY);
             } else {
                 bizLogger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut());
                 result.setStatus(UpdateStatusEnum.OK);
@@ -130,11 +130,8 @@ public class AuthenticateRecordAction extends AbstractAction {
         } catch (EJBException | ScripterException ex) {
             Throwable businessException = findServiceException(ex);
             String message = String.format(messages.getString("internal.authenticate.record.error"), businessException.getMessage());
-
             bizLogger.error(message);
-
             logger.warn("Exception doing authentication: ", businessException);
-
             return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message);
         } finally {
             logger.exit(result);
