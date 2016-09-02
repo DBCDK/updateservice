@@ -113,7 +113,7 @@ public class AuthenticateRecordActionTest {
         instance.setAuthenticator(authenticator);
         instance.setAuthentication(auth);
 
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnum.FAILED_INVALID_AGENCY);
         expected.addEntry(err);
         assertThat(instance.performAction(), equalTo(expected));
 
