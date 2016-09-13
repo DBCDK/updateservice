@@ -1,10 +1,8 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -13,63 +11,22 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 /**
  * Action to check a record for double records.
  */
 public class DoubleRecordCheckingAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final String ENTRY_POINT = "checkDoubleRecord";
 
-    private final String ENTRY_POINT = "checkDoubleRecord";
+    MarcRecord record;
+    Properties settings;
 
-    /**
-     * The record to check for double records.
-     */
-    private MarcRecord record;
-
-    private Properties settings;
-
-    /**
-     * JavaScript engine to execute the validation rules on the record.
-     */
-    private Scripter scripter;
-
-    /**
-     * Resource messages to use in validation or system errors.
-     */
-    private ResourceBundle messages;
-
-    public DoubleRecordCheckingAction(MarcRecord record) {
-        super("DoubleRecordCheckingAction");
-        this.record = record;
-        this.scripter = null;
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public MarcRecord getRecord() {
-        return record;
-    }
-
-    public void setRecord(MarcRecord record) {
-        this.record = record;
-    }
-
-    public Properties getSettings() {
-        return settings;
-    }
-
-    public void setSettings(Properties settings) {
-        this.settings = settings;
-    }
-
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
+    public DoubleRecordCheckingAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(DoubleRecordCheckingAction.class.getSimpleName(), globalActionState);
+        settings = properties;
+        record = marcRecord;
     }
 
     /**
@@ -81,18 +38,14 @@ public class DoubleRecordCheckingAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
-
-            scripter.callMethod(ENTRY_POINT, Json.encode(record), settings);
-
+            state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
             return result = ServiceResult.newOkResult();
         } catch (IOException | ScripterException ex) {
-            String message = String.format(messages.getString("internal.double.record.check.error"), ex.getMessage());
+            String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
             logger.error(message, ex);
-
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);

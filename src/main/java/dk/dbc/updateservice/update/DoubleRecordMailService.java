@@ -71,51 +71,35 @@ public class DoubleRecordMailService {
     public void sendMessage(String subject, String body) {
         logger.entry(subject, body);
         StopWatch watch = new Log4JStopWatch("service.mail");
-
         try {
             // Setup Mail server properties
             Properties properties = System.getProperties();
             properties.setProperty(MAIL_HOST_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_HOST_KEY));
             properties.setProperty(MAIL_PORT_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PORT_KEY));
-
-
             if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_USER_KEY)) {
                 properties.setProperty(MAIL_USER_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_USER_KEY));
             }
-
             if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD_KEY)) {
                 properties.setProperty(MAIL_PASSWORD_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD_KEY));
             }
-
             // Create a new Session object for the mail message.
             Session session = Session.getInstance(properties);
-
             try {
-                // Create a default MimeMessage object.
                 MimeMessage message = new MimeMessage(session);
-
-                // Set From: header field of the header.
                 message.setFrom(new InternetAddress(settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_FROM_KEY)));
-
-                // Set To: header field of the header.
                 String receipientAddresses = settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY);
                 for (String addr : receipientAddresses.split(";")) {
                     message.addRecipient(Message.RecipientType.TO, new InternetAddress(addr));
                 }
-
-                // Set Subject: header field
                 message.setSubject(subject);
-
-                // Now set the actual message
                 message.setText(body);
-
-                // Send message
                 Transport.send(message);
                 bizLogger.info("Double Record Checker: Sent message with subject '{}' successfully.", subject);
             } catch (MessagingException ex) {
                 bizLogger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY), ex.getMessage());
                 bizLogger.warn("Mail message: {}\n{}", subject, body);
-                logger.warn("Mail service error: ", ex);
+                logger.error("Mail service error");
+                logger.catching(XLogger.Level.ERROR, ex);
             }
         } finally {
             watch.stop();

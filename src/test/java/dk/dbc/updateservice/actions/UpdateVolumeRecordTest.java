@@ -1,15 +1,12 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.ListIterator;
 import java.util.Properties;
@@ -18,10 +15,20 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UpdateVolumeRecordTest {
+    private GlobalActionState state;
+    private Properties settings;
+    private static final String GROUP_ID = "700000";
+
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(GROUP_ID);
+        settings = new UpdateTestUtils().getSettings();
+    }
+
     /**
      * Test performAction(): Create new single common record.
      * <p>
@@ -48,38 +55,19 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_CreateRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        UpdateVolumeRecord updateVolumeRecord = new UpdateVolumeRecord(state, settings, volumeRecord);
+        assertThat(updateVolumeRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        SolrService solrService = mock(SolrService.class);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-
-        UpdateVolumeRecord instance = new UpdateVolumeRecord(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-
-        AssertActionsUtil.assertCreateVolumeRecordAction(iterator.next(), rawRepo, volumeRecord, holdingsItems, solrService, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        ListIterator<ServiceAction> iterator = updateVolumeRecord.children().listIterator();
+        AssertActionsUtil.assertCreateVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getHoldingsItems(), state.getSolrService(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -111,39 +99,20 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        SolrService solrService = mock(SolrService.class);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(volumeRecord)).thenReturn(false);
-
-        Properties settings = new Properties();
-
-        UpdateVolumeRecord instance = new UpdateVolumeRecord(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
+        UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertOverwriteVolumeRecordAction(iterator.next(), rawRepo, volumeRecord, 700000, recordsHandler, holdingsItems);
-
+        AssertActionsUtil.assertOverwriteVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -173,41 +142,20 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_DeleteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<Integer>());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<Integer>());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-
-        UpdateVolumeRecord instance = new UpdateVolumeRecord(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
+        UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), rawRepo, volumeRecord, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 }

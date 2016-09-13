@@ -1,9 +1,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -11,11 +9,12 @@ import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.xml.bind.JAXBException;
-import java.io.InputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,19 +28,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StoreRecordActionTest {
-    private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
+    private GlobalActionState state;
+
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+    }
 
     /**
      * Test StoreRecordAction.StoreRecordAction() constructor.
      */
+    // TODO - WHY?!?!
     @Test
     public void testConstructor() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
-
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        StoreRecordAction instance = new StoreRecordAction(state, record);
         assertThat(instance, notNullValue());
     }
 
@@ -66,28 +67,23 @@ public class StoreRecordActionTest {
      */
     @Test
     public void testPerformAction_StoreRecordOk() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
-        when(rawRepo.fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
-
-        verify(rawRepo).saveRecord(recordArgument.capture());
+        verify(state.getRawRepo()).saveRecord(recordArgument.capture());
         assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(recordArgument.getValue().getMimeType(), equalTo(instance.getMimetype()));
-        assertThat(recordArgument.getValue().isDeleted(), equalTo(instance.deletionMarkToStore()));
-        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(instance.recordToStore())));
+        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
     }
 
     /**
@@ -115,25 +111,19 @@ public class StoreRecordActionTest {
      */
     @Test
     public void testPerformAction_UnsupportedEncoding() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        storeRecordAction.encoder = mock(RawRepoEncoder.class);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        RawRepoEncoder encoder = mock(RawRepoEncoder.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
-        instance.setEncoder(encoder);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
-        when(rawRepo.fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-        when(encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "error")));
-
-        verify(rawRepo, never()).saveRecord(any(Record.class));
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
+        verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
     /**
@@ -161,25 +151,21 @@ public class StoreRecordActionTest {
      */
     @Test
     public void testPerformAction_JAXBException() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
-
-        RawRepo rawRepo = mock(RawRepo.class);
         RawRepoEncoder encoder = mock(RawRepoEncoder.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
-        instance.setEncoder(encoder);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        storeRecordAction.encoder = encoder;
 
-        when(rawRepo.fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, "error")));
-
-        verify(rawRepo, never()).saveRecord(any(Record.class));
+        ServiceResult serviceResult = storeRecordAction.performAction();
+        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
+        verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
     /**
@@ -190,14 +176,10 @@ public class StoreRecordActionTest {
      */
     @Test
     public void testDeletionMarkToStore() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-
-        assertThat(instance.deletionMarkToStore(), equalTo(false));
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        assertThat(storeRecordAction.deletionMarkToStore(), equalTo(false));
     }
 
     /**
@@ -205,13 +187,9 @@ public class StoreRecordActionTest {
      */
     @Test
     public void testRecordToStore() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        StoreRecordAction instance = new StoreRecordAction(rawRepo, record);
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        StoreRecordAction instance = new StoreRecordAction(state, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-
         assertThat(instance.recordToStore(), equalTo(record));
     }
 }

@@ -3,18 +3,18 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ResourceBundle;
+import java.util.Properties;
 
 /**
  * Action to delete a common record.
@@ -25,55 +25,12 @@ import java.util.ResourceBundle;
 public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
-    private LibraryRecordsHandler recordsHandler;
-    private HoldingsItems holdingsItems;
-    private SolrService solrService;
-    private String providerId;
-    private ResourceBundle messages;
+    Properties settings;
 
-    public DeleteCommonRecordAction(RawRepo rawRepo, MarcRecord record) {
-        super("DeleteCommonRecordAction", rawRepo, record);
-
-        this.recordsHandler = null;
-        this.holdingsItems = null;
-        this.solrService = null;
-        this.providerId = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public LibraryRecordsHandler getRecordsHandler() {
-        return recordsHandler;
-    }
-
-    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
-        this.recordsHandler = recordsHandler;
-    }
-
-    public HoldingsItems getHoldingsItems() {
-        return holdingsItems;
-    }
-
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
-        this.holdingsItems = holdingsItems;
-    }
-
-    public SolrService getSolrService() {
-        return solrService;
-    }
-
-    public void setSolrService(SolrService solrService) {
-        this.solrService = solrService;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public DeleteCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        super(DeleteCommonRecordAction.class.getSimpleName(), globalActionState, record);
+        settings = properties;
     }
 
     /**
@@ -87,17 +44,15 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
         logger.entry();
         try {
             bizLogger.info("Handling record:\n{}", record);
-
             if (!rawRepo.children(record).isEmpty()) {
                 MarcRecordReader reader = new MarcRecordReader(record);
                 String recordId = reader.recordId();
 
-                String message = messages.getString("delete.record.children.error");
-
+                String message = state.getMessages().getString("delete.record.children.error");
                 String errorMessage = String.format(message, recordId);
 
                 bizLogger.error("Unable to create sub actions doing to an error: {}", errorMessage);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, errorMessage);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, errorMessage, state);
             }
 
             for (RecordId enrichmentId : rawRepo.enrichments(record)) {
@@ -107,25 +62,19 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                 writer.markForDeletion();
 
-                UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction(rawRepo, enrichmentRecord);
-                action.setRecordsHandler(recordsHandler);
-                action.setHoldingsItems(holdingsItems);
-                action.setSolrService(solrService);
-                action.setProviderId(providerId);
+                UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
 
-                children.add(action);
+                children.add(updateEnrichmentRecordAction);
             }
-
             bizLogger.error("Creating sub actions successfully");
 
-            children.add(new RemoveLinksAction(rawRepo, record));
-            children.add(DeleteRecordAction.newDeleteRecordAction(rawRepo, record, MIMETYPE));
-            children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, record, providerId, MIMETYPE));
-
+            children.add(new RemoveLinksAction(state, record));
+            children.add(DeleteRecordAction.newDeleteRecordAction(state, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage());
+            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit();
         }

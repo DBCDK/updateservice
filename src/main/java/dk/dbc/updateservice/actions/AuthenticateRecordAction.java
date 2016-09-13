@@ -2,21 +2,17 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Authentication;
+import dk.dbc.updateservice.service.api.Entry;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
-import dk.dbc.updateservice.ws.ValidationError;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJBException;
 import java.util.List;
-import java.util.ResourceBundle;
 
 /**
  * Action to authenticate a record.
@@ -40,11 +36,7 @@ public class AuthenticateRecordAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(AuthenticateRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    private MarcRecord record;
-    private Authenticator authenticator;
-    private Authentication authentication;
-    private ResourceBundle messages;
-
+    MarcRecord record;
     /**
      * Constructs an instance with a template name and a record.
      * <p/>
@@ -52,39 +44,11 @@ public class AuthenticateRecordAction extends AbstractAction {
      * settings to work properly. These can be set though the properties <code>scripter</code>
      * and <code>settings</code>. This constructor initialize these to null.
      *
-     * @param record The record to validate.
+     * @param globalActionState State object containing data with data from request.
      */
-    public AuthenticateRecordAction(MarcRecord record) {
-        super("AuthenticateRecordAction");
-
-        this.record = record;
-        this.authenticator = null;
-        this.authentication = null;
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public MarcRecord getRecord() {
-        return record;
-    }
-
-    public void setRecord(MarcRecord record) {
-        this.record = record;
-    }
-
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(Authenticator authenticator) {
-        this.authenticator = authenticator;
-    }
-
-    public Authentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(Authentication authentication) {
-        this.authentication = authentication;
+    public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(AuthenticateRecordAction.class.getSimpleName(), globalActionState);
+        record = marcRecord;
     }
 
     /**
@@ -105,34 +69,33 @@ public class AuthenticateRecordAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
-            bizLogger.info("Login user: {}/{}", this.authentication.getUserIdAut(), this.authentication.getGroupIdAut());
+            bizLogger.info("Login user: {}/{}", state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
             bizLogger.info("Handling record:\n{}", record);
 
-            List<ValidationError> errors = this.authenticator.authenticateRecord(this.record, this.authentication.getUserIdAut(), this.authentication.getGroupIdAut());
+            List<Entry> errors = state.getAuthenticator().authenticateRecord(state, record);
             result = new ServiceResult();
-            result.addEntries(errors);
+            result.setEntries(errors);
 
+//             TODO: VERSION2: det her ligner spild af arbejde
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
             if (result.hasErrors()) {
-                bizLogger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut());
-                result.setStatus(UpdateStatusEnum.FAILED_INVALID_AGENCY);
+                bizLogger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
+                result.setStatus(UpdateStatusEnum.FAILED);
             } else {
-                bizLogger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, this.authentication.getGroupIdAut(), this.authentication.getUserIdAut());
+                bizLogger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
                 result.setStatus(UpdateStatusEnum.OK);
             }
-
             return result;
         } catch (EJBException | ScripterException ex) {
             Throwable businessException = findServiceException(ex);
-            String message = String.format(messages.getString("internal.authenticate.record.error"), businessException.getMessage());
+            String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), businessException.getMessage());
             bizLogger.error(message);
             logger.warn("Exception doing authentication: ", businessException);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
         } finally {
             logger.exit(result);
         }

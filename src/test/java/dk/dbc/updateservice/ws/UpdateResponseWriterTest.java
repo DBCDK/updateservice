@@ -1,10 +1,10 @@
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.updateservice.service.api.ValidateWarningOrErrorEnum;
+import dk.dbc.updateservice.service.api.Entry;
+import dk.dbc.updateservice.service.api.Type;
+import dk.dbc.updateservice.actions.UpdateTestUtils;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -19,26 +19,16 @@ public class UpdateResponseWriterTest {
     public UpdateResponseWriterTest() {
     }
 
+    //TODO: VERSION2: this test doesn't make sense
     @Test
     public void testAddValidateResults() {
-        List<ValidationError> valErrors = new ArrayList<>();
         UpdateResponseWriter instance = new UpdateResponseWriter();
-        instance.addValidateResults(valErrors);
-
-        ValidationError err = new ValidationError();
-        err.setType(ValidateWarningOrErrorEnum.ERROR);
-        HashMap<String, Object> params = new HashMap<>();
-        params.put("url", "url");
-        params.put("message", "message");
-        params.put("fieldno", 1.0);
-        params.put("subfieldno", 3.0);
-        err.setParams(params);
-        valErrors.add(err);
-
-        instance = new UpdateResponseWriter();
-        instance.addValidateResults(valErrors);
+        List<Entry> err = UpdateTestUtils.createEntryList(Type.ERROR, "error");
+        instance.addValidateEntries(err);
+        assertTrue(instance != null);
     }
 
+    //TODO: VERSION2: this test doesn't make sense
     @Test
     public void testBoolean() {
         assertEquals("true", Boolean.toString(true));

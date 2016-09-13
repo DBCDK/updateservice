@@ -17,15 +17,31 @@ Når servicen er deployet kan den tilgås via følgende:
 Servicen bruger følgende properties:
 * **UPDATE_LOGBACK_FILENAME**: Bruges af logback til at definere den fulde sti samt filnavn på log filen ekslusiv suffix. Kunne f.eks. være /home/thl/gf-logs/update
 
-### JNDI Resourcer
-
-Servicen bruger disse resourcer:
+### JDBC Resources
 
 * **jdbc/updateservice/raw-repo-readonly**: Readonly JDBC-resource til råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
 * **jdbc/updateservice/raw-repo-writable**: Skrivbar JDBC-resource til råpostrepositoriet. Denne resource skal være
 transaktionssikker, da den bruges til at ændre råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.xa.PGXADataSource*.
 * **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen. UpdateService læser kun fra denne database,
 så resourcen behøver ikke være transaktionssikker. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
+* **jdbc/updateservice/updateservicestore**: JDBC-resource til dobbeltpostkontrol frontend nøgledatabase.
+    * **Pool Name**: *jdbc/updateservice/updateservicestore/pool*
+
+### JDBC Connection pools
+
+* **jdbc/updateservice/updateservicestore/pool**: Denne forbindelse er sat op med følgende værdier:
+    * **datasource-classname**: org.postgresql.ds.PGSimpleDataSource
+    * **driverClass**: org.postgresql.Driver
+    * **ServerName**: <addresse på postgres maskine>
+    * **PortNumber**: <portnummer på postgres maskine>
+    * **DatabaseName**: <databasenavn på postgresmaskine>
+    * **User**: <brugernavn på database bruger>
+    * **Password**: <password på database bruger>
+
+### JNDI Resources
+
+Servicen bruger disse resourcer:
+
 * **update-log/logback**: Indeholder en url til logback configureringen. kunne f.eks. være file:///home/thl/gf-logs/update-logback-include.xml
 * **updateservice/settings**: Custom resource med ekstra settings.
 

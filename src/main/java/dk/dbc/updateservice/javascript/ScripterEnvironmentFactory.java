@@ -22,7 +22,7 @@ import java.util.Properties;
  * JavaScript engine factory to construct a new engine asynchronous.
  */
 public class ScripterEnvironmentFactory {
-    private static final XLogger logger = XLoggerFactory.getXLogger( ScripterEnvironmentFactory.class );
+    private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironmentFactory.class);
     private static final String COMMON_INSTALL_NAME = "common";
     private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
@@ -31,140 +31,115 @@ public class ScripterEnvironmentFactory {
     /**
      * Constructs a new engine and adds is to the parsed pool.
      * <p>
-     *    All errors are written to the log.
+     * All errors are written to the log.
      * </p>
      *
      * @param settings JNDI-settings required to construct the engine.
-     *
      * @return Future with a boolean value. <code>true</code> - the engine is created and added to the pool.
      * <code>false</code> - some error occurred.
      * @throws ScripterException on errors from JS.
-     *
      */
-    public ScripterEnvironment newEnvironment(Properties settings) throws ScripterException {
+    public ScripterEnvironment newEnvironment(Properties settings) throws Exception {
         logger.entry(settings);
-        StopWatch watch = new Log4JStopWatch( "javascript.env.create" );
-
+        StopWatch watch = new Log4JStopWatch("javascript.env.create");
         ScripterEnvironment result = null;
         try {
-            Environment environment = createEnvironment( settings );
-            ScripterEnvironment scripterEnvironment = new ScripterEnvironment( environment );
-            initTemplates( scripterEnvironment, settings);
-
+            Environment environment = createEnvironment(settings);
+            ScripterEnvironment scripterEnvironment = new ScripterEnvironment(environment);
+            initTemplates(scripterEnvironment, settings);
             return result = scripterEnvironment;
-        }
-        finally {
+        } finally {
             watch.stop();
-            logger.exit( result );
+            logger.exit(result);
         }
     }
 
-    private Environment createEnvironment( Properties settings ) throws ScripterException {
+    private Environment createEnvironment(Properties settings) throws Exception {
         logger.entry();
-
         try {
-            String baseDir = settings.getProperty( JNDIResources.JAVASCRIPT_BASEDIR_KEY );
+            String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
             String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-
             Environment envir = new Environment();
-            envir.registerUseFunction( createModulesHandler( baseDir, installName ) );
-            envir.evalFile( String.format( ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME ) );
-
+            envir.registerUseFunction(createModulesHandler(baseDir, installName));
+            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME));
             return envir;
-        }
-        catch( Exception ex ) {
-            throw new ScripterException( ex.getMessage(), ex );
-        }
-        finally {
+        } catch (Exception e) {
+            logger.catching(e);
+            throw e;
+        } finally {
             logger.exit();
         }
     }
 
-    private ModuleHandler createModulesHandler( String baseDir, String installName ) {
+    private ModuleHandler createModulesHandler(String baseDir, String installName) {
         logger.entry();
-
         try {
             ModuleHandler handler = new ModuleHandler();
             String modulesDir;
+            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, installName);
+            handler.registerHandler("file", new FileSchemeHandler(modulesDir));
+            addSearchPathsFromSettingsFile(handler, "file", modulesDir);
 
-            modulesDir = String.format( MODULES_PATH_PATTERN, baseDir, installName );
-            handler.registerHandler( "file", new FileSchemeHandler( modulesDir ) );
-            addSearchPathsFromSettingsFile( handler, "file", modulesDir );
+            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME);
+            handler.registerHandler(COMMON_INSTALL_NAME, new FileSchemeHandler(modulesDir));
+            addSearchPathsFromSettingsFile(handler, COMMON_INSTALL_NAME, modulesDir);
 
-            modulesDir = String.format( MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME );
-            handler.registerHandler( COMMON_INSTALL_NAME, new FileSchemeHandler( modulesDir ) );
-            addSearchPathsFromSettingsFile( handler, COMMON_INSTALL_NAME, modulesDir );
-
-            handler.registerHandler( "classpath", new ClasspathSchemeHandler( this.getClass().getClassLoader() ) );
-            addSearchPathsFromSettingsFile( handler, "classpath", getClass().getResourceAsStream( "jsmodules.settings" ) );
-
+            handler.registerHandler("classpath", new ClasspathSchemeHandler(this.getClass().getClassLoader()));
+            addSearchPathsFromSettingsFile(handler, "classpath", getClass().getClassLoader().getResourceAsStream("jsmodules.settings"));
             return handler;
-        }
-        catch( IOException ex ) {
-            logger.warn( "Unable to load properties from resource 'jsmodules.settings'" );
-            logger.error( ex.getMessage(), ex );
-
+        } catch (IOException e) {
+            logger.warn("Unable to load properties from resource 'jsmodules.settings'");
+            logger.catching(e);
             return null;
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
 
-    private void addSearchPathsFromSettingsFile( ModuleHandler handler, String schemeName, String modulesDir ) {
-        logger.entry( handler, schemeName, modulesDir );
-
+    private void addSearchPathsFromSettingsFile(ModuleHandler handler, String schemeName, String modulesDir) {
+        logger.entry(handler, schemeName, modulesDir);
         String fileName = modulesDir + "/settings.properties";
         try {
-            File file = new File( fileName );
-
-            addSearchPathsFromSettingsFile( handler, schemeName, new FileInputStream( file ) );
-        }
-        catch( FileNotFoundException ex ) {
-            logger.warn( "The file '{}' does not exist.", fileName );
-        }
-        catch( IOException ex ) {
-            logger.warn( "Unable to load properties from file '{}'", fileName );
-            logger.error( ex.getMessage(), ex );
-        }
-        finally {
+            File file = new File(fileName);
+            addSearchPathsFromSettingsFile(handler, schemeName, new FileInputStream(file));
+        } catch (FileNotFoundException e1) {
+            logger.catching(e1);
+            logger.warn("The file '{}' does not exist.", fileName);
+        } catch (IOException e2) {
+            logger.catching(e2);
+            logger.warn("Unable to load properties from file '{}'", fileName);
+        } finally {
             logger.exit();
         }
     }
 
-    private void addSearchPathsFromSettingsFile( ModuleHandler handler, String schemeName, InputStream is ) throws IOException {
-        logger.entry( handler, schemeName, is );
-
+    private void addSearchPathsFromSettingsFile(ModuleHandler handler, String schemeName, InputStream is) throws IOException {
+        logger.entry(handler, schemeName, is);
         try {
             Properties props = new Properties();
-            props.load( is );
-
-            if( !props.containsKey( "modules.search.path" ) ) {
-                logger.warn( "Search path for modules is not specified" );
+            props.load(is);
+            if (!props.containsKey("modules.search.path")) {
+                logger.warn("Search path for modules is not specified");
                 return;
             }
-
-            String moduleSearchPathString = props.getProperty( "modules.search.path" );
-            if( moduleSearchPathString != null && !moduleSearchPathString.isEmpty() ) {
-                String[] moduleSearchPath = moduleSearchPathString.split( ";" );
-                for( String s : moduleSearchPath ) {
-                    handler.addSearchPath( new SchemeURI( schemeName + ":" + s ) );
+            String moduleSearchPathString = props.getProperty("modules.search.path");
+            if (moduleSearchPathString != null && !moduleSearchPathString.isEmpty()) {
+                String[] moduleSearchPath = moduleSearchPathString.split(";");
+                for (String s : moduleSearchPath) {
+                    handler.addSearchPath(new SchemeURI(schemeName + ":" + s));
                 }
             }
-        }
-        finally {
+        } finally {
             logger.exit();
         }
     }
 
-    void initTemplates( ScripterEnvironment environment, Properties settings) throws ScripterException {
+    void initTemplates(ScripterEnvironment environment, Properties settings) throws ScripterException {
         logger.entry();
-        StopWatch watch = new Log4JStopWatch( "javascript.env.create.templates" );
-
+        StopWatch watch = new Log4JStopWatch("javascript.env.create.templates");
         try {
-            environment.callMethod( "initTemplates", settings );
-        }
-        finally {
+            environment.callMethod("initTemplates", settings);
+        } finally {
             watch.stop();
             logger.exit();
         }

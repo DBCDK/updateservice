@@ -2,42 +2,35 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.ws.JNDIResources;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 // TODO : Pt indeholder testposterne i de fleste test ikke noget der hænger sammen - det bør rettes op
 // da det kan virke ret forvirrende. Senest hvis det skal opensources.
 public class UpdateOperationActionTest {
-    private String GROUP_ID = "700100";
-    private String USER_ID = "netpunkt";
-    private ResourceBundle messages;
+    private GlobalActionState state;
+    private Properties settings = new UpdateTestUtils().getSettings();
 
-    public UpdateOperationActionTest() {
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
     /**
@@ -69,52 +62,22 @@ public class UpdateOperationActionTest {
     public void testPerformAction_LocalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Authenticator authenticator = mock(Authenticator.class);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-
-        List<MarcRecord> rawRepoRecords = Arrays.asList(record);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(record), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, record);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
-
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, authenticator, authentication);
-        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), rawRepo, record, holdingsItems);
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
     }
 
     /**
@@ -147,55 +110,24 @@ public class UpdateOperationActionTest {
     public void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(UpdateTestUtils.GROUP_ID), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(eq(GROUP_ID), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
-
-        List<MarcRecord> rawRepoRecords = Arrays.asList(enrichmentRecord);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(enrichmentRecord), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, enrichmentRecord);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings, enrichmentRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
-
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, authenticator, authentication);
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems);
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
     }
 
     /**
@@ -228,55 +160,24 @@ public class UpdateOperationActionTest {
     public void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Authenticator authenticator = mock(Authenticator.class);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, enrichmentRecord);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
-
-        List<MarcRecord> rawRepoRecords = Arrays.asList(enrichmentRecord);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(enrichmentRecord), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, enrichmentRecord);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
-
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, authenticator, authentication);
-        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), rawRepo, enrichmentRecord, holdingsItems);
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getHoldingsItems());
     }
 
     /**
@@ -308,99 +209,82 @@ public class UpdateOperationActionTest {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
         writer.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
         updwriter.addOrReplaceSubfield("001", "a", "206111600");
         updwriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
-        Integer agencyIdUpd = AssertActionsUtil.getAgencyId(updateRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
-
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(updateRecord), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
+        settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "dataio");
         updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, updateRecord);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        List<ServiceAction> children = instance.children();
-
+        List<ServiceAction> children = updateOperationAction.children();
+        assertThat(children.size(), is(3));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, authenticator, authentication);
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), rawRepo, record, Integer.valueOf(GROUP_ID, 10), recordsHandler, holdingsItems, openAgencyService);
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems);
-
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
 
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
         // this shall create an doublerecord action
+        settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "fbs");
         updwriter.addOrReplaceSubfield("996", "a", "810010");
 
-        UpdateOperationAction instance1 = new UpdateOperationAction(rawRepo, updateRecord);
-        instance1.setAuthenticator(authenticator);
-        instance1.setAuthentication(authentication);
-        instance1.setHoldingsItems(holdingsItems);
-        instance1.setOpenAgencyService(openAgencyService);
-        instance1.setSolrService(solrService);
-        instance1.setRecordsHandler(recordsHandler);
-        instance1.setScripter(scripter);
-        instance1.setSettings(settings);
+        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        children = updateOperationAction.children();
+        assertThat(children.size(), is(5));
+        iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord, state.getScripter());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
+        assertThat(iterator.hasNext(), is(false));
 
-        assertThat(instance1.performAction(), equalTo(ServiceResult.newOkResult()));
+        // TEST 3 - Doublepost frontend, forced update, key found
+        String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
+        state.getUpdateRecordRequest().setDoubleRecordKey(doubleRecordKey);
+        when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(true);
+        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        children = updateOperationAction.children();
+        assertThat(children.size(), is(4));
+        iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
+        assertThat(iterator.hasNext(), is(false));
 
-        List<ServiceAction> children1 = instance1.children();
-
-        ListIterator<ServiceAction> iterator1 = children1.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator1.next(), updateRecord, authenticator, authentication);
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator1.next(), rawRepo, record, Integer.valueOf(GROUP_ID, 10), recordsHandler, holdingsItems, openAgencyService);
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator1.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems);
-        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator1.next(), updateRecord, scripter);
-
-        assertThat(iterator1.hasNext(), is(false));
+        // TEST 4 - Doublepost frontend, forced update, key not found
+        when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
+        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
     /**
@@ -431,61 +315,29 @@ public class UpdateOperationActionTest {
     public void testPerformAction_DeleteCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
         enrichmentWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(record), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Scripter scripter = mock(Scripter.class);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, record);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
-
+        List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, authenticator, authentication);
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), rawRepo, record, Integer.valueOf(GROUP_ID, 10), recordsHandler, holdingsItems, openAgencyService);
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), rawRepo, enrichmentRecord, recordsHandler, holdingsItems);
-
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -511,54 +363,24 @@ public class UpdateOperationActionTest {
     public void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
         enrichmentWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(record), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, record);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
-        String message = messages.getString("operation.delete.non.existing.record");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        String message = state.getMessages().getString("operation.delete.non.existing.record");
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
     /**
@@ -591,50 +413,19 @@ public class UpdateOperationActionTest {
     public void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
+        MarcRecord commonSchoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(commonSchoolRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(commonSchoolRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, commonSchoolRecord);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(GROUP_ID);
-        when(authentication.getUserIdAut()).thenReturn(USER_ID);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        List<MarcRecord> rawRepoRecords = Arrays.asList(record);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(record), eq(USER_ID), eq(GROUP_ID))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, record);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, authenticator, authentication);
-        AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -665,57 +456,24 @@ public class UpdateOperationActionTest {
      */
     @Test
     public void testPerformAction_CreateSchoolEnrichment() throws Exception {
-
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
+        MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
+        String groupId = AssertActionsUtil.getAgencyId(schoolRecord);
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(groupId);
 
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(schoolRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(UpdateTestUtils.USER_ID), eq(groupId))).thenReturn(rawRepoRecords);
 
-        String userId = USER_ID;
-        String groupId = AssertActionsUtil.getAgencyId(record).toString();
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-
-        Authenticator authenticator = mock(Authenticator.class);
-
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getGroupIdAut()).thenReturn(groupId);
-        when(authentication.getUserIdAut()).thenReturn(userId);
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-
-        List<MarcRecord> rawRepoRecords = Arrays.asList(record);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.recordDataForRawRepo(eq(record), eq(userId), eq(groupId))).thenReturn(rawRepoRecords);
-
-        Scripter scripter = mock(Scripter.class);
-
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateOperationAction instance = new UpdateOperationAction(rawRepo, record);
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
-
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings, schoolRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, authenticator, authentication);
-        AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 }

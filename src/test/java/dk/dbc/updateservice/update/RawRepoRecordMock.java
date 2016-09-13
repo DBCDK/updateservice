@@ -10,31 +10,18 @@ import java.util.Set;
  * @author stp
  */
 public class RawRepoRecordMock implements Record {
-    private RecordId id;
-    private byte[] content;
-    private String mimeType;
-    private Date created;
-    private Date modified;
-    private String trackingId;
-    private boolean original;
-    private boolean deleted;
-    private boolean enriched;
-    private Set<RecordId> references;
-
-    public RawRepoRecordMock() {
-        this.id = null;
-        this.content = null;
-        this.mimeType = null;
-        this.created = null;
-        this.modified = null;
-        this.original = false;
-        this.deleted = false;
-        this.enriched = false;
-        this.references = null;
-    }
+    private RecordId id = null;
+    private byte[] content = null;
+    private String mimeType = null;
+    private Date created = null;
+    private Date modified = null;
+    private String trackingId = null;
+    private boolean original = false;
+    private boolean deleted = false;
+    private boolean enriched = false;
+    private Set<RecordId> references = null;
 
     public RawRepoRecordMock(String id, int library) {
-        this();
         this.id = new RecordId(id, library);
     }
 

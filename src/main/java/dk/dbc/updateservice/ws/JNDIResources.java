@@ -1,5 +1,8 @@
 package dk.dbc.updateservice.ws;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Contains public accessible contants of all the JNDI resources, that is used
  * be all application.
@@ -7,24 +10,16 @@ package dk.dbc.updateservice.ws;
  * This also includes keys from Properties resources.
  */
 public class JNDIResources {
-    //-------------------------------------------------------------------------
-    //              Managed Executor Service Resources
-    //-------------------------------------------------------------------------
-
+    // Managed Executor Service Resources
     public static final String RAWREPO_CACHE_EXECUTOR_SERVICE = "concurrent/rawrepo";
 
-    //-------------------------------------------------------------------------
-    //              JDBC Resources
-    //-------------------------------------------------------------------------
-
+    // JDBC Resources
     public static final String JDBC_RAW_REPO_READONLY_NAME = "jdbc/updateservice/raw-repo-readonly";
     public static final String JDBC_RAW_REPO_WRITABLE_NAME = "jdbc/updateservice/raw-repo-writable";
     public static final String JDBC_HOLDINGITEMS_NAME = "jdbc/updateservice/holdingitems";
+    public static final String JDBC_UPDATE_STORE_NAME = "jdbc/updateservice/updateservicestore";
 
-    //-------------------------------------------------------------------------
-    //              Settings resource
-    //-------------------------------------------------------------------------
-
+    // Settings resource
     public static final String SETTINGS_NAME = "updateservice/settings";
     public static final String SOLR_URL_KEY = "solr.url";
     public static final String FORSRIGHTS_URL_KEY = "forsrights.url";
@@ -47,4 +42,11 @@ public class JNDIResources {
     public static final String RAWREPO_PROVIDER_ID = "rawrepo.provider.id";
 
     public static final String UPDATE_PROD_STATE_KEY = "prod.state";
+
+    // List of required resources
+    public static List<String> getListOfRequiredJNDIResources() {
+        List<String> res = new ArrayList<>();
+        res.add(JAVASCRIPT_INSTALL_NAME_KEY);
+        return res;
+    }
 }

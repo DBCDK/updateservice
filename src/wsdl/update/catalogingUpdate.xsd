@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- catalogingUpdate.xsd version 2.0 -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://oss.dbc.dk/ns/catalogingUpdate" elementFormDefault="qualified" targetNamespace="http://oss.dbc.dk/ns/catalogingUpdate">
   <!-- updateRecord request / response -->
   <xs:element name="updateRecord">
@@ -29,29 +30,22 @@
   </xs:element>
   <xs:element name="UpdateRecordResult" type="tns:UpdateRecordResult"/>
   <xs:complexType name="UpdateRecordResult">
-    <xs:choice>
-      <xs:sequence>
-        <xs:element ref="tns:doubleRecordMatch"/>
-        <xs:element ref="tns:doubleRecordKey" maxOccurs="1"/>
-        <xs:element name="doubleRecordEntry" type="tns:DoubleRecordEntry" minOccurs="1"/>
-      </xs:sequence>
-      <xs:sequence>
-        <xs:element ref="tns:updateStatus"/>
-        <xs:element name="validateInstance" type="tns:ValidateInstance" minOccurs="0"/>
-      </xs:sequence>
-      <xs:element name="error" type="tns:Error"/>
-    </xs:choice>
+    <xs:sequence>
+      <xs:element ref="tns:updateStatus"/>
+      <xs:element ref="tns:doubleRecordKey" minOccurs="0" maxOccurs="1"/>
+      <xs:element ref="tns:messages" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
   </xs:complexType>
 
   <!-- getSchemas request / response -->
   <xs:element name="getSchemas">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="getSchemasRequest" type="tns:GetSchemasRequest"/>
+        <xs:element ref="tns:getSchemasRequest"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-  <xs:element name="GetSchemasRequest" type="tns:GetSchemasRequest"/>
+  <xs:element name="getSchemasRequest" type="tns:GetSchemasRequest"/>
   <xs:complexType name="GetSchemasRequest">
     <xs:sequence>
       <xs:element name="authentication" type="tns:Authentication" />
@@ -129,28 +123,33 @@
       <xs:element ref="tns:schemaInfo" minOccurs="0"/>
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ValidateEntry" type="tns:ValidateEntry"/>
-  <xs:complexType name="ValidateEntry">
+  <xs:element name="messages" type="tns:messages"/>
+  <xs:complexType name="messages">
     <xs:sequence>
-      <xs:element ref="tns:warningOrError"/>
-      <xs:element ref="tns:urlForDocumentation" minOccurs="0"/>
-      <xs:element ref="tns:ordinalPositionOfField" minOccurs="0"/>
-      <xs:element ref="tns:ordinalPositionOfSubField" minOccurs="0"/>
-      <xs:element ref="tns:message" minOccurs="0"/>
+      <xs:element ref="tns:entry" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="ValidateInstance" type="tns:ValidateInstance"/>
-  <xs:complexType name="ValidateInstance">
+  <xs:element name="entry" type="tns:entry"/>
+  <xs:complexType name="entry">
     <xs:sequence>
-      <xs:element name="validateEntry" type="tns:ValidateEntry" maxOccurs="unbounded"/>
+      <xs:element name="type" type="tns:type" minOccurs="1" maxOccurs="1"/>
+      <xs:element ref="tns:code" minOccurs="0" maxOccurs="1"/>
+      <xs:element ref="tns:params" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="DoubleRecordEntry" type="tns:DoubleRecordEntry"/>
-  <xs:complexType name="DoubleRecordEntry">
+  <xs:element name="params" type="tns:params"/>
+  <xs:complexType name="params">
     <xs:sequence>
-      <xs:element ref="tns:doubleRecordReason" maxOccurs="1"/>
-      <xs:element ref="tns:doubleRecordPID" maxOccurs="1"/>
+      <xs:element ref="tns:param" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+  </xs:complexType>
+  <xs:element name="param" type="tns:param"/>
+  <xs:complexType name="param">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attribute ref="tns:key"/>
+      </xs:extension>
+    </xs:simpleContent>
   </xs:complexType>
 
   <!-- types -->
@@ -249,22 +248,17 @@
       <xs:documentation xml:lang="en">User identifier (for authentication purposes)</xs:documentation>
     </xs:annotation>
   </xs:element>
-  <xs:element name="warningOrError" type="tns:ValidateWarningOrErrorEnum">
+  <xs:element name="code" type="xs:string">
     <xs:annotation>
-      <xs:documentation xml:lang="en">Error type or warning</xs:documentation>
+      <xs:documentation xml:lang="en">Unique code to identify the exact area of problem in the service</xs:documentation>
     </xs:annotation>
   </xs:element>
+  <xs:attribute name="key" type="xs:string"/>
 
   <!-- enums -->
   <xs:simpleType name="Error">
     <xs:restriction base="xs:string">
       <xs:enumeration value="authentication_error"/>
-    </xs:restriction>
-  </xs:simpleType>
-  <xs:simpleType name="ValidateWarningOrErrorEnum">
-    <xs:restriction base="xs:string">
-      <xs:enumeration value="error"/>
-      <xs:enumeration value="warning"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="doubleRecordEnum">
@@ -280,19 +274,21 @@
   <xs:simpleType name="UpdateStatusEnum">
     <xs:restriction base="xs:string">
       <xs:enumeration value="ok"/>
-      <xs:enumeration value="validate_only"/>
-      <xs:enumeration value="validation_error"/>
-      <xs:enumeration value="failed_invalid_agency"/>
-      <xs:enumeration value="failed_invalid_schema"/>
-      <xs:enumeration value="failed_invalid_option"/>
-      <xs:enumeration value="failed_validation_internal_error"/>
-      <xs:enumeration value="failed_update_internal_error"/>
+      <xs:enumeration value="failed"/>
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="SchemasStatusEnum">
     <xs:restriction base="xs:string">
       <xs:enumeration value="ok"/>
       <xs:enumeration value="failed_internal_error"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="type">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="warning"/>
+      <xs:enumeration value="error"/>
+      <xs:enumeration value="double_record"/>
+      <xs:enumeration value="fatal"/>
     </xs:restriction>
   </xs:simpleType>
 </xs:schema>

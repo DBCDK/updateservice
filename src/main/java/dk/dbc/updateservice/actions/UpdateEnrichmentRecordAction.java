@@ -2,19 +2,21 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ResourceBundle;
+import java.util.Properties;
 
 /**
  * Action to update an enrichment record.
@@ -27,61 +29,13 @@ import java.util.ResourceBundle;
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
-    private RawRepoDecoder decoder;
-    private LibraryRecordsHandler recordsHandler;
-    private HoldingsItems holdingsItems;
-    private SolrService solrService;
-    private String providerId;
-    private ResourceBundle messages;
+    RawRepoDecoder decoder = new RawRepoDecoder();
+    Properties settings;
 
-    public UpdateEnrichmentRecordAction(RawRepo rawRepo, MarcRecord record) {
-        super("UpdateEnrichmentRecordAction", rawRepo, record);
-
-        this.decoder = new RawRepoDecoder();
-        this.recordsHandler = null;
-        this.holdingsItems = null;
-        this.solrService = null;
-        this.providerId = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public void setDecoder(RawRepoDecoder decoder) {
-        this.decoder = decoder;
-    }
-
-    public LibraryRecordsHandler getRecordsHandler() {
-        return recordsHandler;
-    }
-
-    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
-        this.recordsHandler = recordsHandler;
-    }
-
-    public HoldingsItems getHoldingsItems() {
-        return holdingsItems;
-    }
-
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
-        this.holdingsItems = holdingsItems;
-    }
-
-    public SolrService getSolrService() {
-        return solrService;
-    }
-
-    public void setSolrService(SolrService solrService) {
-        this.solrService = solrService;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
+        settings = properties;
     }
 
     /**
@@ -126,41 +80,33 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             String parentId = reader.parentId();
             if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
-                String message = String.format(messages.getString("enrichment.has.parent"), recordId, agencyId);
-
+                String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
                 bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
-                String message = String.format(messages.getString("record.does.not.exist"), recordId);
-
+                String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
                 bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, reader.agencyIdAsInteger())) {
-                if (solrService.hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
-                    String message = messages.getString("update.record.with.002.links");
-
+                if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
+                    String message = state.getMessages().getString("update.record.with.002.links");
                     bizLogger.error("Unable to create sub actions due to an error: {}", message);
-                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
                 }
             }
-
             Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
-            MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
-            logger.debug("decodedRecord:\n" + decodedRecord);
-            MarcRecord enrichmentRecord = recordsHandler.correctLibraryExtendedRecord(decodedRecord, record);
+            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decoder.decodeRecord(commonRecord.getContent()), record);
 
             bizLogger.info("Correct content of enrichment record.");
             bizLogger.info("Old content:\n{}", record);
             bizLogger.info("New content:\n{}", enrichmentRecord);
-
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
-
             return performSaveRecord(enrichmentRecord);
         } catch (UnsupportedEncodingException | ScripterException ex) {
             logger.error("Update error: " + ex.getMessage(), ex);
@@ -191,14 +137,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             String recordId = new MarcRecordReader(record).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction(rawRepo, enrichmentRecord);
-            storeRecordAction.setMimetype(MIMETYPE);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, enrichmentRecord);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(storeRecordAction);
 
-            LinkRecordAction linkRecordAction = new LinkRecordAction(rawRepo, enrichmentRecord);
+            LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, commonRecordAgencyId()));
             children.add(linkRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, enrichmentRecord, providerId, MIMETYPE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
 
             return ServiceResult.newOkResult();
         } finally {
@@ -223,7 +169,6 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     private ServiceResult performDeletionAction() throws UpdateException {
         logger.entry();
-
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
@@ -233,14 +178,13 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 bizLogger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
                 return ServiceResult.newOkResult();
             }
-
             bizLogger.info("Creating sub actions to delete enrichment record successfully");
-            children.add(new RemoveLinksAction(rawRepo, record));
+            children.add(new RemoveLinksAction(state, record));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(rawRepo, record);
-            deleteRecordAction.setMimetype(MIMETYPE);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, record);
+            deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, record, providerId, MIMETYPE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
 
             return ServiceResult.newOkResult();
         } finally {

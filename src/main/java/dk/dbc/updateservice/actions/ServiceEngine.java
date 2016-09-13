@@ -21,14 +21,9 @@ public class ServiceEngine {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceEngine.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    Map<String, String> loggerKeys;
+    private Map<String, String> loggerKeys = new HashMap<>();
 
     public ServiceEngine() {
-        this.loggerKeys = new HashMap<>();
-    }
-
-    public Map<String, String> getLoggerKeys() {
-        return loggerKeys;
     }
 
     public void setLoggerKeys(Map<String, String> loggerKeys) {
@@ -52,13 +47,11 @@ public class ServiceEngine {
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException {
         logger.entry();
-
         try {
             if (action == null) {
                 String message = String.format("%s.executeAction can not be called with (null)", getClass().getName());
                 throw new IllegalArgumentException(message);
             }
-
             MDC.setContextMap(loggerKeys);
             action.setupMDCContext();
 
@@ -66,38 +59,32 @@ public class ServiceEngine {
 
             StopWatch watch = new Log4JStopWatch();
             action.checkState();
-            ServiceResult actionResult = action.performAction();
+            ServiceResult serviceResult = action.performAction();
             watch.stop("action." + action.name());
             action.setTimeElapsed(watch.getElapsedTime());
-            action.setServiceResult(actionResult);
+            action.setServiceResult(serviceResult);
 
             bizLogger.info("");
-
-            if (stopExecution(actionResult)) {
-                bizLogger.error("Action failed before sub actions: {}", actionResult);
-                return actionResult;
+            if (stopExecution(serviceResult)) {
+                bizLogger.error("Action failed before sub actions: {}", serviceResult);
+                return serviceResult;
             } else {
-                bizLogger.info("Action success before sub actions: {}", actionResult);
+                bizLogger.info("Action success before sub actions: {}", serviceResult);
             }
-
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {
                     ServiceResult childResult = executeAction(child);
-
                     if (!childResult.getEntries().isEmpty()) {
-                        actionResult.addEntries(childResult);
+                        serviceResult.addEntries(childResult);
                     }
-
                     if (stopExecution(childResult)) {
-                        actionResult.setServiceError(childResult.getServiceError());
-                        actionResult.setStatus(childResult.getStatus());
-                        return actionResult;
+                        serviceResult.setStatus(childResult.getStatus());
+                        return serviceResult;
                     }
                 }
             }
-
-            return actionResult;
+            return serviceResult;
         } catch (IllegalStateException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
@@ -112,24 +99,16 @@ public class ServiceEngine {
      */
     private boolean stopExecution(ServiceResult actionResult) {
         logger.entry();
-
         try {
             if (actionResult == null) {
                 throw new IllegalArgumentException("actionResult must not be (null)");
             }
-
-            if (actionResult.getServiceError() != null) {
+            if (actionResult.getServiceErrorList() != null) {
                 return true;
             }
-
             if (actionResult.getStatus() == UpdateStatusEnum.OK) {
                 return false;
             }
-
-            if (actionResult.getStatus() == UpdateStatusEnum.VALIDATE_ONLY) {
-                return false;
-            }
-
             return true;
         } finally {
             logger.exit();
@@ -141,7 +120,6 @@ public class ServiceEngine {
         for (int i = 0; i < 50; i++) {
             line += "=";
         }
-
         bizLogger.info("");
         bizLogger.info("Action: {}", action.name());
         bizLogger.info(line);
@@ -153,10 +131,8 @@ public class ServiceEngine {
 
     private void printActions(ServiceAction action, String indent) {
         logger.entry();
-
         try {
             bizLogger.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
-
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {

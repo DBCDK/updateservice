@@ -4,9 +4,10 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.Properties;
 
 /**
  * Updates the classifications in a enrichment record from the classifications
@@ -16,16 +17,13 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
     private final static String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private final static String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
+
+    GlobalActionState state;
     private MarcRecord enrichmentRecord;
 
-    public UpdateClassificationsInEnrichmentRecordAction(RawRepo rawRepo) {
-        this(rawRepo, null);
-    }
-
-    public UpdateClassificationsInEnrichmentRecordAction(RawRepo rawRepo, MarcRecord enrichmentRecord) {
-        super(rawRepo);
-
-        this.enrichmentRecord = enrichmentRecord;
+    public UpdateClassificationsInEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
+        super(globalActionState, properties, agencyIdInput);
+        state = globalActionState;
     }
 
     public MarcRecord getEnrichmentRecord() {
@@ -45,7 +43,6 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
     @Override
     public MarcRecord createRecord() throws ScripterException {
         logger.entry();
-
         try {
             if (updatingCommonRecord == null) {
                 throw new IllegalStateException("updatingCommonRecord is not assigned a value");
@@ -55,12 +52,10 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
                 throw new IllegalStateException("enrichmentRecord is not assigned a value");
             }
 
-            if (recordsHandler == null) {
+            if (state.getLibraryRecordsHandler() == null) {
                 throw new IllegalStateException("recordsHandler is not assigned a value");
             }
-
-            MarcRecord record = this.recordsHandler.updateLibraryExtendedRecord(this.currentCommonRecord, this.updatingCommonRecord, this.enrichmentRecord);
-
+            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
             MarcRecordReader reader = new MarcRecordReader(record);
             MarcRecordWriter writer = new MarcRecordWriter(record);
 
@@ -69,7 +64,6 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
                 writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
             }
             writer.sort();
-
             return record;
         } finally {
             logger.exit();

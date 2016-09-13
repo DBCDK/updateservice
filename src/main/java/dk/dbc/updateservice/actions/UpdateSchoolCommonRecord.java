@@ -2,17 +2,18 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ResourceBundle;
+import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -22,59 +23,11 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateSchoolCommonRecord.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
+    Properties settings;
 
-    private HoldingsItems holdingsItems;
-
-    private LibraryRecordsHandler recordsHandler;
-
-    private SolrService solrService;
-
-    private String providerId;
-
-    private ResourceBundle messages;
-
-    public UpdateSchoolCommonRecord(RawRepo rawRepo, MarcRecord record) {
-        super("UpdateSchoolCommonRecord", rawRepo, record);
-
-        this.holdingsItems = null;
-        this.recordsHandler = null;
-        this.solrService = null;
-        this.providerId = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public HoldingsItems getHoldingsItems() {
-        return holdingsItems;
-    }
-
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
-        this.holdingsItems = holdingsItems;
-    }
-
-    public LibraryRecordsHandler getRecordsHandler() {
-        return recordsHandler;
-    }
-
-    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
-        this.recordsHandler = recordsHandler;
-    }
-
-    public SolrService getSolrService() {
-        return solrService;
-    }
-
-    public void setSolrService(SolrService solrService) {
-        this.solrService = solrService;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public UpdateSchoolCommonRecord(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        super(UpdateSchoolCommonRecord.class.getSimpleName(), globalActionState, record);
+        settings = properties;
     }
 
     /**
@@ -86,19 +39,16 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         try {
             bizLogger.info("Handling record:\n{}", record);
-
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
                 moveSchoolEnrichmentsActions(RawRepo.RAWREPO_COMMON_LIBRARY);
-                updateRecordAction();
+                children.add(new UpdateEnrichmentRecordAction(state, settings, record));
             } else {
-                updateRecordAction();
+                children.add(new UpdateEnrichmentRecordAction(state, settings, record));
                 moveSchoolEnrichmentsActions(RawRepo.SCHOOL_COMMON_AGENCY);
             }
-
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
@@ -108,47 +58,26 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
         }
     }
 
-    private void updateRecordAction() {
-        logger.entry();
-
-        try {
-            UpdateEnrichmentRecordAction action = new UpdateEnrichmentRecordAction(rawRepo, record);
-            action.setRecordsHandler(recordsHandler);
-            action.setHoldingsItems(holdingsItems);
-            action.setSolrService(solrService);
-            action.setProviderId(providerId);
-
-            children.add(action);
-        } finally {
-            logger.exit();
-        }
-    }
-
     private void moveSchoolEnrichmentsActions(Integer target) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
-
         try {
             Set<Integer> agencies = rawRepo.agenciesForRecord(record);
             if (agencies == null) {
                 return;
             }
-
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-
             for (Integer agencyId : agencies) {
                 if (!RawRepo.isSchoolEnrichment(agencyId)) {
                     continue;
                 }
-
                 Record rawRepoRecord = rawRepo.fetchRecord(recordId, agencyId);
                 MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepoRecord.getContent());
 
-                LinkRecordAction linkRecordAction = new LinkRecordAction(rawRepo, enrichmentRecord);
+                LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
                 linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));
                 children.add(linkRecordAction);
-
-                children.add(EnqueueRecordAction.newEnqueueAction(rawRepo, enrichmentRecord, providerId, MIMETYPE));
+                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
             }
         } finally {
             logger.exit();
