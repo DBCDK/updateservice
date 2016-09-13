@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.updateservice.update.RawRepo;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -21,8 +20,8 @@ import org.slf4j.ext.XLoggerFactory;
 public class DeleteRecordAction extends StoreRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
-    public DeleteRecordAction(RawRepo rawRepo, MarcRecord record) {
-        super(rawRepo, record);
+    public DeleteRecordAction(GlobalActionState globalActionState, MarcRecord record) {
+        super(globalActionState, record);
         setName(DeleteRecordAction.class.getSimpleName());
     }
 
@@ -39,11 +38,9 @@ public class DeleteRecordAction extends StoreRecordAction {
     @Override
     public MarcRecord recordToStore() {
         logger.entry();
-
         MarcRecord result = null;
         try {
             result = new MarcRecord();
-
             for (MarcField field : record.getFields()) {
                 if (field.getName().equals("001")) {
                     result.getFields().add(field);
@@ -54,7 +51,6 @@ public class DeleteRecordAction extends StoreRecordAction {
             }
             MarcRecordWriter writer = new MarcRecordWriter(result);
             writer.markForDeletion();
-
             return result;
         } finally {
             logger.exit(result);
@@ -64,13 +60,11 @@ public class DeleteRecordAction extends StoreRecordAction {
     /**
      * Factory method to create a DeleteRecordAction.
      */
-    public static DeleteRecordAction newDeleteRecordAction(RawRepo rawRepo, MarcRecord record, String mimetype) {
-        logger.entry(rawRepo, record, mimetype);
-
+    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, MarcRecord record, String mimetype) {
+        logger.entry(globalActionState, record, mimetype);
         try {
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(rawRepo, record);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, record);
             deleteRecordAction.setMimetype(mimetype);
-
             return deleteRecordAction;
         } finally {
             logger.exit();

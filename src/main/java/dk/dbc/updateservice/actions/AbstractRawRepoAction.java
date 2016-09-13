@@ -12,14 +12,13 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
     protected RawRepo rawRepo;
     protected MarcRecord record;
 
-    public AbstractRawRepoAction(String name) {
-        this(name, null, null);
+    public AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
+        this(name, globalActionState, null);
     }
 
-    public AbstractRawRepoAction(String name, RawRepo rawRepo, MarcRecord record) {
-        super(name);
-
-        this.rawRepo = rawRepo;
+    public AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord record) {
+        super(name, globalActionState);
+        rawRepo = globalActionState.getRawRepo();
         this.record = record;
     }
 

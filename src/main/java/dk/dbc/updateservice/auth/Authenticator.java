@@ -3,10 +3,10 @@ package dk.dbc.updateservice.auth;
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.service.api.Entry;
 import dk.dbc.updateservice.ws.JNDIResources;
-import dk.dbc.updateservice.ws.ValidationError;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
@@ -37,24 +37,18 @@ public class Authenticator {
     private Properties settings;
 
     @EJB
-    ForsService forsService;
-
-    @EJB
-    private Scripter scripter;
+    private ForsService forsService;
 
     /**
      * Calls the forsrights service and checks if the user has the proper rights.
      *
-     * @param wsContext WebServiceContext
-     * @param userId    User id
-     * @param groupId   Group id
-     * @param passwd    Users password
+     * @param state {@link GlobalActionState}
      * @return <code>true</code> if the user is authenticated, <code>false</code>
      * otherwise.
      * @throws AuthenticatorException AuthenticatorException
      */
-    public boolean authenticateUser(WebServiceContext wsContext, String userId, String groupId, String passwd) throws AuthenticatorException {
-        logger.entry(userId, groupId, "****");
+    public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
+        logger.entry(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), "****");
 
         boolean result = false;
         try {
@@ -65,15 +59,13 @@ public class Authenticator {
 
             Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP_KEY);
             if (useIpSetting != null && Boolean.valueOf(useIpSetting.toString())) {
-                String ipAddress = getRemoteAddrFromMessage(wsContext);
-                rights = forsService.forsRightsWithIp(userId, groupId, passwd, ipAddress);
+                String ipAddress = getRemoteAddrFromMessage(state.getWsContext());
+                rights = forsService.forsRightsWithIp(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getPasswordAut(), ipAddress);
             } else {
-                rights = forsService.forsRights(userId, groupId, passwd);
+                rights = forsService.forsRights(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getPasswordAut());
             }
-
             String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME_KEY);
             logger.debug("Looking for product name: {}", productName);
-
             return result = rights.hasRightName(productName);
         } catch (ForsRightsException ex) {
             logger.error("Caught exception:", ex);
@@ -83,25 +75,19 @@ public class Authenticator {
         }
     }
 
-    public List<ValidationError> authenticateRecord(MarcRecord record, String userId, String groupId) throws ScripterException {
-        logger.entry(record, userId, groupId);
-
-        List<ValidationError> result = new ArrayList<>();
+    public List<Entry> authenticateRecord(GlobalActionState state, MarcRecord record) throws ScripterException {
+        logger.entry(record, state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
+        List<Entry> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod("authenticateRecord", mapper.writeValueAsString(record), userId, groupId, settings);
-
+            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(record), state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), settings);
             logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
-                List<ValidationError> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, ValidationError.class));
-
+                List<Entry> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, Entry.class));
                 result.addAll(validationErrors);
                 logger.trace("Number of errors: {}", result.size());
-
                 return result;
             }
-
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "authenticateRecord"));
         } catch (IOException ex) {
             throw new ScripterException(ex.getMessage(), ex);
@@ -112,7 +98,6 @@ public class Authenticator {
 
     private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
         logger.entry(wsContext);
-
         final String X_FORWARDED_FOR = "x-forwarded-for";
         String result = "";
         try {
@@ -130,23 +115,19 @@ public class Authenticator {
                     break;
                 }
             }
-
             if (XForwaredForHeaderName.isEmpty()) {
                 logger.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, req.getRemoteAddr());
 
                 result = req.getRemoteAddr();
                 return result;
             }
-
             String XForwardedForValue = req.getHeader(XForwaredForHeaderName);
             logger.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, XForwardedForValue);
-
             int index = XForwardedForValue.indexOf(",");
             if (index > -1) {
                 result = XForwardedForValue.substring(0, index);
                 return result;
             }
-
             result = XForwardedForValue;
             return result;
         } finally {

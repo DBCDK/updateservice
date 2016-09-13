@@ -1,23 +1,19 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.service.api.Entry;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
-import dk.dbc.updateservice.ws.ValidationError;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 /**
  * Action to validate a record.
@@ -43,12 +39,8 @@ public class ValidateRecordAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(ValidateRecordAction.class);
     private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    private String schemaName;
-    private MarcRecord record;
-    private UpdateStatusEnum okStatus;
-    private Scripter scripter;
-    private Properties settings;
-    private ResourceBundle messages;
+    Properties settings;
+    UpdateStatusEnum okStatus;
 
     /**
      * Constructs an instance with a template name and a record.
@@ -57,46 +49,15 @@ public class ValidateRecordAction extends AbstractAction {
      * settings to work properly. These can be set though the properties <code>scripter</code>
      * and <code>settings</code>. This constructor initialize these to null.
      *
-     * @param schemaName The name of the template use validate the record with.
-     * @param record     The record to validate.
+     * @param globalActionState State object containing data with data from request.
      */
-    public ValidateRecordAction(String schemaName, MarcRecord record, UpdateStatusEnum okStatus) {
-        super("ValidateRecordAction");
+    public ValidateRecordAction(GlobalActionState globalActionState, Properties properties) {
+        super(ValidateRecordAction.class.getSimpleName(), globalActionState);
+        settings = properties;
+    }
 
-        this.schemaName = schemaName;
-        this.record = record;
+    public void setOkStatus(UpdateStatusEnum okStatus) {
         this.okStatus = okStatus;
-        this.scripter = null;
-        this.settings = null;
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public String getSchemaName() {
-        return schemaName;
-    }
-
-    public MarcRecord getRecord() {
-        return record;
-    }
-
-    public UpdateStatusEnum getOkStatus() {
-        return okStatus;
-    }
-
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
-    public Properties getSettings() {
-        return settings;
-    }
-
-    public void setSettings(Properties settings) {
-        this.settings = settings;
     }
 
     /**
@@ -117,35 +78,33 @@ public class ValidateRecordAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
-
-            Object jsResult = scripter.callMethod("validateRecord", schemaName, Json.encode(record), settings);
+            bizLogger.info("Handling record:\n{}", state.readRecord());
+            Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
-            List<ValidationError> errors = Json.decodeArray(jsResult.toString(), ValidationError.class);
+            List<Entry> errors = Json.decodeArray(jsResult.toString(), Entry.class);
             result = new ServiceResult();
-            result.addEntries(errors);
+            result.setEntries(errors);
 
-            MarcRecordReader reader = new MarcRecordReader(record);
+            //TODO: VERSION2: det her ligner spildt arbejde
+            MarcRecordReader reader = new MarcRecordReader(state.readRecord());
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
 
             if (result.hasErrors()) {
                 bizLogger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnum.VALIDATION_ERROR);
+                result.setStatus(UpdateStatusEnum.FAILED);
             } else {
                 bizLogger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
                 result.setStatus(okStatus);
             }
-
             return result;
         } catch (IOException | ScripterException ex) {
-            String message = String.format(messages.getString("internal.validate.record.error"), ex.getMessage());
+            String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR, message);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
         } finally {
             logger.exit(result);
         }
@@ -153,6 +112,6 @@ public class ValidateRecordAction extends AbstractAction {
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(record);
+        MDCUtil.setupContextForRecord(state.readRecord());
     }
 }

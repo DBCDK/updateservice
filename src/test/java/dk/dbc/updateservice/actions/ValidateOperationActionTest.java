@@ -1,16 +1,12 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.Authentication;
+import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import org.junit.Before;
 import org.junit.Test;
 
-import javax.xml.ws.WebServiceContext;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
@@ -18,64 +14,53 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class ValidateOperationActionTest {
-    private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
+    private GlobalActionState state;
+    private Properties settings;
+
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
+    }
 
     @Test
     public void testPerformAction() throws Exception {
-        Authenticator authenticator = mock(Authenticator.class);
-        Authentication authentication = mock(Authentication.class);
-        WebServiceContext wsContext = mock(WebServiceContext.class);
-
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        Scripter scripter = mock(Scripter.class);
-        Properties settings = new Properties();
-
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        state.getUpdateRecordRequest().setBibliographicRecord(BibliographicRecordFactory.newMarcRecord(record));
         String schemaName = "book";
+        state.getUpdateRecordRequest().setSchemaName(schemaName);
 
-        ValidateOperationAction instance = new ValidateOperationAction();
-        instance.setAuthenticator(authenticator);
-        instance.setAuthentication(authentication);
-        instance.setWebServiceContext(wsContext);
-        instance.setValidateSchema(schemaName);
-        instance.setRecord(record);
-        instance.setOkStatus(UpdateStatusEnum.VALIDATE_ONLY);
-        instance.setScripter(scripter);
-        instance.setSettings(settings);
+        ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
+        validateOperationAction.setOkStatus(UpdateStatusEnum.OK);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnum.VALIDATE_ONLY)));
+        assertThat(validateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = validateOperationAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
         assertTrue(child.getClass() == AuthenticateUserAction.class);
-
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
-        assertThat(authenticateUserAction.getAuthenticator(), is(authenticator));
-        assertThat(authenticateUserAction.getAuthentication(), is(authentication));
-        assertThat(authenticateUserAction.getWsContext(), is(wsContext));
+        assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
+        assertThat(authenticateUserAction.state.getUpdateRecordRequest().getAuthentication(), is(state.getUpdateRecordRequest().getAuthentication()));
+        assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertTrue(child.getClass() == ValidateSchemaAction.class);
-
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
-        assertThat(validateSchemaAction.getValidateSchema(), equalTo(schemaName));
-        assertThat(validateSchemaAction.getScripter(), is(scripter));
-        assertThat(validateSchemaAction.getSettings(), is(settings));
+        assertThat(validateSchemaAction.state.getUpdateRecordRequest().getSchemaName(), equalTo(schemaName));
+        assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
+        assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
         assertTrue(child.getClass() == ValidateRecordAction.class);
-
         ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
-        assertThat(validateRecordAction.getSchemaName(), equalTo(instance.getValidateSchema()));
-        assertThat(validateRecordAction.getRecord(), is(instance.getRecord()));
-        assertThat(validateRecordAction.getOkStatus(), is(instance.getOkStatus()));
-        assertThat(validateRecordAction.getScripter(), is(scripter));
-        assertThat(validateRecordAction.getSettings(), is(settings));
+        assertThat(validateRecordAction.state.getUpdateRecordRequest().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
+        assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
+        assertThat(validateRecordAction.okStatus, is(validateOperationAction.okStatus));
+        assertThat(validateRecordAction.state.getScripter(), is(state.getScripter()));
+        assertThat(validateRecordAction.settings, is(settings));
     }
 }

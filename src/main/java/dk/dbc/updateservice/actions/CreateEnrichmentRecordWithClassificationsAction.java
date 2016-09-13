@@ -7,12 +7,13 @@ import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.Properties;
 
 /**
  * Action to create a new enrichment record from a common record.
@@ -34,67 +35,17 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
-    protected RawRepo rawRepo;
-    private Integer agencyId;
-    private String providerId;
-    protected LibraryRecordsHandler recordsHandler;
-    protected MarcRecord currentCommonRecord;
-    protected MarcRecord updatingCommonRecord;
+    String agencyId;
+    private Properties settings;
+    protected MarcRecord currentCommonRecord = null;
+    protected MarcRecord updatingCommonRecord = null;
+    protected String commonRecordId = null;
 
-    /**
-     * Record id to assign to the new enrichment record.
-     * <p>
-     * Normally we use the record id from the common record that is used to create
-     * the enrichment record. But in a special case where we create an enrichment
-     * in the process of merging two common records with field 002 we need to assign the
-     * enrichment record to another common record.
-     * </p>
-     * <p>
-     * This property is used in that case. In other cases this member will be null.
-     * </p>
-     */
-    protected String commonRecordId;
-
-    public CreateEnrichmentRecordWithClassificationsAction(RawRepo rawRepo) {
-        this(rawRepo, null);
-    }
-
-    public CreateEnrichmentRecordWithClassificationsAction(RawRepo rawRepo, Integer agencyId) {
-        super("CreateEnrichmentRecordWithClassificationsAction");
-
-        this.rawRepo = rawRepo;
-        this.agencyId = agencyId;
-        this.recordsHandler = null;
-        this.currentCommonRecord = null;
-        this.updatingCommonRecord = null;
-        this.commonRecordId = null;
-        this.providerId = null;
-    }
-
-    public RawRepo getRawRepo() {
-        return rawRepo;
-    }
-
-    public LibraryRecordsHandler getRecordsHandler() {
-        return recordsHandler;
-    }
-
-    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
-        this.recordsHandler = recordsHandler;
-    }
-
-    public Integer getAgencyId() {
-        return agencyId;
-    }
-
-    public void setAgencyId(Integer agencyId) {
-        this.agencyId = agencyId;
-    }
-
-    public MarcRecord getCurrentCommonRecord() {
-        return currentCommonRecord;
+    public CreateEnrichmentRecordWithClassificationsAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
+        super(CreateEnrichmentRecordWithClassificationsAction.class.getSimpleName(), globalActionState);
+        settings = properties;
+        agencyId = agencyIdInput;
     }
 
     public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
@@ -118,14 +69,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.commonRecordId = commonRecordId;
     }
 
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
-    }
-
     /**
      * Performs this actions and may create any child actions.
      *
@@ -136,13 +79,13 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("Current common record:\n{}", currentCommonRecord);
+            bizLogger.info("AgencyId..............: " + agencyId);
+            bizLogger.info("Current common record.:\n{}", currentCommonRecord);
             bizLogger.info("Updating common record:\n{}", updatingCommonRecord);
 
             MarcRecord enrichmentRecord = createRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
                 bizLogger.info("No sub actions to create for an empty enrichment record.");
-
                 return ServiceResult.newOkResult();
             }
             bizLogger.info("Creating sub actions to store new enrichment record.");
@@ -150,17 +93,16 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
             String recordId = new MarcRecordReader(enrichmentRecord).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction(rawRepo, enrichmentRecord);
-            storeRecordAction.setMimetype(MIMETYPE);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, enrichmentRecord);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(storeRecordAction);
 
-            LinkRecordAction linkRecordAction = new LinkRecordAction(rawRepo, enrichmentRecord);
+            LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
             children.add(linkRecordAction);
 
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(rawRepo, enrichmentRecord);
-            enqueueRecordAction.setProviderId(providerId);
-            enqueueRecordAction.setMimetype(MIMETYPE);
+            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
+            enqueueRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
@@ -174,7 +116,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForEnrichmentRecord(updatingCommonRecord, agencyId.toString());
+        MDCUtil.setupContextForEnrichmentRecord(updatingCommonRecord, agencyId);
     }
 
     public MarcRecord createRecord() throws ScripterException {
@@ -182,7 +124,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.debug("entering createRecord");
         MarcRecord result = null;
         try {
-            result = recordsHandler.createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
+            result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(result);
             MarcRecordReader reader = new MarcRecordReader(result);
 
@@ -194,7 +136,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             if (commonRecordId != null) {
                 writer.addOrReplaceSubfield("001", "a", commonRecordId);
             }
-
             return result;
         } finally {
             logger.exit(result);

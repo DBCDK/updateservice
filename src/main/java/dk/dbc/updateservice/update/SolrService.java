@@ -1,5 +1,6 @@
 package dk.dbc.updateservice.update;
 
+import dk.dbc.iscrum.utils.CharSetControl;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -17,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -40,7 +42,7 @@ public class SolrService {
 
     public SolrService(Properties settings) {
         this.settings = settings;
-        this.messages = ResourceBundles.getBundle(this, "messages");
+        messages = ResourceBundles.getBundle("messages");
     }
 
     public boolean hasDocuments(String q) throws UpdateException {

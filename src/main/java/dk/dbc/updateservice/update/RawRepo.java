@@ -91,13 +91,11 @@ public class RawRepo {
     public Set<Integer> agenciesForRecord(MarcRecord record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-
         Set<Integer> result = null;
         try {
             if (record == null) {
                 throw new IllegalArgumentException("record can not be null");
             }
-
             result = agenciesForRecord(getRecordId(record));
             return result;
         } finally {
@@ -118,34 +116,29 @@ public class RawRepo {
     public Set<Integer> agenciesForRecord(String recordId) throws UpdateException {
         logger.entry(recordId);
         StopWatch watch = new Log4JStopWatch();
-
         Set<Integer> result = null;
         try {
             if (recordId == null) {
                 throw new IllegalArgumentException("recordId can not be null");
             }
-
             if (recordId.isEmpty()) {
                 throw new IllegalArgumentException("recordId can not be empty");
             }
-
             try (Connection conn = dataSourceReader.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
-
                     result = dao.allAgenciesForBibliographicRecordId(recordId);
                     result.remove(RAWREPO_COMMON_LIBRARY);
                     result.remove(COMMON_LIBRARY);
-
                     return result;
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
-            } catch (SQLException ex) {
-                logger.error(ex.getMessage(), ex);
-                throw new UpdateException(ex.getMessage(), ex);
+            } catch (SQLException e) {
+                logger.error(e.getMessage(), e);
+                throw new UpdateException(e.getMessage(), e);
             }
         } finally {
             watch.stop("rawrepo.agenciesForRecord.String");
@@ -257,7 +250,6 @@ public class RawRepo {
     public Record fetchRecord(String recId, Integer agencyId) throws UpdateException {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-
         Record result = null;
         try {
             if (recId == null) {
@@ -266,7 +258,6 @@ public class RawRepo {
             if (agencyId == null) {
                 throw new IllegalArgumentException("agencyId can not be null");
             }
-
             try (Connection conn = dataSourceReader.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
@@ -300,7 +291,6 @@ public class RawRepo {
         logger.entry(recordId, agencyId);
         logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
-
         boolean result = false;
         if (dataSourceReader == null) {
             logger.info("RawRepo.recordExists, dataSourceReader == NULL");
@@ -370,19 +360,17 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-
                 if (record.isDeleted()) {
-                    dao.setRelationsFrom(record.getId(), new HashSet<RecordId>());
+                    dao.setRelationsFrom(record.getId(), new HashSet<>());
                 }
                 dao.saveRecord(record);
-            } catch (RawRepoException ex) {
+            } catch (RawRepoException e) {
                 conn.rollback();
-                logger.error(ex.getMessage(), ex);
-                throw new UpdateException(ex.getMessage(), ex);
+                logger.error(e.getMessage(), e);
+                throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
@@ -396,17 +384,15 @@ public class RawRepo {
     public void removeLinks(RecordId recId) throws UpdateException {
         logger.entry(recId);
         StopWatch watch = new Log4JStopWatch();
-
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-
                 final HashSet<RecordId> references = new HashSet<>();
                 dao.setRelationsFrom(recId, references);
-            } catch (RawRepoException ex) {
+            } catch (RawRepoException e) {
                 conn.rollback();
-                logger.error(ex.getMessage(), ex);
-                throw new UpdateException(ex.getMessage(), ex);
+                logger.error(e.getMessage(), e);
+                throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
@@ -428,19 +414,16 @@ public class RawRepo {
     public void linkRecord(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
-
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-
                 final HashSet<RecordId> references = new HashSet<>();
-
                 references.add(refer_id);
                 dao.setRelationsFrom(id, references);
-            } catch (RawRepoException ex) {
+            } catch (RawRepoException e) {
                 conn.rollback();
-                logger.error(ex.getMessage(), ex);
-                throw new UpdateException(ex.getMessage(), ex);
+                logger.error(e.getMessage(), e);
+                throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
@@ -484,13 +467,10 @@ public class RawRepo {
     public byte[] encodeRecord(MarcRecord record) throws JAXBException, UnsupportedEncodingException {
         logger.entry(record);
         byte[] result = null;
-
         try {
-
             if (record.getFields().isEmpty()) {
                 return null;
             }
-
             dk.dbc.iscrum.records.marcxchange.RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
 
             ObjectFactory objectFactory = new ObjectFactory();
@@ -505,7 +485,6 @@ public class RawRepo {
 
             logger.info("Marshalled record: {}", recData.toString());
             result = recData.toString().getBytes("UTF-8");
-
             return result;
         } finally {
             logger.exit(result);
@@ -525,9 +504,7 @@ public class RawRepo {
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
             rawRepoBuilder.openAgency(openAgency.getService(), null);
-            RawRepoDAO dao = rawRepoBuilder.build();
-
-            return dao;
+            return rawRepoBuilder.build();
         } finally {
             watch.stop("rawrepo.createDAO");
         }
@@ -557,7 +534,6 @@ public class RawRepo {
 
     private void linkEnrichment(RawRepoDAO dao, Record record) throws RawRepoException, SQLException {
         logger.entry(dao, record);
-
         try {
             linkToRecord(dao, record.getId(), new RecordId(record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY));
         } finally {
@@ -566,8 +542,7 @@ public class RawRepo {
     }
 
     private void linkMultivolume(RawRepoDAO dao, Record record, String parentId) throws RawRepoException, SQLException {
-        logger.entry(dao, record);
-
+        logger.entry(dao, record, parentId);
         try {
             linkToRecord(dao, record.getId(), new RecordId(parentId, record.getId().getAgencyId()));
         } finally {
@@ -577,16 +552,11 @@ public class RawRepo {
 
     private void linkToRecord(RawRepoDAO dao, RecordId id, RecordId refer_id) throws SQLException, RawRepoException {
         logger.entry(dao, id, refer_id);
-
         try {
             final HashSet<RecordId> references = new HashSet<>();
-
             references.add(refer_id);
             dao.setRelationsFrom(id, references);
-
-            bizLogger.info("Set relation from [{}:{}] -> [{}:{}]",
-                    id.getBibliographicRecordId(), id.getAgencyId(),
-                    refer_id.getBibliographicRecordId(), refer_id.getAgencyId());
+            bizLogger.info("Set relation from [{}:{}] -> [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId(), refer_id.getBibliographicRecordId(), refer_id.getAgencyId());
         } finally {
             logger.exit();
         }
@@ -594,14 +564,10 @@ public class RawRepo {
 
     private void clearLinks(RawRepoDAO dao, Record record) throws RawRepoException {
         logger.entry();
-
         try {
             final HashSet<RecordId> references = new HashSet<>();
-
             dao.setRelationsFrom(record.getId(), references);
-            bizLogger.info("Clear relations for [{}:{}]",
-                    record.getId().getBibliographicRecordId(),
-                    record.getId().getAgencyId());
+            bizLogger.info("Clear relations for [{}:{}]", record.getId().getBibliographicRecordId(), record.getId().getAgencyId());
         } finally {
             logger.exit();
         }

@@ -1,105 +1,26 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 
-import javax.xml.ws.WebServiceContext;
 import java.util.Properties;
 
 /**
  * Action that setup actions to validate a record.
  */
 public class ValidateOperationAction extends AbstractAction {
-    private Authenticator authenticator;
-    private Authentication authentication;
-    private WebServiceContext webServiceContext;
-    private String validateSchema;
-    private MarcRecord record;
-    private UpdateStatusEnum okStatus;
-    private Scripter scripter;
-    private Properties settings;
 
-    public ValidateOperationAction() {
-        super("ValidateOperationAction");
+    UpdateStatusEnum okStatus = null;
+    Properties settings;
 
-        this.authenticator = null;
-        this.authentication = null;
-        this.webServiceContext = null;
-
-        this.validateSchema = null;
-        this.record = null;
-        this.okStatus = null;
-        this.scripter = null;
-        this.settings = null;
-    }
-
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(Authenticator authenticator) {
-        this.authenticator = authenticator;
-    }
-
-    public Authentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(Authentication authentication) {
-        this.authentication = authentication;
-    }
-
-    public WebServiceContext getWebServiceContext() {
-        return webServiceContext;
-    }
-
-    public void setWebServiceContext(WebServiceContext webServiceContext) {
-        this.webServiceContext = webServiceContext;
-    }
-
-    public String getValidateSchema() {
-        return validateSchema;
-    }
-
-    public void setValidateSchema(String validateSchema) {
-        this.validateSchema = validateSchema;
-    }
-
-    public MarcRecord getRecord() {
-        return record;
-    }
-
-    public void setRecord(MarcRecord record) {
-        this.record = record;
-    }
-
-    public UpdateStatusEnum getOkStatus() {
-        return okStatus;
+    public ValidateOperationAction(GlobalActionState globalActionState, Properties properties) {
+        super(ValidateOperationAction.class.getSimpleName(), globalActionState);
+        settings = properties;
     }
 
     public void setOkStatus(UpdateStatusEnum okStatus) {
         this.okStatus = okStatus;
-    }
-
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
-    public Properties getSettings() {
-        return settings;
-    }
-
-    public void setSettings(Properties settings) {
-        this.settings = settings;
     }
 
     /**
@@ -110,15 +31,14 @@ public class ValidateOperationAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        children.add(new AuthenticateUserAction(this.authenticator, this.authentication, this.webServiceContext));
+        AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
+        children.add(authenticateUserAction);
 
-        ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(this.validateSchema, this.scripter, this.settings);
-        validateSchemaAction.setGroupId(this.authentication.getGroupIdAut());
+        ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         children.add(validateSchemaAction);
 
-        ValidateRecordAction validateRecordAction = new ValidateRecordAction(this.validateSchema, this.record, this.okStatus);
-        validateRecordAction.setScripter(this.scripter);
-        validateRecordAction.setSettings(this.settings);
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+        validateRecordAction.setOkStatus(okStatus);
         children.add(validateRecordAction);
 
         return ServiceResult.newStatusResult(this.okStatus);
@@ -126,6 +46,6 @@ public class ValidateOperationAction extends AbstractAction {
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(record);
+        MDCUtil.setupContextForRecord(state.readRecord());
     }
 }

@@ -2,36 +2,34 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class OverwriteVolumeRecordActionTest {
-    private ResourceBundle messages;
+    private GlobalActionState state;
+    private Properties settings;
 
-    public OverwriteVolumeRecordActionTest() {
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
     }
 
     /**
@@ -64,42 +62,30 @@ public class OverwriteVolumeRecordActionTest {
     public void testPerformAction_NoClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(volumeRecord)).thenReturn(false);
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), OverwriteVolumeRecordAction.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -133,43 +119,31 @@ public class OverwriteVolumeRecordActionTest {
     public void testPerformAction_SameClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(false);
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -205,44 +179,32 @@ public class OverwriteVolumeRecordActionTest {
     public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
+
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -280,52 +242,36 @@ public class OverwriteVolumeRecordActionTest {
      */
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
+        String groupId = "700100";
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
+        when(state.getOpenAgencyService().hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(eq("700100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), rawRepo, volumeRecord, 700100, null);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), volumeRecord, groupId, null);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -363,58 +309,40 @@ public class OverwriteVolumeRecordActionTest {
      */
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
-
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(enrichmentRecord).addOrReplaceSubfield("001", "a", volumeRecordId);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), rawRepo, volumeRecord, enrichmentRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, enrichmentRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -464,63 +392,44 @@ public class OverwriteVolumeRecordActionTest {
      */
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
-
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(enrichmentRecord).addOrReplaceSubfield("001", "a", volumeRecordId);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyId(enrichmentRecord);
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
 
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        when(rawRepo.recordExists(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-        when(recordsHandler.shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = overwriteVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), rawRepo, volumeRecord, enrichmentRecord);
-        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), rawRepo, volumeRecord, newEnrichmentAgencyId, null);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, enrichmentRecord);
+        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), volumeRecord, newEnrichmentAgencyId.toString(), null);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -573,65 +482,44 @@ public class OverwriteVolumeRecordActionTest {
     public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-
         final String v1RecordId = "1 234 567 8";
         final String v2RecordId = "2 345 678 9";
-
         MarcRecord v1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE, v1RecordId);
         MarcRecord v2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE, v2RecordId);
-
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, v2RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyId(e1);
+        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
         MarcRecord record = new MarcRecord(v1);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("002", "a", v2RecordId);
         writer.sort();
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.recordExists(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.recordExists(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v1, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.fetchRecord(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v2, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
-        when(rawRepo.agenciesForRecord(eq(v1))).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(rawRepo.enrichments(eq(new RecordId(v2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().agenciesForRecord(eq(v1))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().enrichments(eq(new RecordId(v2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(v1)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(v1))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(v1), eq(record))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(v1)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, record);
+        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(eq(v1))).thenReturn(true);
-        when(recordsHandler.hasClassificationData(eq(record))).thenReturn(true);
-        when(recordsHandler.hasClassificationsChanged(eq(v1), eq(record))).thenReturn(false);
-
-        OverwriteVolumeRecordAction instance = new OverwriteVolumeRecordAction(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setSolrService(mock(SolrService.class));
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, record, mainRecord);
-        AssertActionsUtil.assertMoveEnrichmentRecordAction(iterator.next(), rawRepo, e1, record, settings);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), instance.MIMETYPE);
-
+        ListIterator<ServiceAction> iterator = overwriteVolumeRecordAction.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, mainRecord);
+        AssertActionsUtil.assertMoveEnrichmentRecordAction(iterator.next(), state.getRawRepo(), e1, record, settings);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 }

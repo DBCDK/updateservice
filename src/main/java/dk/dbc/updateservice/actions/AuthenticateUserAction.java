@@ -1,16 +1,10 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.auth.AuthenticatorException;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import javax.xml.ws.WebServiceContext;
-import java.util.ResourceBundle;
 
 /**
  * Action to authenticate the user from the request.
@@ -22,33 +16,9 @@ import java.util.ResourceBundle;
 public class AuthenticateUserAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(AuthenticateUserAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
-    private static final String ACTION_NAME = "AuthenticateUser";
 
-    private Authenticator authenticator;
-    private Authentication authentication;
-    private WebServiceContext wsContext;
-    private ResourceBundle messages;
-
-    public AuthenticateUserAction(Authenticator authenticator, Authentication authentication, WebServiceContext wsContext) {
-        super(ACTION_NAME);
-
-        this.authenticator = authenticator;
-        this.authentication = authentication;
-        this.wsContext = wsContext;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public Authentication getAuthentication() {
-        return authentication;
-    }
-
-    public WebServiceContext getWsContext() {
-        return wsContext;
+    public AuthenticateUserAction(GlobalActionState globalActionState) {
+        super(AuthenticateUserAction.class.getSimpleName(), globalActionState);
     }
 
     /**
@@ -60,52 +30,53 @@ public class AuthenticateUserAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
-        ServiceResult result = new ServiceResult();
-
+        ServiceResult result = null;
         try {
-            if (authenticator == null) {
-                throw new IllegalArgumentException("authenticator er obligatorisk");
-            }
-
-            if (authentication == null) {
+            validateNullableData();
+            if (state.getUpdateRecordRequest().getAuthentication() == null) {
                 bizLogger.error("Authentication arguments is missing in the request.");
-                return result = ServiceResult.newAuthErrorResult();
+                return result = ServiceResult.newAuthErrorResult(state);
             }
 
-            if (authentication.getUserIdAut() == null) {
+            if (state.getUpdateRecordRequest().getAuthentication().getUserIdAut() == null) {
                 bizLogger.error("User name is missing in authentication arguments in the request");
-
-                return result = ServiceResult.newAuthErrorResult();
+                return result = ServiceResult.newAuthErrorResult(state);
             }
 
-            if (authentication.getGroupIdAut() == null) {
+            if (state.getUpdateRecordRequest().getAuthentication().getGroupIdAut() == null) {
                 bizLogger.error("Group name is missing in authentication arguments in the request");
-
-                return result = ServiceResult.newAuthErrorResult();
+                return result = ServiceResult.newAuthErrorResult(state);
             }
 
-            if (authentication.getPasswordAut() == null) {
+            if (state.getUpdateRecordRequest().getAuthentication().getPasswordAut() == null) {
                 bizLogger.error("Password is missing in authentication arguments in the request");
-
-                return result = ServiceResult.newAuthErrorResult();
+                return result = ServiceResult.newAuthErrorResult(state);
             }
 
-            if (authenticator.authenticateUser(wsContext, authentication.getUserIdAut(), authentication.getGroupIdAut(), authentication.getPasswordAut())) {
-                bizLogger.info("User {}/{} is authenticated successfully", authentication.getGroupIdAut(), authentication.getUserIdAut());
+            if (state.getAuthenticator().authenticateUser(state)) {
+                bizLogger.info("User {}/{} is authenticated successfully", state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
                 return result = ServiceResult.newOkResult();
             }
 
-            bizLogger.error("User {}/{} could not be authenticated", authentication.getGroupIdAut(), authentication.getUserIdAut());
-            return result = ServiceResult.newAuthErrorResult();
+            bizLogger.error("User {}/{} could not be authenticated", state.getUpdateRecordRequest().getAuthentication());
+            return result = ServiceResult.newAuthErrorResult(state);
         } catch (AuthenticatorException ex) {
-            String message = String.format(messages.getString("authentication.error"), ex.getMessage());
+            String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             logger.error(message, ex);
-            bizLogger.error("Critical error in authenticating user {}/{}: {}", authentication.getGroupIdAut(), authentication.getUserIdAut(), ex.getMessage());
-
-            return result = ServiceResult.newAuthErrorResult();
+            bizLogger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), ex.getMessage());
+            return result = ServiceResult.newAuthErrorResult(state);
         } finally {
             logger.exit(result);
+        }
+    }
+
+    private void validateNullableData() {
+        if (state == null) {
+            throw new IllegalArgumentException("State object cannot be empty");
+        }
+
+        if (state.getAuthenticator() == null) {
+            throw new IllegalArgumentException("Authenticator is obligatory");
         }
     }
 

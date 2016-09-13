@@ -4,19 +4,18 @@ import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.ws.JNDIResources;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.ListIterator;
-import java.util.ResourceBundle;
+import java.util.Properties;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -26,27 +25,28 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class UpdateLocalRecordActionTest {
-    private ResourceBundle messages;
+    private GlobalActionState state;
+    private Properties settings;
 
-    public UpdateLocalRecordActionTest() {
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
     }
 
     /**
      * Test UpdateLocalRecordAction constructor.
      */
+    // TODO - WHY?!?!
     @Test
     public void testConstructor() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        RawRepo rawRepo = mock(RawRepo.class);
-
-        assertThat(new UpdateLocalRecordAction(rawRepo, record), notNullValue());
+        assertThat(new UpdateLocalRecordAction(state, settings, record), notNullValue());
     }
 
     /**
@@ -77,26 +77,14 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
-        String providerId = "xxx";
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        RawRepo rawRepo = mock(RawRepo.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, UpdateLocalRecordAction.MIMETYPE);
-
+        ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -128,33 +116,20 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-
         MarcRecordReader reader = new MarcRecordReader(volumeRecord);
         Integer agencyId = reader.agencyIdAsInteger();
         String parentId = reader.parentId();
 
-        String providerId = "xxx";
+        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, volumeRecord);
+        updateLocalRecordAction.checkState();
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, providerId, UpdateLocalRecordAction.MIMETYPE);
-
+        ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -180,29 +155,17 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         String parentId = reader.parentId();
 
-        String providerId = "xxx";
+        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        String message = String.format(messages.getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
     /**
@@ -227,30 +190,16 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         new MarcRecordWriter(record).addOrReplaceSubfield("014", "a", recordId);
 
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        String message = String.format(messages.getString("parent.point.to.itself"), recordId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-
-        verify(rawRepo, never()).recordExists(anyString(), any(Integer.class));
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
     }
 
     /**
@@ -275,31 +224,17 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_DeleteRecord_WithChildren() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
-
         String recordId = new MarcRecordReader(record).recordId();
-
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
 
         Set<RecordId> children = new HashSet<>();
         children.add(new RecordId("xxx", 101010));
-        when(rawRepo.children(eq(record))).thenReturn(children);
+        when(state.getRawRepo().children(eq(record))).thenReturn(children);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        String message = String.format(messages.getString("delete.record.children.error"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-
-        verify(rawRepo, never()).recordExists(anyString(), any(Integer.class));
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
     }
 
     /**
@@ -331,30 +266,17 @@ public class UpdateLocalRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<>());
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, UpdateLocalRecordAction.MIMETYPE);
-
+        ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -392,44 +314,30 @@ public class UpdateLocalRecordActionTest {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
-
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        String providerId = "xxx";
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(mainRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(mainRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().children(eq(new RecordId(mainRecordId, agencyId)))).thenReturn(AssertActionsUtil.createRecordSet(record));
+        when(state.getRawRepo().children(eq(record))).thenReturn(AssertActionsUtil.createRecordSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(mainRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(mainRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(rawRepo.children(eq(new RecordId(mainRecordId, agencyId)))).thenReturn(AssertActionsUtil.createRecordSet(record));
-        when(rawRepo.children(eq(record))).thenReturn(AssertActionsUtil.createRecordSet());
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE);
+        ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
 
         new MarcRecordWriter(mainRecord).markForDeletion();
-        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), rawRepo, mainRecord, holdingsItems);
-
+        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), mainRecord, state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -454,33 +362,19 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).agencyIdAsInteger());
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<RecordId>());
-
-        String message = messages.getString("delete.local.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
+        String message = state.getMessages().getString("delete.local.with.holdings.error");
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
     /**
@@ -515,36 +409,23 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).agencyIdAsInteger());
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<>());
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        updateLocalRecordAction.checkState();
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
-        instance.checkState();
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE);
+        ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -576,29 +457,17 @@ public class UpdateLocalRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<>());
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         instance.checkState();
-
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -622,33 +491,19 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).agencyIdAsInteger());
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         instance.checkState();
-
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<RecordId>());
-
-        String message = messages.getString("delete.local.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
+        String message = state.getMessages().getString("delete.local.with.holdings.error");
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
     /**
@@ -682,35 +537,22 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).agencyIdAsInteger());
         new MarcRecordWriter(record).markForDeletion();
 
-        String providerId = "xxx";
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.children(eq(record))).thenReturn(new HashSet<>());
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
+        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
-
-        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(rawRepo, record);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setProviderId(providerId);
-
+        UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         instance.checkState();
-
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), rawRepo, record, UpdateLocalRecordAction.MIMETYPE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, record, providerId, OverwriteSingleRecordAction.MIMETYPE);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 }

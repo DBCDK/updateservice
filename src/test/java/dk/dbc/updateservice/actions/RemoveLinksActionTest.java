@@ -1,24 +1,16 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.io.InputStream;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class RemoveLinksActionTest {
-    private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
-
     /**
      * Test RemovesLinksAction.performAction() to remove all links from a record.
      * <p>
@@ -39,21 +31,17 @@ public class RemoveLinksActionTest {
      */
     @Test
     public void testPerformAction() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
+        GlobalActionState state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        RemoveLinksAction instance = new RemoveLinksAction(rawRepo, record);
-
+        RemoveLinksAction instance = new RemoveLinksAction(state, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> arg = ArgumentCaptor.forClass(RecordId.class);
-
-        verify(rawRepo).removeLinks(arg.capture());
+        verify(state.getRawRepo()).removeLinks(arg.capture());
         assertThat(arg.getValue(), equalTo(new RecordId(recordId, agencyId)));
     }
 }

@@ -2,16 +2,12 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import java.util.ResourceBundle;
 
 /**
  * Action to link a record to another record.
@@ -28,13 +24,9 @@ public class LinkRecordAction extends AbstractRawRepoAction {
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private RecordId linkToRecordId;
-    private ResourceBundle messages;
 
-    public LinkRecordAction(RawRepo rawRepo, MarcRecord record) {
-        super("LinkVolumeRecord", rawRepo, record);
-        this.linkToRecordId = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    public LinkRecordAction(GlobalActionState globalActionState, MarcRecord record) {
+        super(LinkRecordAction.class.getSimpleName(), globalActionState, record);
     }
 
     public RecordId getLinkToRecordId() {
@@ -54,23 +46,18 @@ public class LinkRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
-
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
-
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
-                String message = String.format(messages.getString("reference.record.not.exist"), recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
-
             rawRepo.linkRecord(new RecordId(recId, agencyId), linkToRecordId);
             bizLogger.info("Set relation from [{}:{}] -> [{}:{}]", recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
@@ -80,19 +67,15 @@ public class LinkRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a StoreRecordAction.
      */
-    public static LinkRecordAction newLinkParentAction(RawRepo rawRepo, MarcRecord record) {
+    public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord record) {
         logger.entry();
-
         try {
-            LinkRecordAction action = new LinkRecordAction(rawRepo, record);
-
+            LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String parentId = reader.parentId();
             Integer agencyId = reader.agencyIdAsInteger();
-
-            action.setLinkToRecordId(new RecordId(parentId, agencyId));
-
-            return action;
+            linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
+            return linkRecordAction;
         } finally {
             logger.exit();
         }

@@ -47,18 +47,15 @@ public class UpdaterRawRepo {
     public static MarcRecord fetchRecord(String recordId, String libraryNo) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
         logger.entry(recordId, libraryNo);
         StopWatch watch = new Log4JStopWatch("rawrepo.fetchRecord");
-
         MarcRecord result = null;
         try (Connection con = getConnection()) {
             RawRepoDAO rawRepoDAO = RawRepoDAO.builder(con).build();
-
             Record record = rawRepoDAO.fetchRecord(recordId, Integer.valueOf(libraryNo));
             if (record.getContent() == null) {
                 result = new MarcRecord();
             } else {
                 result = new RawRepoDecoder().decodeRecord(record.getContent());
             }
-
             return result;
         } finally {
             watch.stop();
@@ -81,14 +78,12 @@ public class UpdaterRawRepo {
         logger.entry(recordId, libraryNo);
         StopWatch watch = new Log4JStopWatch("rawrepo.recordExists");
         boolean result = false;
-
         try (Connection con = getConnection()) {
             RawRepoDAO rawRepoDAO = RawRepoDAO.builder(con).build();
-
             result = rawRepoDAO.recordExists(recordId, Integer.valueOf(libraryNo));
-
             return result;
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }
@@ -107,20 +102,14 @@ public class UpdaterRawRepo {
     public static List<MarcRecord> getRelationsChildren(String recordId, String libraryNo) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
         logger.entry(recordId, libraryNo);
         StopWatch watch = new Log4JStopWatch("rawrepo.getRelationsChildren");
-
         List<MarcRecord> result = null;
-
         try (Connection con = getConnection()) {
             result = new ArrayList<>();
-
             RawRepoDAO rawRepoDAO = RawRepoDAO.builder(con).build();
             Set<RecordId> records = rawRepoDAO.getRelationsChildren(new RecordId(recordId, Integer.valueOf(libraryNo)));
-            Iterator<RecordId> iterator = records.iterator();
-            while (iterator.hasNext()) {
-                RecordId rawRepoRecordId = iterator.next();
+            for (RecordId rawRepoRecordId : records) {
                 result.add(fetchRecord(rawRepoRecordId.getBibliographicRecordId(), String.valueOf(rawRepoRecordId.getAgencyId())));
             }
-
             return result;
         } finally {
             watch.stop();
@@ -141,7 +130,6 @@ public class UpdaterRawRepo {
     private static Connection getConnection() throws NamingException, SQLException {
         InitialContext ctx = new InitialContext();
         DataSource ds = (DataSource) ctx.lookup(JNDIResources.JDBC_RAW_REPO_READONLY_NAME);
-
         return ds.getConnection();
     }
 }

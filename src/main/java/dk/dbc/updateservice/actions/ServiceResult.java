@@ -1,16 +1,14 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.service.api.Error;
+import dk.dbc.updateservice.service.api.Entry;
+import dk.dbc.updateservice.service.api.Param;
+import dk.dbc.updateservice.service.api.Params;
+import dk.dbc.updateservice.service.api.Type;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.service.api.ValidateEntry;
-import dk.dbc.updateservice.service.api.ValidateWarningOrErrorEnum;
-import dk.dbc.updateservice.ws.ValidationError;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,40 +21,19 @@ import java.util.List;
  * Data entires:
  * <ol>
  * <li>Status</li>
- * <li>Service Errors</li>
- * <li>Validation entries</li>
+ * <li>Service entries</li>
  * </ol>
  */
 public class ServiceResult {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceResult.class);
 
-    private UpdateStatusEnum status;
-    private Error serviceError;
-    private List<ValidateEntry> entries;
+    private UpdateStatusEnum status = null;
+    private List<Entry> entries = new ArrayList<>();
+    private String doubleRecordKey = null;
+    private String type = null;
 
     public ServiceResult() {
-        this.status = null;
-        this.serviceError = null;
-        this.entries = new ArrayList<>();
-    }
-
-    public ServiceResult(ServiceResult other) {
-        this.status = other.status;
-        this.serviceError = other.serviceError;
-
-        this.entries = new ArrayList<>();
-        for (int i = 0; i < other.entries.size(); i++) {
-            ValidateEntry otherEntry = other.entries.get(i);
-
-            ValidateEntry entry = new ValidateEntry();
-            entry.setWarningOrError(otherEntry.getWarningOrError());
-            entry.setUrlForDocumentation(otherEntry.getUrlForDocumentation());
-            entry.setOrdinalPositionOfField(otherEntry.getOrdinalPositionOfField());
-            entry.setOrdinalPositionOfSubField(otherEntry.getOrdinalPositionOfSubField());
-            entry.setMessage(otherEntry.getMessage());
-
-            this.entries.add(entry);
-        }
+        status = null;
     }
 
     public UpdateStatusEnum getStatus() {
@@ -67,78 +44,55 @@ public class ServiceResult {
         this.status = status;
     }
 
-    public Error getServiceError() {
-        return serviceError;
-    }
-
-    public void setServiceError(Error serviceError) {
-        this.serviceError = serviceError;
-    }
-
-    public List<ValidateEntry> getEntries() {
+    public List<Entry> getEntries() {
         return entries;
     }
 
+    public void setEntries(List<Entry> entries) {
+        this.entries = entries;
+    }
+
+    public String getDoubleRecordKey() {
+        return doubleRecordKey;
+    }
+
+    public void setDoubleRecordKey(String doubleRecordKey) {
+        this.doubleRecordKey = doubleRecordKey;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+
     public void addEntries(ServiceResult serviceResult) {
-        this.entries.addAll(serviceResult.getEntries());
+        entries.addAll(serviceResult.getEntries());
+        doubleRecordKey = serviceResult.getDoubleRecordKey();
+        type = serviceResult.getType();
     }
 
-    public void addEntries(List<ValidationError> entries) {
-        logger.entry();
-        try {
-            for (ValidationError validationError : entries) {
-                addEntry(validationError);
+    public List<Entry> getServiceErrorList() {
+        List<Entry> entryErrors = null;
+        for (Entry entry : entries) {
+            if (entry.getType() == Type.ERROR) {
+                if (entryErrors == null) {
+                    entryErrors = new ArrayList<>();
+                }
+                entryErrors.add(entry);
             }
-        } finally {
-            logger.exit();
         }
-    }
-
-    public void addEntry(ValidateEntry entry) {
-        this.entries.add(entry);
-    }
-
-    public void addEntry(ValidationError entry) {
-        logger.entry();
-        try {
-            ValidateEntry validateEntry = new ValidateEntry();
-
-            HashMap<String, Object> params = entry.getParams();
-            Object value;
-
-            validateEntry.setWarningOrError(entry.getType());
-
-            value = params.get("url");
-            if (value != null) {
-                validateEntry.setUrlForDocumentation(value.toString());
-            }
-
-            value = params.get("message");
-            if (value != null) {
-                validateEntry.setMessage(value.toString());
-            }
-
-            value = params.get("fieldno");
-            if (value != null) {
-                validateEntry.setOrdinalPositionOfField(new BigDecimal(value.toString()).toBigInteger());
-            }
-
-            value = params.get("subfieldno");
-            if (value != null) {
-                validateEntry.setOrdinalPositionOfSubField(new BigDecimal(value.toString()).toBigInteger());
-            }
-
-            this.entries.add(validateEntry);
-        } finally {
-            logger.exit();
-        }
+        return entryErrors;
     }
 
     public boolean hasErrors() {
         logger.entry();
         try {
-            for (ValidateEntry entry : this.entries) {
-                if (entry.getWarningOrError() == ValidateWarningOrErrorEnum.ERROR) {
+            for (Entry entry : entries) {
+                if (entry.getType() == Type.ERROR) {
                     return true;
                 }
             }
@@ -149,84 +103,70 @@ public class ServiceResult {
 
     }
 
+    public static ServiceResult newOkResult() {
+        ServiceResult serviceResult = new ServiceResult();
+        serviceResult.setStatus(UpdateStatusEnum.OK);
+        return serviceResult;
+    }
+
+
+    public static ServiceResult newStatusResult(UpdateStatusEnum status) {
+        ServiceResult serviceResult = new ServiceResult();
+        serviceResult.setStatus(status);
+        return serviceResult;
+    }
+
+    public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState) {
+        return newEntryResult(UpdateStatusEnum.FAILED, Type.ERROR, "Authentication error", globalActionState);
+    }
+
+    public static ServiceResult newErrorResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, Type.ERROR, message, globalActionState);
+    }
+
+    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, Type.DOUBLE_RECORD, message, globalActionState);
+    }
+
+    public static ServiceResult newWarningResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, Type.WARNING, message, globalActionState);
+    }
+
+    public static ServiceResult newEntryResult(UpdateStatusEnum status, Type type, String message, GlobalActionState globalActionState) {
+        ServiceResult serviceResult = new ServiceResult();
+        serviceResult.setStatus(status);
+        Entry entry = new Entry();
+        serviceResult.getEntries().add(entry);
+        entry.setType(type);
+        Params params = new Params();
+        entry.setParams(params);
+        Param param = new Param();
+        params.getParam().add(param);
+        param.setKey("message");
+        param.setValue(message);
+        if (globalActionState != null) {
+            param = new Param();
+            params.getParam().add(param);
+            param.setKey("pid");
+            param.setValue(globalActionState.getRecordPid());
+        }
+        return serviceResult;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         ServiceResult that = (ServiceResult) o;
 
-        if (status != that.status) {
-            return false;
-        }
-        if (serviceError != null ? !serviceError.equals(that.serviceError) : that.serviceError != null) {
-            return false;
-        }
-
-        if (that.entries == null) {
-            return false;
-        }
-
-        if (entries.getClass() != that.entries.getClass()) {
-            return false;
-        }
-
-        if (entries.size() != that.entries.size()) {
-            return false;
-        }
-
-        for (int i = 0; i < entries.size(); i++) {
-            ValidateEntry a = entries.get(i);
-            ValidateEntry b = that.entries.get(i);
-
-            if (a == null) {
-                if (b == null) {
-                    continue;
-                }
-                return false;
-            }
-
-            if (!validateEntryEquals(a, b)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean validateEntryEquals(ValidateEntry a, ValidateEntry b) {
-        if (a == b) {
-            return true;
-        }
-        if (b == null || a.getClass() != b.getClass()) {
-            return false;
-        }
-
-        if (a.getWarningOrError() != b.getWarningOrError()) {
-            return false;
-        }
-        if (a.getUrlForDocumentation() != null ? !a.getUrlForDocumentation().equals(b.getUrlForDocumentation()) : b.getUrlForDocumentation() != null) {
-            return false;
-        }
-        if (a.getOrdinalPositionOfField() != null ? !a.getOrdinalPositionOfField().equals(b.getOrdinalPositionOfField()) : b.getOrdinalPositionOfField() != null) {
-            return false;
-        }
-        if (a.getOrdinalPositionOfSubField() != null ? !a.getOrdinalPositionOfSubField().equals(b.getOrdinalPositionOfSubField()) : b.getOrdinalPositionOfSubField() != null) {
-            return false;
-        }
-        if (a.getMessage() != null ? !a.getMessage().equals(b.getMessage()) : b.getMessage() != null) {
-            return false;
-        }
-        return true;
+        if (status != that.status) return false;
+        return entries != null ? entries.equals(that.entries) : that.entries == null;
     }
 
     @Override
     public int hashCode() {
         int result = status != null ? status.hashCode() : 0;
-        result = 31 * result + (serviceError != null ? serviceError.hashCode() : 0);
         result = 31 * result + (entries != null ? entries.hashCode() : 0);
         return result;
     }
@@ -235,68 +175,38 @@ public class ServiceResult {
     public String toString() {
         String result = "ServiceResult{" +
                 "status=" + status +
-                ", serviceError=" + serviceError +
+                ", doubleRecordKey=" + doubleRecordKey +
                 ", entries=[";
-
-        boolean first = true;
-        for (ValidateEntry entry : entries) {
-            if (!first) {
-                result += ',';
+        if (entries.isEmpty()) {
+            result += "null";
+        } else {
+            boolean outerFirst = true;
+            for (Entry entry : entries) {
+                if (!outerFirst) {
+                    result += ", ";
+                }
+                result += "Entry{";
+                result += "code=" + entry.getCode();
+                result += ", type=" + entry.getType();
+                result += ", params=[";
+                if (entry.getParams() == null) {
+                    result += "null";
+                } else {
+                    boolean innerFirst = true;
+                    for (Param param : entry.getParams().getParam()) {
+                        if (!innerFirst) {
+                            result += ',';
+                        }
+                        result += "Param{key=" + param.getKey();
+                        result += ", value=\'" + param.getValue() + "\'}";
+                        innerFirst = false;
+                    }
+                }
+                result += "}";
+                outerFirst = false;
             }
-            result += "ValidateEntry{" +
-                    "warningOrError=" + entry.getWarningOrError() +
-                    ", urlForDocumentation='" + entry.getUrlForDocumentation() + '\'' +
-                    ", ordinalPositionOfField=" + entry.getOrdinalPositionOfField() +
-                    ", ordinalPositionOfSubField=" + entry.getOrdinalPositionOfSubField() +
-                    ", message='" + entry.getMessage() + '\'' +
-                    '}';
-
-            first = false;
         }
         result += "]}";
         return result;
-    }
-
-    public static ServiceResult newOkResult() {
-        ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(UpdateStatusEnum.OK);
-        return serviceResult;
-    }
-
-    public static ServiceResult newValidateOnlyResult() {
-        ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(UpdateStatusEnum.VALIDATE_ONLY);
-        return serviceResult;
-    }
-
-    public static ServiceResult newStatusResult(UpdateStatusEnum status) {
-        ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(status);
-        return serviceResult;
-    }
-
-    public static ServiceResult newAuthErrorResult() {
-        ServiceResult serviceResult = newOkResult();
-        serviceResult.setServiceError(Error.AUTHENTICATION_ERROR);
-        return serviceResult;
-    }
-
-    public static ServiceResult newErrorResult(UpdateStatusEnum status, String message) {
-        return newEntryResult(status, ValidateWarningOrErrorEnum.ERROR, message);
-    }
-
-    public static ServiceResult newWarningResult(UpdateStatusEnum status, String message) {
-        return newEntryResult(status, ValidateWarningOrErrorEnum.WARNING, message);
-    }
-
-    public static ServiceResult newEntryResult(UpdateStatusEnum status, ValidateWarningOrErrorEnum entryType, String message) {
-        ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(status);
-
-        ValidateEntry entry = new ValidateEntry();
-        entry.setWarningOrError(entryType);
-        entry.setMessage(message);
-        serviceResult.addEntry(entry);
-        return serviceResult;
     }
 }

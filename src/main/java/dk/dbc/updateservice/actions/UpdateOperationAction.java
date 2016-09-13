@@ -3,29 +3,24 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 /**
@@ -50,15 +45,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    private Authenticator authenticator;
-    private Authentication authentication;
-    private HoldingsItems holdingsItems;
-    private OpenAgencyService openAgencyService;
-    private SolrService solrService;
-    private LibraryRecordsHandler recordsHandler;
-    private Scripter scripter;
-    private Properties settings;
-    private ResourceBundle messages;
+    Properties settings;
 
     /**
      * Constructs an instance with a template name and a record.
@@ -67,83 +54,14 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      * settings to work properly. These can be set though the properties <code>scripter</code>
      * and <code>settings</code>. This constructor initialize these to null.
      *
-     * @param record The record to validate.
+     * @param globalActionState State object containing data with data from request.
      */
-    public UpdateOperationAction(RawRepo rawRepo, MarcRecord record) {
-        super("UpdateOperationAction", rawRepo, record);
-
-        this.authenticator = null;
-        this.authentication = null;
-        this.holdingsItems = null;
-        this.openAgencyService = null;
-        this.solrService = null;
-        this.recordsHandler = null;
-        this.scripter = null;
-        this.settings = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    public UpdateOperationAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateOperationAction.class.getSimpleName(), globalActionState, marcRecord);
+        settings = properties;
     }
 
-    public Authenticator getAuthenticator() {
-        return authenticator;
-    }
-
-    public void setAuthenticator(Authenticator authenticator) {
-        this.authenticator = authenticator;
-    }
-
-    public Authentication getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(Authentication authentication) {
-        this.authentication = authentication;
-    }
-
-    public HoldingsItems getHoldingsItems() {
-        return holdingsItems;
-    }
-
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
-        this.holdingsItems = holdingsItems;
-    }
-
-    public OpenAgencyService getOpenAgencyService() {
-        return openAgencyService;
-    }
-
-    public void setOpenAgencyService(OpenAgencyService openAgencyService) {
-        this.openAgencyService = openAgencyService;
-    }
-
-    public SolrService getSolrService() {
-        return solrService;
-    }
-
-    public void setSolrService(SolrService solrService) {
-        this.solrService = solrService;
-    }
-
-    public LibraryRecordsHandler getRecordsHandler() {
-        return recordsHandler;
-    }
-
-    public void setRecordsHandler(LibraryRecordsHandler recordsHandler) {
-        this.recordsHandler = recordsHandler;
-    }
-
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
-    public Properties getSettings() {
-        return settings;
-    }
-
+    // This is needed
     public void setSettings(Properties settings) {
         this.settings = settings;
     }
@@ -165,170 +83,122 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
-
             ServiceResult checkResult = checkRecordForUpdatability();
             if (checkResult.getStatus() != UpdateStatusEnum.OK) {
                 bizLogger.error("Unable to update record: {}", checkResult);
                 return checkResult;
             }
-
             MarcRecordReader reader = new MarcRecordReader(record);
-
-            String valOf001 = reader.getValue("001", "d");
-            if (StringUtils.isEmpty(valOf001)) {
-                String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-                if (StringUtils.isNotEmpty(mode) && mode.equals("fbs")) {
-                    MarcRecordWriter writer = new MarcRecordWriter(record);
-                    writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
-                    logger.info("Adding new date to field 001 , subfield d : " + record);
-                }
-            }
-
-            // This breaks the fail early convention if the authentification fails , the code below will still  be evaluated
-            AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(record);
-            authenticateRecordAction.setAuthenticator(authenticator);
-            authenticateRecordAction.setAuthentication(authentication);
-            children.add(authenticateRecordAction);
-
+            addDatefieldTo001d(reader);
+            children.add(new AuthenticateRecordAction(state, record));
             MarcRecordReader updReader = new MarcRecordReader(record);
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
-
-            List<DoubleRecordCheckingAction> doubleRecordActions = new ArrayList<>();
-
+            if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId) && isFbsMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                children.add(new DoubleRecordFrontendAction(state, settings, record));
+            }
             bizLogger.info("Split record into records to store in rawrepo.");
-            List<MarcRecord> records = recordsHandler.recordDataForRawRepo(record, authentication.getUserIdAut(), authentication.getGroupIdAut());
-
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
             for (MarcRecord rec : records) {
                 bizLogger.info("");
                 bizLogger.info("Create sub actions for record:\n{}", rec);
-                logger.info("Create sub actions for record:\n" + rec);
-
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
-
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
-                    String message = String.format(messages.getString("operation.delete.non.existing.record"), recordId, agencyId);
-                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                    String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
+                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
                 }
-
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
-                    logger.info("Subaction, agencyId: " + agencyId + ", = RawRepo.RAWREPO_COMMON_LIBRARY");
-                    logger.info("!updReader.markedForDeletion(): " + updReader.markedForDeletion());
-                    logger.info("openAgencyService is null ? " + (openAgencyService == null));
-                    logger.info("authentication is null ? " + (authentication == null));
-                    logger.info("rawRepo is null ? " + (rawRepo == null));
-                    logger.info("!updReader.markedForDeletion(): " + !updReader.markedForDeletion());
-
-                    logger.info("openAgencyService.hasFeature ... " + openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD));
-                    logger.info("authentication.getGroupIdAut(): " + authentication.getGroupIdAut());
-                    logger.info("LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD: " + LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD);
-                    logger.info("updReader.markedForDeletion(): " + updReader.markedForDeletion());
-                    logger.info("rawRepo.recordExists(updRecordId, updAgencyId): " + rawRepo.recordExists(updRecordId, updAgencyId));
-
                     if (!updReader.markedForDeletion() &&
-                            !openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        String message = String.format(messages.getString("common.record.creation.not.allowed"), authentication.getGroupIdAut());
-                        return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
+                        return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
                     }
-                    UpdateCommonRecordAction action = new UpdateCommonRecordAction(rawRepo, rec);
-                    action.setGroupId(Integer.valueOf(authentication.getGroupIdAut(), 10));
-                    action.setRecordsHandler(recordsHandler);
-                    action.setOpenAgencyService(openAgencyService);
-                    action.setSolrService(solrService);
-                    action.setHoldingsItems(holdingsItems);
-                    action.setSettings(settings);
-
-                    children.add(action);
+                    children.add(new UpdateCommonRecordAction(state, settings, rec));
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
-                    logger.info("Subaction, agencyId: " + agencyId + ", = RawRepo.SCHOOL_COMMON_AGENCY");
-                    UpdateSchoolCommonRecord action = new UpdateSchoolCommonRecord(rawRepo, rec);
-                    action.setRecordsHandler(recordsHandler);
-                    action.setHoldingsItems(holdingsItems);
-                    action.setSolrService(solrService);
-                    action.setProviderId(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
-                    children.add(action);
+                    children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    logger.info("Subaction, agencyId: " + agencyId + ", ELSE part");
-                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || openAgencyService.hasFeature(authentication.getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
-                        UpdateEnrichmentRecordAction action;
+                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
-                            logger.info("Subaction, agencyId: " + agencyId + ", UpdateSchoolEnrichmentRecordAction");
-                            action = new UpdateSchoolEnrichmentRecordAction(rawRepo, rec);
+                            children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
-                            logger.info("Subaction, agencyId: " + agencyId + ", UpdateEnrichmentRecordAction");
-                            action = new UpdateEnrichmentRecordAction(rawRepo, rec);
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec));
                         }
-                        action.setRecordsHandler(recordsHandler);
-                        action.setHoldingsItems(holdingsItems);
-                        action.setSolrService(solrService);
-                        action.setProviderId(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
-                        children.add(action);
                     } else {
-                        logger.info("Subaction, agencyId: " + agencyId + ", UpdateLocalRecordAction");
-                        UpdateLocalRecordAction action = new UpdateLocalRecordAction(rawRepo, rec);
-                        action.setHoldingsItems(holdingsItems);
-                        action.setOpenAgencyService(openAgencyService);
-                        action.setProviderId(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
-                        children.add(action);
+                        children.add(new UpdateLocalRecordAction(state, settings, rec));
                     }
                 }
             }
-            bizLogger.info("Delete ?:{}", updReader.markedForDeletion());
-            bizLogger.info("isDBC ?:{}", updReader.isDBCRecord());
-            bizLogger.info("rawr exist ?:{}", rawRepo.recordExists(updRecordId, updAgencyId));
-            bizLogger.info("ag id ?:{}", updAgencyId);
-            bizLogger.info("what if ?:{}", !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-            if (!updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
-                bizLogger.info("DONDERKOPF");
-                DoubleRecordCheckingAction doubleRecordCheckingAction = new DoubleRecordCheckingAction(record);
-                doubleRecordCheckingAction.setSettings(settings);
-                doubleRecordCheckingAction.setScripter(scripter);
-                doubleRecordActions.add(doubleRecordCheckingAction);
+            bizLoggerOutput(updReader, updRecordId, updAgencyId);
+            if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId)) {
+                if (isFbsMode() && !StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                    boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateRecordRequest().getDoubleRecordKey());
+                    if (test) {
+                        children.add(new DoubleRecordCheckingAction(state, settings, record));
+                    } else {
+                        String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateRecordRequest().getDoubleRecordKey());
+                        return result = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnum.FAILED, message, state);
+                    }
+                } else if (isFbsMode() || isDataioMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                    children.add(new DoubleRecordCheckingAction(state, settings, record));
+                }
             }
-
-            children.addAll(doubleRecordActions);
             return result = ServiceResult.newOkResult();
-        } catch (ScripterException | OpenAgencyException ex) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, ex.getMessage());
+        } catch (ScripterException | OpenAgencyException e) {
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, e.getMessage(), state);
         } finally {
             logger.exit(result);
         }
     }
 
+    private void addDatefieldTo001d(MarcRecordReader reader) {
+        String valOf001 = reader.getValue("001", "d");
+        if (StringUtils.isEmpty(valOf001)) {
+            if (isFbsMode()) {
+                MarcRecordWriter writer = new MarcRecordWriter(record);
+                writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+                logger.info("Adding new date to field 001 , subfield d : " + record);
+            }
+        }
+    }
+
+    private void bizLoggerOutput(MarcRecordReader updReader, String updRecordId, Integer updAgencyId) throws UpdateException {
+        bizLogger.info("Delete?................: " + updReader.markedForDeletion());
+        bizLogger.info("isDBC?.................: " + updReader.isDBCRecord());
+        bizLogger.info("RR record exists?......: " + rawRepo.recordExists(updRecordId, updAgencyId));
+        bizLogger.info("agency id?.............: " + updAgencyId);
+        bizLogger.info("RR common library?.....: " + updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY));
+        bizLogger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader, updRecordId, updAgencyId));
+    }
+
+    private boolean isDoubleRecordPossible(MarcRecordReader updReader, String updRecordId, Integer updAgencyId) throws UpdateException {
+        return !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
+    }
+
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
         logger.entry();
-
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
             String recordId = reader.recordId();
-
             if (rawRepo == null) {
                 logger.info("UpdateOperationAction.commonRecordExists(), rawRepo is NULL");
             }
             if (rawRepo.recordExists(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
                 return true;
             }
-
             for (MarcRecord record : records) {
                 MarcRecordReader recordReader = new MarcRecordReader(record);
                 String checkRecordId = recordReader.recordId();
                 Integer checkAgencyId = recordReader.agencyIdAsInteger();
-
                 if (checkRecordId.equals(recordId) && checkAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     return true;
                 }
             }
-
             return false;
         } finally {
             logger.exit();
@@ -337,36 +207,48 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
 
     private ServiceResult checkRecordForUpdatability() throws UpdateException {
         logger.entry();
-
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             if (!reader.markedForDeletion()) {
                 return ServiceResult.newOkResult();
             }
-
             String recordId = reader.recordId();
             int agencyId = reader.agencyIdAsInteger();
             int rawRepoAgencyId = agencyId;
-
             if (agencyId == RawRepo.COMMON_LIBRARY) {
                 rawRepoAgencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
             }
-
             RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
             logger.debug("UpdateOperationAction.checkRecordForUpdatability().newRecordId: " + newRecordId);
             Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
             logger.debug("UpdateOperationAction.checkRecordForUpdatability().recordIdSet: " + recordIdSet);
             if (!recordIdSet.isEmpty()) {
-                String message = String.format(messages.getString("delete.record.children.error"), recordId);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message);
+                String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
-
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
         }
     }
 
+    private boolean isFbsMode() {
+        boolean res = false;
+        String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
+        if (mode != null && mode.equals("fbs")) {
+            res = true;
+        }
+        return res;
+    }
+
+    private boolean isDataioMode() {
+        boolean res = false;
+        String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
+        if (mode != null && mode.equals("dataio")) {
+            res = true;
+        }
+        return res;
+    }
 
     /**
      * Class to sort the records returned from JavaScript in the order they should be
@@ -416,10 +298,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         public int compare(MarcRecord o1, MarcRecord o2) {
             MarcRecordReader reader1 = new MarcRecordReader(o1);
             MarcRecordReader reader2 = new MarcRecordReader(o2);
-
             Integer agency1 = reader1.agencyIdAsInteger();
             Integer agency2 = reader2.agencyIdAsInteger();
-
             int result;
             if (agency1.equals(agency2)) {
                 result = 0;
@@ -428,11 +308,9 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             } else {
                 result = 1;
             }
-
             if (reader1.markedForDeletion() || reader2.markedForDeletion()) {
                 return result * -1;
             }
-
             return result;
         }
     }

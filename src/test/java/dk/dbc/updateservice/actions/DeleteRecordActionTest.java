@@ -1,21 +1,22 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.update.RawRepo;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.io.InputStream;
+import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.mockito.Mockito.mock;
 
 public class DeleteRecordActionTest {
-    private static final String BOOK_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/book.marc";
-    private static final String DELETED_BOOK_TO_STORE_RESOURCE = "/dk/dbc/updateservice/actions/deleted_book_to_store.marc";
+    private GlobalActionState state;
+
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+    }
 
     /**
      * Test DeleteRecordAction.deletionMarkToStore() for store in RawRepo for a record.
@@ -25,14 +26,10 @@ public class DeleteRecordActionTest {
      */
     @Test
     public void testDeletionMarkToStore() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        DeleteRecordAction instance = new DeleteRecordAction(rawRepo, record);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-
-        assertThat(instance.deletionMarkToStore(), equalTo(true));
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, record);
+        deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        assertThat(deleteRecordAction.deletionMarkToStore(), equalTo(true));
     }
 
     /**
@@ -40,15 +37,10 @@ public class DeleteRecordActionTest {
      */
     @Test
     public void testRecordToStore() throws Exception {
-        InputStream is = getClass().getResourceAsStream(BOOK_RECORD_RESOURCE);
-        MarcRecord record = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
-
-        RawRepo rawRepo = mock(RawRepo.class);
-        DeleteRecordAction instance = new DeleteRecordAction(rawRepo, record);
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        DeleteRecordAction instance = new DeleteRecordAction(state, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-
-        is = getClass().getResourceAsStream(DELETED_BOOK_TO_STORE_RESOURCE);
-        MarcRecord expected = MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
+        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.DELETED_BOOK_TO_STORE_RESOURCE);
         assertThat(instance.recordToStore(), equalTo(expected));
     }
 }

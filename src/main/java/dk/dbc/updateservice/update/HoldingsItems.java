@@ -27,9 +27,9 @@ import java.util.Set;
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class HoldingsItems {
-    private static XLogger logger = XLoggerFactory.getXLogger( HoldingsItems.class );
+    private static XLogger logger = XLoggerFactory.getXLogger(HoldingsItems.class);
 
-    @Resource( lookup = JNDIResources.JDBC_HOLDINGITEMS_NAME )
+    @Resource(lookup = JNDIResources.JDBC_HOLDINGITEMS_NAME)
     private DataSource dataSource;
 
     public HoldingsItems() {
@@ -43,7 +43,6 @@ public class HoldingsItems {
     public Set<Integer> getAgenciesThatHasHoldingsFor(MarcRecord record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-
         Set<Integer> result = new HashSet<>();
         try {
             result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(record).recordId()));
@@ -63,11 +62,9 @@ public class HoldingsItems {
         logger.entry(recordId);
         logger.info("getAgenciesThatHasHoldingsForId : " + recordId);
         StopWatch watch = new Log4JStopWatch();
-
         Set<Integer> result = new HashSet<>();
         try (Connection conn = dataSource.getConnection()) {
             HoldingsItemsDAO dao = createDAO(conn);
-
             result = dao.getAgenciesThatHasHoldingsFor(recordId);
             return result;
         } catch (SQLException | HoldingsItemsException ex) {
@@ -81,7 +78,6 @@ public class HoldingsItems {
 
     protected HoldingsItemsDAO createDAO(Connection conn) throws HoldingsItemsException {
         StopWatch watch = new Log4JStopWatch();
-
         try {
             return HoldingsItemsDAO.newInstance(conn);
         } finally {

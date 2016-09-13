@@ -1,179 +1,150 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.IOUtils;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.RawRepo;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.util.Properties;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UpdateClassificationsInEnrichmentRecordActionTest {
-    private static final String COMMON_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/common_enrichment.marc";
-    private static final String ENRICHMENT_RECORD_RESOURCE = "/dk/dbc/updateservice/actions/enrichment.marc";
+    private GlobalActionState state;
+    private Properties settings;
+
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
+    }
 
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
      * with wrong state.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Missing common record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update enrichment record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Throw exception: IllegalStateException
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Missing common record.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update enrichment record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Throw exception: IllegalStateException
+     * </dd>
      * </dl>
      */
-    @Test( expected = IllegalStateException.class )
+    @Test(expected = IllegalStateException.class)
     public void testCreateRecord_CommonRecordIsNull() throws Exception {
-        InputStream is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
-        MarcRecord enrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-
-        RawRepo rawRepo = mock( RawRepo.class );
-
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-
-        UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setCurrentCommonRecord( null );
-        instance.setUpdatingCommonRecord( null );
-        instance.setEnrichmentRecord( enrichmentRecord );
-
-        instance.createRecord();
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
+        updateClassificationsInEnrichmentRecordAction.createRecord();
     }
 
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
      * with wrong state.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Missing enrichment record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update enrichment record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Throw exception: IllegalStateException
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Missing enrichment record.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update enrichment record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Throw exception: IllegalStateException
+     * </dd>
      * </dl>
      */
-    @Test( expected = IllegalStateException.class )
+    @Test(expected = IllegalStateException.class)
     public void testCreateRecord_EnrichmentRecordIsNull() throws Exception {
-        InputStream is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
-        MarcRecord commonRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-
-        RawRepo rawRepo = mock( RawRepo.class );
-
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-
-        UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
-        instance.setRecordsHandler( recordsHandler );
-        instance.setCurrentCommonRecord( null );
-        instance.setUpdatingCommonRecord( commonRecord );
-        instance.setEnrichmentRecord( null );
-
-        instance.createRecord();
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(null);
+        updateClassificationsInEnrichmentRecordAction.createRecord();
     }
 
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
      * with wrong state.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Missing records handler.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update enrichment record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Throw exception: IllegalStateException
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Missing records handler.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update enrichment record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Throw exception: IllegalStateException
+     * </dd>
      * </dl>
      */
-    @Test( expected = IllegalStateException.class )
+    @Test(expected = IllegalStateException.class)
     public void testCreateRecord_RecordsHandlerIsNull() throws Exception {
-        InputStream is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
-        MarcRecord commonRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-
-        is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
-        MarcRecord enrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-
-        RawRepo rawRepo = mock( RawRepo.class );
-
-        UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo );
-        instance.setRecordsHandler( null );
-        instance.setCurrentCommonRecord( null );
-        instance.setUpdatingCommonRecord( commonRecord );
-        instance.setEnrichmentRecord( enrichmentRecord );
-
-        instance.createRecord();
+        state.setLibraryRecordsHandler(null);
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
+        updateClassificationsInEnrichmentRecordAction.createRecord();
     }
 
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
      * succesfully.
-     *
+     * <p>
      * <dl>
-     *      <dt>Given</dt>
-     *      <dd>
-     *          Common record and enrichment record.
-     *      </dd>
-     *      <dt>When</dt>
-     *      <dd>
-     *          Update classifications in enrichment record.
-     *      </dd>
-     *      <dt>Then</dt>
-     *      <dd>
-     *          Returns a new enrichment record with extra 504 field.
-     *      </dd>
+     * <dt>Given</dt>
+     * <dd>
+     * Common record and enrichment record.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update classifications in enrichment record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Returns a new enrichment record with extra 504 field.
+     * </dd>
      * </dl>
      */
     @Test
     public void testCreateRecord() throws Exception {
-        InputStream is = getClass().getResourceAsStream( COMMON_RECORD_RESOURCE );
-        MarcRecord commonRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("504", "a", "Ny Note");
 
-        is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
-        MarcRecord enrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
+        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
 
-        is = getClass().getResourceAsStream( ENRICHMENT_RECORD_RESOURCE );
-        MarcRecord newEnrichmentRecord = MarcRecordFactory.readRecord( IOUtils.readAll( is, "UTF-8" ) );
-        new MarcRecordWriter( newEnrichmentRecord ).addOrReplaceSubfield( "504", "a", "Ny Note" );
-
-        RawRepo rawRepo = mock( RawRepo.class );
-
-        LibraryRecordsHandler recordsHandler = mock( LibraryRecordsHandler.class );
-        when( recordsHandler.updateLibraryExtendedRecord( isNull( MarcRecord.class ), eq( commonRecord ), eq( enrichmentRecord ) ) ).thenReturn( newEnrichmentRecord );
-
-        UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction( rawRepo, enrichmentRecord );
-        instance.setCurrentCommonRecord( null );
-        instance.setUpdatingCommonRecord( commonRecord );
-        instance.setRecordsHandler( recordsHandler );
-
-        assertThat( instance.createRecord(), equalTo( newEnrichmentRecord ) );
+        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
+        assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), equalTo(newEnrichmentRecord));
     }
 }

@@ -2,31 +2,33 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.ResourceBundle;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CreateVolumeRecordActionTest {
-    private ResourceBundle messages;
+    private GlobalActionState state;
+    private Properties settings;
 
-    public CreateVolumeRecordActionTest() {
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
     }
 
     /**
@@ -60,38 +62,28 @@ public class CreateVolumeRecordActionTest {
     public void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
-
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-
-        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setSolrService(solrService);
-        instance.setProviderId("xxx");
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = createVolumeRecordAction.children();
         Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), rawRepo, volumeRecord);
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), rawRepo, volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), rawRepo, volumeRecord, instance.getProviderId(), instance.MIMETYPE);
+        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
+        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -118,31 +110,22 @@ public class CreateVolumeRecordActionTest {
     public void testPerformAction_NoLocals_With002Links() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(true);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(true);
-
-        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setSolrService(solrService);
-        instance.setProviderId("xxx");
-
-        String message = messages.getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-        assertThat(instance.children().isEmpty(), is(true));
+        CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
+        String message = state.getMessages().getString("update.record.with.002.links");
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
     /**
@@ -169,30 +152,22 @@ public class CreateVolumeRecordActionTest {
     public void testPerformAction_WithLocals() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(rawRepo.recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-
-        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setSolrService(solrService);
-
-        String message = messages.getString("create.record.with.locals");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-        assertThat(instance.children().isEmpty(), is(true));
+        CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
+        String message = state.getMessages().getString("create.record.with.locals");
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
     /**
@@ -217,31 +192,23 @@ public class CreateVolumeRecordActionTest {
     public void testPerformAction_PointToItselfAsParent() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
         new MarcRecordWriter(volumeRecord).addOrReplaceSubfield("014", "a", volumeRecordId);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-
-        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setSolrService(solrService);
-
-        String message = String.format(messages.getString("parent.point.to.itself"), volumeRecordId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-        assertThat(instance.children().isEmpty(), is(true));
+        CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
+        String message = String.format(state.getMessages().getString("parent.point.to.itself"), volumeRecordId, agencyId);
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
     /**
@@ -267,29 +234,21 @@ public class CreateVolumeRecordActionTest {
     public void testPerformAction_NoParent() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyId(mainRecord);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
 
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(rawRepo.agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(eq(volumeRecord))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-
-        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(rawRepo, volumeRecord);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setSolrService(solrService);
-
-        String message = String.format(messages.getString("reference.record.not.exist"), volumeRecordId, agencyId, mainRecordId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
+        CreateVolumeRecordAction instance = new CreateVolumeRecordAction(state, settings, volumeRecord);
+        String message = String.format(state.getMessages().getString("reference.record.not.exist"), volumeRecordId, agencyId, mainRecordId, agencyId);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
         assertThat(instance.children().isEmpty(), is(true));
     }
 }

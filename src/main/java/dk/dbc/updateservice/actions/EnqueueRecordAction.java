@@ -2,16 +2,16 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.ResourceBundle;
+import java.util.Properties;
+
 
 /**
  * Action to enqueue a record in rawrepo.
@@ -34,23 +34,12 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    private String providerId;
+    Properties settings;
     private String mimetype;
-    private ResourceBundle messages;
 
-    public EnqueueRecordAction(RawRepo rawRepo, MarcRecord record) {
-        super("EnqueueRecordAction", rawRepo, record);
-        providerId = null;
-
-        this.messages = ResourceBundles.getBundle(this, "actions");
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public void setProviderId(String providerId) {
-        this.providerId = providerId;
+    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
+        settings = properties;
     }
 
     public String getMimetype() {
@@ -73,18 +62,18 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
         ServiceResult result = null;
         try {
-            bizLogger.info("Using provider id: '{}'", providerId);
+            bizLogger.info("Using provider id: '{}'", settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
             bizLogger.info("Handling record:\n{}", record);
 
-            if (providerId == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, messages.getString("provider.id.not.set"));
+            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID) == null) {
+                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), this.mimetype);
+            rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), new RecordId(recId, agencyId), this.mimetype);
             bizLogger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
 
             return result = ServiceResult.newOkResult();
@@ -93,18 +82,16 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         }
     }
 
+    // TODO: VERSION 2: factory metode bør være i sin egen klasse
     /**
      * Factory method to create a EnqueueRecordAction.
      */
-    public static EnqueueRecordAction newEnqueueAction(RawRepo rawRepo, MarcRecord record, String providerId, String mimetype) {
-        logger.entry(rawRepo, record, mimetype);
-
-        EnqueueRecordAction enqueueRecordAction = null;
+    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties, String mimetype) {
+        logger.entry(globalActionState, record);
+        EnqueueRecordAction enqueueRecordAction;
         try {
-            enqueueRecordAction = new EnqueueRecordAction(rawRepo, record);
-            enqueueRecordAction.setProviderId(providerId);
+            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
             enqueueRecordAction.setMimetype(mimetype);
-
             return enqueueRecordAction;
         } finally {
             logger.exit();

@@ -90,7 +90,6 @@ public class ScripterPool {
      */
     @PostConstruct
     public void postConstruct() {
-
         logger.error("bugxx  unlocked {} ", bugxxxx.get());
         synchronized (bugxxxx) {
             logger.error("bugxx   {} ", bugxxxx.get());
@@ -100,20 +99,17 @@ public class ScripterPool {
                 return;
             }
         }
-
-
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
-
             int javaScriptPoolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
-
-            if (javaScriptPoolSize < MIN_NUMBER_OF_ENVIROMENTS) javaScriptPoolSize = MIN_NUMBER_OF_ENVIROMENTS;
-            if (javaScriptPoolSize > MAX_NUMBER_OF_ENVIROMENTS) javaScriptPoolSize = 100;
-
+            if (javaScriptPoolSize < MIN_NUMBER_OF_ENVIROMENTS) {
+                javaScriptPoolSize = MIN_NUMBER_OF_ENVIROMENTS;
+            }
+            if (javaScriptPoolSize > MAX_NUMBER_OF_ENVIROMENTS) {
+                javaScriptPoolSize = 100;
+            }
             logger.info("Pool size: {}", javaScriptPoolSize);
-
-
             active_javaScriptPoolSize = javaScriptPoolSize;
             final ScripterEnvironmentFactory scripterEnvironmentFactory = new ScripterEnvironmentFactory();
 
@@ -132,11 +128,11 @@ public class ScripterPool {
                         environments.put(scripterEnvironment);
                         initializedEnvironments.incrementAndGet();
                         logger.info(" Environment added to ready queue");
-                    } catch (InterruptedException | ScripterException e) {
+                    } catch (Exception e) {
                         logger.error("JavaScript Environment creation failed ", e);
                         e.printStackTrace();
                     } finally {
-                        logger.error("Finally");
+                        logger.exit("Finally");
                     }
                 }
                 logger.info("JS init thread done:\n{}", profiler.stop());

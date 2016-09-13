@@ -31,13 +31,11 @@ public class ScripterEnvironment {
      */
     public Object callMethod(String methodName, Object... args) throws ScripterException {
         logger.entry(methodName, args);
-
         Object result = null;
         try {
             StopWatch watch = new Log4JStopWatch();
             result = environment.callMethod(methodName, args);
             watch.stop("javascript.method." + methodName);
-
             return result;
         } catch (Exception ex) {
             logger.catching(ex);

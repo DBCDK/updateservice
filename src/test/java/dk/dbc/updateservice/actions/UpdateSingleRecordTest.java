@@ -1,24 +1,19 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -26,14 +21,18 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UpdateSingleRecordTest {
-    private ResourceBundle messages;
+    private GlobalActionState state;
+    private Properties settings;
+    private static final String GROUP_ID = "700000";
 
-    public UpdateSingleRecordTest() {
-        this.messages = ResourceBundles.getBundle(this, "actions");
+    @Before
+    public void before() throws IOException {
+        state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(GROUP_ID);
+        settings = new UpdateTestUtils().getSettings();
     }
 
     /**
@@ -62,32 +61,15 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        SolrService solrService = mock(SolrService.class);
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-
-        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), rawRepo, record, solrService, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrService(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -119,44 +101,27 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-        when(recordsHandler.hasClassificationData(record)).thenReturn(false);
-
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(mock(SolrService.class));
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        List<ServiceAction> children = instance.children();
+        List<ServiceAction> children = updateSingleRecord.children();
         Assert.assertThat(children.size(), is(1));
 
-        OverwriteSingleRecordAction action = (OverwriteSingleRecordAction) children.get(0);
-        assertThat(action, notNullValue());
-        assertThat(action.getRawRepo(), is(rawRepo));
-        assertThat(action.getRecord(), is(record));
-        assertThat(action.getGroupId(), equalTo(700000));
-        assertThat(action.getHoldingsItems(), is(holdingsItems));
-        assertThat(action.getOpenAgencyService(), is(openAgencyService));
-        assertThat(action.getRecordsHandler(), is(recordsHandler));
-        assertThat(action.getSettings(), equalTo(settings));
+        OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) children.get(0);
+        assertThat(overwriteSingleRecordAction, notNullValue());
+        assertThat(overwriteSingleRecordAction.getRawRepo(), is(state.getRawRepo()));
+        assertThat(overwriteSingleRecordAction.record, is(record));
+        assertThat(overwriteSingleRecordAction.state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), equalTo(GROUP_ID));
+        assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
+        assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
+        assertThat(overwriteSingleRecordAction.settings, equalTo(settings));
     }
 
     /**
@@ -185,36 +150,17 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
+        when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<Integer>());
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature("700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-        SolrService solrService = mock(SolrService.class);
-
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -245,38 +191,18 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_NoAuthExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
+        when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature("700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -305,36 +231,17 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
+        when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
-
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature("700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        String message = messages.getString("delete.common.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR, message)));
-        assertTrue(instance.children().isEmpty());
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        String message = state.getMessages().getString("delete.common.with.holdings.error");
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertTrue(updateSingleRecord.children().isEmpty());
     }
 
     /**
@@ -365,38 +272,18 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
-        RawRepo rawRepo = mock(RawRepo.class);
-        when(rawRepo.recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
+        when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
 
-        LibraryRecordsHandler recordsHandler = mock(LibraryRecordsHandler.class);
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        HoldingsItems holdingsItems = mock(HoldingsItems.class);
-        when(holdingsItems.getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-
-        OpenAgencyService openAgencyService = mock(OpenAgencyService.class);
-        when(openAgencyService.hasFeature("700000", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-
-        SolrService solrService = mock(SolrService.class);
-        when(solrService.hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
-
-        UpdateSingleRecord instance = new UpdateSingleRecord(rawRepo, record);
-        instance.setGroupId(700000);
-        instance.setHoldingsItems(holdingsItems);
-        instance.setOpenAgencyService(openAgencyService);
-        instance.setSolrService(solrService);
-        instance.setRecordsHandler(recordsHandler);
-
-        Properties settings = new Properties();
-        settings.put(JNDIResources.RAWREPO_PROVIDER_ID, "xxx");
-        instance.setSettings(settings);
-
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), rawRepo, record, recordsHandler, holdingsItems, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
 }

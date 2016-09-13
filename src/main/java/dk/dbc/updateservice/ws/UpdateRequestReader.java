@@ -44,11 +44,11 @@ public class UpdateRequestReader {
     /**
      * Constructs an instance with a {@link UpdateRecordRequest}
      *
-     * @param request The request structure to read from.
+     * @param updateRecordRequest The updateRecordRequest structure to read from.
      */
-    public UpdateRequestReader(UpdateRecordRequest request) {
-        logger.entry(request);
-        this.request = request;
+    public UpdateRequestReader(UpdateRecordRequest updateRecordRequest) {
+        logger.entry(updateRecordRequest);
+        request = updateRecordRequest;
         logger.exit();
     }
 
@@ -60,12 +60,10 @@ public class UpdateRequestReader {
     public String readUserId() {
         logger.entry();
         String result = "";
-
         try {
             if (request.getAuthentication() != null) {
                 result = request.getAuthentication().getUserIdAut();
             }
-
             return result;
         } finally {
             logger.exit(result);
@@ -174,29 +172,29 @@ public class UpdateRequestReader {
         return false;
     }
 
-    /**
-     * Reads the validation scheme, also known as the template name, of the
-     * request.
-     *
-     * @return The validation scheme if it can be read from the request, the
-     * empty string otherwise.
-     */
-    public String readSchemaName() {
-        logger.entry();
-
-        String result = "";
-        try {
-            if (request != null) {
-                result = request.getSchemaName();
-            } else {
-                logger.warn("Unable to validate schema from request");
-            }
-
-            return result;
-        } finally {
-            logger.exit(result);
-        }
-    }
+//    /**
+//     * Reads the validation scheme, also known as the template name, of the
+//     * request.
+//     *
+//     * @return The validation scheme if it can be read from the request, the
+//     * empty string otherwise.
+//     */
+//    public String readSchemaName() {
+//        logger.entry();
+//
+//        String result = "";
+//        try {
+//            if (request != null) {
+//                result = request.getSchemaName();
+//            } else {
+//                logger.warn("Unable to validate schema from request");
+//            }
+//
+//            return result;
+//        } finally {
+//            logger.exit(result);
+//        }
+//    }
 
     /**
      * Reads the SRU record from the request and returns it.

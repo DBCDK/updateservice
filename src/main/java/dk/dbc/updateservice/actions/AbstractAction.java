@@ -15,11 +15,13 @@ public abstract class AbstractAction implements ServiceAction {
     protected ServiceResult serviceResult;
     protected List<ServiceAction> children;
     protected long timeElapsed;
+    protected GlobalActionState state;
 
-    public AbstractAction(String name) {
-        this.name = name;
-        this.children = new ArrayList<>();
-        this.timeElapsed = -1;
+    public AbstractAction(String actionName, GlobalActionState globalActionState) {
+        name = actionName;
+        children = new ArrayList<>();
+        timeElapsed = -1;
+        state = globalActionState;
     }
 
     @Override

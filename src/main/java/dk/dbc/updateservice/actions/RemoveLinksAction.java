@@ -4,7 +4,6 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -23,8 +22,8 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(RemoveLinksAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    public RemoveLinksAction(RawRepo rawRepo, MarcRecord record) {
-        super("RemovesLinksAction", rawRepo, record);
+    public RemoveLinksAction(GlobalActionState globalActionState, MarcRecord record) {
+        super(RemoveLinksAction.class.getSimpleName(), globalActionState, record);
     }
 
     /**
@@ -36,7 +35,6 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
