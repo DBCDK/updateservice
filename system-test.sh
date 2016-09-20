@@ -30,7 +30,8 @@ docker-compose up -d update-systemtests-rawrepo-db \
                      update-systemtests-update-db \
                      update-systemtests-fake-smtp \
                      update-systemtests-fbs \
-                     update-systemtests-dataio || die "Docker-compose up -d failed"
+                     update-systemtests-dataio \
+                     ocb-tools-systemtests: || die "Docker-compose up -d failed"
 
 sleep 10 || die "sleep failed"
 
@@ -46,9 +47,10 @@ docker-compose up ocb-tools-systemtests || echo "docker-compose up ocb-tools-sys
 echo "Collect log files"
 docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
 docker logs systemtests_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
+docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
 docker logs systemtests_update-systemtests-fbs_1 > logs/gf-fbs.log
 docker logs systemtests_update-systemtests-dataio_1 > logs/gf-dataio.log
-docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
+docker logs systemtests_ocb-tools-systemtests_1 > logs/ocb-tools.log
 
 sleep 3 || die "sleep failed"
 echo "Stop glassfish containers"
