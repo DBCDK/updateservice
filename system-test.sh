@@ -30,8 +30,7 @@ docker-compose up -d update-systemtests-rawrepo-db \
                      update-systemtests-update-db \
                      update-systemtests-fake-smtp \
                      update-systemtests-fbs \
-                     update-systemtests-dataio \
-                     ocb-tools-systemtests || die "Docker-compose up -d failed"
+                     update-systemtests-dataio  || die "Docker-compose up -d failed"
 
 sleep 10 || die "sleep failed"
 
