@@ -98,6 +98,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
             if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId) && isFbsMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
                 children.add(new DoubleRecordFrontendAction(state, settings, record));
             }
             bizLogger.info("Split record into records to store in rawrepo.");
@@ -136,7 +137,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             }
             bizLoggerOutput(updReader, updRecordId, updAgencyId);
             if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId)) {
-                if (isFbsMode() && !StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                if (isFbsMode() && StringUtils.isNotEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateRecordRequest().getDoubleRecordKey());
                     if (test) {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
@@ -155,7 +156,6 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             logger.exit(result);
         }
     }
-
     private void addDatefieldTo001d(MarcRecordReader reader) {
         String valOf001 = reader.getValue("001", "d");
         if (StringUtils.isEmpty(valOf001)) {
