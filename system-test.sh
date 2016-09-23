@@ -41,7 +41,7 @@ echo "Wait for glassfish containers"
 sleep 3 || die "sleep failed"
 
 echo "Start and run systemtests"
-docker-compose up ocb-tools-systemtests || echo "docker-compose up ocb-tools-systemtests failed"
+docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests failed"
 
 echo "Collect log files"
 docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
