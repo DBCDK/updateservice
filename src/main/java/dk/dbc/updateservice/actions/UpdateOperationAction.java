@@ -265,13 +265,22 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         try {
             // Either new record or update of existing record
             if (!reader.markedForDeletion()) {
+                logger.info("GRYDESTEG - !reader.markedForDeletion(): " + !reader.markedForDeletion());
                 if (rawRepo.recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                    logger.info("GRYDESTEG - rawRepo.recordExists");
                     Record existingRecord = rawRepo.fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY);
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
+                    logger.info("GRYDESTEG - existingRecord: ");
+                    logger.info("\n" + existingMarc.toString());
+
+                    logger.info("GRYDESTEG - reader.centralAliasIds().size(): " + reader.centralAliasIds().size());
+                    logger.info("GRYDESTEG - existingRecordReader.hasSubfield(\"002\", \"a\"): " + existingRecordReader.hasSubfield("002", "a"));
+
                     // Compare new 002a with existing 002a
                     for (String aValue : reader.centralAliasIds()) {
+                        logger.info("GRYDESTEG - aValue: " + aValue);
                         if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue))) {
                             return state.getMessages().getString("create.record.with.locals");
                         }
@@ -279,14 +288,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                     // Compare new 002b & c with existing 002b & c
                     for (HashMap<String, String> bcValues : reader.decentralAliasIds()) {
+                        logger.info("GRYDESTEG - bcValues: " + SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bcValues.get("b"), "002c", bcValues.get("c")));
                         if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bcValues.get("b"), "002c", bcValues.get("c")))) {
                             return state.getMessages().getString("update.record.with.002.links");
                         }
                     }
 
-                    logger.info("GRYDESTEG");
-                    logger.info("GRYDESTEG - reader.centralAliasIds().size(): " + reader.centralAliasIds().size());
-                    logger.info("GRYDESTEG - existingRecordReader.hasSubfield(\"002\", \"a\"): " + existingRecordReader.hasSubfield("002", "a"));
                     // The input record has no 002a field so check if an existing record does
                     if (reader.centralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
                         logger.info("GRYDESTEG 1");
