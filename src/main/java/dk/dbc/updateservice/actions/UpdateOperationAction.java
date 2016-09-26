@@ -6,22 +6,22 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -41,7 +41,7 @@ import java.util.Set;
  * </li>
  * </ol>
  */
-public class UpdateOperationAction extends AbstractRawRepoAction {
+class UpdateOperationAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
@@ -56,7 +56,7 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param globalActionState State object containing data with data from request.
      */
-    public UpdateOperationAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+    UpdateOperationAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(UpdateOperationAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
@@ -97,6 +97,13 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             MarcRecordReader updReader = new MarcRecordReader(record);
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
+
+             // Perform check of 002a and b,c
+            String validatePreviousFaustMessage = validatePreviousFaust(updReader);
+            if (!validatePreviousFaustMessage.isEmpty()) {
+                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, validatePreviousFaustMessage, state);
+            }
+
             if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId) && isFbsMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
                 // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
                 children.add(new DoubleRecordFrontendAction(state, settings, record));
@@ -151,6 +158,8 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             }
             return result = ServiceResult.newOkResult();
         } catch (ScripterException | OpenAgencyException e) {
+            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, e.getMessage(), state);
+        } catch (UnsupportedEncodingException e) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, e.getMessage(), state);
         } finally {
             logger.exit(result);
@@ -250,6 +259,79 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
         return res;
     }
 
+    private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+        logger.entry();
+
+        try {
+            // Either new record or update of existing record
+            if (!reader.markedForDeletion()) {
+                if (rawRepo.recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY);
+                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
+                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
+
+                    // Compare new 002a with existing 002a
+                    for (String aValue : reader.centralAliasIds()) {
+                        if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue))) {
+                            return state.getMessages().getString("create.record.with.locals");
+                        }
+                    }
+
+                    // Compare new 002b & c with existing 002b & c
+                    for (HashMap<String, String> bcValues : reader.decentralAliasIds()) {
+                        if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bcValues.get("b"), "002c", bcValues.get("c")))) {
+                            return state.getMessages().getString("update.record.with.002.links");
+                        }
+                    }
+
+                    logger.info("GRYDESTEG");
+                    logger.info("GRYDESTEG - reader.centralAliasIds().size(): " + reader.centralAliasIds().size());
+                    logger.info("GRYDESTEG - existingRecordReader.hasSubfield(\"002\", \"a\"): " + existingRecordReader.hasSubfield("002", "a"));
+                    // The input record has no 002a field so check if an existing record does
+                    if (reader.centralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
+                        logger.info("GRYDESTEG 1");
+                        for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                            logger.info("GRYDESTEG 2");
+                            Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
+                            if (holdingAgencies.size() > 0) {
+                                logger.info("GRYDESTEG 3");
+                                return state.getMessages().getString("update.record.holdings.on.002a");
+                            }
+                        }
+                    }
+                }
+            } else {
+                Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+
+                if (existingRecord != null) {
+                    MarcRecordReader existingRecordReader = new MarcRecordReader(new RawRepoDecoder().decodeRecord(existingRecord.getContent()));
+
+                    // Deletion of 002a - check for holding on 001a
+                    Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.recordId());
+                    if (holdingAgencies001.size() > 0) {
+                        for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                            if (!state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
+                                return state.getMessages().getString("delete.record.holdings.on.002a");
+                            }
+                        }
+                    }
+
+                    // Deletion of 002a - check for holding on 002a
+                    for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                        Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
+                        if (holdingAgencies002.size() > 0) {
+                            return state.getMessages().getString("delete.record.holdings.on.002a");
+                        }
+                    }
+                }
+            }
+
+            return "";
+        } finally {
+            logger.exit();
+        }
+    }
+
     /**
      * Class to sort the records returned from JavaScript in the order they should be
      * processed.
@@ -314,4 +396,5 @@ public class UpdateOperationAction extends AbstractRawRepoAction {
             return result;
         }
     }
+
 }
