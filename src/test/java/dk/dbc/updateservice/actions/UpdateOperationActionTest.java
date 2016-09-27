@@ -530,7 +530,7 @@ public class UpdateOperationActionTest {
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", "12345678"))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
-        String message = state.getMessages().getString("create.record.with.locals");
+        String message = state.getMessages().getString("update.record.with.002.links");
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
     }
 
