@@ -13,7 +13,7 @@ rm -rf logs  || die "removing logs failed"
 
 mkdir -p logs/dataio
 mkdir -p logs/fbs
-cp ../../../update-logback-include.xml logs/dataio/.  || die "copy logs to dataio failed"
+cp ../../../update-logback-include.xml logs/dataio/  || die "copy logs to dataio failed"
 cp ../../../update-logback-include.xml logs/fbs/. || die "copy logs to fbs failed"
 
 mkdir -p logs/ocb-tools || die "mkdir logs/ocb-tools failed"
