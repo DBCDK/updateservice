@@ -535,6 +535,26 @@ public class UpdateOperationActionTest {
     }
 
     @Test
+    public void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        List<MarcField> fields = record.getFields();
+
+        MarcField field002 = new MarcField("002", "00");
+        List<MarcSubField> subfields = new ArrayList<>();
+        subfields.add(new MarcSubField("a", "12345678"));
+        field002.setSubfields(subfields);
+        fields.add(field002);
+
+        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(false);
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", "12345678"))).thenReturn(true);
+
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        String message = state.getMessages().getString("update.record.with.002.links");
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+    }
+
+    @Test
     public void testPreviousFaust_UpdateRecord_Match002bc() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -549,6 +569,27 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", "12345678", "002c", "12345678"))).thenReturn(true);
+
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        String message = state.getMessages().getString("update.record.with.002.links");
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+    }
+
+    @Test
+    public void testPreviousFaust_UpdateRecord_Match002bc_NoExisting() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        List<MarcField> fields = record.getFields();
+
+        MarcField field002 = new MarcField("002", "00");
+        List<MarcSubField> subfields = new ArrayList<>();
+        subfields.add(new MarcSubField("b", "12345678"));
+        subfields.add(new MarcSubField("c", "12345678"));
+        field002.setSubfields(subfields);
+        fields.add(field002);
+
+        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(false);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", "12345678", "002c", "12345678"))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
