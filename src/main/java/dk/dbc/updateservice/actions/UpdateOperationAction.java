@@ -265,7 +265,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         try {
             // Either new record or update of existing record
             if (!reader.markedForDeletion()) {
-                logger.info("GRYDESTEG - !reader.markedForDeletion(): " + !reader.markedForDeletion());
+                logger.info("GRYDESTEG - new/existing record!");
 
                 logger.info("GRYDESTEG - check 002a");
                 // Compare new 002a with existing 002a
@@ -288,9 +288,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 logger.info("GRYDESTEG - check 002bc DONE");
 
                 logger.info("GRYDESTEG - checking existing record");
-                if (rawRepo.recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                if (rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
                     logger.info("GRYDESTEG - rawRepo.recordExists");
-                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY);
+                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+                    logger.info("GRYDESTEG - existing record is null? " + (existingRecord == null));
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
@@ -314,29 +315,38 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             } else {
-                Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+                logger.info("GRYDESTEG - deletion of record!");
 
-                if (existingRecord != null) {
-                    MarcRecordReader existingRecordReader = new MarcRecordReader(new RawRepoDecoder().decodeRecord(existingRecord.getContent()));
+                if (rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
+                    logger.info("GRYDESTEG - rawRepo.recordExists");
+                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
+                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
+                    logger.info("GRYDESTEG - holding on 001a");
                     // Deletion of 002a - check for holding on 001a
                     Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.recordId());
                     if (holdingAgencies001.size() > 0) {
+                        logger.info("GRYDESTEG - holding > 0");
                         for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                            logger.info("GRYDESTEG - solr lookup on 001a = " + previousFaust);
                             if (!state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
                                 return state.getMessages().getString("delete.record.holdings.on.002a");
                             }
                         }
                     }
 
+                    logger.info("GRYDESTEG - holding on 002a");
                     // Deletion of 002a - check for holding on 002a
                     for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                        logger.info("GRYDESTEG - checking holding " + previousFaust);
                         Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
                         if (holdingAgencies002.size() > 0) {
                             return state.getMessages().getString("delete.record.holdings.on.002a");
                         }
                     }
                 }
+
             }
 
             return "";
