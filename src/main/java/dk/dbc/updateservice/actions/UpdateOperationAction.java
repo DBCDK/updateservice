@@ -296,7 +296,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 logger.info("GRYDESTEG - checking existing record");
                 if (recordExists) {
-                    logger.info("GRYDESTEG - rawRepo.recordExists");
+
                     Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
                     logger.info("GRYDESTEG - existing record is null? " + (existingRecord == null));
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
