@@ -18,7 +18,7 @@ cp ../../../update-logback-include.xml logs/fbs/. || die "copy logs to fbs faile
 
 mkdir -p logs/ocb-tools || die "mkdir logs/ocb-tools failed"
 
-chmod -R +rw logs || die "chmod failed"
+chmod -R a+rw logs || die "chmod failed"
 
 echo "Stop glassfish containers"
 docker-compose down || die "Docker-compose down failed"
