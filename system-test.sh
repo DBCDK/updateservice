@@ -23,34 +23,34 @@ chmod -R a+rw logs || die "chmod failed"
 echo "Stop glassfish containers"
 docker-compose down || die "Docker-compose down failed"
 
-#sleep 3 || die "sleep failed"
-#echo "Startup glassfish containers"
-#docker-compose up -d update-systemtests-rawrepo-db \
-#                     update-systemtests-holdingsitems-db \
-#                     update-systemtests-update-db \
-#                     update-systemtests-fake-smtp \
-#                     update-systemtests-fbs \
-#                     update-systemtests-dataio  || die "Docker-compose up -d failed"
-#
-#sleep 10 || die "sleep failed"
-#
-#echo "Wait for glassfish containers"
-#../../bin/return-when-status-ok.sh ${HOST_IP} 18180 '[dataio]'
-#../../bin/return-when-status-ok.sh ${HOST_IP} 18280 '[fbs]'
-#
-#sleep 3 || die "sleep failed"
+sleep 3 || die "sleep failed"
+echo "Startup glassfish containers"
+docker-compose up -d update-systemtests-rawrepo-db \
+                     update-systemtests-holdingsitems-db \
+                     update-systemtests-update-db \
+                     update-systemtests-fake-smtp \
+                     update-systemtests-fbs \
+                     update-systemtests-dataio  || die "Docker-compose up -d failed"
+
+sleep 10 || die "sleep failed"
+
+echo "Wait for glassfish containers"
+../../bin/return-when-status-ok.sh ${HOST_IP} 18180 '[dataio]'
+../../bin/return-when-status-ok.sh ${HOST_IP} 18280 '[fbs]'
+
+sleep 3 || die "sleep failed"
 
 echo "Start and run systemtests"
 docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests failed"
 
 echo "Collect log files"
-#docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
-#docker logs systemtests_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
-#docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
-#docker logs systemtests_update-systemtests-fbs_1 > logs/gf-fbs.log
-#docker logs systemtests_update-systemtests-dataio_1 > logs/gf-dataio.log
-#docker logs systemtests_ocb-tools-systemtests_1 > logs/ocb-tools.log
+docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
+docker logs systemtests_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
+docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
+docker logs systemtests_update-systemtests-fbs_1 > logs/gf-fbs.log
+docker logs systemtests_update-systemtests-dataio_1 > logs/gf-dataio.log
+docker logs systemtests_ocb-tools-systemtests_1 > logs/ocb-tools.log
 
-#sleep 3 || die "sleep failed"
+sleep 3 || die "sleep failed"
 echo "Stop glassfish containers"
 docker-compose down || die "docker-compose down failed"
