@@ -98,7 +98,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
 
-             // Perform check of 002a and b,c
+            // Perform check of 002a and b,c
             String validatePreviousFaustMessage = validatePreviousFaust(updReader);
             if (!validatePreviousFaustMessage.isEmpty()) {
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, validatePreviousFaustMessage, state);
@@ -165,6 +165,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.exit(result);
         }
     }
+
     private void addDatefieldTo001d(MarcRecordReader reader) {
         String valOf001 = reader.getValue("001", "d");
         if (StringUtils.isEmpty(valOf001)) {
@@ -265,14 +266,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         try {
             // Either new record or update of existing record
             if (!reader.markedForDeletion()) {
-                logger.info("GRYDESTEG - new/existing record!");
-
                 Boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
 
-                logger.info("GRYDESTEG - check 002a");
                 // Compare new 002a with existing 002a
                 for (String aValue : reader.centralAliasIds()) {
-                    logger.info("GRYDESTEG - aValue: " + aValue);
                     String solrQuery = recordExists ?
                             SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", aValue, "001a", reader.recordId()) :
                             SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue);
@@ -280,9 +277,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         return state.getMessages().getString("update.record.with.002.links");
                     }
                 }
-                logger.info("GRYDESTEG - check 002a DONE");
 
-                logger.info("GRYDESTEG - check 002bc");
                 // Compare new 002b & c with existing 002b & c
                 for (HashMap<String, String> bcValues : reader.decentralAliasIds()) {
                     String solrQuery = recordExists ?
@@ -292,68 +287,47 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         return state.getMessages().getString("update.record.with.002.links");
                     }
                 }
-                logger.info("GRYDESTEG - check 002bc DONE");
 
-                logger.info("GRYDESTEG - checking existing record");
                 if (recordExists) {
 
                     Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
-                    logger.info("GRYDESTEG - existing record is null? " + (existingRecord == null));
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
-                    logger.info("GRYDESTEG - existingRecord: ");
-                    logger.info("\n" + existingMarc.toString());
-
-                    logger.info("GRYDESTEG - reader.centralAliasIds().size(): " + reader.centralAliasIds().size());
-                    logger.info("GRYDESTEG - existingRecordReader.hasSubfield(\"002\", \"a\"): " + existingRecordReader.hasSubfield("002", "a"));
-
                     // The input record has no 002a field so check if an existing record does
                     if (reader.centralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
-                        logger.info("GRYDESTEG 1");
                         for (String previousFaust : existingRecordReader.centralAliasIds()) {
-                            logger.info("GRYDESTEG 2");
                             Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
                             if (holdingAgencies.size() > 0) {
-                                logger.info("GRYDESTEG 3");
                                 return state.getMessages().getString("update.record.holdings.on.002a");
                             }
                         }
                     }
                 }
             } else {
-                logger.info("GRYDESTEG - deletion of record!");
-
                 if (rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
-                    logger.info("GRYDESTEG - rawRepo.recordExists");
                     Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
-                    logger.info("GRYDESTEG - holding on 001a");
                     // Deletion of 002a - check for holding on 001a
                     Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.recordId());
                     if (holdingAgencies001.size() > 0) {
-                        logger.info("GRYDESTEG - holding > 0");
                         for (String previousFaust : existingRecordReader.centralAliasIds()) {
-                            logger.info("GRYDESTEG - solr lookup on 001a = " + previousFaust);
                             if (!state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
                                 return state.getMessages().getString("delete.record.holdings.on.002a");
                             }
                         }
                     }
 
-                    logger.info("GRYDESTEG - holding on 002a");
                     // Deletion of 002a - check for holding on 002a
                     for (String previousFaust : existingRecordReader.centralAliasIds()) {
-                        logger.info("GRYDESTEG - checking holding " + previousFaust);
                         Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
                         if (holdingAgencies002.size() > 0) {
                             return state.getMessages().getString("delete.record.holdings.on.002a");
                         }
                     }
                 }
-
             }
 
             return "";
