@@ -264,47 +264,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            // Either new record or update of existing record
-            if (!reader.markedForDeletion()) {
-                Boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
-
-                // Compare new 002a with existing 002a
-                for (String aValue : reader.centralAliasIds()) {
-                    String solrQuery = recordExists ?
-                            SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", aValue, "001a", reader.recordId()) :
-                            SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue);
-                    if (state.getSolrService().hasDocuments(solrQuery)) {
-                        return state.getMessages().getString("update.record.with.002.links");
-                    }
-                }
-
-                // Compare new 002b & c with existing 002b & c
-                for (HashMap<String, String> bcValues : reader.decentralAliasIds()) {
-                    String solrQuery = recordExists ?
-                            SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bcValues.get("b"), "002c", bcValues.get("c"), "001a", reader.recordId()) :
-                            SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bcValues.get("b"), "002c", bcValues.get("c"));
-                    if (state.getSolrService().hasDocuments(solrQuery)) {
-                        return state.getMessages().getString("update.record.with.002.links");
-                    }
-                }
-
-                if (recordExists) {
-
-                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
-                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
-                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
-
-                    // The input record has no 002a field so check if an existing record does
-                    if (reader.centralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
-                        for (String previousFaust : existingRecordReader.centralAliasIds()) {
-                            Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
-                            if (holdingAgencies.size() > 0) {
-                                return state.getMessages().getString("update.record.holdings.on.002a");
-                            }
-                        }
-                    }
-                }
-            } else {
+            if (reader.markedForDeletion()) {
+                // Handle deletion of existing record
                 if (rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
                     Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
@@ -328,6 +289,43 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         }
                     }
                 }
+            } else {
+                // Handle either new record or update of existing record
+                Boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
+
+                // Compare new 002a with existing 002a
+                for (String aValue : reader.centralAliasIds()) {
+                    String solrQuery = getSolrQuery002a(recordExists, aValue, reader.recordId());
+
+                    if (state.getSolrService().hasDocuments(solrQuery)) {
+                        return state.getMessages().getString("update.record.with.002.links");
+                    }
+                }
+
+                // Compare new 002b & c with existing 002b & c
+                for (HashMap<String, String> bcValues : reader.decentralAliasIds()) {
+                    String solrQuery = getSolrQuery002bc(recordExists, bcValues.get("b"), bcValues.get("c"), reader.recordId());
+
+                    if (state.getSolrService().hasDocuments(solrQuery)) {
+                        return state.getMessages().getString("update.record.with.002.links");
+                    }
+                }
+
+                if (recordExists) {
+                    Record existingRecord = rawRepo.fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
+                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
+
+                    // The input record has no 002a field so check if an existing record does
+                    if (reader.centralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
+                        for (String previousFaust : existingRecordReader.centralAliasIds()) {
+                            Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
+                            if (holdingAgencies.size() > 0) {
+                                return state.getMessages().getString("update.record.holdings.on.002a");
+                            }
+                        }
+                    }
+                }
             }
 
             return "";
@@ -336,68 +334,19 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    /**
-     * Class to sort the records returned from JavaScript in the order they should be
-     * processed.
-     * <p/>
-     * The records are sorted in this order:
-     * <ol>
-     * <li>Common records are processed before local and enrichment records.</li>
-     * <li>
-     * If one of the records has the deletion mark in 004r then the process order
-     * is reversed.
-     * </li>
-     * </ol>
-     */
-    private class ProcessOrder implements Comparator<MarcRecord> {
+    private String getSolrQuery002a(Boolean recordExists, String aValue, String recordId) {
+        if (recordExists) {
+            return SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", aValue, "001a", recordId);
+        } else {
+            return SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue);
+        }
+    }
 
-        /**
-         * Compares its two arguments for order.  Returns a negative integer, zero, or a positive integer as the first
-         * argument is less than, equal to, or greater than the second.<p>
-         * <p/>
-         * In the foregoing description, the notation <tt>sgn(</tt><i>expression</i><tt>)</tt> designates the mathematical
-         * <i>signum</i> function, which is defined to return one of <tt>-1</tt>, <tt>0</tt>, or <tt>1</tt> according to
-         * whether the value of <i>expression</i> is negative, zero or positive.<p>
-         * <p/>
-         * The implementor must ensure that <tt>sgn(compare(x, y)) == -sgn(compare(y, x))</tt> for all <tt>x</tt> and
-         * <tt>y</tt>.  (This implies that <tt>compare(x, y)</tt> must throw an exception if and only if <tt>compare(y,
-         * x)</tt> throws an exception.)<p>
-         * <p/>
-         * The implementor must also ensure that the relation is transitive: <tt>((compare(x, y)&gt;0) &amp;&amp;
-         * (compare(y, z)&gt;0))</tt> implies <tt>compare(x, z)&gt;0</tt>.<p>
-         * <p/>
-         * Finally, the implementor must ensure that <tt>compare(x, y)==0</tt> implies that <tt>sgn(compare(x,
-         * z))==sgn(compare(y, z))</tt> for all <tt>z</tt>.<p>
-         * <p/>
-         * It is generally the case, but <i>not</i> strictly required that <tt>(compare(x, y)==0) == (x.equals(y))</tt>.
-         * Generally speaking, any comparator that violates this condition should clearly indicate this fact.  The
-         * recommended language is "Note: this comparator imposes orderings that are inconsistent with equals."
-         *
-         * @param o1 the first object to be compared.
-         * @param o2 the second object to be compared.
-         * @return a negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater
-         * than the second.
-         * @throws NullPointerException if an argument is null and this comparator does not permit null arguments
-         * @throws ClassCastException   if the arguments' types prevent them from being compared by this comparator.
-         */
-        @Override
-        public int compare(MarcRecord o1, MarcRecord o2) {
-            MarcRecordReader reader1 = new MarcRecordReader(o1);
-            MarcRecordReader reader2 = new MarcRecordReader(o2);
-            Integer agency1 = reader1.agencyIdAsInteger();
-            Integer agency2 = reader2.agencyIdAsInteger();
-            int result;
-            if (agency1.equals(agency2)) {
-                result = 0;
-            } else if (agency1.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
-                result = -1;
-            } else {
-                result = 1;
-            }
-            if (reader1.markedForDeletion() || reader2.markedForDeletion()) {
-                return result * -1;
-            }
-            return result;
+    private String getSolrQuery002bc(Boolean recordExists, String bValue, String cValue, String recordId){
+        if (recordExists) {
+            return SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bValue, "002c", cValue, "001a", recordId);
+        } else {
+            return SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bValue, "002c", cValue);
         }
     }
 
