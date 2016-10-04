@@ -100,7 +100,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             // Perform check of 002a and b,c
             String validatePreviousFaustMessage = validatePreviousFaust(updReader);
-            if (!validatePreviousFaustMessage.isEmpty()) {
+            if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, validatePreviousFaustMessage, state);
             }
 
@@ -260,6 +260,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         return res;
     }
 
+    /**
+     * The responsibility of this function is to test the input record for any validation errors caused by the 002 field
+     *
+     * @param reader MarcRecordReader of the record to be checked
+     * @return validation error message or null if no error was found
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
 
@@ -328,7 +336,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
-            return "";
+            return null;
         } finally {
             logger.exit();
         }
