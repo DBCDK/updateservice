@@ -48,7 +48,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             bizLogger.info("Handling record:\n{}", record);
             MarcRecord currentRecord = loadCurrentRecord();
-            children.add(StoreRecordAction.newStoreAction(state, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(new RemoveLinksAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
             result = performActionsFor002Links();

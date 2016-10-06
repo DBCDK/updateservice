@@ -6,6 +6,8 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.Properties;
+
 /**
  * This action stores a record in the rawrepo and marks it as deleted.
  * <p>
@@ -20,8 +22,8 @@ import org.slf4j.ext.XLoggerFactory;
 public class DeleteRecordAction extends StoreRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
-    public DeleteRecordAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(globalActionState, record);
+    public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        super(globalActionState, properties, record);
         setName(DeleteRecordAction.class.getSimpleName());
     }
 
@@ -60,10 +62,10 @@ public class DeleteRecordAction extends StoreRecordAction {
     /**
      * Factory method to create a DeleteRecordAction.
      */
-    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, MarcRecord record, String mimetype) {
+    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState,Properties properties, MarcRecord record, String mimetype) {
         logger.entry(globalActionState, record, mimetype);
         try {
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, record);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
             deleteRecordAction.setMimetype(mimetype);
             return deleteRecordAction;
         } finally {

@@ -76,7 +76,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             }
 
             bizLogger.error("Creating sub actions successfully");
-            children.add(StoreRecordAction.newStoreAction(state, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));

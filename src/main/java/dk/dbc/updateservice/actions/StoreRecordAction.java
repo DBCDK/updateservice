@@ -4,16 +4,20 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Properties;
 
 /**
  * Action to store a record in the rawrepo.
@@ -21,16 +25,18 @@ import java.io.UnsupportedEncodingException;
 public class StoreRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(StoreRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final String ENTRY_POINT = "sortRecord";
 
     RawRepoEncoder encoder = new RawRepoEncoder();
     private String mimetype;
+    Properties properties;
 
-    public StoreRecordAction(GlobalActionState globalActionState, MarcRecord record) {
+    public StoreRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(StoreRecordAction.class.getSimpleName(), globalActionState, record);
-
+        this.properties = properties;
     }
 
-    public String getMimetype() {
+    String getMimetype() {
         return mimetype;
     }
 
@@ -48,11 +54,15 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         ServiceResult result = null;
+
+
         try {
             bizLogger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
+
+            record = sortRecord(record);
 
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore()));
@@ -96,14 +106,39 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a StoreRecordAction.
      */
-    public static StoreRecordAction newStoreAction(GlobalActionState globalActionState, MarcRecord record, String mimetype) {
+    static StoreRecordAction newStoreAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, String mimetype) {
         logger.entry(globalActionState, record, mimetype);
         try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
             storeRecordAction.setMimetype(mimetype);
             return storeRecordAction;
         } finally {
             logger.exit();
         }
     }
+
+    public MarcRecord sortRecord(MarcRecord record) {
+        logger.entry();
+
+        MarcRecord result = record;
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonRecord;
+        try {
+            jsonRecord = mapper.writeValueAsString(record);
+
+            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), jsonRecord, properties);
+
+            if (jsResult instanceof String) {
+                result = mapper.readValue(jsResult.toString(), MarcRecord.class);
+            }
+
+            return result;
+        } catch (IOException | ScripterException ex) {
+            logger.error("Error when trying to sort the record. ", ex);
+            return record;
+        } finally {
+            logger.exit();
+        }
+    }
+
 }

@@ -90,7 +90,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(storeRecordAction);
 
@@ -136,7 +136,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(storeRecordAction);
 
@@ -186,7 +186,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             }
             children.add(new RemoveLinksAction(state, record));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, record);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(deleteRecordAction);
 

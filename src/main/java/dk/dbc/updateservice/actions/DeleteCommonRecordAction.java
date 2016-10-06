@@ -69,7 +69,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             bizLogger.error("Creating sub actions successfully");
 
             children.add(new RemoveLinksAction(state, record));
-            children.add(DeleteRecordAction.newDeleteRecordAction(state, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {

@@ -2,6 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -16,23 +17,23 @@ import org.mockito.ArgumentCaptor;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class StoreRecordActionTest {
     private GlobalActionState state;
+    private Properties settings;
+    private static final String ENTRY_POINT = "sortRecord";
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        settings = new UpdateTestUtils().getSettings();
     }
 
     /**
@@ -42,7 +43,7 @@ public class StoreRecordActionTest {
     @Test
     public void testConstructor() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        StoreRecordAction instance = new StoreRecordAction(state, record);
+        StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         assertThat(instance, notNullValue());
     }
 
@@ -71,10 +72,12 @@ public class StoreRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(record), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -115,12 +118,14 @@ public class StoreRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = mock(RawRepoEncoder.class);
 
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
+        when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
@@ -156,12 +161,14 @@ public class StoreRecordActionTest {
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         RawRepoEncoder encoder = mock(RawRepoEncoder.class);
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = encoder;
 
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
+        when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
         ServiceResult serviceResult = storeRecordAction.performAction();
         assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
@@ -177,7 +184,7 @@ public class StoreRecordActionTest {
     @Test
     public void testDeletionMarkToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, record);
+        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         assertThat(storeRecordAction.deletionMarkToStore(), equalTo(false));
     }
@@ -188,7 +195,7 @@ public class StoreRecordActionTest {
     @Test
     public void testRecordToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        StoreRecordAction instance = new StoreRecordAction(state, record);
+        StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         assertThat(instance.recordToStore(), equalTo(record));
     }
