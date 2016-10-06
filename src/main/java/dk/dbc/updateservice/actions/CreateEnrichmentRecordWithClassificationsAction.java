@@ -93,7 +93,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
             String recordId = new MarcRecordReader(enrichmentRecord).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, enrichmentRecord);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(storeRecordAction);
 

@@ -95,7 +95,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
             bizLogger.info("Enrichment record:\n{}", enrichmentRecord);
 
             String recordId = new MarcRecordReader(enrichmentRecord).recordId();
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, enrichmentRecord);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
             storeRecordAction.setMimetype(MIMETYPE);
 
             children.add(storeRecordAction);

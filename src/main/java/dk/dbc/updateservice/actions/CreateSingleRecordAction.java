@@ -52,7 +52,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
             }
             bizLogger.error("Creating sub actions successfully");
-            children.add(StoreRecordAction.newStoreAction(state, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return ServiceResult.newOkResult();
         } finally {

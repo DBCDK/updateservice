@@ -137,7 +137,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             String recordId = new MarcRecordReader(record).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, enrichmentRecord);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(storeRecordAction);
 
@@ -181,7 +181,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             bizLogger.info("Creating sub actions to delete enrichment record successfully");
             children.add(new RemoveLinksAction(state, record));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, record);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
