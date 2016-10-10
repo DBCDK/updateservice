@@ -95,7 +95,7 @@ public class ScripterPool {
             logger.error("bugxx   {} ", bugxxxx.get());
             if (bugxxxx.get() > 0) {
                 bugxxxx.incrementAndGet();
-                logger.error("Ups.. postConstruct called multiple time on Singleton " + ScripterPool.class.getName() + " .. ignoring");
+                logger.warn("Ups.. postConstruct called multiple time on Singleton " + ScripterPool.class.getName() + " .. ignoring");
                 return;
             }
         }
