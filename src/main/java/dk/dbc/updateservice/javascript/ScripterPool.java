@@ -63,7 +63,7 @@ public class ScripterPool {
 
     // Hardcoded Max size of environments
     private final static int MAX_NUMBER_OF_ENVIROMENTS = 100;
-    private final static int MIN_NUMBER_OF_ENVIROMENTS = 5;
+    private final static int MIN_NUMBER_OF_ENVIROMENTS = 1;
 
     // defencive code.. make room for double size of MAX to avoid blocking on put
     private static final BlockingQueue<ScripterEnvironment> environments = new ArrayBlockingQueue(2 * MAX_NUMBER_OF_ENVIROMENTS);
@@ -107,7 +107,7 @@ public class ScripterPool {
                 javaScriptPoolSize = MIN_NUMBER_OF_ENVIROMENTS;
             }
             if (javaScriptPoolSize > MAX_NUMBER_OF_ENVIROMENTS) {
-                javaScriptPoolSize = 100;
+                javaScriptPoolSize = MAX_NUMBER_OF_ENVIROMENTS;
             }
             logger.info("Pool size: {}", javaScriptPoolSize);
             active_javaScriptPoolSize = javaScriptPoolSize;
