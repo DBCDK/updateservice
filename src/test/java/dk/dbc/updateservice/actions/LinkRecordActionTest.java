@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -105,7 +105,7 @@ public class LinkRecordActionTest {
         LinkRecordAction instance = new LinkRecordAction(state, record);
         instance.setLinkToRecordId(new RecordId(parentId, agencyId));
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
 
         ArgumentCaptor<String> argRecordId = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> argAgencyId = ArgumentCaptor.forClass(Integer.class);

@@ -2,10 +2,9 @@ package dk.dbc.updateservice.auth;
 
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Entry;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
@@ -36,6 +35,7 @@ public class Authenticator {
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
+    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private ForsService forsService;
 
@@ -48,21 +48,18 @@ public class Authenticator {
      * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
-        logger.entry(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), "****");
-
+        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****");
         boolean result = false;
         try {
             String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL_KEY).toString();
             logger.debug("Using endpoint to forsrights webservice: {}", endpoint);
-
             ForsRights.RightSet rights;
-
             Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP_KEY);
             if (useIpSetting != null && Boolean.valueOf(useIpSetting.toString())) {
                 String ipAddress = getRemoteAddrFromMessage(state.getWsContext());
-                rights = forsService.forsRightsWithIp(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getPasswordAut(), ipAddress);
+                rights = forsService.forsRightsWithIp(state, ipAddress);
             } else {
-                rights = forsService.forsRights(state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getPasswordAut());
+                rights = forsService.forsRights(state);
             }
             String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME_KEY);
             logger.debug("Looking for product name: {}", productName);
@@ -75,15 +72,16 @@ public class Authenticator {
         }
     }
 
-    public List<Entry> authenticateRecord(GlobalActionState state, MarcRecord record) throws ScripterException {
-        logger.entry(record, state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
-        List<Entry> result = new ArrayList<>();
+    public List<MessageEntryDto> authenticateRecord(GlobalActionState state) throws ScripterException {
+        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+        List<MessageEntryDto> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(record), state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), settings);
+            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings);
             logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof String) {
-                List<Entry> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, Entry.class));
+                // TODO: HUST RET JAVASCRIPT OGSÅ
+                List<MessageEntryDto> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MessageEntryDto.class));
                 result.addAll(validationErrors);
                 logger.trace("Number of errors: {}", result.size());
                 return result;

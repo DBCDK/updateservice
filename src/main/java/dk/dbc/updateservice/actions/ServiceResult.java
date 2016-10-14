@@ -1,10 +1,9 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.Param;
-import dk.dbc.updateservice.service.api.Params;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.TypeEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.update.DoubleRecordFrontendContent;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -27,29 +26,24 @@ import java.util.List;
 public class ServiceResult {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceResult.class);
 
-    private UpdateStatusEnum status = null;
-    private List<Entry> entries = new ArrayList<>();
+    private UpdateStatusEnumDto status = UpdateStatusEnumDto.OK;
+    private List<MessageEntryDto> entries = null;
     private String doubleRecordKey = null;
-    private String type = null;
 
-    public ServiceResult() {
-        status = null;
-    }
-
-    public UpdateStatusEnum getStatus() {
+    public UpdateStatusEnumDto getStatus() {
         return status;
     }
 
-    public void setStatus(UpdateStatusEnum status) {
+    public void setStatus(UpdateStatusEnumDto status) {
         this.status = status;
     }
 
-    public List<Entry> getEntries() {
+    public List<MessageEntryDto> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<Entry> entries) {
-        this.entries = entries;
+    public void setEntries(List<MessageEntryDto> messageEntryDtos) {
+        this.entries = messageEntryDtos;
     }
 
     public String getDoubleRecordKey() {
@@ -60,96 +54,121 @@ public class ServiceResult {
         this.doubleRecordKey = doubleRecordKey;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-
-    public void addEntries(ServiceResult serviceResult) {
-        entries.addAll(serviceResult.getEntries());
-        doubleRecordKey = serviceResult.getDoubleRecordKey();
-        type = serviceResult.getType();
-    }
-
-    public List<Entry> getServiceErrorList() {
-        List<Entry> entryErrors = null;
-        for (Entry entry : entries) {
-            if (entry.getType() == Type.ERROR) {
-                if (entryErrors == null) {
-                    entryErrors = new ArrayList<>();
+    public void addServiceResult(ServiceResult serviceResult) {
+        if (serviceResult != null) {
+            if (serviceResult.getEntries() != null) {
+                if (entries == null) {
+                    entries = new ArrayList<>();
                 }
-                entryErrors.add(entry);
+                entries.addAll(serviceResult.getEntries());
+            }
+            doubleRecordKey = serviceResult.getDoubleRecordKey();
+            calculateAndAddUpdateStatusEnumDtoValue(serviceResult.getStatus());
+            calculateAndAddUpdateStatusEnumDtoValue(serviceResult.getStatus());
+        }
+    }
+
+    public void calculateAndAddUpdateStatusEnumDtoValue(UpdateStatusEnumDto updateStatusEnumDto) {
+        if (updateStatusEnumDto != UpdateStatusEnumDto.OK) {
+            status = updateStatusEnumDto;
+        }
+    }
+
+    public void addMessageEntryDto(MessageEntryDto messageEntryDto) {
+        if (messageEntryDto != null) {
+            if (entries == null) {
+                entries = new ArrayList<>();
+            }
+            entries.add(messageEntryDto);
+        }
+    }
+
+    public void addMessageEntryDtos(List<MessageEntryDto> messageEntryDtos) {
+        if (messageEntryDtos != null && !messageEntryDtos.isEmpty()) {
+            if (this.entries == null) {
+                this.entries = new ArrayList<>();
+            }
+            this.entries.addAll(messageEntryDtos);
+        }
+    }
+
+    public List<MessageEntryDto> getServiceErrorList() {
+        List<MessageEntryDto> entryErrors = null;
+        if (entries != null) {
+            for (MessageEntryDto entry : entries) {
+                if (entry.getType() == TypeEnumDto.ERROR) {
+                    if (entryErrors == null) {
+                        entryErrors = new ArrayList<>();
+                    }
+                    entryErrors.add(entry);
+                }
             }
         }
         return entryErrors;
     }
 
     public boolean hasErrors() {
-        logger.entry();
-        try {
-            for (Entry entry : entries) {
-                if (entry.getType() == Type.ERROR) {
-                    return true;
+        boolean res = false;
+        if (entries != null) {
+            for (MessageEntryDto entry : entries) {
+                if (entry.getType() == TypeEnumDto.ERROR) {
+                    res = true;
                 }
             }
-            return false;
-        } finally {
-            logger.exit();
         }
-
+        return res;
     }
 
     public static ServiceResult newOkResult() {
         ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(UpdateStatusEnum.OK);
+        serviceResult.setStatus(UpdateStatusEnumDto.OK);
         return serviceResult;
     }
 
 
-    public static ServiceResult newStatusResult(UpdateStatusEnum status) {
+    public static ServiceResult newStatusResult(UpdateStatusEnumDto status) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
         return serviceResult;
     }
 
     public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState) {
-        return newEntryResult(UpdateStatusEnum.FAILED, Type.ERROR, "Authentication error", globalActionState);
+        return newEntryResult(UpdateStatusEnumDto.FAILED, TypeEnumDto.ERROR, "Authentication error", globalActionState);
     }
 
-    public static ServiceResult newErrorResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, Type.ERROR, message, globalActionState);
+    public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState, String message) {
+        return newEntryResult(UpdateStatusEnumDto.FAILED, TypeEnumDto.ERROR, message, globalActionState);
     }
 
-    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, Type.DOUBLE_RECORD, message, globalActionState);
+    public static ServiceResult newErrorResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDto.ERROR, message, globalActionState);
     }
 
-    public static ServiceResult newWarningResult(UpdateStatusEnum status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, Type.WARNING, message, globalActionState);
+    public static ServiceResult newFatalResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDto.FATAL, message, globalActionState);
     }
 
-    public static ServiceResult newEntryResult(UpdateStatusEnum status, Type type, String message, GlobalActionState globalActionState) {
+    public static ServiceResult newWarningResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDto.WARNING, message, globalActionState);
+    }
+
+    public static ServiceResult newEntryResult(UpdateStatusEnumDto status, TypeEnumDto type, String message, GlobalActionState globalActionState) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
-        Entry entry = new Entry();
-        serviceResult.getEntries().add(entry);
-        entry.setType(type);
-        Params params = new Params();
-        entry.setParams(params);
-        Param param = new Param();
-        params.getParam().add(param);
-        param.setKey("message");
-        param.setValue(message);
-        if (globalActionState != null) {
-            param = new Param();
-            params.getParam().add(param);
-            param.setKey("pid");
-            param.setValue(globalActionState.getRecordPid());
-        }
+        MessageEntryDto messageEntryDto = new MessageEntryDto();
+        serviceResult.addMessageEntryDto(messageEntryDto);
+        messageEntryDto.setType(type);
+        messageEntryDto.setMessage(message);
+        return serviceResult;
+    }
+
+    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDto status, DoubleRecordFrontendContent doubleRecordFrontendContent, GlobalActionState globalActionState) {
+        ServiceResult serviceResult = new ServiceResult();
+        serviceResult.setStatus(status);
+        MessageEntryDto messageEntryDto = new MessageEntryDto();
+        serviceResult.addMessageEntryDto(messageEntryDto);
+        messageEntryDto.setMessage(doubleRecordFrontendContent.getMessage());
+        messageEntryDto.setPid(doubleRecordFrontendContent.getPid());
         return serviceResult;
     }
 
@@ -161,52 +180,26 @@ public class ServiceResult {
         ServiceResult that = (ServiceResult) o;
 
         if (status != that.status) return false;
-        return entries != null ? entries.equals(that.entries) : that.entries == null;
+        if (entries != null ? !entries.equals(that.entries) : that.entries != null)
+            return false;
+        return doubleRecordKey != null ? doubleRecordKey.equals(that.doubleRecordKey) : that.doubleRecordKey == null;
+
     }
 
     @Override
     public int hashCode() {
         int result = status != null ? status.hashCode() : 0;
         result = 31 * result + (entries != null ? entries.hashCode() : 0);
+        result = 31 * result + (doubleRecordKey != null ? doubleRecordKey.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        String result = "ServiceResult{" +
+        return "ServiceResult{" +
                 "status=" + status +
-                ", doubleRecordKey=" + doubleRecordKey +
-                ", entries=[";
-        if (entries.isEmpty()) {
-            result += "null";
-        } else {
-            boolean outerFirst = true;
-            for (Entry entry : entries) {
-                if (!outerFirst) {
-                    result += ", ";
-                }
-                result += "Entry{";
-                result += "code=" + entry.getCode();
-                result += ", type=" + entry.getType();
-                result += ", params=[";
-                if (entry.getParams() == null) {
-                    result += "null";
-                } else {
-                    boolean innerFirst = true;
-                    for (Param param : entry.getParams().getParam()) {
-                        if (!innerFirst) {
-                            result += ',';
-                        }
-                        result += "Param{key=" + param.getKey();
-                        result += ", value=\'" + param.getValue() + "\'}";
-                        innerFirst = false;
-                    }
-                }
-                result += "}";
-                outerFirst = false;
-            }
-        }
-        result += "]}";
-        return result;
+                ", entries=" + entries +
+                ", doubleRecordKey='" + doubleRecordKey + '\'' +
+                '}';
     }
 }

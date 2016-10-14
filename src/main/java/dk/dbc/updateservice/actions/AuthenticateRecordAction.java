@@ -1,11 +1,10 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -36,7 +35,6 @@ public class AuthenticateRecordAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(AuthenticateRecordAction.class);
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
-    MarcRecord record;
     /**
      * Constructs an instance with a template name and a record.
      * <p/>
@@ -46,9 +44,8 @@ public class AuthenticateRecordAction extends AbstractAction {
      *
      * @param globalActionState State object containing data with data from request.
      */
-    public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+    public AuthenticateRecordAction(GlobalActionState globalActionState) {
         super(AuthenticateRecordAction.class.getSimpleName(), globalActionState);
-        record = marcRecord;
     }
 
     /**
@@ -71,23 +68,22 @@ public class AuthenticateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Login user: {}/{}", state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
-            bizLogger.info("Handling record:\n{}", record);
+            bizLogger.info("Login user: {}/{}", state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+            bizLogger.info("Handling record:\n{}", state.readRecord());
 
-            List<Entry> errors = state.getAuthenticator().authenticateRecord(state, record);
+            List<MessageEntryDto> errors = state.getAuthenticator().authenticateRecord(state);
             result = new ServiceResult();
-            result.setEntries(errors);
+            result.addMessageEntryDtos(errors);
 
-//             TODO: VERSION2: det her ligner spild af arbejde
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(state.readRecord());
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
             if (result.hasErrors()) {
-                bizLogger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
-                result.setStatus(UpdateStatusEnum.FAILED);
+                bizLogger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
+                result.setStatus(UpdateStatusEnumDto.FAILED);
             } else {
-                bizLogger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
-                result.setStatus(UpdateStatusEnum.OK);
+                bizLogger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
+                result.setStatus(UpdateStatusEnumDto.OK);
             }
             return result;
         } catch (EJBException | ScripterException ex) {
@@ -95,7 +91,7 @@ public class AuthenticateRecordAction extends AbstractAction {
             String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), businessException.getMessage());
             bizLogger.error(message);
             logger.warn("Exception doing authentication: ", businessException);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         } finally {
             logger.exit(result);
         }
@@ -103,6 +99,6 @@ public class AuthenticateRecordAction extends AbstractAction {
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(record);
+        MDCUtil.setupContextForRecord(state.readRecord());
     }
 }

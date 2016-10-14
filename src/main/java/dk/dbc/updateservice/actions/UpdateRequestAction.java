@@ -1,11 +1,10 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
-import dk.dbc.updateservice.service.api.Options;
-import dk.dbc.updateservice.service.api.UpdateOptionEnum;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.OptionEnumDto;
+import dk.dbc.updateservice.dto.OptionsDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -30,12 +29,10 @@ public class UpdateRequestAction extends AbstractAction {
     private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private Properties settings;
-    private MarcRecord record;
 
-    public UpdateRequestAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+    public UpdateRequestAction(GlobalActionState globalActionState, Properties properties) {
         super(UpdateRequestAction.class.getSimpleName(), globalActionState);
         settings = properties;
-        record = marcRecord;
     }
 
     /**
@@ -65,19 +62,19 @@ public class UpdateRequestAction extends AbstractAction {
 
     private ServiceResult verifyData() throws UpdateException {
         if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
-            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
-            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         }
-        if (state.getUpdateRecordRequest().getBibliographicRecord() == null) {
-            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, state.getMessages().getString("request.record.is.missing"), state);
+        if (state.getUpdateServiceRequestDto().getBibliographicRecordDto() == null) {
+            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("request.record.is.missing"), state);
         }
         if (!state.isRecordSchemaValid()) {
-            bizLogger.warn("Unknown record schema: {}", state.getUpdateRecordRequest().getBibliographicRecord().getRecordSchema());
-            return ServiceResult.newStatusResult(UpdateStatusEnum.FAILED);
+            bizLogger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordSchema());
+            return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         if (!state.isRecordPackingValid()) {
-            bizLogger.warn("Unknown record packing: {}", state.getUpdateRecordRequest().getBibliographicRecord().getRecordPacking());
-            return ServiceResult.newStatusResult(UpdateStatusEnum.FAILED);
+            bizLogger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordPacking());
+            return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         return null;
     }
@@ -98,9 +95,9 @@ public class UpdateRequestAction extends AbstractAction {
     public boolean hasValidateOnlyOption() {
         logger.entry();
         try {
-            Options options = state.getUpdateRecordRequest().getOptions();
-            if (options != null && options.getOption() != null) {
-                return options.getOption().contains(UpdateOptionEnum.VALIDATE_ONLY);
+            OptionsDto optionsDto = state.getUpdateServiceRequestDto().getOptionsDto();
+            if (optionsDto != null && optionsDto.getOption() != null) {
+                return optionsDto.getOption().contains(OptionEnumDto.VALIDATE_ONLY);
             }
             return false;
         } finally {
@@ -108,20 +105,14 @@ public class UpdateRequestAction extends AbstractAction {
         }
     }
 
-    /**
-     * Constructs an action to validate the record from the request.
-     */
     private ServiceAction createValidateOperation() {
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
-        validateOperationAction.setOkStatus(UpdateStatusEnum.OK);
+        validateOperationAction.setOkStatus(UpdateStatusEnumDto.OK);
         return validateOperationAction;
     }
 
-    /**
-     * Constructs an action to update the record from the request.
-     */
     private ServiceAction createUpdateOperation() throws UpdateException {
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         boolean allowExtraRecordData = false;
         if (settings.containsKey(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY)) {
             allowExtraRecordData = Boolean.valueOf(settings.get(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY).toString());
@@ -147,7 +138,6 @@ public class UpdateRequestAction extends AbstractAction {
         if (state.getWsContext() != null && state.getWsContext().getMessageContext() != null) {
             MessageContext mc = state.getWsContext().getMessageContext();
             HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-
             bizLogger.info("REQUEST:");
             bizLogger.info("======================================");
             bizLogger.info("Auth type: {}", req.getAuthType());
@@ -169,7 +159,6 @@ public class UpdateRequestAction extends AbstractAction {
             }
             bizLogger.info("--------------------------------------");
         }
-
         bizLogger.info("");
         bizLogger.info("Template name: {}", state.getSchemaName());
         bizLogger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
@@ -185,8 +174,11 @@ public class UpdateRequestAction extends AbstractAction {
                 throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE_KEY + "' not found");
             }
             boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
-
-            if (isProduction && state.getUpdateRecordRequest() != null && state.getUpdateRecordRequest().getAuthentication() != null && state.getUpdateRecordRequest().getAuthentication().getGroupIdAut() != null && state.getUpdateRecordRequest().getAuthentication().getGroupIdAut().startsWith("13")) {
+            if (isProduction
+                    && state.getUpdateServiceRequestDto() != null
+                    && state.getUpdateServiceRequestDto().getAuthenticationDto() != null
+                    && state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId() != null
+                    && state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().startsWith("13")) {
                 res = false;
             }
             return res;

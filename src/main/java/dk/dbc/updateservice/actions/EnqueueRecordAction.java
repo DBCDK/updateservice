@@ -4,7 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -59,14 +59,13 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         ServiceResult result = null;
         try {
             bizLogger.info("Using provider id: '{}'", settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
             bizLogger.info("Handling record:\n{}", record);
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID) == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, state.getMessages().getString("provider.id.not.set"), state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
             MarcRecordReader reader = new MarcRecordReader(record);
@@ -75,26 +74,9 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), new RecordId(recId, agencyId), this.mimetype);
             bizLogger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
-
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
-        }
-    }
-
-    // TODO: VERSION 2: factory metode bør være i sin egen klasse
-    /**
-     * Factory method to create a EnqueueRecordAction.
-     */
-    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties, String mimetype) {
-        logger.entry(globalActionState, record);
-        EnqueueRecordAction enqueueRecordAction;
-        try {
-            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
-            enqueueRecordAction.setMimetype(mimetype);
-            return enqueueRecordAction;
-        } finally {
-            logger.exit();
         }
     }
 }

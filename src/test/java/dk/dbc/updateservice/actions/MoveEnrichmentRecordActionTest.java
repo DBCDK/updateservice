@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -128,7 +128,7 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnum.FAILED));
+        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED));
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1);
         instance.setCommonRecord(c2);

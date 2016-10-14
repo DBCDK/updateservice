@@ -61,7 +61,6 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
     public void testPerformAction_CommonRecordIdIsNull() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String recordId = reader.recordId();
         String agencyId = reader.agencyId();
@@ -130,7 +129,6 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         String commonRecordId = "3 456 789 4";
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, commonRecordId);
-
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String recordId = reader.recordId();
         String agencyId = reader.agencyId();

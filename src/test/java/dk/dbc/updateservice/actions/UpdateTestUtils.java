@@ -2,13 +2,11 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.TypeEnumDto;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.Authentication;
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.Param;
-import dk.dbc.updateservice.service.api.Params;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -29,18 +27,13 @@ public class UpdateTestUtils {
     public static String GROUP_ID = "700100";
     public static String USER_ID = "netpunkt";
 
-    public static List<Entry> createEntryList(Type type, String message) {
-        List<Entry> entryList = new ArrayList<>();
-        Entry entry = new Entry();
-        entryList.add(entry);
-        entry.setType(type);
-        Params params = new Params();
-        Param param = new Param();
-        param.setKey("message");
-        param.setValue(message);
-        params.getParam().add(param);
-        entry.setParams(params);
-        return entryList;
+    public static List<MessageEntryDto> createMessageEntryList(TypeEnumDto typeEnumDto, String message) {
+        List<MessageEntryDto> messageEntryDtos = new ArrayList<>();
+        MessageEntryDto messageEntryDto = new MessageEntryDto();
+        messageEntryDtos.add(messageEntryDto);
+        messageEntryDto.setType(typeEnumDto);
+        messageEntryDto.setMessage(message);
+        return messageEntryDtos;
     }
 
     public GlobalActionState getGlobalActionStateMockObject() throws IOException {
@@ -49,13 +42,13 @@ public class UpdateTestUtils {
 
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
         GlobalActionState globalActionState = new GlobalActionState();
-        UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
-        Authentication authentication = new Authentication();
-        updateRecordRequest.setAuthentication(authentication);
-        authentication.setGroupIdAut(GROUP_ID);
-        authentication.setUserIdAut(USER_ID);
-        authentication.setPasswordAut("passwd");
-        globalActionState.setUpdateRecordRequest(updateRecordRequest);
+        UpdateServiceRequestDto updateServiceRequestDto = new UpdateServiceRequestDto();
+        AuthenticationDto authenticationDto = new AuthenticationDto();
+        updateServiceRequestDto.setAuthenticationDto(authenticationDto);
+        authenticationDto.setGroupId(GROUP_ID);
+        authenticationDto.setUserId(USER_ID);
+        authenticationDto.setPassword("passwd");
+        globalActionState.setUpdateServiceRequestDto(updateServiceRequestDto);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
         globalActionState.setScripter(mock(Scripter.class));
@@ -78,4 +71,6 @@ public class UpdateTestUtils {
         settings.put(JNDIResources.UPDATE_PROD_STATE_KEY, "true");
         return settings;
     }
+
+
 }

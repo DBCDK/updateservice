@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -31,7 +31,7 @@ public class UpdateSingleRecordTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -117,7 +117,7 @@ public class UpdateSingleRecordTest {
         assertThat(overwriteSingleRecordAction, notNullValue());
         assertThat(overwriteSingleRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(overwriteSingleRecordAction.record, is(record));
-        assertThat(overwriteSingleRecordAction.state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), equalTo(GROUP_ID));
+        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(GROUP_ID));
         assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -240,7 +240,7 @@ public class UpdateSingleRecordTest {
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         String message = state.getMessages().getString("delete.common.with.holdings.error");
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         assertTrue(updateSingleRecord.children().isEmpty());
     }
 

@@ -2,7 +2,9 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.service.api.BibliographicRecord;
+import dk.dbc.updateservice.ws.DBCUpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,12 +30,13 @@ public class ValidateOperationActionTest {
     @Test
     public void testPerformAction() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        state.getUpdateRecordRequest().setBibliographicRecord(BibliographicRecordFactory.newMarcRecord(record));
+        BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
+        state.getUpdateServiceRequestDto().setBibliographicRecordDto(DBCUpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
-        state.getUpdateRecordRequest().setSchemaName(schemaName);
+        state.getUpdateServiceRequestDto().setSchemaName(schemaName);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
-        validateOperationAction.setOkStatus(UpdateStatusEnum.OK);
+        validateOperationAction.setOkStatus(UpdateStatusEnumDto.OK);
 
         assertThat(validateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -44,20 +47,20 @@ public class ValidateOperationActionTest {
         assertTrue(child.getClass() == AuthenticateUserAction.class);
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(authenticateUserAction.state.getUpdateRecordRequest().getAuthentication(), is(state.getUpdateRecordRequest().getAuthentication()));
+        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertTrue(child.getClass() == ValidateSchemaAction.class);
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
-        assertThat(validateSchemaAction.state.getUpdateRecordRequest().getSchemaName(), equalTo(schemaName));
+        assertThat(validateSchemaAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(schemaName));
         assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
         assertTrue(child.getClass() == ValidateRecordAction.class);
         ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
-        assertThat(validateRecordAction.state.getUpdateRecordRequest().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
+        assertThat(validateRecordAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
         assertThat(validateRecordAction.okStatus, is(validateOperationAction.okStatus));
         assertThat(validateRecordAction.state.getScripter(), is(state.getScripter()));

@@ -8,8 +8,8 @@ import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -135,16 +135,16 @@ public class AssertActionsUtil {
         return new MarcRecordReader(record).agencyIdAsInteger();
     }
 
-    public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, Authentication authentication) throws UpdateException {
+    public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDto authenticationDto) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(AuthenticateRecordAction.class.getName()));
 
         action.checkState();
 
         AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
-        Assert.assertThat(authenticateRecordAction.record, is(record));
+        Assert.assertThat(authenticateRecordAction.state.readRecord(), is(record));
         Assert.assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
-        Assert.assertThat(authenticateRecordAction.state.getUpdateRecordRequest().getAuthentication(), is(authentication));
+        Assert.assertThat(authenticateRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(authenticationDto));
     }
 
     public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService) throws UpdateException {
@@ -156,7 +156,7 @@ public class AssertActionsUtil {
         UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction) action;
         Assert.assertThat(updateCommonRecordAction.getRawRepo(), is(rawRepo));
         Assert.assertThat(updateCommonRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateCommonRecordAction.state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), equalTo(groupId));
+        Assert.assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(groupId));
         Assert.assertThat(updateCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
         Assert.assertThat(updateCommonRecordAction.state.getHoldingsItems(), is(holdingsItems));
         Assert.assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
@@ -198,7 +198,7 @@ public class AssertActionsUtil {
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = (OverwriteVolumeRecordAction) action;
         assertThat(overwriteVolumeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(overwriteVolumeRecordAction.getRecord(), is(record));
-        assertThat(overwriteVolumeRecordAction.state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), equalTo(groupId));
+        assertThat(overwriteVolumeRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(groupId));
         assertThat(overwriteVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
         assertThat(overwriteVolumeRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
     }

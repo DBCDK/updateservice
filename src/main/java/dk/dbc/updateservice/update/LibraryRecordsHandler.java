@@ -4,6 +4,7 @@ import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -121,12 +122,13 @@ public class LibraryRecordsHandler {
         ServiceResult result = null;
         try {
             Object jsResult = scripter.callMethod(CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, settings, Json.encode(currentCommonRecord), Json.encode(updatingCommonRecord));
-            logger.debug("Result from shouldCreateEnrichmentRecords JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
             if (jsResult instanceof String) {
                 return result = Json.decode(jsResult.toString(), ServiceResult.class);
             }
             throw new ScripterException(String.format("The JavaScript function %s must return a String value.", CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME));
         } catch (IOException ex) {
+            logger.catching(ex);
             throw new ScripterException("Error when executing JavaScript function: " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, ex);
         } finally {
             logger.exit(result);
@@ -225,29 +227,25 @@ public class LibraryRecordsHandler {
         }
     }
 
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String userId, String groupId) throws ScripterException {
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDto authenticationDto) throws ScripterException {
         logger.entry(record);
         List<MarcRecord> result = null;
         try {
             Object jsResult;
             ObjectMapper mapper = new ObjectMapper();
             String jsonRecord = mapper.writeValueAsString(record);
-
             try {
-                jsResult = scripter.callMethod("recordDataForRawRepo", jsonRecord, userId, groupId);
+                jsResult = scripter.callMethod("recordDataForRawRepo", jsonRecord, authenticationDto.getUserId(), authenticationDto.getGroupId());
             } catch (IllegalStateException ex) {
                 logger.error("Error when executing JavaScript function: recordDataForRawRepo", ex);
                 jsResult = false;
             }
-
             logger.debug("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
                 logger.info("After rawrepo updateservice javascript, List<MarcRecord>: " + result);
                 return result;
             }
-
             throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
         } catch (IOException ex) {
             throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);

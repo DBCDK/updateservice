@@ -1,8 +1,9 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
+import org.apache.commons.lang3.StringUtils;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -75,9 +76,7 @@ public class ServiceEngine {
             if (children != null) {
                 for (ServiceAction child : children) {
                     ServiceResult childResult = executeAction(child);
-                    if (!childResult.getEntries().isEmpty()) {
-                        serviceResult.addEntries(childResult);
-                    }
+                    serviceResult.addServiceResult(childResult);
                     if (stopExecution(childResult)) {
                         serviceResult.setStatus(childResult.getStatus());
                         return serviceResult;
@@ -106,7 +105,7 @@ public class ServiceEngine {
             if (actionResult.getServiceErrorList() != null) {
                 return true;
             }
-            if (actionResult.getStatus() == UpdateStatusEnum.OK) {
+            if (actionResult.getStatus() == UpdateStatusEnumDto.OK) {
                 return false;
             }
             return true;
@@ -116,10 +115,7 @@ public class ServiceEngine {
     }
 
     public void printActionHeader(ServiceAction action) {
-        String line = "";
-        for (int i = 0; i < 50; i++) {
-            line += "=";
-        }
+        String line = StringUtils.repeat("=", 50);
         bizLogger.info("");
         bizLogger.info("Action: {}", action.name());
         bizLogger.info(line);
@@ -132,7 +128,7 @@ public class ServiceEngine {
     private void printActions(ServiceAction action, String indent) {
         logger.entry();
         try {
-            bizLogger.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
+            bizLogger.info(indent + action.name() + " in " + action.getTimeElapsed() + " ms: " + action.getServiceResult());
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {

@@ -3,9 +3,9 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.update.DoubleRecordFrontendContent;
 import dk.dbc.updateservice.update.DoubleRecordFrontendStatus;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -63,10 +63,17 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         if ("ok".equals(doubleRecordFrontendStatus.getStatus())) {
             result = ServiceResult.newOkResult();
         } else if ("doublerecord".equals(doubleRecordFrontendStatus.getStatus())) {
-            result = ServiceResult.newEntryResult(UpdateStatusEnum.FAILED, Type.DOUBLE_RECORD, doubleRecordFrontendStatus.getMessage(), state);
+            result = new ServiceResult();
+            for (DoubleRecordFrontendContent drfc : doubleRecordFrontendStatus.getDoubleRecordFrontendContents()) {
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDto.FAILED, drfc, state));
+            }
             result.setDoubleRecordKey(state.getUpdateStore().getNewDoubleRecordKey());
         } else {
-            result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, doubleRecordFrontendStatus.getMessage(), state);
+            String msg = "Unknown error";
+            if (doubleRecordFrontendStatus.getDoubleRecordFrontendContents() != null && !doubleRecordFrontendStatus.getDoubleRecordFrontendContents().isEmpty()) {
+                msg = doubleRecordFrontendStatus.getDoubleRecordFrontendContents().get(0).getMessage();
+            }
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
         }
         return result;
     }

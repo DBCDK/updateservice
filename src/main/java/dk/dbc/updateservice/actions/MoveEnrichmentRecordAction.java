@@ -4,8 +4,8 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
@@ -117,7 +117,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             ServiceResult shouldCreateEnrichmentRecords = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentCommonRecord, commonRecord);
             bizLogger.info("Should we create enrichment records result: {}", shouldCreateEnrichmentRecords);
 
-            if (shouldCreateEnrichmentRecords.getStatus() == UpdateStatusEnum.OK) {
+            if (shouldCreateEnrichmentRecords.getStatus() == UpdateStatusEnumDto.OK) {
                 bizLogger.info("Creating enrichment record with classifications, because the common record is published.");
                 return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
             } else {

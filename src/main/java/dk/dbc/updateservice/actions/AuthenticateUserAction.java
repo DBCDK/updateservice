@@ -33,37 +33,41 @@ public class AuthenticateUserAction extends AbstractAction {
         ServiceResult result = null;
         try {
             validateNullableData();
-            if (state.getUpdateRecordRequest().getAuthentication() == null) {
-                bizLogger.error("Authentication arguments is missing in the request.");
-                return result = ServiceResult.newAuthErrorResult(state);
+            String msg;
+            if (state.getUpdateServiceRequestDto().getAuthenticationDto() == null) {
+                // TODO: MOVE TO RESOURCEBUNDLE
+                msg = "Authentication arguments is missing in the request.";
+                bizLogger.error(msg);
+                return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-
-            if (state.getUpdateRecordRequest().getAuthentication().getUserIdAut() == null) {
-                bizLogger.error("User name is missing in authentication arguments in the request");
-                return result = ServiceResult.newAuthErrorResult(state);
+            if (state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId() == null) {
+                // TODO: MOVE TO RESOURCEBUNDLE
+                msg = "User name is missing in authentication arguments in the request";
+                bizLogger.error(msg);
+                return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-
-            if (state.getUpdateRecordRequest().getAuthentication().getGroupIdAut() == null) {
-                bizLogger.error("Group name is missing in authentication arguments in the request");
-                return result = ServiceResult.newAuthErrorResult(state);
+            if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId() == null) {
+                // TODO: MOVE TO RESOURCEBUNDLE
+                msg = "Group name is missing in authentication arguments in the request";
+                bizLogger.error(msg);
+                return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-
-            if (state.getUpdateRecordRequest().getAuthentication().getPasswordAut() == null) {
-                bizLogger.error("Password is missing in authentication arguments in the request");
-                return result = ServiceResult.newAuthErrorResult(state);
+            if (state.getUpdateServiceRequestDto().getAuthenticationDto().getPassword() == null) {
+                // TODO: MOVE TO RESOURCEBUNDLE
+                msg = "Password is missing in authentication arguments in the request";
+                bizLogger.error(msg);
+                return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-
             if (state.getAuthenticator().authenticateUser(state)) {
-                bizLogger.info("User {}/{} is authenticated successfully", state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut());
+                bizLogger.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
                 return result = ServiceResult.newOkResult();
             }
-
-            bizLogger.error("User {}/{} could not be authenticated", state.getUpdateRecordRequest().getAuthentication());
+            bizLogger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
             return result = ServiceResult.newAuthErrorResult(state);
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             logger.error(message, ex);
-            bizLogger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), ex.getMessage());
+            bizLogger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), ex.getMessage());
             return result = ServiceResult.newAuthErrorResult(state);
         } finally {
             logger.exit(result);
@@ -74,13 +78,11 @@ public class AuthenticateUserAction extends AbstractAction {
         if (state == null) {
             throw new IllegalArgumentException("State object cannot be empty");
         }
-
         if (state.getAuthenticator() == null) {
             throw new IllegalArgumentException("Authenticator is obligatory");
         }
     }
 
     @Override
-    public void setupMDCContext() {
-    }
+    public void setupMDCContext() {}
 }

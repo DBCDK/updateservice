@@ -34,6 +34,7 @@ public class ScripterEnvironment {
         Object result = null;
         try {
             StopWatch watch = new Log4JStopWatch();
+
             result = environment.callMethod(methodName, args);
             watch.stop("javascript.method." + methodName);
             return result;

@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 
@@ -10,8 +10,7 @@ import java.util.Properties;
  * Action that setup actions to validate a record.
  */
 public class ValidateOperationAction extends AbstractAction {
-
-    UpdateStatusEnum okStatus = null;
+    UpdateStatusEnumDto okStatus = null;
     Properties settings;
 
     public ValidateOperationAction(GlobalActionState globalActionState, Properties properties) {
@@ -19,7 +18,7 @@ public class ValidateOperationAction extends AbstractAction {
         settings = properties;
     }
 
-    public void setOkStatus(UpdateStatusEnum okStatus) {
+    public void setOkStatus(UpdateStatusEnumDto okStatus) {
         this.okStatus = okStatus;
     }
 
@@ -41,7 +40,7 @@ public class ValidateOperationAction extends AbstractAction {
         validateRecordAction.setOkStatus(okStatus);
         children.add(validateRecordAction);
 
-        return ServiceResult.newStatusResult(this.okStatus);
+        return ServiceResult.newStatusResult(okStatus);
     }
 
     @Override

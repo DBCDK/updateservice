@@ -1,31 +1,20 @@
 package dk.dbc.updateservice.ws;
 
-import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.dto.SchemaDto;
+import dk.dbc.updateservice.dto.SchemasRequestDto;
+import dk.dbc.updateservice.dto.SchemasResponseDto;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
-import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.GetSchemasRequest;
-import dk.dbc.updateservice.service.api.GetSchemasResult;
-import dk.dbc.updateservice.service.api.ObjectFactory;
-import dk.dbc.updateservice.service.api.Options;
-import dk.dbc.updateservice.service.api.Param;
-import dk.dbc.updateservice.service.api.Params;
-import dk.dbc.updateservice.service.api.Schema;
-import dk.dbc.updateservice.service.api.SchemasStatusEnum;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateRecordRequest;
-import dk.dbc.updateservice.service.api.UpdateRecordResult;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -41,64 +30,35 @@ import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.jws.WebService;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
+import java.util.ResourceBundle;
 import java.util.UUID;
 
 /**
- * Implements the Update web service.
+ * UpdateService web service.
  * <p>
- * The web services uses 3 EJB's to implement its functionality:
- * <dl>
- * <dt>Validator</dt>
- * <dd>
  * Validates a record by using an JavaScript engine. This EJB also has
  * the responsibility to return a list of valid validation schemes.
- * </dd>
- * <dt>Updater</dt>
- * <dd>
- * Updates a record in the rawrepo.
- * </dd>
- * <dt>JSEngine</dt>
- * <dd>EJB to execute JavaScript.</dd>
- * </dl>
- * Graphically it looks like this:
- * <p>
- * <img src="doc-files/ejbs.png" alt="ejbs.png">
- *
- * @author stp
  */
-@WebService(
-        serviceName = "UpdateService",
-        portName = "CatalogingUpdatePort",
-        endpointInterface = "dk.dbc.updateservice.service.api.CatalogingUpdatePortType",
-        targetNamespace = "http://oss.dbc.dk/ns/catalogingUpdate",
-        wsdlLocation = "WEB-INF/classes/META-INF/wsdl/update/catalogingUpdate.wsdl",
-        name=UpdateService.UPDATE_SERVICE_VERSION)
-@SchemaValidation
 @Stateless
-public class UpdateService implements CatalogingUpdatePortType {
+public class UpdateService {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
+    private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
+    private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
+    private static final String UPDATE_SERIVCE_INTERNAL_ERROR = "update.service.internal.error";
+
+    public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
+    public static final String UPDATE_WATCHTAG = "request.updaterecord";
     public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
     public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
@@ -106,9 +66,6 @@ public class UpdateService implements CatalogingUpdatePortType {
 
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
-
-    @Resource
-    private WebServiceContext wsContext;
 
     @EJB
     private Authenticator authenticator;
@@ -137,39 +94,26 @@ public class UpdateService implements CatalogingUpdatePortType {
     @EJB
     private UpdateStore updateStore;
 
-    private LibraryRecordsHandler recordsHandler;
-    private GlobalActionState globalActionState;
-
-    /**
-     * Initialization of the EJB after it has been created by the JavaEE
-     * container.
-     * <p>
-     * It simply initialize the XLogger instance for logging.
-     */
-    @PostConstruct
-    public void init() {
-        logger.entry();
+    private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDto updateServiceRequestDto) {
         try {
-            if (recordsHandler == null) {
-                recordsHandler = new LibraryRecordsHandler(scripter);
-            }
-            globalActionState = new GlobalActionState();
-            globalActionState.setWsContext(wsContext);
-            globalActionState.setAuthenticator(authenticator);
-            globalActionState.setScripter(scripter);
-            globalActionState.setRawRepo(rawRepo);
-            globalActionState.setHoldingsItems(holdingsItems);
-            globalActionState.setOpenAgencyService(openAgencyService);
-            globalActionState.setSolrService(solrService);
-            globalActionState.setValidator(validator);
-            globalActionState.setUpdateStore(updateStore);
-            globalActionState.setLibraryRecordsHandler(recordsHandler);
-            globalActionState.setMessages(ResourceBundles.getBundle("actions"));
+            GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
+            newGlobalActionStateObject.setUpdateServiceRequestDto(updateServiceRequestDto);
+            newGlobalActionStateObject.setAuthenticator(authenticator);
+            newGlobalActionStateObject.setScripter(scripter);
+            newGlobalActionStateObject.setRawRepo(rawRepo);
+            newGlobalActionStateObject.setHoldingsItems(holdingsItems);
+            newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
+            newGlobalActionStateObject.setSolrService(solrService);
+            newGlobalActionStateObject.setValidator(validator);
+            newGlobalActionStateObject.setUpdateStore(updateStore);
+            LibraryRecordsHandler recordsHandler = new LibraryRecordsHandler(scripter);
+            newGlobalActionStateObject.setLibraryRecordsHandler(recordsHandler);
+            newGlobalActionStateObject.setMessages(ResourceBundles.getBundle("actions"));
             validateRequiredSettings();
+            return newGlobalActionStateObject;
         } catch (MissingResourceException ex) {
             logger.error("Unable to load resource", ex);
-        } finally {
-            logger.exit();
+            return null;
         }
     }
 
@@ -181,84 +125,89 @@ public class UpdateService implements CatalogingUpdatePortType {
      * <li>Validation of the record only.</li>
      * <li>Validation and update of the record</li>
      * </ol>
-     * The actual operation is specified in the request by {@link Options}
+     * The actual operation is specified in the request by Options object
      *
-     * @param updateRecordRequest The request.
+     * @param updateServiceRequestDto The request.
      * @return Returns an instance of UpdateRecordResult with the status of the
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    @Override
-    public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
+    public ServiceResult updateRecord(UpdateServiceRequestDto updateServiceRequestDto, GlobalActionState globalActionState) {
+        logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
-            MessageContext messageContext = wsContext.getMessageContext();
-            HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
-            try {
-                httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), "Updateservice er ikke klar endnu, prøv igen senere");
-            } catch (IOException e) {
-                logger.catching(XLogger.Level.ERROR, e);
-                return null;
-            }
-        }
-        logMdcUpdateMethodEntry(updateRecordRequest);
-        logger.entry(updateRecordRequest);
-        logger.info("Entering Updateservice, marshal(updateRecordRequest):\n" + marshal(updateRecordRequest));
-
-        globalActionState.setUpdateRecordRequest(updateRecordRequest);
-
-        UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
+        ServiceResult serviceResult = null;
+        GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDto);
+        logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
-        UpdateRecordResult result = null;
         try {
             logger.info("MDC: " + MDC.getCopyOfContextMap());
-            logger.info("Request tracking id: " + updateRecordRequest.getTrackingId());
-            updateRequestAction = new UpdateRequestAction(globalActionState, settings, globalActionState.readRecord());
+            logger.info("Request tracking id: " + updateServiceRequestDto.getTrackingId());
+            updateRequestAction = new UpdateRequestAction(state, settings);
             serviceEngine = new ServiceEngine();
             serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
-            ServiceResult serviceResult = serviceEngine.executeAction(updateRequestAction);
-            updateResponseWriter.setServiceResult(serviceResult);
-            result = updateResponseWriter.getResponse();
-            bizLogger.info("Returning response:\n{}", Json.encodePretty(result));
-            logger.info("Leaving Updateservice, marshal(result):\n" + marshal(result));
-            return result;
+            serviceResult = serviceEngine.executeAction(updateRequestAction);
+            return serviceResult;
         } catch (Throwable ex) {
-            bizLogger.error("Caught Exception: " + findServiceException(ex).getMessage());
             logger.catching(ex);
-            updateResponseWriter = convertUpdateErrorToResponse(ex, UpdateStatusEnum.FAILED, updateRecordRequest);
-            return result = updateResponseWriter.getResponse();
+            serviceResult = convertUpdateErrorToResponse(ex, state);
+            return serviceResult;
         } finally {
-            updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine, result);
+            logger.exit(serviceResult);
+            updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
         }
     }
 
-    private void logMdcUpdateMethodEntry(UpdateRecordRequest updateRecordRequest) {
+    public boolean isServiceReady(GlobalActionState globalActionState) {
+        logger.entry();
+        boolean res = true;
+        try {
+            if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
+                res = false;
+                if (globalActionState != null && globalActionState.getWsContext() != null) {
+                    MessageContext messageContext = globalActionState.getWsContext().getMessageContext();
+                    HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
+                    try {
+                        ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                        String msg = bundle.getString(UPDATE_SERVICE_UNAVAIABLE);
+                        httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), msg);
+                    } catch (IOException e) {
+                        logger.catching(XLogger.Level.ERROR, e);
+                    }
+                }
+            }
+            return res;
+        } finally {
+            logger.exit(res);
+        }
+
+    }
+
+    private void logMdcUpdateMethodEntry(GlobalActionState globalActionState) {
+        UpdateServiceRequestDto updateServiceRequestDto = globalActionState.getUpdateServiceRequestDto();
         UUID prefixId = UUID.randomUUID();
-        MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
+        MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateServiceRequestDto.getTrackingId());
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
         String trackingId = prefixId.toString();
-        if (updateRecordRequest.getTrackingId() != null) {
-            trackingId = updateRecordRequest.getTrackingId();
+        if (updateServiceRequestDto.getTrackingId() != null) {
+            trackingId = updateServiceRequestDto.getTrackingId();
         }
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
 
-    private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine, UpdateRecordResult result) {
+    private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {
-            bizLogger.info("");
-            bizLogger.info("Executed action:");
+            logger.info("Executed action:");
             engine.printActions(action);
         }
-        bizLogger.info("");
-        String watchTag = "request.updaterecord";
+        logger.info("");
+        String watchTag;
         if (action != null && action.hasValidateOnlyOption()) {
-            watchTag += ".validate";
+            watchTag = UPDATE_WATCHTAG + ".validate";
         } else {
-            watchTag += ".update";
+            watchTag = UPDATE_WATCHTAG + ".update";
         }
         watch.stop(watchTag);
-        bizLogger.exit(result);
         MDC.clear();
     }
 
@@ -268,72 +217,78 @@ public class UpdateService implements CatalogingUpdatePortType {
      * The actual lookup of validation schemes is done by the Validator EJB
      * ({@link Validator#getValidateSchemas ()})
      *
-     * @param getValidateSchemasRequest The request.
+     * @param schemasRequestDto The request.
      * @return Returns an instance of GetValidateSchemasResult with the list of
      * validation schemes.
      * @throws EJBException In case of an error.
      */
-    @Override
-    public GetSchemasResult getSchemas(GetSchemasRequest getValidateSchemasRequest) {
+    public SchemasResponseDto getSchemas(SchemasRequestDto schemasRequestDto) {
         StopWatch watch = new Log4JStopWatch();
+        SchemasResponseDto schemasResponseDto;
         try {
-            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, getValidateSchemasRequest.getTrackingId());
-            logger.entry(getValidateSchemasRequest);
-            bizLogger.info(Json.encodePretty(getValidateSchemasRequest));
-            List<Schema> names = validator.getValidateSchemas(getValidateSchemasRequest.getAuthentication().getGroupIdAut());
-            GetSchemasResult response = new GetSchemasResult();
-            response.setSchemasStatus(SchemasStatusEnum.OK);
-            response.getSchema().addAll(names);
-            return response;
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDto.getTrackingId());
+            logger.entry(schemasRequestDto);
+            logger.info(Json.encodePretty(schemasRequestDto));
+            List<SchemaDto> schemaDtoList = validator.getValidateSchemas(schemasRequestDto.getAuthenticationDto().getGroupId());
+            schemasResponseDto = new SchemasResponseDto();
+            schemasResponseDto.getSchemaDtoList().addAll(schemaDtoList);
+            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.OK);
+            schemasResponseDto.setError(false);
+            return schemasResponseDto;
         } catch (ScripterException ex) {
             logger.error("Caught JavaScript exception: {}", ex.getCause());
-            GetSchemasResult response = new GetSchemasResult();
-            response.setSchemasStatus(SchemasStatusEnum.FAILED_INTERNAL_ERROR);
-            return response;
+            schemasResponseDto = new SchemasResponseDto();
+            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.FAILED);
+            // TODO: sæt en korrekt message vedr. fejl
+
+            schemasResponseDto.setError(true);
+            return schemasResponseDto;
         } catch (IOException ex) {
             logger.error("Caught runtime exception: {}", ex.getCause());
-            GetSchemasResult response = new GetSchemasResult();
-            response.setSchemasStatus(SchemasStatusEnum.FAILED_INTERNAL_ERROR);
-            return response;
+            schemasResponseDto = new SchemasResponseDto();
+            // TODO: sæt en korrekt message vedr. fejl
+            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.FAILED);
+            schemasResponseDto.setError(true);
+            return schemasResponseDto;
         } catch (RuntimeException ex) {
+            // TODO: returner ordentlig fejl her
             logger.error("Caught runtime exception: {}", ex.getCause());
             throw ex;
         } finally {
-            watch.stop("request.getSchemas");
+            watch.stop(GET_SCHEMAS_WATCHTAG);
             logger.exit();
             MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }
 
-    private void logRequest(UpdateRequestReader reader) {
-        MessageContext mc = wsContext.getMessageContext();
-        HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-
-        bizLogger.info("REQUEST:");
-        bizLogger.info("======================================");
-        bizLogger.info("Auth type: {}", req.getAuthType());
-        bizLogger.info("Context path: {}", req.getContextPath());
-        bizLogger.info("Content type: {}", req.getContentType());
-        bizLogger.info("Content length: {}", req.getContentLengthLong());
-        bizLogger.info("URI: {}", req.getRequestURI());
-        bizLogger.info("Client address: {}", req.getRemoteAddr());
-        bizLogger.info("Client host: {}", req.getRemoteHost());
-        bizLogger.info("Client port: {}", req.getRemotePort());
-        bizLogger.info("Headers");
-        bizLogger.info("--------------------------------------");
-        bizLogger.info("");
-        Enumeration<String> headerNames = req.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String name = headerNames.nextElement();
-            bizLogger.info("{}: {}", name, req.getHeader(name));
-        }
-        bizLogger.info("--------------------------------------");
-        bizLogger.info("");
-        bizLogger.info("Template name: {}", globalActionState.getSchemaName());
-        bizLogger.info("ValidationOnly option: {}", reader.hasValidationOnlyOption() ? "True" : "False");
-        bizLogger.info("Request record: \n{}", reader.readRecord().toString());
-        bizLogger.info("======================================");
-    }
+//    private void logRequest(UpdateRequestReader reader) {
+//        MessageContext mc = wsContext.getMessageContext();
+//        HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
+//        logger.info("REQUEST:");
+//        logger.info("======================================");
+//        logger.info("Auth type: {}", req.getAuthType());
+//        logger.info("Context path: {}", req.getContextPath());
+//        logger.info("Content type: {}", req.getContentType());
+//        logger.info("Content length: {}", req.getContentLengthLong());
+//        logger.info("URI: {}", req.getRequestURI());
+//        logger.info("Client address: {}", req.getRemoteAddr());
+//        logger.info("Client host: {}", req.getRemoteHost());
+//        logger.info("Client port: {}", req.getRemotePort());
+//        logger.info("Headers");
+//        logger.info("--------------------------------------");
+//        logger.info("");
+//        Enumeration<String> headerNames = req.getHeaderNames();
+//        while (headerNames.hasMoreElements()) {
+//            String name = headerNames.nextElement();
+//            logger.info("{}: {}", name, req.getHeader(name));
+//        }
+//        logger.info("--------------------------------------");
+//        logger.info("");
+//        logger.info("Template name: {}", globalActionState.getSchemaName());
+//        logger.info("ValidationOnly option: {}", reader.hasValidationOnlyOption() ? "True" : "False");
+//        logger.info("Request record: \n{}", reader.readRecord().toString());
+//        logger.info("======================================");
+//    }
 
     private Throwable findServiceException(Throwable ex) {
         Throwable throwable = ex;
@@ -343,23 +298,10 @@ public class UpdateService implements CatalogingUpdatePortType {
         return throwable;
     }
 
-    private UpdateResponseWriter convertUpdateErrorToResponse(Throwable ex, UpdateStatusEnum status, UpdateRecordRequest updateRecordRequest) {
+    private ServiceResult convertUpdateErrorToResponse(Throwable ex, GlobalActionState globalActionState) {
         Throwable throwable = findServiceException(ex);
-        UpdateResponseWriter writer = new UpdateResponseWriter();
-        writer.setUpdateStatus(status);
-        Entry entry = new Entry();
-        entry.setType(Type.ERROR);
-        Params params = new Params();
-        entry.setParams(params);
-        Param param = new Param();
-        entry.getParams().getParam().add(param);
-        param.setKey("pid");
-        param.setValue(updateRecordRequest.getTrackingId());
-        param = new Param();
-        entry.getParams().getParam().add(param);
-        param.setKey("message");
-        param.setValue(throwable.getMessage());
-        return writer;
+        ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDto.FAILED, throwable.getMessage(), globalActionState);
+        return serviceResult;
     }
 
     private void validateRequiredSettings() {
@@ -373,39 +315,7 @@ public class UpdateService implements CatalogingUpdatePortType {
         }
     }
 
-    private String marshal(UpdateRecordRequest updateRecordRequest) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn("Got an error while marshalling input request, using reflectiong instead:");
-            return objectToStringReflection(updateRecordRequest);
-        }
-    }
-
-    private String marshal(UpdateRecordResult updateRecordResult) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordResult> jAXBElement = objectFactory.createUpdateRecordResult(updateRecordResult);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn("Got an error while marshalling input request, using reflectiong instead:");
-            return objectToStringReflection(updateRecordResult);
-        }
-    }
-
-    private String objectToStringReflection(Object object) {
+    public String objectToStringReflection(Object object) {
         return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
     }
 }
