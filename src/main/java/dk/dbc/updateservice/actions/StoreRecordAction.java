@@ -4,8 +4,8 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
@@ -54,16 +54,12 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         ServiceResult result = null;
-
-
         try {
             bizLogger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
-
             record = sortRecord(record);
-
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore()));
             rawRepoRecord.setMimeType(mimetype);
@@ -75,7 +71,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             return result = ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {
             logger.error("Error when trying to save record. ", ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
@@ -119,19 +115,15 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
     public MarcRecord sortRecord(MarcRecord record) {
         logger.entry();
-
         MarcRecord result = record;
         ObjectMapper mapper = new ObjectMapper();
         String jsonRecord;
         try {
             jsonRecord = mapper.writeValueAsString(record);
-
             Object jsResult = state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), jsonRecord, properties);
-
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), MarcRecord.class);
             }
-
             return result;
         } catch (IOException | ScripterException ex) {
             logger.error("Error when trying to sort the record. ", ex);

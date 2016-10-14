@@ -13,7 +13,7 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
     protected MarcRecord record;
 
     public AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
-        this(name, globalActionState, null);
+        this(name, globalActionState, globalActionState.readRecord());
     }
 
     public AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord record) {

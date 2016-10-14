@@ -4,7 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -54,7 +54,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             Integer agencyId = reader.agencyIdAsInteger();
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
             rawRepo.linkRecord(new RecordId(recId, agencyId), linkToRecordId);
             bizLogger.info("Set relation from [{}:{}] -> [{}:{}]", recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());

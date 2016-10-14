@@ -4,6 +4,7 @@ import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -31,9 +32,6 @@ public class ForsService {
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    /**
-     * Resource to lookup the product name for authentication.
-     */
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
@@ -43,13 +41,10 @@ public class ForsService {
     @PostConstruct
     public void init() {
         StopWatch watch = new Log4JStopWatch("service.forsrights.init");
-
         try {
             forsRightsCache = new ForsRights.RightsCache(CACHE_ENTRY_TIMEOUT);
-
             ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
             builder = builder.connectTimeout(CONNECT_TIMEOUT).requestTimeout(REQUEST_TIMEOUT);
-
             forsRights = builder.build(settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY)).forsRights(forsRightsCache);
         } finally {
             watch.stop();
@@ -57,20 +52,17 @@ public class ForsService {
     }
 
     /**
-     * Calls the forsrights
+     * Calls the forsrights service
      *
-     * @param userId  User id.
-     * @param groupId Group id.
-     * @param passwd  Password.
+     * @param globalActionState global state object
      * @return A response from forsrights.
      */
-    public ForsRights.RightSet forsRights(String userId, String groupId, String passwd) throws ForsRightsException {
-        logger.entry(userId, groupId, "****");
+    public ForsRights.RightSet forsRights(GlobalActionState globalActionState) throws ForsRightsException {
+        logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****");
         StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
-
         try {
-            bizLogger.info("Authenticating user {}/{} against forsright at {}", userId, groupId, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
-            return forsRights.lookupRight(userId, groupId, passwd, null);
+            bizLogger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getPassword(), null);
         } finally {
             watch.stop();
             logger.exit();
@@ -78,21 +70,18 @@ public class ForsService {
     }
 
     /**
-     * Calls the forsrights with an IP address.
+     * Calls the forsrights service with an IP address.
      *
-     * @param userId    User id.
-     * @param groupId   Group id.
-     * @param passwd    Password.
+     * @param globalActionState global state object
      * @param ipAddress IP-address from the caller of this web service.
      * @return A response from forsrights.
      */
-    public ForsRights.RightSet forsRightsWithIp(String userId, String groupId, String passwd, String ipAddress) throws ForsRightsException {
-        logger.entry(userId, groupId, "****", ipAddress);
+    public ForsRights.RightSet forsRightsWithIp(GlobalActionState globalActionState, String ipAddress) throws ForsRightsException {
+        logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****", ipAddress);
         StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
-
         try {
-            bizLogger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", userId, groupId, ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
-            return forsRights.lookupRight(userId, groupId, passwd, ipAddress);
+            bizLogger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getPassword(), ipAddress);
         } finally {
             watch.stop();
             logger.exit();

@@ -6,8 +6,8 @@ import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -82,20 +82,20 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 String agencyId = reader.agencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
                 bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
                 bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, reader.agencyIdAsInteger())) {
                 if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
                     bizLogger.error("Unable to create sub actions due to an error: {}", message);
-                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
             }
             Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
@@ -133,7 +133,6 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) throws UpdateException {
         logger.entry();
-
         try {
             String recordId = new MarcRecordReader(record).recordId();
 
@@ -144,8 +143,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, commonRecordAgencyId()));
             children.add(linkRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
-
+            children.add(ActionFactory.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
@@ -184,8 +182,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
-
+            children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();

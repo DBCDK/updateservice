@@ -6,7 +6,7 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -50,7 +50,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             if (reader.markedForDeletion()) {
                 boolean hasHoldings = !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty();
                 if (hasHoldings) {
-                    AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
+                    AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
                     bizLogger.info("Found holdings for agency '{}'", groupAgencyNumber);
                     boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     if (hasAuthExportHoldings) {
@@ -60,7 +60,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                         if (!has002Links) {
                             String message = state.getMessages().getString("delete.common.with.holdings.error");
                             bizLogger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
-                            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                         }
                     } else {
                         bizLogger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);

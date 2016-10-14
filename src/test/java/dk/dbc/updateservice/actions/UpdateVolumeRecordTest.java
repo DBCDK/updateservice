@@ -25,7 +25,7 @@ public class UpdateVolumeRecordTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -148,7 +148,7 @@ public class UpdateVolumeRecordTest {
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<Integer>());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<>());
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);

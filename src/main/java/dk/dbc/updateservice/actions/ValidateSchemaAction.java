@@ -1,8 +1,8 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -37,10 +37,16 @@ public class ValidateSchemaAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-        validateData();
         ServiceResult result = null;
+        validateData();
         try {
-            Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), settings);
+            if (state.getSchemaName() == null) {
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "validateSchema must not be empty", state);
+            }
+            if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId() == null) {
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "groupId must not be empty", state);
+            }
+            Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings);
             logger.debug("Result from checkTemplate JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof Boolean) {
                 Boolean validateSchemaFound = (Boolean) jsResult;
@@ -50,31 +56,25 @@ public class ValidateSchemaAction extends AbstractAction {
                 }
                 bizLogger.error("Validating schema '{}' failed", state.getSchemaName());
                 String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
             String message = String.format("The JavaScript function %s must return a boolean value.", "checkTemplate");
             bizLogger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), message);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         } catch (ScripterException ex) {
             bizLogger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
     }
 
     private void validateData() {
-        if (state.getSchemaName() == null) {
-            throw new IllegalArgumentException("validateSchema must not be (null)");
-        }
         if (state.getScripter() == null) {
-            throw new IllegalArgumentException("scripter must not be (null)");
-        }
-        if (state.getUpdateRecordRequest().getAuthentication().getGroupIdAut() == null) {
-            throw new IllegalArgumentException("groupId must not be (null)");
+            throw new IllegalArgumentException("scripter must not be null");
         }
         if (settings == null) {
-            throw new IllegalArgumentException("settings must not be (null)");
+            throw new IllegalArgumentException("settings must not be null");
         }
     }
 

@@ -6,8 +6,8 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -29,7 +29,7 @@ public class GlobalActionState {
     public static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
     public static final String RECORD_PACKING_XML = "xml";
 
-    private UpdateRecordRequest updateRecordRequest = null;
+    private UpdateServiceRequestDto updateServiceRequestDto = null;
     private WebServiceContext wsContext = null;
     private Authenticator authenticator = null;
     private Scripter scripter = null;
@@ -45,19 +45,41 @@ public class GlobalActionState {
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
 
+    public GlobalActionState() {
+    }
+
+    public GlobalActionState(UpdateServiceRequestDto updateServiceRequestDto, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages) {
+        this.updateServiceRequestDto = updateServiceRequestDto;
+        this.wsContext = wsContext;
+        this.authenticator = authenticator;
+        this.scripter = scripter;
+        this.rawRepo = rawRepo;
+        this.holdingsItems = holdingsItems;
+        this.openAgencyService = openAgencyService;
+        this.solrService = solrService;
+        this.validator = validator;
+        this.updateStore = updateStore;
+        this.libraryRecordsHandler = libraryRecordsHandler;
+        this.messages = messages;
+    }
+
+    public GlobalActionState(GlobalActionState globalActionState) {
+        this(globalActionState.getUpdateServiceRequestDto(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages());
+    }
+
     private void resetState() {
         recordPid = null;
         marcRecord = null;
         bibliographicRecordExtraData = null;
     }
 
-    public UpdateRecordRequest getUpdateRecordRequest() {
-        return updateRecordRequest;
+    public UpdateServiceRequestDto getUpdateServiceRequestDto() {
+        return updateServiceRequestDto;
     }
 
-    public void setUpdateRecordRequest(UpdateRecordRequest updateRecordRequest) {
+    public void setUpdateServiceRequestDto(UpdateServiceRequestDto updateServiceRequestDto) {
         resetState();
-        this.updateRecordRequest = updateRecordRequest;
+        this.updateServiceRequestDto = updateServiceRequestDto;
     }
 
     public WebServiceContext getWsContext() {
@@ -158,7 +180,6 @@ public class GlobalActionState {
 
     public String getRecordPid() {
         logger.entry();
-
         try {
             if (recordPid == null) {
                 String faustNbr = "faust";
@@ -194,8 +215,8 @@ public class GlobalActionState {
         logger.entry();
         String result = "";
         try {
-            if (updateRecordRequest != null) {
-                result = updateRecordRequest.getSchemaName();
+            if (updateServiceRequestDto != null) {
+                result = updateServiceRequestDto.getSchemaName();
             } else {
                 logger.warn("Unable to validate schema from request");
             }
@@ -219,8 +240,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (marcRecord == null) {
-                if (updateRecordRequest != null && updateRecordRequest.getBibliographicRecord() != null && updateRecordRequest.getBibliographicRecord().getRecordData() != null) {
-                    list = updateRecordRequest.getBibliographicRecord().getRecordData().getContent();
+                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordDataDto() != null) {
+                    list = updateServiceRequestDto.getBibliographicRecordDto().getRecordDataDto().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }
@@ -252,8 +273,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateRecordRequest != null && updateRecordRequest.getBibliographicRecord() != null && updateRecordRequest.getBibliographicRecord().getRecordSchema() != null) {
-                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateRecordRequest.getBibliographicRecord().getRecordSchema());
+            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordSchema() != null) {
+                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDto.getBibliographicRecordDto().getRecordSchema());
             } else {
                 logger.warn("Unable to record schema from request");
             }
@@ -276,8 +297,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateRecordRequest != null && updateRecordRequest.getBibliographicRecord() != null && updateRecordRequest.getBibliographicRecord().getRecordPacking() != null) {
-                result = RECORD_PACKING_XML.equals(updateRecordRequest.getBibliographicRecord().getRecordPacking());
+            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordPacking() != null) {
+                result = RECORD_PACKING_XML.equals(updateServiceRequestDto.getBibliographicRecordDto().getRecordPacking());
             } else {
                 logger.warn("Unable to record packing from request");
             }
@@ -301,8 +322,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (bibliographicRecordExtraData == null) {
-                if (updateRecordRequest != null && updateRecordRequest.getBibliographicRecord() != null && updateRecordRequest.getBibliographicRecord().getExtraRecordData() != null) {
-                    list = updateRecordRequest.getBibliographicRecord().getExtraRecordData().getContent();
+                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getExtraRecordDataDto() != null) {
+                    list = updateServiceRequestDto.getBibliographicRecordDto().getExtraRecordDataDto().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }
@@ -325,27 +346,36 @@ public class GlobalActionState {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
+
         GlobalActionState state = (GlobalActionState) o;
-        if (updateRecordRequest != null ? !updateRecordRequest.equals(state.updateRecordRequest) : state.updateRecordRequest != null) return false;
+
+        if (updateServiceRequestDto != null ? !updateServiceRequestDto.equals(state.updateServiceRequestDto) : state.updateServiceRequestDto != null)
+            return false;
         if (wsContext != null ? !wsContext.equals(state.wsContext) : state.wsContext != null) return false;
-        if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null) return false;
+        if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
+            return false;
         if (scripter != null ? !scripter.equals(state.scripter) : state.scripter != null) return false;
         if (rawRepo != null ? !rawRepo.equals(state.rawRepo) : state.rawRepo != null) return false;
-        if (holdingsItems != null ? !holdingsItems.equals(state.holdingsItems) : state.holdingsItems != null) return false;
-        if (openAgencyService != null ? !openAgencyService.equals(state.openAgencyService) : state.openAgencyService != null) return false;
+        if (holdingsItems != null ? !holdingsItems.equals(state.holdingsItems) : state.holdingsItems != null)
+            return false;
+        if (openAgencyService != null ? !openAgencyService.equals(state.openAgencyService) : state.openAgencyService != null)
+            return false;
         if (solrService != null ? !solrService.equals(state.solrService) : state.solrService != null) return false;
         if (validator != null ? !validator.equals(state.validator) : state.validator != null) return false;
         if (updateStore != null ? !updateStore.equals(state.updateStore) : state.updateStore != null) return false;
-        if (libraryRecordsHandler != null ? !libraryRecordsHandler.equals(state.libraryRecordsHandler) : state.libraryRecordsHandler != null) return false;
+        if (libraryRecordsHandler != null ? !libraryRecordsHandler.equals(state.libraryRecordsHandler) : state.libraryRecordsHandler != null)
+            return false;
         if (messages != null ? !messages.equals(state.messages) : state.messages != null) return false;
         if (marcRecord != null ? !marcRecord.equals(state.marcRecord) : state.marcRecord != null) return false;
-        if (bibliographicRecordExtraData != null ? !bibliographicRecordExtraData.equals(state.bibliographicRecordExtraData) : state.bibliographicRecordExtraData != null) return false;
+        if (bibliographicRecordExtraData != null ? !bibliographicRecordExtraData.equals(state.bibliographicRecordExtraData) : state.bibliographicRecordExtraData != null)
+            return false;
         return recordPid != null ? recordPid.equals(state.recordPid) : state.recordPid == null;
+
     }
 
     @Override
     public int hashCode() {
-        int result = updateRecordRequest != null ? updateRecordRequest.hashCode() : 0;
+        int result = updateServiceRequestDto != null ? updateServiceRequestDto.hashCode() : 0;
         result = 31 * result + (wsContext != null ? wsContext.hashCode() : 0);
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
         result = 31 * result + (scripter != null ? scripter.hashCode() : 0);
@@ -366,7 +396,7 @@ public class GlobalActionState {
     @Override
     public String toString() {
         return "GlobalActionState{" +
-                "updateRecordRequest=" + updateRecordRequest +
+                "updateServiceRequestDto=" + updateServiceRequestDto +
                 ", wsContext=" + wsContext +
                 ", authenticator=" + authenticator +
                 ", scripter=" + scripter +

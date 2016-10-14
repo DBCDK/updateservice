@@ -6,7 +6,7 @@ import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateTestUtils;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -51,7 +51,7 @@ public class LibraryRecordsHandlerTest {
 
         String currentCommonRecordArgument = Json.encode(currentCommonRecord);
         String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
-        ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "reason", state);
+        ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state);
         String scripterResult = Json.encode(scripterReason);
         when(state.getScripter().callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
                 isNull(Properties.class),
@@ -60,13 +60,5 @@ public class LibraryRecordsHandlerTest {
 
         LibraryRecordsHandler instance = new LibraryRecordsHandler(state.getScripter());
         assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(scripterReason));
-    }
-
-    @Test
-    public void testServiceResultAsJson() throws Exception {
-        ServiceResult scripterReason = ServiceResult.newOkResult();
-        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"OK\",\"entries\":[],\"doubleRecordKey\":null,\"type\":null,\"serviceErrorList\":null}"));
-        scripterReason = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "reason", state);
-        assertThat(Json.encode(scripterReason), equalTo("{\"status\":\"FAILED\",\"entries\":[{\"type\":\"ERROR\",\"code\":null,\"params\":{\"param\":[{\"value\":\"reason\",\"key\":\"message\"},{\"value\":\"faust:agency\",\"key\":\"pid\"}]}}],\"doubleRecordKey\":null,\"type\":null,\"serviceErrorList\":[{\"type\":\"ERROR\",\"code\":null,\"params\":{\"param\":[{\"value\":\"reason\",\"key\":\"message\"},{\"value\":\"faust:agency\",\"key\":\"pid\"}]}}]}"));
     }
 }

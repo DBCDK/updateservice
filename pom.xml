@@ -230,8 +230,8 @@
                 <targetPath>META-INF/wsdl/update</targetPath>
                 <directory>src/wsdl/update</directory>
                 <includes>
-                    <include>*.wsdl</include>
-                    <include>*.xsd</include>
+                    <include>catalogingUpdate.wsdl</include>
+                    <include>catalogingUpdate.xsd</include>
                 </includes>
             </resource>
             <resource>
@@ -319,7 +319,7 @@
                             <packageName>dk.dbc.updateservice.service.api</packageName>
                             <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
                         </configuration>
-                        <id>wsimport-generate-catalogingUpdate</id>
+                        <id>wsimport-generate-catalogingUpdate-internal</id>
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>

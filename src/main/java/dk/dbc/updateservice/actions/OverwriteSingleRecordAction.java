@@ -9,8 +9,8 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
@@ -52,10 +52,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add(new RemoveLinksAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
             result = performActionsFor002Links();
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
@@ -115,11 +115,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                                 result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
                             }
-                        } else if (state.getUpdateRecordRequest().getAuthentication().getGroupIdAut().equals(id.toString())) {
+                        } else if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().equals(id.toString())) {
                             bizLogger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             ServiceResult serviceResult = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentRecord, record);
-                            if (serviceResult.getStatus() != UpdateStatusEnum.OK) {
+                            if (serviceResult.getStatus() != UpdateStatusEnumDto.OK) {
                                 bizLogger.info("Enrichment record is not created for reason: {}", serviceResult);
                             } else {
                                 logger.info("Create new extended library record: [{}:{}].", recordId, id);
@@ -284,7 +284,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                     enrichmentCandidate.put(holdingAgencyIdString, marcRecords);
                                 }
                             }
-                            if (state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, linkRecord, currentRecord).getStatus() == UpdateStatusEnum.OK) {
+                            if (state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, linkRecord, currentRecord).getStatus() == UpdateStatusEnumDto.OK) {
                                 children.add(getActionDataForEnrichmentRecord(holdingAgencyIdString, destinationCommonRecordId, linkRecord));
                             } else {
                                 bizLogger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);

@@ -1,9 +1,9 @@
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.TypeEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,7 @@ public class AuthenticateRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut("700400");
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("700400");
     }
 
     /**
@@ -47,10 +47,12 @@ public class AuthenticateRecordActionTest {
      */
     @Test
     public void testPerformAction_OK() throws Exception {
-        when(state.getAuthenticator().authenticateRecord(state, state.readRecord())).thenReturn(new ArrayList<>());
-        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state, state.readRecord());
-        assertThat(authenticateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
-        verify(state.getAuthenticator()).authenticateRecord(state, state.readRecord());
+        when(state.getAuthenticator().authenticateRecord(state)).thenReturn(new ArrayList<>());
+        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state);
+        ServiceResult serviceResult = authenticateRecordAction.performAction();
+        assertThat(serviceResult, equalTo(ServiceResult.newOkResult()));
+//        assertThat(authenticateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        verify(state.getAuthenticator()).authenticateRecord(state);
     }
 
     /**
@@ -74,13 +76,13 @@ public class AuthenticateRecordActionTest {
      */
     @Test
     public void testPerformAction_Errors() throws Exception {
-        List<Entry> entries = UpdateTestUtils.createEntryList(Type.ERROR, "error");
-        when(state.getAuthenticator().authenticateRecord(state, state.readRecord())).thenReturn(entries);
-        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state, state.readRecord());
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnum.FAILED);
+        List<MessageEntryDto> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDto.ERROR, "error");
+        when(state.getAuthenticator().authenticateRecord(state)).thenReturn(entries);
+        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         expected.setEntries(entries);
         assertThat(authenticateRecordAction.performAction(), equalTo(expected));
-        verify(state.getAuthenticator()).authenticateRecord(state, state.readRecord());
+        verify(state.getAuthenticator()).authenticateRecord(state);
     }
 
     /**
@@ -104,13 +106,13 @@ public class AuthenticateRecordActionTest {
      */
     @Test
     public void testPerformAction_Warnings() throws Exception {
-        List<Entry> entries = UpdateTestUtils.createEntryList(Type.WARNING, "warning");
-        when(state.getAuthenticator().authenticateRecord(state, state.readRecord())).thenReturn(entries);
-        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state, state.readRecord());
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnum.OK);
+        List<MessageEntryDto> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDto.WARNING, "warning");
+        when(state.getAuthenticator().authenticateRecord(state)).thenReturn(entries);
+        AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDto.OK);
         expected.setEntries(entries);
         assertThat(authenticateRecordAction.performAction(), equalTo(expected));
-        verify(state.getAuthenticator()).authenticateRecord(state, state.readRecord());
+        verify(state.getAuthenticator()).authenticateRecord(state);
     }
 
     /**
@@ -136,11 +138,11 @@ public class AuthenticateRecordActionTest {
     @Test
     public void testPerformAction_Exception() throws Exception {
         ScripterException ex = new ScripterException("error");
-        when(state.getAuthenticator().authenticateRecord(state, state.readRecord())).thenThrow(ex);
-        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, state.readRecord());
+        when(state.getAuthenticator().authenticateRecord(state)).thenThrow(ex);
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state);
         String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), ex.getMessage());
-        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         Assert.assertThat(instance.performAction(), equalTo(expected));
-        verify(state.getAuthenticator()).authenticateRecord(state, state.readRecord());
+        verify(state.getAuthenticator()).authenticateRecord(state);
     }
 }

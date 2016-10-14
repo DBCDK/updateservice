@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- catalogingUpdate.wsdl version 2.0 -->
+<wsdl:definitions xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/catalogingUpdate" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" name="UpdateServices" targetNamespace="http://oss.dbc.dk/ns/catalogingUpdate">
+  <wsdl:types>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
+      <xs:import namespace="http://oss.dbc.dk/ns/catalogingUpdate" schemaLocation="catalogingUpdate.xsd"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="UpdateRecordInputMessage">
+    <wsdl:part name="parameters" element="tns:updateRecord"/>
+  </wsdl:message>
+  <wsdl:message name="UpdateRecordOutputMessage">
+    <wsdl:part name="parameters" element="tns:updateRecordResponse"/>
+  </wsdl:message>
+  <wsdl:message name="GetSchemasInputMessage">
+    <wsdl:part name="parameters" element="tns:getSchemas"/>
+  </wsdl:message>
+  <wsdl:message name="GetSchemasOutputMessage">
+    <wsdl:part name="parameters" element="tns:getSchemasResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="CatalogingUpdatePortType">
+    <wsdl:operation name="updateRecord">
+      <wsdl:input wsaw:Action="http://oss.dbc.dk/ns/catalogingUpdate/UpdateRecord" message="tns:UpdateRecordInputMessage"/>
+      <wsdl:output wsaw:Action="http://oss.dbc.dk/ns/catalogingUpdate/UpdateRecordResponse" message="tns:UpdateRecordOutputMessage"/>
+    </wsdl:operation>
+    <wsdl:operation name="getSchemas">
+      <wsdl:input wsaw:Action="http://oss.dbc.dk/ns/catalogingUpdate/GetSchemas" message="tns:GetSchemasInputMessage"/>
+      <wsdl:output wsaw:Action="http://oss.dbc.dk/ns/catalogingUpdate/GetSchemasResponse" message="tns:GetSchemasOutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="CatalogingUpdateBinding" type="tns:CatalogingUpdatePortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="updateRecord">
+      <soap:operation soapAction="http://oss.dbc.dk/ns/catalogingUpdate/UpdateRecord" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="getSchemas">
+      <soap:operation soapAction="http://oss.dbc.dk/ns/catalogingUpdate/GetSchemas" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="UpdateService">
+    <wsdl:port name="CatalogingUpdatePort" binding="tns:CatalogingUpdateBinding">
+      <soap:address location="http://catalogingupdate.addi.dk/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

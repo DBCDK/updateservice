@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -99,7 +99,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -131,7 +131,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 }

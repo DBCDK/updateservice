@@ -3,9 +3,9 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
+import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.Entry;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -40,7 +40,7 @@ public class ValidateRecordAction extends AbstractAction {
     private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
-    UpdateStatusEnum okStatus;
+    UpdateStatusEnumDto okStatus;
 
     /**
      * Constructs an instance with a template name and a record.
@@ -56,7 +56,7 @@ public class ValidateRecordAction extends AbstractAction {
         settings = properties;
     }
 
-    public void setOkStatus(UpdateStatusEnum okStatus) {
+    public void setOkStatus(UpdateStatusEnumDto okStatus) {
         this.okStatus = okStatus;
     }
 
@@ -82,11 +82,11 @@ public class ValidateRecordAction extends AbstractAction {
         try {
             bizLogger.info("Handling record:\n{}", state.readRecord());
             Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
-            logger.debug("Result from validateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
 
-            List<Entry> errors = Json.decodeArray(jsResult.toString(), Entry.class);
+            List<MessageEntryDto> errors = Json.decodeArray(jsResult.toString(), MessageEntryDto.class);
             result = new ServiceResult();
-            result.setEntries(errors);
+            result.addMessageEntryDtos(errors);
 
             //TODO: VERSION2: det her ligner spildt arbejde
             MarcRecordReader reader = new MarcRecordReader(state.readRecord());
@@ -95,7 +95,7 @@ public class ValidateRecordAction extends AbstractAction {
 
             if (result.hasErrors()) {
                 bizLogger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnum.FAILED);
+                result.setStatus(UpdateStatusEnumDto.FAILED);
             } else {
                 bizLogger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
                 result.setStatus(okStatus);
@@ -104,7 +104,7 @@ public class ValidateRecordAction extends AbstractAction {
         } catch (IOException | ScripterException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         } finally {
             logger.exit(result);
         }

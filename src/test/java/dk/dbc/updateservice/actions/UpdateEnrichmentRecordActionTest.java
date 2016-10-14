@@ -6,8 +6,8 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.RawRepoEncoder;
@@ -163,7 +163,7 @@ public class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         assertThat(updateEnrichmentRecordAction.children().isEmpty(), is(true));
     }
 
@@ -322,7 +322,7 @@ public class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
         String message = String.format(state.getMessages().getString("record.does.not.exist"), commonRecordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     /**

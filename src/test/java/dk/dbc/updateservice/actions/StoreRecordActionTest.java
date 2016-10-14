@@ -6,7 +6,7 @@ import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.core.IsNull.notNullValue;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -34,17 +33,6 @@ public class StoreRecordActionTest {
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
-    }
-
-    /**
-     * Test StoreRecordAction.StoreRecordAction() constructor.
-     */
-    // TODO - WHY?!?!
-    @Test
-    public void testConstructor() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        StoreRecordAction instance = new StoreRecordAction(state, settings, record);
-        assertThat(instance, notNullValue());
     }
 
     /**
@@ -127,7 +115,7 @@ public class StoreRecordActionTest {
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
         when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -171,7 +159,7 @@ public class StoreRecordActionTest {
         when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
         ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, "error", state)));
+        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 

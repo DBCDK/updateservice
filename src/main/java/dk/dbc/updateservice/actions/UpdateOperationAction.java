@@ -8,8 +8,8 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -21,7 +21,11 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -56,8 +60,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param globalActionState State object containing data with data from request.
      */
-    UpdateOperationAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        super(UpdateOperationAction.class.getSimpleName(), globalActionState, marcRecord);
+    UpdateOperationAction(GlobalActionState globalActionState, Properties properties) {
+        super(UpdateOperationAction.class.getSimpleName(), globalActionState);
         settings = properties;
     }
 
@@ -86,14 +90,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             bizLogger.info("Handling record:\n{}", record);
-            ServiceResult checkResult = checkRecordForUpdatability();
-            if (checkResult.getStatus() != UpdateStatusEnum.OK) {
-                bizLogger.error("Unable to update record: {}", checkResult);
-                return checkResult;
+            ServiceResult serviceResult = checkRecordForUpdatability();
+            if (serviceResult.getStatus() != UpdateStatusEnumDto.OK) {
+                bizLogger.error("Unable to update record: {}", serviceResult);
+                return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
             addDatefieldTo001d(reader);
-            children.add(new AuthenticateRecordAction(state, record));
+            children.add(new AuthenticateRecordAction(state));
             MarcRecordReader updReader = new MarcRecordReader(record);
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
@@ -101,37 +105,33 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             // Perform check of 002a and b,c
             String validatePreviousFaustMessage = validatePreviousFaust(updReader);
             if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, validatePreviousFaustMessage, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, validatePreviousFaustMessage, state);
             }
+            addDoubleRecordFrontendActionIfNecessary(updReader);
 
-            if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId) && isFbsMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
-                // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
-                children.add(new DoubleRecordFrontendAction(state, settings, record));
-            }
             bizLogger.info("Split record into records to store in rawrepo.");
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateRecordRequest().getAuthentication().getUserIdAut(), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDto());
             for (MarcRecord rec : records) {
-                bizLogger.info("");
                 bizLogger.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
-                    return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     if (!updReader.markedForDeletion() &&
-                            !state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateRecordRequest().getAuthentication().getGroupIdAut());
-                        return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
                     children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
+                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
@@ -142,25 +142,23 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             }
-            bizLoggerOutput(updReader, updRecordId, updAgencyId);
-            if (isDoubleRecordPossible(updReader, updRecordId, updAgencyId)) {
-                if (isFbsMode() && StringUtils.isNotEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
-                    boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateRecordRequest().getDoubleRecordKey());
+            bizLoggerOutput(updReader);
+            if (isDoubleRecordPossible(updReader)) {
+                if (isFbsMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+                    boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDto().getDoubleRecordKey());
                     if (test) {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
                     } else {
-                        String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateRecordRequest().getDoubleRecordKey());
-                        return result = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnum.FAILED, message, state);
+                        String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDto().getDoubleRecordKey());
+                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                     }
-                } else if (isFbsMode() || isDataioMode() && StringUtils.isEmpty(state.getUpdateRecordRequest().getDoubleRecordKey())) {
+                } else if (isFbsMode() || isDataioMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, record));
                 }
             }
             return result = ServiceResult.newOkResult();
-        } catch (ScripterException | OpenAgencyException e) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, e.getMessage(), state);
-        } catch (UnsupportedEncodingException e) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, e.getMessage(), state);
+        } catch (ScripterException | OpenAgencyException | UnsupportedEncodingException e) {
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, e.getMessage(), state);
         } finally {
             logger.exit(result);
         }
@@ -177,17 +175,24 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void bizLoggerOutput(MarcRecordReader updReader, String updRecordId, Integer updAgencyId) throws UpdateException {
-        bizLogger.info("Delete?................: " + updReader.markedForDeletion());
-        bizLogger.info("isDBC?.................: " + updReader.isDBCRecord());
-        bizLogger.info("RR record exists?......: " + rawRepo.recordExists(updRecordId, updAgencyId));
-        bizLogger.info("agency id?.............: " + updAgencyId);
-        bizLogger.info("RR common library?.....: " + updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-        bizLogger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader, updRecordId, updAgencyId));
+    private void addDoubleRecordFrontendActionIfNecessary(MarcRecordReader reader) throws UpdateException {
+        if (isDoubleRecordPossible(reader) && isFbsMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+            // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
+            children.add(new DoubleRecordFrontendAction(state, settings, record));
+        }
     }
 
-    private boolean isDoubleRecordPossible(MarcRecordReader updReader, String updRecordId, Integer updAgencyId) throws UpdateException {
-        return !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updRecordId, updAgencyId) && updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
+    private void bizLoggerOutput(MarcRecordReader updReader) throws UpdateException {
+        bizLogger.info("Delete?................: " + updReader.markedForDeletion());
+        bizLogger.info("isDBC?.................: " + updReader.isDBCRecord());
+        bizLogger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
+        bizLogger.info("agency id?.............: " + updReader.agencyIdAsInteger());
+        bizLogger.info("RR common library?.....: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
+        bizLogger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader));
+    }
+
+    private boolean isDoubleRecordPossible(MarcRecordReader updReader) throws UpdateException {
+        return !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()) && updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY);
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
@@ -234,7 +239,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.debug("UpdateOperationAction.checkRecordForUpdatability().recordIdSet: " + recordIdSet);
             if (!recordIdSet.isEmpty()) {
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                return ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
             return ServiceResult.newOkResult();
         } finally {
@@ -270,7 +275,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
-
         try {
             if (reader.markedForDeletion()) {
                 // Handle deletion of existing record

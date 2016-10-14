@@ -1,9 +1,13 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.records.MarcField;
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -11,7 +15,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Properties;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
@@ -58,6 +69,7 @@ public class UpdateOperationActionTest {
     @Test
     public void testPerformAction_LocalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
@@ -65,15 +77,15 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
     }
 
@@ -109,22 +121,24 @@ public class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getRecordId(record);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(enrichmentRecord);
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(enrichmentAgencyId.toString());
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(UpdateTestUtils.GROUP_ID), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, enrichmentRecord);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
     }
 
@@ -160,22 +174,25 @@ public class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getRecordId(record);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(enrichmentRecord);
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(enrichmentAgencyId.toString());
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, enrichmentRecord);
+        state.setMarcRecord(enrichmentRecord);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getHoldingsItems());
     }
 
@@ -218,16 +235,17 @@ public class UpdateOperationActionTest {
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
         MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
         updwriter.addOrReplaceSubfield("001", "a", "206111600");
         updwriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateRecordRequest().getAuthentication().getGroupIdAut(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
 
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
@@ -235,13 +253,13 @@ public class UpdateOperationActionTest {
         settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "dataio");
         updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -252,12 +270,12 @@ public class UpdateOperationActionTest {
         settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "fbs");
         updwriter.addOrReplaceSubfield("996", "a", "810010");
 
-        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
         children = updateOperationAction.children();
         assertThat(children.size(), is(5));
         iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord, state.getScripter());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -266,14 +284,14 @@ public class UpdateOperationActionTest {
 
         // TEST 3 - Doublepost frontend, forced update, key found
         String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
-        state.getUpdateRecordRequest().setDoubleRecordKey(doubleRecordKey);
+        state.getUpdateServiceRequestDto().setDoubleRecordKey(doubleRecordKey);
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(true);
-        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
         children = updateOperationAction.children();
         assertThat(children.size(), is(4));
         iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
@@ -281,9 +299,9 @@ public class UpdateOperationActionTest {
 
         // TEST 4 - Doublepost frontend, forced update, key not found
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
-        updateOperationAction = new UpdateOperationAction(state, settings, updateRecord);
+        updateOperationAction = new UpdateOperationAction(state, settings);
         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     /**
@@ -317,6 +335,7 @@ public class UpdateOperationActionTest {
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
+        state.setMarcRecord(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
@@ -327,15 +346,15 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -366,6 +385,7 @@ public class UpdateOperationActionTest {
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
+        state.setMarcRecord(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
@@ -376,12 +396,12 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("operation.delete.non.existing.record");
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     /**
@@ -415,19 +435,20 @@ public class UpdateOperationActionTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord commonSchoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
+        state.setMarcRecord(commonSchoolRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(commonSchoolRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(commonSchoolRecord), eq(UpdateTestUtils.USER_ID), eq(UpdateTestUtils.GROUP_ID))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(commonSchoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonSchoolRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings, commonSchoolRecord);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -463,20 +484,21 @@ public class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String groupId = AssertActionsUtil.getAgencyId(schoolRecord);
-        state.getUpdateRecordRequest().getAuthentication().setGroupIdAut(groupId);
+        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(groupId);
+        state.setMarcRecord(schoolRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(schoolRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(UpdateTestUtils.USER_ID), eq(groupId))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, schoolRecord);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateRecordRequest().getAuthentication());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -494,11 +516,10 @@ public class UpdateOperationActionTest {
         subfields.add(new MarcSubField("c", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
-
+        state.setMarcRecord(record);
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(null);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
-
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -506,11 +527,9 @@ public class UpdateOperationActionTest {
     public void testPreviousFaust_UpdateRecord_NoMatch() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-
+        state.setMarcRecord(record);
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(null);
-
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
-
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -519,20 +538,20 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", "12345678", "001a", reader.recordId()))).thenReturn(true);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
@@ -540,19 +559,19 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(false);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", "12345678"))).thenReturn(true);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
@@ -560,21 +579,21 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("b", "12345678"));
         subfields.add(new MarcSubField("c", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", "12345678", "002c", "12345678", "001a", reader.recordId()))).thenReturn(true);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
@@ -582,41 +601,39 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("b", "12345678"));
         subfields.add(new MarcSubField("c", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(false);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", "12345678", "002c", "12345678"))).thenReturn(true);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
     public void testPreviousFaust_UpdateRecordRemove002_NoConflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         List<MarcField> fields = existingRecord.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -624,30 +641,26 @@ public class UpdateOperationActionTest {
     public void testPreviousFaust_UpdateRecordRemove002_Conflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         List<MarcField> fields = existingRecord.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
-
         existingRecord.setFields(fields);
-
         Set<Integer> holdingList = new HashSet<>();
         holdingList.add(123);
         holdingList.add(456);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
@@ -656,16 +669,15 @@ public class UpdateOperationActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
-
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         Set<Integer> holdingList = new HashSet<>();
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -675,29 +687,26 @@ public class UpdateOperationActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
-
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         List<MarcField> fields = existingRecord.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
-
         Set<Integer> holdingList = new HashSet<>();
         holdingList.add(123);
         holdingList.add(456);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.recordId()))).thenReturn(false);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
     @Test
@@ -706,29 +715,26 @@ public class UpdateOperationActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
-
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
         List<MarcField> fields = existingRecord.getFields();
-
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(new MarcSubField("a", "12345678"));
         field002.setSubfields(subfields);
         fields.add(field002);
-
         Set<Integer> holdingList001 = new HashSet<>();
         Set<Integer> holdingList002 = new HashSet<>();
         holdingList002.add(123);
         holdingList002.add(456);
+        state.setMarcRecord(record);
 
         when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.recordId())).thenReturn(holdingList001);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList002);
 
-        UpdateOperationAction instance = new UpdateOperationAction(state, settings, record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnum.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 }
