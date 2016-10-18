@@ -51,7 +51,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 bizLogger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
-            bizLogger.error("Creating sub actions successfully");
+            bizLogger.info("Creating sub actions successfully");
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return ServiceResult.newOkResult();
