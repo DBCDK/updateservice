@@ -51,18 +51,6 @@ public interface ServiceAction {
     String name();
 
     /**
-     * Checks the state of this instance.
-     * <p>
-     *     This method is added to ensure that actions has been proper
-     *     initialized and is ready for use by performAction().
-     * </p>
-     * <p>
-     *     This method is called just before performAction().
-     * </p>
-     */
-    void checkState() throws UpdateException;
-
-    /**
      * Performs this actions and may create any child actions.
      *
      * @return A ServiceResult to be reported in the web service response.
