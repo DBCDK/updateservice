@@ -8,6 +8,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.PersistenceContext;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,15 +38,16 @@ public class UpdateStore {
 
     public boolean doesDoubleRecordKeyExist(String key) {
         boolean res = false;
-        DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key);
-        entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
+        DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key, LockModeType.WRITE);
+        logger.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: " + dpkOverride);
         if (dpkOverride != null) {
+            entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
             LocalDateTime updatestoreCreateDate = LocalDateTime.ofInstant(dpkOverride.getCreatedDtm().toInstant(), ZoneId.systemDefault());
             if (updatestoreCreateDate.isAfter(LocalDateTime.now().minusDays(1))) {
-                logger.info("Found doublerecord frontend key object: " + dpkOverride + ". Object will now be removed");
+                logger.info("Found doublerecord frontend key object: " + dpkOverride + ". Object will now be removed.");
                 res = true;
             } else {
-                logger.info("Found old doublerecord frontend key object: " + dpkOverride + ". Object will now be removed");
+                logger.info("Found old doublerecord frontend key object: " + dpkOverride + ". Object will now be removed.");
             }
             entityManager.remove(dpkOverride);
         }
