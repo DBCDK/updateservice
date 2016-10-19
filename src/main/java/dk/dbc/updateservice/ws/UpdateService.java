@@ -1,5 +1,7 @@
 package dk.dbc.updateservice.ws;
 
+import dk.dbc.iscrum.records.MarcConverter;
+import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -7,6 +9,8 @@ import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.dto.BibliographicRecordDto;
+import dk.dbc.updateservice.dto.RecordDataDto;
 import dk.dbc.updateservice.dto.SchemaDto;
 import dk.dbc.updateservice.dto.SchemasRequestDto;
 import dk.dbc.updateservice.dto.SchemasResponseDto;
@@ -29,6 +33,7 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+import org.w3c.dom.Node;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -36,6 +41,7 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
 import java.util.List;
@@ -55,6 +61,7 @@ public class UpdateService {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
+    private static final String UPDATE_SERVUCE_NIL_RECORD = "update.service.nil.record";
     private static final String UPDATE_SERIVCE_INTERNAL_ERROR = "update.service.internal.error";
 
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
@@ -141,12 +148,21 @@ public class UpdateService {
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
-            logger.info("MDC: " + MDC.getCopyOfContextMap());
-            logger.info("Request tracking id: " + updateServiceRequestDto.getTrackingId());
-            updateRequestAction = new UpdateRequestAction(state, settings);
-            serviceEngine = new ServiceEngine();
-            serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
-            serviceResult = serviceEngine.executeAction(updateRequestAction);
+            if (dtoHasNonEmptyRecord(updateServiceRequestDto)) {
+                logger.info("MDC: " + MDC.getCopyOfContextMap());
+                logger.info("Request tracking id: " + updateServiceRequestDto.getTrackingId());
+                updateRequestAction = new UpdateRequestAction(state, settings);
+                serviceEngine = new ServiceEngine();
+                serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
+                serviceResult = serviceEngine.executeAction(updateRequestAction);
+            } else {
+                ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                String msg = bundle.getString(UPDATE_SERVUCE_NIL_RECORD);
+
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
+                logger.error("Updateservice blev kaldt med tom record DTO");
+            }
+
             return serviceResult;
         } catch (Throwable ex) {
             logger.catching(ex);
@@ -317,5 +333,24 @@ public class UpdateService {
 
     public String objectToStringReflection(Object object) {
         return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
+    }
+
+    private Boolean dtoHasNonEmptyRecord(UpdateServiceRequestDto updateServiceRequestDto) {
+        BibliographicRecordDto bibliographicRecordDto = updateServiceRequestDto.getBibliographicRecordDto();
+        RecordDataDto recordDataDto = bibliographicRecordDto.getRecordDataDto();
+
+        List<Object> contentList = recordDataDto.getContent();
+        for (Object o : contentList) {
+            if (o instanceof Node) {
+                DOMSource domSource = new DOMSource((Node) o);
+
+                MarcRecord record = MarcConverter.createFromMarcXChange(domSource);
+
+                return record != null;
+            }
+        }
+
+        // If we get to this point it is because the input dto does not contain anything
+        return false;
     }
 }
