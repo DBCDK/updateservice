@@ -59,7 +59,6 @@ public class ServiceEngine {
             printActionHeader(action);
 
             StopWatch watch = new Log4JStopWatch();
-            action.checkState();
             ServiceResult serviceResult = action.performAction();
             watch.stop("action." + action.name());
             action.setTimeElapsed(watch.getElapsedTime());

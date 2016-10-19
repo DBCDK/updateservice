@@ -66,7 +66,6 @@ public class UpdateLocalRecordActionTest {
     public void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
@@ -111,7 +110,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, volumeRecord);
-        updateLocalRecordAction.checkState();
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
@@ -151,7 +149,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
@@ -184,7 +181,6 @@ public class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).addOrReplaceSubfield("014", "a", recordId);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
@@ -219,7 +215,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getRawRepo().children(eq(record))).thenReturn(children);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
@@ -258,7 +253,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
@@ -316,7 +310,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
@@ -359,7 +352,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
@@ -407,7 +399,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        updateLocalRecordAction.checkState();
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
@@ -449,7 +440,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        instance.checkState();
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
@@ -488,7 +478,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        instance.checkState();
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
@@ -535,7 +524,6 @@ public class UpdateLocalRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        instance.checkState();
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();

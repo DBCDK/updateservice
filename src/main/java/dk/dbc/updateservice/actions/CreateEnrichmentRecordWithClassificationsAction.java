@@ -60,7 +60,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         this.updatingCommonRecord = updatingCommonRecord;
     }
 
-    @IgnoreStateChecking
     public String getCommonRecordId() {
         return commonRecordId;
     }

@@ -1,16 +1,9 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AbstractAction implements ServiceAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(AbstractAction.class);
-
     protected String name;
     protected ServiceResult serviceResult;
     protected List<ServiceAction> children;
@@ -33,7 +26,6 @@ public abstract class AbstractAction implements ServiceAction {
         this.name = name;
     }
 
-    @IgnoreStateChecking
     @Override
     public ServiceResult getServiceResult() {
         return serviceResult;
@@ -49,7 +41,6 @@ public abstract class AbstractAction implements ServiceAction {
         return this.children;
     }
 
-    @IgnoreStateChecking
     @Override
     public long getTimeElapsed() {
         return timeElapsed;
@@ -58,37 +49,6 @@ public abstract class AbstractAction implements ServiceAction {
     @Override
     public void setTimeElapsed(long timeElapsed) {
         this.timeElapsed = timeElapsed;
-    }
-
-    @Override
-    public void checkState() throws UpdateException {
-        logger.entry();
-
-        try {
-            Method[] methods = getClass().getMethods();
-
-            for (Method method : methods) {
-                String methodName = method.getName();
-                if (methodName.startsWith("get")) {
-                    IgnoreStateChecking annotation = method.getAnnotation(IgnoreStateChecking.class);
-                    if (annotation == null) {
-                        Object value = method.invoke(this);
-                        if (value == null) {
-                            String format = "Illegal state: %s.%s is null";
-
-                            String attrName = method.getName().substring(3);
-                            attrName = attrName.substring(0, 1).toLowerCase() + attrName.substring(1);
-
-                            throw new UpdateException(String.format(format, getClass().getSimpleName(), attrName));
-                        }
-                    }
-                }
-            }
-        } catch (Throwable throwable) {
-            throw new UpdateException(throwable.getMessage(), throwable);
-        } finally {
-            logger.exit();
-        }
     }
 
     /**
@@ -109,7 +69,6 @@ public abstract class AbstractAction implements ServiceAction {
         while (throwable != null && throwable.getClass().getPackage().getName().startsWith("javax.ejb")) {
             throwable = throwable.getCause();
         }
-
         return throwable;
     }
 }
