@@ -1,7 +1,5 @@
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -9,8 +7,6 @@ import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.dto.BibliographicRecordDto;
-import dk.dbc.updateservice.dto.RecordDataDto;
 import dk.dbc.updateservice.dto.SchemaDto;
 import dk.dbc.updateservice.dto.SchemasRequestDto;
 import dk.dbc.updateservice.dto.SchemasResponseDto;
@@ -33,7 +29,6 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-import org.w3c.dom.Node;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -41,7 +36,6 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
 import java.util.List;
