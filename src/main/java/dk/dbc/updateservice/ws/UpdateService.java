@@ -61,7 +61,7 @@ public class UpdateService {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
-    private static final String UPDATE_SERVUCE_NIL_RECORD = "update.service.nil.record";
+    private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
     private static final String UPDATE_SERIVCE_INTERNAL_ERROR = "update.service.internal.error";
 
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
@@ -157,7 +157,7 @@ public class UpdateService {
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
             } else {
                 ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                String msg = bundle.getString(UPDATE_SERVUCE_NIL_RECORD);
+                String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
                 logger.error("Updateservice blev kaldt med tom record DTO");
