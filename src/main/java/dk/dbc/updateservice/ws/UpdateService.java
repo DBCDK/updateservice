@@ -148,7 +148,7 @@ public class UpdateService {
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
-            if (dtoHasNonEmptyRecord(updateServiceRequestDto)) {
+            if (state.readRecord() != null) {
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDto.getTrackingId());
                 updateRequestAction = new UpdateRequestAction(state, settings);
@@ -335,22 +335,4 @@ public class UpdateService {
         return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
     }
 
-    private Boolean dtoHasNonEmptyRecord(UpdateServiceRequestDto updateServiceRequestDto) {
-        BibliographicRecordDto bibliographicRecordDto = updateServiceRequestDto.getBibliographicRecordDto();
-        RecordDataDto recordDataDto = bibliographicRecordDto.getRecordDataDto();
-
-        List<Object> contentList = recordDataDto.getContent();
-        for (Object o : contentList) {
-            if (o instanceof Node) {
-                DOMSource domSource = new DOMSource((Node) o);
-
-                MarcRecord record = MarcConverter.createFromMarcXChange(domSource);
-
-                return record != null;
-            }
-        }
-
-        // If we get to this point it is because the input dto does not contain anything
-        return false;
-    }
 }
