@@ -42,7 +42,6 @@ public class Scripter {
         Object result = null;
         ScripterEnvironment environment = null;
         try {
-            logger.debug("Take scripter environment from pool");
             environment = pool.take();
 
             logger.debug("Call function: '{}'", methodName);

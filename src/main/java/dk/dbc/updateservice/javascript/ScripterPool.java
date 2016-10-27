@@ -156,13 +156,13 @@ public class ScripterPool {
      */
     public ScripterEnvironment take() throws InterruptedException {
         logger.entry();
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch("javascript.env.take");
 
         try {
             logger.info("Take environment from queue with size: {}", environments.size());
             return environments.take();
         } finally {
-            watch.stop("javascript.env.take.");
+            watch.stop();
             logger.exit();
         }
     }
