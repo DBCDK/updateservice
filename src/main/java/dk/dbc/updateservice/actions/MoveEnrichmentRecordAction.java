@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
@@ -30,7 +29,6 @@ import java.util.Properties;
  */
 public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(MoveEnrichmentRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private MarcRecord commonRecord = null;
     Properties settings;
@@ -59,7 +57,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             children.add(createDeleteEnrichmentAction());
             children.add(createMoveEnrichmentToCommonRecordAction());
             return result = ServiceResult.newOkResult();
@@ -81,7 +79,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(deleteRecord);
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
-            bizLogger.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
+            logger.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
             writer.markForDeletion();
             return createUpdateRecordAction(deleteRecord);
@@ -107,21 +105,21 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
-            bizLogger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId);
+            logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId);
 
             if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
-                bizLogger.info("Enrichment record has classifications. Creating sub action to update it.");
+                logger.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
             MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY).getContent());
             ServiceResult shouldCreateEnrichmentRecords = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentCommonRecord, commonRecord);
-            bizLogger.info("Should we create enrichment records result: {}", shouldCreateEnrichmentRecords);
+            logger.info("Should we create enrichment records result: {}", shouldCreateEnrichmentRecords);
 
             if (shouldCreateEnrichmentRecords.getStatus() == UpdateStatusEnumDto.OK) {
-                bizLogger.info("Creating enrichment record with classifications, because the common record is published.");
+                logger.info("Creating enrichment record with classifications, because the common record is published.");
                 return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
             } else {
-                bizLogger.info("Creating enrichment record without classifications, because the common record is still in production.");
+                logger.info("Creating enrichment record without classifications, because the common record is still in production.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
         } catch (ScripterException | UnsupportedEncodingException ex) {

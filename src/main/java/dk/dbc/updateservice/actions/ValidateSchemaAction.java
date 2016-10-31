@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
@@ -19,7 +18,6 @@ import java.util.Properties;
  */
 public class ValidateSchemaAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(ValidateSchemaAction.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
 
@@ -51,18 +49,18 @@ public class ValidateSchemaAction extends AbstractAction {
             if (jsResult instanceof Boolean) {
                 Boolean validateSchemaFound = (Boolean) jsResult;
                 if (validateSchemaFound) {
-                    bizLogger.info("Validating schema '{}' successfully", state.getSchemaName());
+                    logger.info("Validating schema '{}' successfully", state.getSchemaName());
                     return result = ServiceResult.newOkResult();
                 }
-                bizLogger.error("Validating schema '{}' failed", state.getSchemaName());
+                logger.error("Validating schema '{}' failed", state.getSchemaName());
                 String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
             String message = String.format("The JavaScript function %s must return a boolean value.", "checkTemplate");
-            bizLogger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), message);
+            logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), message);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         } catch (ScripterException ex) {
-            bizLogger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
+            logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);

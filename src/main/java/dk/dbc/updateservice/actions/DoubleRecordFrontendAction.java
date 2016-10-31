@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.DoubleRecordFrontendContent;
@@ -20,7 +19,6 @@ import java.util.Properties;
  */
 public class DoubleRecordFrontendAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordFrontendAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final String ENTRY_POINT = "checkDoubleRecordFrontend";
 
     MarcRecord record;
@@ -43,7 +41,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             Object jsResult = state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
             logger.debug("Result from " + ENTRY_POINT + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
             result = parseJavascript(jsResult);

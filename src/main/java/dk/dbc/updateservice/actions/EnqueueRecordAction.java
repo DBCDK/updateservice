@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
@@ -32,7 +31,6 @@ import java.util.Properties;
  */
 public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
     private String mimetype;
@@ -61,8 +59,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Using provider id: '{}'", settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Using provider id: '{}'", settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+            logger.info("Handling record:\n{}", record);
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID) == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("provider.id.not.set"), state);
@@ -73,7 +71,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             Integer agencyId = reader.agencyIdAsInteger();
 
             rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), new RecordId(recId, agencyId), this.mimetype);
-            bizLogger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
+            logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);

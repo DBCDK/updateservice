@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -24,7 +23,6 @@ import java.util.Properties;
  */
 public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
 
@@ -43,7 +41,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             if (!rawRepo.children(record).isEmpty()) {
                 MarcRecordReader reader = new MarcRecordReader(record);
                 String recordId = reader.recordId();
@@ -51,7 +49,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 String message = state.getMessages().getString("delete.record.children.error");
                 String errorMessage = String.format(message, recordId);
 
-                bizLogger.error("Unable to create sub actions doing to an error: {}", errorMessage);
+                logger.error("Unable to create sub actions doing to an error: {}", errorMessage);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, errorMessage, state);
             }
 
@@ -66,7 +64,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
                 children.add(updateEnrichmentRecordAction);
             }
-            bizLogger.error("Creating sub actions successfully");
+            logger.error("Creating sub actions successfully");
 
             children.add(new RemoveLinksAction(state, record));
             children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));

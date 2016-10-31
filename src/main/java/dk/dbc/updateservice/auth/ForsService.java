@@ -3,7 +3,6 @@ package dk.dbc.updateservice.auth;
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
@@ -27,7 +26,6 @@ import java.util.Properties;
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class ForsService {
     private static final XLogger logger = XLoggerFactory.getXLogger(ForsService.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final long CACHE_ENTRY_TIMEOUT = 10 * 60 * 1000;
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
@@ -61,7 +59,7 @@ public class ForsService {
         logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****");
         StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
         try {
-            bizLogger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            logger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
             return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getPassword(), null);
         } finally {
             watch.stop();
@@ -80,7 +78,7 @@ public class ForsService {
         logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****", ipAddress);
         StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
         try {
-            bizLogger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            logger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
             return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDto().getPassword(), ipAddress);
         } finally {
             watch.stop();

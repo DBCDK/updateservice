@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -24,7 +23,6 @@ import java.util.Properties;
  */
 public class StoreRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(StoreRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final String ENTRY_POINT = "sortRecord";
 
     RawRepoEncoder encoder = new RawRepoEncoder();
@@ -55,7 +53,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
@@ -66,7 +64,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepoRecord.setDeleted(deletionMarkToStore());
             rawRepoRecord.setTrackingId(MDC.get(UpdateService.MDC_TRACKING_ID_LOG_CONTEXT));
             rawRepo.saveRecord(rawRepoRecord);
-            bizLogger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
+            logger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
             logger.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
             return result = ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {

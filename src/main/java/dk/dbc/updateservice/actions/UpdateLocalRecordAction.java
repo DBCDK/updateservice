@@ -4,7 +4,6 @@ import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -29,7 +28,6 @@ import java.util.Set;
  */
 public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private Properties settings;
 
@@ -50,7 +48,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult res = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String parentId = reader.parentId();

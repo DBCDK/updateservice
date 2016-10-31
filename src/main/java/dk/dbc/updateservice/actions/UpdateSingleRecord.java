@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
@@ -19,7 +18,6 @@ import java.util.Properties;
  */
 public class UpdateSingleRecord extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateSingleRecord.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     protected Properties settings;
 
@@ -38,7 +36,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
@@ -51,19 +49,19 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 boolean hasHoldings = !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty();
                 if (hasHoldings) {
                     AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
-                    bizLogger.info("Found holdings for agency '{}'", groupAgencyNumber);
+                    logger.info("Found holdings for agency '{}'", groupAgencyNumber);
                     boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     if (hasAuthExportHoldings) {
-                        bizLogger.info("Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                        logger.info("Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                         String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
                         boolean has002Links = state.getSolrService().hasDocuments(solrQuery);
                         if (!has002Links) {
                             String message = state.getMessages().getString("delete.common.with.holdings.error");
-                            bizLogger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
+                            logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
                             return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                         }
                     } else {
-                        bizLogger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                        logger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     }
                 }
                 children.add(createDeleteRecordAction());

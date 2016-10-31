@@ -1,7 +1,6 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
@@ -23,7 +22,6 @@ import java.util.Properties;
 @Singleton
 public class OpenAgencyService {
     private static final XLogger logger = XLoggerFactory.getXLogger(OpenAgencyService.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
@@ -63,19 +61,19 @@ public class OpenAgencyService {
         try {
             result = service.libraryRules().isAllowed(agencyId, feature);
 
-            bizLogger.info("Agency '{}' is allowed to use feature '{}': {}", agencyId, feature, result);
+            logger.info("Agency '{}' is allowed to use feature '{}': {}", agencyId, feature, result);
             return result;
         } catch (OpenAgencyException ex) {
-            bizLogger.error("Failed to read feature from OpenAgency for ['{}':'{}']: {}", agencyId, feature, ex.getMessage());
+            logger.error("Failed to read feature from OpenAgency for ['{}':'{}']: {}", agencyId, feature, ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
-                    bizLogger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
                 }
                 if (ex.getResponse() != null) {
-                    bizLogger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
                 }
             } catch (IOException ioError) {
-                bizLogger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
+                logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
 
             throw ex;

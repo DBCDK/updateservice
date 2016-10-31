@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +19,6 @@ import java.util.Map;
  */
 public class ServiceEngine {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceEngine.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private Map<String, String> loggerKeys = new HashMap<>();
 
@@ -64,12 +62,12 @@ public class ServiceEngine {
             action.setTimeElapsed(watch.getElapsedTime());
             action.setServiceResult(serviceResult);
 
-            bizLogger.info("");
+            logger.info("");
             if (stopExecution(serviceResult)) {
-                bizLogger.error("Action failed before sub actions: {}", serviceResult);
+                logger.error("Action failed before sub actions: {}", serviceResult);
                 return serviceResult;
             } else {
-                bizLogger.info("Action success before sub actions: {}", serviceResult);
+                logger.info("Action success before sub actions: {}", serviceResult);
             }
             List<ServiceAction> children = action.children();
             if (children != null) {
@@ -115,9 +113,9 @@ public class ServiceEngine {
 
     public void printActionHeader(ServiceAction action) {
         String line = StringUtils.repeat("=", 50);
-        bizLogger.info("");
-        bizLogger.info("Action: {}", action.name());
-        bizLogger.info(line);
+        logger.info("");
+        logger.info("Action: {}", action.name());
+        logger.info(line);
     }
 
     public void printActions(ServiceAction action) {
@@ -127,7 +125,7 @@ public class ServiceEngine {
     private void printActions(ServiceAction action, String indent) {
         logger.entry();
         try {
-            bizLogger.info(indent + action.name() + " in " + action.getTimeElapsed() + " ms: " + action.getServiceResult());
+            logger.info(indent + action.name() + " in " + action.getTimeElapsed() + " ms: " + action.getServiceResult());
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {

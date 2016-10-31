@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -20,7 +19,6 @@ import org.slf4j.ext.XLoggerFactory;
  */
 public class RemoveLinksAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(RemoveLinksAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     public RemoveLinksAction(GlobalActionState globalActionState, MarcRecord record) {
         super(RemoveLinksAction.class.getSimpleName(), globalActionState, record);
@@ -37,14 +35,14 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
             rawRepo.removeLinks(new RecordId(recId, agencyId));
-            bizLogger.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
+            logger.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
 
             return result = ServiceResult.newOkResult();
         } finally {

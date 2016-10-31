@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -37,7 +36,6 @@ import java.util.Properties;
  */
 public class ValidateRecordAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(ValidateRecordAction.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
     UpdateStatusEnumDto okStatus;
@@ -80,7 +78,7 @@ public class ValidateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", state.readRecord());
+            logger.info("Handling record:\n{}", state.readRecord());
             Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
 
@@ -94,10 +92,10 @@ public class ValidateRecordAction extends AbstractAction {
             String agencyId = reader.agencyId();
 
             if (result.hasErrors()) {
-                bizLogger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
+                logger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
                 result.setStatus(UpdateStatusEnumDto.FAILED);
             } else {
-                bizLogger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
+                logger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
                 result.setStatus(okStatus);
             }
             return result;
