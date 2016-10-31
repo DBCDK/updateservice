@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDto;
 import dk.dbc.updateservice.dto.OptionsDto;
@@ -26,7 +25,6 @@ import java.util.Properties;
  */
 public class UpdateRequestAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private Properties settings;
 
@@ -69,11 +67,11 @@ public class UpdateRequestAction extends AbstractAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("request.record.is.missing"), state);
         }
         if (!state.isRecordSchemaValid()) {
-            bizLogger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordSchema());
+            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordSchema());
             return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         if (!state.isRecordPackingValid()) {
-            bizLogger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordPacking());
+            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordPacking());
             return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         return null;
@@ -138,32 +136,32 @@ public class UpdateRequestAction extends AbstractAction {
         if (state.getWsContext() != null && state.getWsContext().getMessageContext() != null) {
             MessageContext mc = state.getWsContext().getMessageContext();
             HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-            bizLogger.info("REQUEST:");
-            bizLogger.info("======================================");
-            bizLogger.info("Auth type: {}", req.getAuthType());
-            bizLogger.info("Context path: {}", req.getContextPath());
-            bizLogger.info("Content type: {}", req.getContentType());
-            bizLogger.info("Content length: {}", req.getContentLengthLong());
-            bizLogger.info("URI: {}", req.getRequestURI());
-            bizLogger.info("Client address: {}", req.getRemoteAddr());
+            logger.info("REQUEST:");
+            logger.info("======================================");
+            logger.info("Auth type: {}", req.getAuthType());
+            logger.info("Context path: {}", req.getContextPath());
+            logger.info("Content type: {}", req.getContentType());
+            logger.info("Content length: {}", req.getContentLengthLong());
+            logger.info("URI: {}", req.getRequestURI());
+            logger.info("Client address: {}", req.getRemoteAddr());
             // This takes 5 seconds ??
-            bizLogger.info("Client host: {}", req.getRemoteHost());
-            bizLogger.info("Client port: {}", req.getRemotePort());
-            bizLogger.info("Headers");
-            bizLogger.info("--------------------------------------");
-            bizLogger.info("");
+            logger.info("Client host: {}", req.getRemoteHost());
+            logger.info("Client port: {}", req.getRemotePort());
+            logger.info("Headers");
+            logger.info("--------------------------------------");
+            logger.info("");
             Enumeration<String> headerNames = req.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
-                bizLogger.info("{}: {}", name, req.getHeader(name));
+                logger.info("{}: {}", name, req.getHeader(name));
             }
-            bizLogger.info("--------------------------------------");
+            logger.info("--------------------------------------");
         }
-        bizLogger.info("");
-        bizLogger.info("Template name: {}", state.getSchemaName());
-        bizLogger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
-        bizLogger.info("Request record: \n{}", state.readRecord());
-        bizLogger.info("======================================");
+        logger.info("");
+        logger.info("Template name: {}", state.getSchemaName());
+        logger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
+        logger.info("Request record: \n{}", state.readRecord());
+        logger.info("======================================");
     }
 
     private boolean isAgencyIdAllowedToUseUpdateOnThisInstance() throws UpdateException {

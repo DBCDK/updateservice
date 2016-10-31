@@ -5,7 +5,6 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -38,7 +37,6 @@ import java.util.Set;
 @Stateless
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
     public static final Integer COMMON_LIBRARY = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
@@ -556,7 +554,7 @@ public class RawRepo {
             final HashSet<RecordId> references = new HashSet<>();
             references.add(refer_id);
             dao.setRelationsFrom(id, references);
-            bizLogger.info("Set relation from [{}:{}] -> [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId(), refer_id.getBibliographicRecordId(), refer_id.getAgencyId());
+            logger.info("Set relation from [{}:{}] -> [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId(), refer_id.getBibliographicRecordId(), refer_id.getAgencyId());
         } finally {
             logger.exit();
         }
@@ -567,7 +565,7 @@ public class RawRepo {
         try {
             final HashSet<RecordId> references = new HashSet<>();
             dao.setRelationsFrom(record.getId(), references);
-            bizLogger.info("Clear relations for [{}:{}]", record.getId().getBibliographicRecordId(), record.getId().getAgencyId());
+            logger.info("Clear relations for [{}:{}]", record.getId().getBibliographicRecordId(), record.getId().getAgencyId());
         } finally {
             logger.exit();
         }

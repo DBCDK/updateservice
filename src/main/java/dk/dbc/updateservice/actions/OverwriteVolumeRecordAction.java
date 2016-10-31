@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -19,7 +18,6 @@ import java.util.Properties;
  */
 public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteVolumeRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     GlobalActionState state;
 
@@ -40,7 +38,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         logger.entry();
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             String parentId = reader.parentId();
@@ -52,13 +50,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                     errorAgencyId = RawRepo.COMMON_LIBRARY;
                 }
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 

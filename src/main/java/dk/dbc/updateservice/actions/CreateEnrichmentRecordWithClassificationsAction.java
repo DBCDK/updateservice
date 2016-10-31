@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -32,7 +31,6 @@ import java.util.Properties;
  */
 public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
@@ -78,17 +76,17 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("AgencyId..............: " + agencyId);
-            bizLogger.info("Current common record.:\n{}", currentCommonRecord);
-            bizLogger.info("Updating common record:\n{}", updatingCommonRecord);
+            logger.info("AgencyId..............: " + agencyId);
+            logger.info("Current common record.:\n{}", currentCommonRecord);
+            logger.info("Updating common record:\n{}", updatingCommonRecord);
 
             MarcRecord enrichmentRecord = createRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
-                bizLogger.info("No sub actions to create for an empty enrichment record.");
+                logger.info("No sub actions to create for an empty enrichment record.");
                 return ServiceResult.newOkResult();
             }
-            bizLogger.info("Creating sub actions to store new enrichment record.");
-            bizLogger.info("Enrichment record:\n{}", enrichmentRecord);
+            logger.info("Creating sub actions to store new enrichment record.");
+            logger.info("Enrichment record:\n{}", enrichmentRecord);
 
             String recordId = new MarcRecordReader(enrichmentRecord).recordId();
 

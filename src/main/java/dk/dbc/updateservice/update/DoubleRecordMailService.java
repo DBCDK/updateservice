@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -23,7 +22,6 @@ import java.util.Properties;
 @Stateless
 public class DoubleRecordMailService {
     private static XLogger logger = XLoggerFactory.getXLogger(DoubleRecordMailService.class);
-    private final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private final String MAIL_HOST_PROPERTY = "mail.smtp.host";
     private final String MAIL_PORT_PROPERTY = "mail.smtp.port";
@@ -94,10 +92,10 @@ public class DoubleRecordMailService {
                 message.setSubject(subject);
                 message.setText(body);
                 Transport.send(message);
-                bizLogger.info("Double Record Checker: Sent message with subject '{}' successfully.", subject);
+                logger.info("Double Record Checker: Sent message with subject '{}' successfully.", subject);
             } catch (MessagingException ex) {
-                bizLogger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY), ex.getMessage());
-                bizLogger.warn("Mail message: {}\n{}", subject, body);
+                logger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY), ex.getMessage());
+                logger.warn("Mail message: {}\n{}", subject, body);
                 logger.error("Mail service error");
                 logger.catching(XLogger.Level.ERROR, ex);
             }

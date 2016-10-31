@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -28,7 +27,6 @@ import java.util.Properties;
  */
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     RawRepoDecoder decoder = new RawRepoDecoder();
     Properties settings;
@@ -68,7 +66,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
@@ -81,29 +79,29 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
-                bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
+                logger.warn("Unable to update enrichment record doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
-                bizLogger.warn("Unable to update enrichment record doing to an error: {}", message);
+                logger.warn("Unable to update enrichment record doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, reader.agencyIdAsInteger())) {
                 if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
-                    bizLogger.error("Unable to create sub actions due to an error: {}", message);
+                    logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
             }
             Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
             MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decoder.decodeRecord(commonRecord.getContent()), record);
 
-            bizLogger.info("Correct content of enrichment record.");
-            bizLogger.info("Old content:\n{}", record);
-            bizLogger.info("New content:\n{}", enrichmentRecord);
+            logger.info("Correct content of enrichment record.");
+            logger.info("Old content:\n{}", record);
+            logger.info("New content:\n{}", enrichmentRecord);
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
@@ -173,10 +171,10 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             Integer agencyId = reader.agencyIdAsInteger();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {
-                bizLogger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
+                logger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
                 return ServiceResult.newOkResult();
             }
-            bizLogger.info("Creating sub actions to delete enrichment record successfully");
+            logger.info("Creating sub actions to delete enrichment record successfully");
             children.add(new RemoveLinksAction(state, record));
 
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);

@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -22,7 +21,6 @@ import java.util.Properties;
  */
 public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     private Properties settings;
@@ -42,24 +40,24 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(record);
             if (!reader.markedForDeletion()) {
-                bizLogger.info("Update single");
+                logger.info("Update single");
                 if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
-                    bizLogger.error("Unable to create sub actions due to an error: {}", message);
+                    logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
             }
 
             String parentId = reader.parentId();
             if (parentId != null && !parentId.isEmpty()) {
-                bizLogger.info("Update vol:\n{}", parentId);
+                logger.info("Update vol:\n{}", parentId);
                 children.add(new UpdateVolumeRecord(state, settings, record));
             } else {
-                bizLogger.info("Update single");
+                logger.info("Update single");
                 children.add(new UpdateSingleRecord(state, settings, record));
             }
             return ServiceResult.newOkResult();

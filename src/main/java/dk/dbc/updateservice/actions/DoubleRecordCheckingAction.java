@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -17,7 +16,6 @@ import java.util.Properties;
  */
 public class DoubleRecordCheckingAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
     private static final String ENTRY_POINT = "checkDoubleRecord";
 
     MarcRecord record;
@@ -40,7 +38,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
             return result = ServiceResult.newOkResult();
         } catch (IOException | ScripterException ex) {

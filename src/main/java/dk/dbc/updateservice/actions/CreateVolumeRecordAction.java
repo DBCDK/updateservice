@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -21,7 +20,6 @@ import java.util.Properties;
  */
 public class CreateVolumeRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(CreateVolumeRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
 
@@ -40,7 +38,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
             String parentId = reader.parentId();
@@ -48,30 +46,30 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
 
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.agenciesForRecord(record).isEmpty()) {
                 String message = state.getMessages().getString("create.record.with.locals");
 
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                bizLogger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions doing to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
-            bizLogger.error("Creating sub actions successfully");
+            logger.error("Creating sub actions successfully");
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));

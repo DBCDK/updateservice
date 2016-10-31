@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
@@ -47,7 +46,6 @@ import java.util.Set;
  */
 class UpdateOperationAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     Properties settings;
 
@@ -89,10 +87,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDto.OK) {
-                bizLogger.error("Unable to update record: {}", serviceResult);
+                logger.error("Unable to update record: {}", serviceResult);
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
@@ -109,10 +107,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             addDoubleRecordFrontendActionIfNecessary(updReader);
 
-            bizLogger.info("Split record into records to store in rawrepo.");
+            logger.info("Split record into records to store in rawrepo.");
             List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDto());
             for (MarcRecord rec : records) {
-                bizLogger.info("Create sub actions for record:\n{}", rec);
+                logger.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
@@ -183,12 +181,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void bizLoggerOutput(MarcRecordReader updReader) throws UpdateException {
-        bizLogger.info("Delete?................: " + updReader.markedForDeletion());
-        bizLogger.info("isDBC?.................: " + updReader.isDBCRecord());
-        bizLogger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
-        bizLogger.info("agency id?.............: " + updReader.agencyIdAsInteger());
-        bizLogger.info("RR common library?.....: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-        bizLogger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader));
+        logger.info("Delete?................: " + updReader.markedForDeletion());
+        logger.info("isDBC?.................: " + updReader.isDBCRecord());
+        logger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
+        logger.info("agency id?.............: " + updReader.agencyIdAsInteger());
+        logger.info("RR common library?.....: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
+        logger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader));
     }
 
     private boolean isDoubleRecordPossible(MarcRecordReader updReader) throws UpdateException {

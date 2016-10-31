@@ -2,7 +2,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
@@ -21,7 +20,6 @@ import org.slf4j.ext.XLoggerFactory;
  */
 public class LinkRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(LinkRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     private RecordId linkToRecordId;
 
@@ -48,7 +46,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
@@ -57,7 +55,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
             rawRepo.linkRecord(new RecordId(recId, agencyId), linkToRecordId);
-            bizLogger.info("Set relation from [{}:{}] -> [{}:{}]", recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+            logger.info("Set relation from [{}:{}] -> [{}:{}]", recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);

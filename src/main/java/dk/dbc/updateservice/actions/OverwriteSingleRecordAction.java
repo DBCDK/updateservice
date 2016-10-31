@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.utils.logback.filters.BusinessLoggerFilter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -26,7 +25,6 @@ import java.util.Set;
 
 class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
-    private static final XLogger bizLogger = XLoggerFactory.getXLogger(BusinessLoggerFilter.LOGGER_NAME);
 
     protected Properties settings;
 
@@ -46,7 +44,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            bizLogger.info("Handling record:\n{}", record);
+            logger.info("Handling record:\n{}", record);
             MarcRecord currentRecord = loadCurrentRecord();
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(new RemoveLinksAction(state, record));
@@ -116,11 +114,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
                             }
                         } else if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().equals(id.toString())) {
-                            bizLogger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
+                            logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             ServiceResult serviceResult = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentRecord, record);
                             if (serviceResult.getStatus() != UpdateStatusEnumDto.OK) {
-                                bizLogger.info("Enrichment record is not created for reason: {}", serviceResult);
+                                logger.info("Enrichment record is not created for reason: {}", serviceResult);
                             } else {
                                 logger.info("Create new extended library record: [{}:{}].", recordId, id);
                                 result.add(getActionDataForEnrichmentWithClassification(currentRecord, id.toString()));
@@ -269,11 +267,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                     for (Integer holdingAgencyId : holdingAgencies) {
                         if (!state.getOpenAgencyService().hasFeature(holdingAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                            bizLogger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", holdingAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
+                            logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", holdingAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
                             continue;
                         }
                         if (!enrichmentIds.contains(new RecordId(recordId, holdingAgencyId))) {
-                            bizLogger.warn("No enrichments found for record '{}' for agency '{}' with holdings", recordId, holdingAgencyId);
+                            logger.warn("No enrichments found for record '{}' for agency '{}' with holdings", recordId, holdingAgencyId);
                             String holdingAgencyIdString = holdingAgencyId.toString();
                             if (isMultiple002Candidate) {
                                 if (enrichmentCandidate.containsKey(holdingAgencyIdString)) {
@@ -287,12 +285,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             if (state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, linkRecord, currentRecord).getStatus() == UpdateStatusEnumDto.OK) {
                                 children.add(getActionDataForEnrichmentRecord(holdingAgencyIdString, destinationCommonRecordId, linkRecord));
                             } else {
-                                bizLogger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);
+                                logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);
                             }
                         }
                     }
                 } else {
-                    bizLogger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.", recordId);
+                    logger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.", recordId);
                 }
                 Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
 
@@ -301,7 +299,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         continue;
                     }
                     if (!state.getOpenAgencyService().hasFeature(String.valueOf(enrichmentId.getAgencyId()), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                        bizLogger.info("Ignoring enrichment record for agency '{}', because they do not have the feature '{}'", enrichmentId.getAgencyId(), LibraryRuleHandler.Rule.USE_ENRICHMENTS);
+                        logger.info("Ignoring enrichment record for agency '{}', because they do not have the feature '{}'", enrichmentId.getAgencyId(), LibraryRuleHandler.Rule.USE_ENRICHMENTS);
                         continue;
                     }
                     Record enrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
