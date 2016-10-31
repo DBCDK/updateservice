@@ -302,9 +302,7 @@ public class RawRepo {
                 if (dao == null) {
                     logger.info("RawRepo.recordExists, dao == NULL");
                 }
-                logger.info("RawRepo.recordExists, PRE dao.recordExists");
                 result = dao.recordExists(recordId, agencyId);
-                logger.info("RawRepo.recordExists, POST dao.recordExists");
                 return result;
             } catch (RawRepoException e) {
                 if (conn != null) {
