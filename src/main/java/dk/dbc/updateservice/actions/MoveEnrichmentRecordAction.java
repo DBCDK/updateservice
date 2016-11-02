@@ -30,20 +30,24 @@ import java.util.Properties;
 public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(MoveEnrichmentRecordAction.class);
 
-    private MarcRecord commonRecord = null;
+    private boolean classificationChangedInCommonRecs = false;
+    private boolean isOneOrBothInProduction = false;
+    private MarcRecord dyingCommonRecord = null;
     Properties settings;
 
-    public MoveEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+    public MoveEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, boolean classificationChanged, boolean oneOrBothInProduction) {
         super(MoveEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
+        this.classificationChangedInCommonRecs = classificationChanged;
+        this.isOneOrBothInProduction = oneOrBothInProduction;
     }
 
     public MarcRecord getCommonRecord() {
-        return commonRecord;
+        return dyingCommonRecord;
     }
 
     public void setCommonRecord(MarcRecord commonRecord) {
-        this.commonRecord = commonRecord;
+        this.dyingCommonRecord = commonRecord;
     }
 
     /**
@@ -97,7 +101,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceAction result = null;
         try {
-            String commonRecordId = new MarcRecordReader(commonRecord).recordId();
+            String commonRecordId = new MarcRecordReader(dyingCommonRecord).recordId();
             MarcRecord newEnrichmentRecord = new MarcRecord(record);
             MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", commonRecordId);
@@ -112,14 +116,20 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
             MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY).getContent());
-            ServiceResult shouldCreateEnrichmentRecords = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentCommonRecord, commonRecord);
-            logger.info("Should we create enrichment records result: {}", shouldCreateEnrichmentRecords);
 
-            if (shouldCreateEnrichmentRecords.getStatus() == UpdateStatusEnumDto.OK) {
-                logger.info("Creating enrichment record with classifications, because the common record is published.");
-                return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
+            logger.info("ClassificationChangedInCommonRecs {} ", classificationChangedInCommonRecs);
+            logger.info("IsOneOrBothInProduction {} ", isOneOrBothInProduction);
+
+            if (classificationChangedInCommonRecs) {
+                if (isOneOrBothInProduction) {
+                    logger.info("Creating enrichment record with classifications, because one or both records are published.");
+                    return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
+                } else {
+                    logger.info("Creating enrichment record without classifications, because both records are in production.");
+                    return createUpdateRecordAction(newEnrichmentRecord);
+                }
             } else {
-                logger.info("Creating enrichment record without classifications, because the common record is still in production.");
+                logger.info("Creating enrichment record without classifications, because there are no change in die/live records.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
         } catch (ScripterException | UnsupportedEncodingException ex) {

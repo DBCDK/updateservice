@@ -34,6 +34,37 @@ public class LibraryRecordsHandler {
     }
 
     /**
+     * Tests if a record is published
+     *
+     * @param record The record.
+     * @return <code>true</code> if published
+     * <code>false</code> otherwise.
+     * @throws ScripterException
+     */
+    public boolean isRecordInProduction(MarcRecord record) throws ScripterException {
+        logger.entry(record);
+        Object jsResult = null;
+        try {
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writeValueAsString(record);
+                logger.trace("Kalder IRP - data {}", json);
+                jsResult = scripter.callMethod("isRecordInProduction", json);
+            } catch (IOException ex) {
+                throw new ScripterException("Error when executing JavaScript function: isRecordInProduction", ex);
+            }
+            logger.trace("Result from isRecordInProduction JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            if (jsResult instanceof Boolean) {
+                logger.exit();
+                return ((Boolean) jsResult);
+            }
+            throw new ScripterException("The JavaScript function %s must return a boolean value.", "isRecordInProduction");
+        } finally {
+            logger.exit(jsResult);
+        }
+    }
+
+    /**
      * Tests if a record contains any classification data.
      *
      * @param record The record.
@@ -240,7 +271,7 @@ public class LibraryRecordsHandler {
                 logger.error("Error when executing JavaScript function: recordDataForRawRepo", ex);
                 jsResult = false;
             }
-            logger.debug("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            logger.trace("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof String) {
                 result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
                 logger.info("After rawrepo updateservice javascript, List<MarcRecord>: " + result);
@@ -277,7 +308,7 @@ public class LibraryRecordsHandler {
                 String json = mapper.writeValueAsString(record);
                 jsResult = scripter.callMethod("recategorizationNoteFieldFactory", json);
             } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
+                throw new ScripterException("Error when executing JavaScript function: fetchNoteField", ex);
             }
             logger.debug("Result from recategorizationNoteFieldFactory JS ({}): {}", jsResult.getClass().getName(), jsResult);
 

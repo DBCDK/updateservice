@@ -1,6 +1,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.RawRepo;
@@ -66,14 +67,17 @@ public class MoveEnrichmentRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        new MarcRecordWriter(c1).addOrReplaceSubfield("z98", "a", "testPerformAction_CommonRecordPublished");
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newOkResult());
+        when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c1))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c2))).thenReturn(true);
 
-        MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, e1);
+        MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, e1, true, true);
         moveEnrichmentRecordAction.setCommonRecord(c2);
         assertThat(moveEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = moveEnrichmentRecordAction.children.listIterator();
@@ -130,7 +134,7 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED));
 
-        MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1);
+        MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1, false, false);
         instance.setCommonRecord(c2);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = instance.children.listIterator();
