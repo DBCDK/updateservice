@@ -176,11 +176,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(MarcRecord enrichmentRecordData) {
+    private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(MarcRecord enrichmentRecordData, boolean classificationsChanged, boolean oneOrBothInProduction) {
         logger.entry(enrichmentRecordData);
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = null;
         try {
-            moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData);
+            moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData, classificationsChanged, oneOrBothInProduction);
             moveEnrichmentRecordAction.setCommonRecord(record);
             return moveEnrichmentRecordAction;
         } finally {
@@ -243,6 +243,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             HashMap<String, List<MarcRecord>> enrichmentCandidate = new HashMap<>();
 
+            boolean isTargetRecordInProduction = state.getLibraryRecordsHandler().isRecordInProduction(record);
+            logger.info("IsTargetRecordInProduction {}", isTargetRecordInProduction);
             for (String recordId : valuesFrom002) {
                 if (currentRecordReader.hasValue("002", "a", recordId)) {
                     logger.info("002 linked record '{}' is not changed, so it is not handled.", recordId);
@@ -255,7 +257,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 }
                 MarcRecord linkRecord = loadRecord(recordId, agencyId);
                 boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(record, linkRecord);
-                logger.info("Is classifications changed in record '{{}:{}}': {}", destinationCommonRecordId, agencyId, classificationsChanged);
+                boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(linkRecord);
+				// The real boolean wanted is :
+				// (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
+				// Fortunatedly it can be reduced to :
+                boolean isOneOrBothInProduction = ! (isTargetRecordInProduction && isLinkRecInProduction);
+                logger.info("Is linkrec InProduction {}", isLinkRecInProduction);
+                logger.info("IsOneOrBothInProduction {}", isOneOrBothInProduction);
+                logger.info("Will classifications change from {{}:{}} to record '{{}:{}}': {}", recordId, agencyId, destinationCommonRecordId, agencyId, classificationsChanged);
 
                 if (classificationsChanged) {
                     Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordId);
@@ -304,7 +313,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     }
                     Record enrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
                     MarcRecord enrichmentRecordData = new RawRepoDecoder().decodeRecord(enrichmentRecord.getContent());
-                    children.add(getMoveEnrichmentRecordAction(enrichmentRecordData));
+                    children.add(getMoveEnrichmentRecordAction(enrichmentRecordData, classificationsChanged, isOneOrBothInProduction));
                 }
             }
             children.addAll(linkForMultipleRecordsIn002(enrichmentCandidate));

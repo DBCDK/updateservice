@@ -79,13 +79,13 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
-                logger.warn("Unable to update enrichment record doing to an error: {}", message);
+                logger.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
-                logger.warn("Unable to update enrichment record doing to an error: {}", message);
+                logger.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
 
