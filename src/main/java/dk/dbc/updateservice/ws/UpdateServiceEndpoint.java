@@ -41,8 +41,8 @@ import java.io.StringWriter;
 @Stateless
 public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceEndpoint.class);
-    private static final String UPDATERECORD_STOPWATCH = "UpdateServiceDBC";
-    private static final String GET_SCHEMAS_STOPWATCH = "GetSchemasDBC";
+    private static final String UPDATERECORD_STOPWATCH = "UpdateService";
+    private static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
     private GlobalActionState globalActionState;
 
@@ -65,28 +65,28 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
         UpdateRecordResult updateRecordResult;
         ServiceResult serviceResult;
-        DBCUpdateResponseWriter dbcUpdateResponseWriter;
+        UpdateResponseWriter updateResponseWriter;
         try {
             if (!updateService.isServiceReady(globalActionState)) {
-                LOGGER.info("UpdateserviceDBC not ready yet, leaving");
+                LOGGER.info("Updateservice not ready yet, leaving");
                 watch.stop(UpdateService.UPDATE_WATCHTAG);
                 return null;
             }
-            LOGGER.info("Entering UpdateserviceDBC, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequest));
-            DBCUpdateRequestReader dbcUpdateRequestReader = new DBCUpdateRequestReader(updateRecordRequest);
-            serviceResult = updateService.updateRecord(dbcUpdateRequestReader.getUpdateServiceRequestDto(), globalActionState);
-            dbcUpdateResponseWriter = new DBCUpdateResponseWriter();
-            dbcUpdateResponseWriter.setServiceResult(serviceResult);
-            updateRecordResult = dbcUpdateResponseWriter.getResponse();
-            LOGGER.info("UpdateServiceDBC returning updateRecordResult:\n" + Json.encodePretty(updateRecordResult));
-            LOGGER.info("Leaving UpdateServiceDBC, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
+            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequest));
+            UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
+            serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDto(), globalActionState);
+            updateResponseWriter = new UpdateResponseWriter();
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+            LOGGER.info("UpdateService returning updateRecordResult:\n" + Json.encodePretty(updateRecordResult));
+            LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             return updateRecordResult;
         } catch (IOException e) {
             LOGGER.catching(e);
             serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDto.FAILED, e.getMessage(), globalActionState);
-            dbcUpdateResponseWriter = new DBCUpdateResponseWriter();
-            dbcUpdateResponseWriter.setServiceResult(serviceResult);
-            return dbcUpdateResponseWriter.getResponse();
+            updateResponseWriter = new UpdateResponseWriter();
+            updateResponseWriter.setServiceResult(serviceResult);
+            return updateResponseWriter.getResponse();
         } finally {
             watch.stop(UPDATERECORD_STOPWATCH);
             LOGGER.exit();
@@ -99,10 +99,10 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         GetSchemasResult getSchemasResult;
         StopWatch watch = new Log4JStopWatch();
         try {
-            DBCGetSchemasRequestReader dbcGetSchemasRequestReader = new DBCGetSchemasRequestReader(getSchemasRequest);
-            SchemasResponseDto schemasResponseDto = updateService.getSchemas(dbcGetSchemasRequestReader.getSchemasRequestDto());
-            DBCGetSchemasResponseWriter dbcGetSchemasResponseWriter = new DBCGetSchemasResponseWriter(schemasResponseDto);
-            getSchemasResult = dbcGetSchemasResponseWriter.getGetSchemasResult();
+            GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
+            SchemasResponseDto schemasResponseDto = updateService.getSchemas(getSchemasRequestReader.getSchemasRequestDto());
+            GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDto);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
             return getSchemasResult;
         } finally {
             watch.stop(GET_SCHEMAS_STOPWATCH);

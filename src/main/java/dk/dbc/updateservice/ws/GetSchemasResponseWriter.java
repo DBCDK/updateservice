@@ -9,10 +9,10 @@ import dk.dbc.updateservice.service.api.Schema;
 import dk.dbc.updateservice.service.api.Type;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
 
-public class DBCGetSchemasResponseWriter {
+public class GetSchemasResponseWriter {
     private GetSchemasResult getSchemasResult;
 
-    public DBCGetSchemasResponseWriter(SchemasResponseDto schemasResponseDto) {
+    public GetSchemasResponseWriter(SchemasResponseDto schemasResponseDto) {
         getSchemasResult = convertResponseFromInternalFormatToExternalFormat(schemasResponseDto);
     }
 

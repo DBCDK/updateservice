@@ -11,8 +11,6 @@ import dk.dbc.updateservice.service.api.Messages;
 import dk.dbc.updateservice.service.api.Type;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.service.api.UpdateStatusEnum;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.util.List;
 
@@ -30,12 +28,10 @@ import java.util.List;
  * After the sequence the variable <code>response</code> will contain a
  * complete valid response that can be returned thought the JavaEE container.
  */
-public class DBCUpdateResponseWriter {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DBCUpdateResponseWriter.class);
-
+public class UpdateResponseWriter {
     private UpdateRecordResponseDto updateRecordResponseDto;
 
-    public DBCUpdateResponseWriter() {
+    public UpdateResponseWriter() {
         updateRecordResponseDto = new UpdateRecordResponseDto();
         updateRecordResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.OK);
     }
@@ -45,7 +41,9 @@ public class DBCUpdateResponseWriter {
     }
 
     public void addMessageEntries(List<MessageEntryDto> entries) {
-        updateRecordResponseDto.addMessageEntryDtos(entries);
+        if (entries != null && entries.size() > 0) {
+            updateRecordResponseDto.addMessageEntryDtos(entries);
+        }
     }
 
     public void addMessageEntry(MessageEntryDto entry) {

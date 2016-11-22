@@ -8,7 +8,7 @@ import dk.dbc.updateservice.dto.TypeEnumDto;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
-import dk.dbc.updateservice.ws.DBCUpdateRequestReader;
+import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -41,7 +41,7 @@ public class ValidateRecordActionTest {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(DBCUpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName(SCHEMA_NAME);
         settings = new UpdateTestUtils().getSettings();
     }
