@@ -72,7 +72,8 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
                 watch.stop(UpdateService.UPDATE_WATCHTAG);
                 return null;
             }
-            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequest));
+            UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
+            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword ));
             UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
             serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDto(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();

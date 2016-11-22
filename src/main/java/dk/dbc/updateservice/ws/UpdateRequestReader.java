@@ -7,6 +7,7 @@ import dk.dbc.updateservice.dto.OptionEnumDto;
 import dk.dbc.updateservice.dto.OptionsDto;
 import dk.dbc.updateservice.dto.RecordDataDto;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
+import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
@@ -29,6 +30,25 @@ public class UpdateRequestReader extends CommonReader {
 
     public UpdateServiceRequestDto getUpdateServiceRequestDto() {
         return updateServiceRequestDto;
+    }
+
+    public static UpdateRecordRequest cloneWithoutPassword(UpdateRecordRequest updateRecordRequest) {
+        UpdateRecordRequest res = null;
+        if (updateRecordRequest != null) {
+            res = new UpdateRecordRequest();
+            if (updateRecordRequest.getAuthentication() != null) {
+                res.setAuthentication(new Authentication());
+                res.getAuthentication().setGroupIdAut(updateRecordRequest.getAuthentication().getGroupIdAut());
+                res.getAuthentication().setPasswordAut("***");
+                res.getAuthentication().setUserIdAut(updateRecordRequest.getAuthentication().getUserIdAut());
+            }
+            res.setBibliographicRecord(updateRecordRequest.getBibliographicRecord());
+            res.setDoubleRecordKey(updateRecordRequest.getDoubleRecordKey());
+            res.setOptions(updateRecordRequest.getOptions());
+            res.setSchemaName(updateRecordRequest.getSchemaName());
+            res.setTrackingId(updateRecordRequest.getTrackingId());
+        }
+        return res;
     }
 
     private UpdateServiceRequestDto convertRequestFromExternalFormatToInternalFormat(UpdateRecordRequest updateRecordRequest) {
