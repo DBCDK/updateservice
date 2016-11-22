@@ -20,10 +20,10 @@ import dk.dbc.updateservice.service.api.UpdateRecordRequest;
  * This class provides helper functions to read information from the request
  * and will include checks to ensure the information is valid.
  */
-public class DBCUpdateRequestReader extends DBCCommonReader {
+public class UpdateRequestReader extends CommonReader {
     private UpdateServiceRequestDto updateServiceRequestDto;
 
-    public DBCUpdateRequestReader(UpdateRecordRequest updateRecordRequest) {
+    public UpdateRequestReader(UpdateRecordRequest updateRecordRequest) {
         updateServiceRequestDto = convertRequestFromExternalFormatToInternalFormat(updateRecordRequest);
     }
 

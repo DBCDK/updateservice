@@ -4,7 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
-import dk.dbc.updateservice.ws.DBCUpdateRequestReader;
+import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +31,7 @@ public class ValidateOperationActionTest {
     public void testPerformAction() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(DBCUpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
         state.getUpdateServiceRequestDto().setSchemaName(schemaName);
 

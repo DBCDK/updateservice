@@ -4,10 +4,10 @@ import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.dto.SchemasRequestDto;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 
-public class DBCGetSchemasRequestReader extends DBCCommonReader {
+public class GetSchemasRequestReader extends CommonReader {
     private SchemasRequestDto schemasRequestDto;
 
-    public DBCGetSchemasRequestReader(GetSchemasRequest getSchemasRequest) {
+    public GetSchemasRequestReader(GetSchemasRequest getSchemasRequest) {
         schemasRequestDto = convertRequestFromExternalFormatToInternalFormat(getSchemasRequest);
     }
 

@@ -64,44 +64,40 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-
         try {
-            logger.info("Handling record:\n{}", record);
-
+            logger.info("Handling record:\n" + record);
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();
             }
 
             String recordId = reader.recordId();
-
             String parentId = reader.parentId();
             if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
-                logger.warn("Unable to update enrichment record due to an error: {}", message);
+                logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
-
             if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
-                logger.warn("Unable to update enrichment record due to an error: {}", message);
+                logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
-
             if (!rawRepo.recordExists(recordId, reader.agencyIdAsInteger())) {
                 if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
-                    logger.error("Unable to create sub actions due to an error: {}", message);
+                    logger.error("Unable to create sub actions due to an error: " + message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
             }
             Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
-            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decoder.decodeRecord(commonRecord.getContent()), record);
+            MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
+            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, record);
 
             logger.info("Correct content of enrichment record.");
-            logger.info("Old content:\n{}", record);
-            logger.info("New content:\n{}", enrichmentRecord);
+            logger.info("Old content:\n" + record);
+            logger.info("New content:\n" + enrichmentRecord);
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }

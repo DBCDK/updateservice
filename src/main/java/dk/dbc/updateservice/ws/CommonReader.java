@@ -3,7 +3,7 @@ package dk.dbc.updateservice.ws;
 import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.service.api.Authentication;
 
-public class DBCCommonReader {
+public class CommonReader {
     protected AuthenticationDto convertExternalAuthenticationToInternalAuthenticationDto(Authentication authentication) {
         AuthenticationDto res = null;
         if (authentication != null) {
