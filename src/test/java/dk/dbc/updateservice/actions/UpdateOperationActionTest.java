@@ -250,7 +250,7 @@ public class UpdateOperationActionTest {
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
-        settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "dataio");
+        state.setUpdateMode(new UpdateMode("dataio"));
         updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
@@ -267,7 +267,7 @@ public class UpdateOperationActionTest {
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
         // this shall create an doublerecord action
-        settings.put(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY, "fbs");
+        state.setUpdateMode(new UpdateMode("fbs"));
         updwriter.addOrReplaceSubfield("996", "a", "810010");
 
         updateOperationAction = new UpdateOperationAction(state, settings);
