@@ -7,11 +7,15 @@ import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -21,17 +25,22 @@ import java.util.Properties;
  * local extended records.
  * <p>
  *
- * @author stp
  */
+@Stateless
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
     static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
 
+    @EJB
     private Scripter scripter;
 
-    public LibraryRecordsHandler(Scripter scripter) {
-        this.scripter = scripter;
-    }
+    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    private Properties settings;
+
+    public LibraryRecordsHandler() {}
+
+    protected LibraryRecordsHandler(Scripter scripter) {this.scripter = scripter; }
+
 
     /**
      * Tests if a record is published

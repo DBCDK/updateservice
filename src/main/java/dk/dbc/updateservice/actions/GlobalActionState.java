@@ -44,11 +44,12 @@ public class GlobalActionState {
     private MarcRecord marcRecord = null;
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
+    private UpdateMode updateMode = null;
 
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDto updateServiceRequestDto, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages) {
+    public GlobalActionState(UpdateServiceRequestDto updateServiceRequestDto, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, UpdateMode updateMode) {
         this.updateServiceRequestDto = updateServiceRequestDto;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
@@ -61,10 +62,11 @@ public class GlobalActionState {
         this.updateStore = updateStore;
         this.libraryRecordsHandler = libraryRecordsHandler;
         this.messages = messages;
+        this.updateMode = updateMode;
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDto(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages());
+        this(globalActionState.getUpdateServiceRequestDto(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getUpdateMode());
     }
 
     private void resetState() {
@@ -177,6 +179,10 @@ public class GlobalActionState {
     public void setMarcRecord(MarcRecord marcRecord) {
         this.marcRecord = marcRecord;
     }
+
+    public UpdateMode getUpdateMode() { return this.updateMode; }
+
+    public void setUpdateMode(UpdateMode updateMode) { this.updateMode = updateMode; }
 
     public String getRecordPid() {
         logger.entry();

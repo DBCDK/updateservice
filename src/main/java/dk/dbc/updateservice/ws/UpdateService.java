@@ -5,6 +5,7 @@ import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.actions.UpdateMode;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.SchemaDto;
@@ -39,7 +40,6 @@ import javax.ws.rs.core.Response;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
 import java.util.List;
-import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
@@ -95,27 +95,25 @@ public class UpdateService {
     @EJB
     private UpdateStore updateStore;
 
+    @EJB
+    private LibraryRecordsHandler libraryRecordsHandler;
+
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDto updateServiceRequestDto) {
-        try {
-            GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
-            newGlobalActionStateObject.setUpdateServiceRequestDto(updateServiceRequestDto);
-            newGlobalActionStateObject.setAuthenticator(authenticator);
-            newGlobalActionStateObject.setScripter(scripter);
-            newGlobalActionStateObject.setRawRepo(rawRepo);
-            newGlobalActionStateObject.setHoldingsItems(holdingsItems);
-            newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
-            newGlobalActionStateObject.setSolrService(solrService);
-            newGlobalActionStateObject.setValidator(validator);
-            newGlobalActionStateObject.setUpdateStore(updateStore);
-            LibraryRecordsHandler recordsHandler = new LibraryRecordsHandler(scripter);
-            newGlobalActionStateObject.setLibraryRecordsHandler(recordsHandler);
-            newGlobalActionStateObject.setMessages(ResourceBundles.getBundle("actions"));
-            validateRequiredSettings();
-            return newGlobalActionStateObject;
-        } catch (MissingResourceException ex) {
-            logger.error("Unable to load resource", ex);
-            return null;
-        }
+        GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
+        newGlobalActionStateObject.setUpdateServiceRequestDto(updateServiceRequestDto);
+        newGlobalActionStateObject.setAuthenticator(authenticator);
+        newGlobalActionStateObject.setScripter(scripter);
+        newGlobalActionStateObject.setRawRepo(rawRepo);
+        newGlobalActionStateObject.setHoldingsItems(holdingsItems);
+        newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
+        newGlobalActionStateObject.setSolrService(solrService);
+        newGlobalActionStateObject.setValidator(validator);
+        newGlobalActionStateObject.setUpdateStore(updateStore);
+        newGlobalActionStateObject.setLibraryRecordsHandler(libraryRecordsHandler);
+        newGlobalActionStateObject.setMessages(ResourceBundles.getBundle("actions"));
+        newGlobalActionStateObject.setUpdateMode(new UpdateMode(settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY)));
+        validateRequiredSettings();
+        return newGlobalActionStateObject;
     }
 
     /**

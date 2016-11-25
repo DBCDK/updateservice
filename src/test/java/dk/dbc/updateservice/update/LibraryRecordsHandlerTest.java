@@ -7,8 +7,11 @@ import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateTestUtils;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.javascript.Scripter;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -25,6 +28,17 @@ public class LibraryRecordsHandlerTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+
+        MockitoAnnotations.initMocks(this);
+    }
+
+    @Mock
+    Scripter scripter;
+
+    private class MockLibraryRecordsHandler extends LibraryRecordsHandler {
+        public MockLibraryRecordsHandler() {
+            super(scripter);
+        }
     }
 
     @Test
@@ -35,12 +49,12 @@ public class LibraryRecordsHandlerTest {
         String currentCommonRecordArgument = Json.encode(currentCommonRecord);
         String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
         String scripterResult = Json.encode(ServiceResult.newOkResult());
-        when(state.getScripter().callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
+        when(scripter.callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
                 isNull(Properties.class),
                 eq(currentCommonRecordArgument),
                 eq(updatingCommonRecordArgument))).thenReturn(scripterResult);
 
-        LibraryRecordsHandler instance = new LibraryRecordsHandler(state.getScripter());
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -53,12 +67,12 @@ public class LibraryRecordsHandlerTest {
         String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
         ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state);
         String scripterResult = Json.encode(scripterReason);
-        when(state.getScripter().callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
+        when(scripter.callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
                 isNull(Properties.class),
                 eq(currentCommonRecordArgument),
                 eq(updatingCommonRecordArgument))).thenReturn(scripterResult);
 
-        LibraryRecordsHandler instance = new LibraryRecordsHandler(state.getScripter());
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(scripterReason));
     }
 }

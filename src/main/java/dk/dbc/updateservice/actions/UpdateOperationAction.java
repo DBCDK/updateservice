@@ -13,7 +13,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -142,7 +141,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             bizLoggerOutput(updReader);
             if (isDoubleRecordPossible(updReader)) {
-                if (isFbsMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+                if (state.getUpdateMode().isFBSMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDto().getDoubleRecordKey());
                     if (test) {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
@@ -150,7 +149,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDto().getDoubleRecordKey());
                         return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                     }
-                } else if (isFbsMode() || isDataioMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+                } else if (state.getUpdateMode().isFBSMode() || state.getUpdateMode().isDataIOMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, record));
                 }
             }
@@ -165,7 +164,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private void addDatefieldTo001d(MarcRecordReader reader) {
         String valOf001 = reader.getValue("001", "d");
         if (StringUtils.isEmpty(valOf001)) {
-            if (isFbsMode()) {
+            if (state.getUpdateMode().isFBSMode()) {
                 MarcRecordWriter writer = new MarcRecordWriter(record);
                 writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
                 logger.info("Adding new date to field 001 , subfield d : " + record);
@@ -174,7 +173,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void addDoubleRecordFrontendActionIfNecessary(MarcRecordReader reader) throws UpdateException {
-        if (isDoubleRecordPossible(reader) && isFbsMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+        if (isDoubleRecordPossible(reader) && state.getUpdateMode().isFBSMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings, record));
         }
@@ -243,24 +242,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         } finally {
             logger.exit();
         }
-    }
-
-    private boolean isFbsMode() {
-        boolean res = false;
-        String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-        if (mode != null && mode.equals("fbs")) {
-            res = true;
-        }
-        return res;
-    }
-
-    private boolean isDataioMode() {
-        boolean res = false;
-        String mode = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
-        if (mode != null && mode.equals("dataio")) {
-            res = true;
-        }
-        return res;
     }
 
     /**
@@ -352,7 +333,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private String getSolrQuery002bc(Boolean recordExists, String bValue, String cValue, String recordId){
+    private String getSolrQuery002bc(Boolean recordExists, String bValue, String cValue, String recordId) {
         if (recordExists) {
             return SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bValue, "002c", cValue, "001a", recordId);
         } else {
