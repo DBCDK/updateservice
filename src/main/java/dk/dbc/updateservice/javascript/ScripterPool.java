@@ -127,7 +127,7 @@ public class ScripterPool {
                         ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
                         environments.put(scripterEnvironment);
                         initializedEnvironments.incrementAndGet();
-                        logger.info("Environment " + (i+1) +"/" + active_javaScriptPoolSize + " added to ready queue");
+                        logger.info("Environment " + (i + 1) + "/" + active_javaScriptPoolSize + " added to ready queue");
                     } catch (Exception e) {
                         logger.error("JavaScript Environment creation failed ", e);
                         e.printStackTrace();
@@ -188,6 +188,23 @@ public class ScripterPool {
             logger.exit();
         }
     }
+
+
+    /**
+     * Return a bool denoting whether all js enviroments has been initialized
+     *
+     * @return scripterPool startup status
+     */
+    public Boolean isAllEnviromentsLoaded() {
+        logger.entry();
+        boolean res = false ;
+        try {
+            return res =  initializedEnvironments.intValue() >= Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+        } finally {
+            logger.exit(res);
+        }
+    }
+
 
     /**
      * Return scripterPool startup status
