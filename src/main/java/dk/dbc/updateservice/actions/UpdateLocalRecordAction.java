@@ -175,9 +175,12 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
             }
+            //logger.info("!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()? {}", !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty());
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
+                //logger.info("Step 1");
                 AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).agencyId());
                 if (state.getOpenAgencyService().hasFeature(agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)) {
+                    //logger.info("Step 2");
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
                     return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }

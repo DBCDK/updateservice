@@ -106,8 +106,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             addDoubleRecordFrontendActionIfNecessary(updReader);
 
-            logger.info("Split record into records to store in rawrepo.");
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDto());
+            logger.info("Split record into records to store in rawrepo. UpdateMode is {}", state.getUpdateMode().isFBSMode() ? "FBS" : "DATAIO");
+
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDto(), state.getUpdateMode());
+            logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
@@ -154,7 +156,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
             return result = ServiceResult.newOkResult();
-        } catch (ScripterException | OpenAgencyException | UnsupportedEncodingException e) {
+        } catch (OpenAgencyException | UnsupportedEncodingException e) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, e.getMessage(), state);
         } finally {
             logger.exit(result);

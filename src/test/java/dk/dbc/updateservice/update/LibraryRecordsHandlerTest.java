@@ -1,6 +1,8 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -14,6 +16,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -33,10 +37,10 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Mock
-    Scripter scripter;
+    private Scripter scripter;
 
     private class MockLibraryRecordsHandler extends LibraryRecordsHandler {
-        public MockLibraryRecordsHandler() {
+        MockLibraryRecordsHandler() {
             super(scripter);
         }
     }
@@ -74,5 +78,33 @@ public class LibraryRecordsHandlerTest {
 
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(scripterReason));
+    }
+
+    @Test
+    public void testsplitCompleteBasisRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord expectedDBCRecord = new MarcRecord();
+
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+
+        writer.addOrReplaceSubfield("aaa", "a", "b");
+        writer.addOrReplaceSubfield("bbb", "a", "b");
+
+        expectedDBCRecord.getFields().add(reader.getField("001"));
+        expectedDBCRecord.getFields().add(reader.getField("004"));
+        expectedDBCRecord.getFields().add(reader.getField("aaa"));
+        expectedDBCRecord.getFields().add(reader.getField("bbb"));
+        MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
+        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+
+        MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
+        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+
+        List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
+
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+        assertThat(instance.splitRecordDataIO(record), equalTo(expectedList));
     }
 }
