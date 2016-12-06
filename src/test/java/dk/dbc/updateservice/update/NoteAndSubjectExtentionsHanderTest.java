@@ -175,10 +175,6 @@ public class NoteAndSubjectExtentionsHanderTest {
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
-    //recordDataForRawRepo_recordNotExists
-    //recordDataForRawRepo_isNotNationalCommonRecord
-    //
-
     @Test
     public void testrecordDataForRawRepo_recordNotExists() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
