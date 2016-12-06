@@ -281,7 +281,7 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * This function will split (if necessary) the input record into command record and DBC enrichment record
+     * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
      * @param record            The record to be updated
      * @param authenticationDto Auth DTO from the ws request

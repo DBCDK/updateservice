@@ -49,7 +49,6 @@ public class NoteAndSubjectExtensionsHandler {
                     if (field.getName().matches(extendableFieldsRx)) {
                         logger.info("Found extendable field! {}", field.getName());
                         if (fieldReader.hasSubfield("&")) {
-                            //new MarcFieldWriter(field).addOrReplaceSubfield("&", groupId);
                             field.getSubfields().add(new MarcSubField("&", groupId));
                         } else if (isFieldChangedInOtherRecord(field, curRecord)) {
                             field.getSubfields().add(0, new MarcSubField("&", groupId));
@@ -76,7 +75,6 @@ public class NoteAndSubjectExtensionsHandler {
 
         if (field.getName().equals("001")) {
             MarcRecordReader reader = new MarcRecordReader(clone);
-            //MarcRecordWriter writer = new MarcRecordWriter(clone);
             MarcFieldReader fieldReader = new MarcFieldReader(field);
 
             if (!reader.hasSubfield("001", "c")) {
@@ -86,8 +84,6 @@ public class NoteAndSubjectExtensionsHandler {
             if (!reader.hasSubfield("001", "d")) {
                 reader.getField("001").getSubfields().add(3, new MarcSubField("d", fieldReader.getValue("d")));
             }
-
-            logger.info("GRYDESTEG {}", clone);
         }
 
         for (MarcField cf : clone.getFields()) {
