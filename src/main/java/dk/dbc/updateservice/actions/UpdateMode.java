@@ -4,7 +4,7 @@ import java.util.MissingResourceException;
 
 public class UpdateMode {
 
-    Mode mode;
+    private Mode mode;
 
     public enum Mode {
         FBS, DATAIO
@@ -16,9 +16,9 @@ public class UpdateMode {
 
     public UpdateMode(String s) throws MissingResourceException {
         if (s.equals("fbs")) {
-            mode = Mode.FBS;
+            this.mode = Mode.FBS;
         } else if (s.equals("dataio")) {
-            mode = Mode.DATAIO;
+            this.mode = Mode.DATAIO;
         } else {
             throw new MissingResourceException("Unknown mode!", UpdateMode.class.toString(), "UpdateMode");
         }

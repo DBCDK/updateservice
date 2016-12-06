@@ -1,15 +1,16 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.MarcField;
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.actions.UpdateMode;
 import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -17,6 +18,11 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -24,7 +30,6 @@ import java.util.Properties;
  * Class to manipulate library records for a local library. Local records and
  * local extended records.
  * <p>
- *
  */
 @Stateless
 public class LibraryRecordsHandler {
@@ -34,13 +39,21 @@ public class LibraryRecordsHandler {
     @EJB
     private Scripter scripter;
 
+    @EJB
+    private OpenAgencyService openAgencyService;
+
+    @EJB
+    private RawRepo rawRepo;
+
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
-    public LibraryRecordsHandler() {}
+    public LibraryRecordsHandler() {
+    }
 
-    protected LibraryRecordsHandler(Scripter scripter) {this.scripter = scripter; }
-
+    protected LibraryRecordsHandler(Scripter scripter) {
+        this.scripter = scripter;
+    }
 
     /**
      * Tests if a record is published
@@ -267,30 +280,216 @@ public class LibraryRecordsHandler {
         }
     }
 
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDto authenticationDto) throws ScripterException {
-        logger.entry(record);
-        List<MarcRecord> result = null;
+    /**
+     * This function will split (if necessary) the input record into command record and DBC enrichment record
+     *
+     * @param record            The record to be updated
+     * @param authenticationDto Auth DTO from the ws request
+     * @param updateMode        Whether it is a FBS or DataIO template
+     * @return
+     * @throws OpenAgencyException
+     * @throws UnsupportedEncodingException
+     * @throws UpdateException
+     */
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDto authenticationDto, UpdateMode updateMode) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+        logger.entry(record, authenticationDto, updateMode);
+
+        List<MarcRecord> result = new ArrayList<>();
+
         try {
-            Object jsResult;
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonRecord = mapper.writeValueAsString(record);
-            try {
-                jsResult = scripter.callMethod("recordDataForRawRepo", jsonRecord, authenticationDto.getUserId(), authenticationDto.getGroupId());
-            } catch (IllegalStateException ex) {
-                logger.error("Error when executing JavaScript function: recordDataForRawRepo", ex);
-                jsResult = false;
+            if (updateMode.isFBSMode()) {
+                result = recordDataForRawRepoFBS(record, authenticationDto.getGroupId());
+            } else { // Assuming DataIO mode
+                result = recordDataForRawRepoDataIO(record, authenticationDto.getGroupId());
             }
-            logger.trace("Result from recordDataForRawRepo JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof String) {
-                result = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MarcRecord.class));
-                logger.info("After rawrepo updateservice javascript, List<MarcRecord>: " + result);
-                return result;
-            }
-            throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);
+
+            return result;
         } finally {
             logger.exit(result);
+        }
+    }
+
+    List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+        logger.entry(record, groupId);
+
+        List<MarcRecord> result = new ArrayList<>();
+
+        try {
+            DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+            LocalDateTime dateTime = LocalDateTime.now();
+
+            logger.info("New date for 001 *c is {}", dateTime.format(format));
+
+            result = splitRecordFBS(record, groupId);
+
+            for (MarcRecord r : result) {
+                MarcRecordWriter writer = new MarcRecordWriter(r);
+                writer.addOrReplaceSubfield("001", "c", dateTime.format(format));
+            }
+
+            return result;
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws OpenAgencyException {
+        logger.entry(record, groupId);
+
+        List<MarcRecord> result = new ArrayList<>();
+
+        try {
+            if (openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
+                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)) {
+
+                logger.info("Record has either USE_ENRICHMENT or AUTH_ROOT so calling splitCompleteBasisRecord");
+                result = splitRecordDataIO(record);
+            } else {
+                logger.info("Record has neither USE_ENRICHMENT nor AUTH_ROOT so returning record");
+                result = Arrays.asList(record);
+            }
+
+            return result;
+
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    /**
+     * If the FBS record is an existing common (870970) record then split it into updated common record and
+     * DBC enrichment record
+     *
+     * @param record  The record to be updated
+     * @param groupId The groupId from the ws request
+     * @return List containing common and DBC record
+     * @throws OpenAgencyException
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+        logger.entry(record, groupId);
+
+        try {
+            MarcRecordReader reader = new MarcRecordReader(record);
+            if (!reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                logger.info("Agency id of record is not 870970 - returning same record");
+                return Arrays.asList(record);
+            }
+
+            NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+
+            MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
+
+            MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
+            MarcRecord dbcEnrichmentRecord;
+
+            String recId = correctedRecordReader.recordId();
+            Integer agencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
+
+            MarcRecord curRecord;
+
+            if (rawRepo.recordExists(recId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, agencyId).getContent());
+                correctedRecord = UpdateOwnership.mergeRecord(correctedRecord, curRecord);
+                logger.info("correctedRecord after mergeRecord\n{}", correctedRecord);
+            } else {
+                logger.info("Common record [{}:{}] does not exist", recId, RawRepo.RAWREPO_COMMON_LIBRARY);
+            }
+
+            String owner = correctedRecordReader.getValue("996", "a");
+
+            if (owner == null) {
+                logger.debug("No owner in record.");
+
+                return Arrays.asList(correctedRecord);
+            } else {
+                logger.info("Owner of record is {}", owner);
+            }
+
+            if (!rawRepo.recordExists(recId, RawRepo.COMMON_LIBRARY)) {
+                logger.debug("DBC enrichment record [{}:{}] does not exist.", recId, RawRepo.COMMON_LIBRARY);
+                dbcEnrichmentRecord = new MarcRecord();
+                MarcField corrected001Field = new MarcField(correctedRecordReader.getField("001"));
+                dbcEnrichmentRecord.getFields().add(corrected001Field);
+
+                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+            } else {
+                logger.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.COMMON_LIBRARY);
+                dbcEnrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_LIBRARY).getContent());
+            }
+
+            String recordStatus = correctedRecordReader.getValue("004", "r");
+            if (recordStatus != null) {
+                logger.debug("Replace 004 *r in DBC enrichment record with: {}", recordStatus);
+                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "r", recordStatus);
+            }
+
+            String recordType = correctedRecordReader.getValue("004", "a");
+            if (recordType != null) {
+                logger.debug("Replace 004 *a in DBC enrichment record with: {}", recordType);
+                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "a", recordType);
+            }
+
+            logger.info("correctedRecord\n{}", correctedRecord);
+            logger.info("dbcEnrichmentRecord\n{}", dbcEnrichmentRecord);
+
+            return Arrays.asList(correctedRecord, dbcEnrichmentRecord);
+        } finally {
+            logger.exit();
+        }
+    }
+
+    /**
+     * Split the input record into two record:
+     * One with all normal Marc fields (001 - 999) and a new record with DBC fields
+     *
+     * @param record The record to be updated
+     * @return List containing common and DBC record
+     */
+    List<MarcRecord> splitRecordDataIO(MarcRecord record) {
+        logger.entry(record);
+
+        try {
+            MarcRecord dbcRecord = new MarcRecord();
+            MarcRecord commonRecord = new MarcRecord();
+
+            for (int i = 0; i < record.getFields().size(); i++) {
+                MarcField field = record.getFields().get(i);
+                if (field.getName().equals("001")) {
+                    MarcField dbcField = new MarcField(field);
+                    for (int d = 0; d < dbcField.getSubfields().size(); d++) {
+                        if (dbcField.getSubfields().get(d).getName().equals("b")) {
+                            dbcField.getSubfields().get(d).setValue(RawRepo.COMMON_LIBRARY.toString());
+                        }
+                    }
+                    dbcRecord.getFields().add(dbcField);
+
+                    MarcField commonField = new MarcField(field);
+                    for (int c = 0; c < commonField.getSubfields().size(); c++) {
+                        if (commonField.getSubfields().get(c).getName().equals("b")) {
+                            commonField.getSubfields().get(c).setValue(RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+                        }
+                    }
+                    commonRecord.getFields().add(commonField);
+
+                } else if (field.getName().equals("004")) {
+                    dbcRecord.getFields().add(field);
+                    commonRecord.getFields().add(field);
+                } else if (field.getName().matches("[a-z].*")) {
+                    dbcRecord.getFields().add(field);
+                } else {
+                    commonRecord.getFields().add(field);
+                }
+            }
+
+
+            logger.info("commonRecord\n{}", commonRecord);
+            logger.info("dbcRecord\n{}", dbcRecord);
+
+            return Arrays.asList(commonRecord, dbcRecord);
+        } finally {
+            logger.exit();
         }
     }
 
