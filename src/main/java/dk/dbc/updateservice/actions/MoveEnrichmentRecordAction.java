@@ -132,7 +132,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
                 logger.info("Creating enrichment record without classifications, because there are no change in die/live records.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-        } catch (ScripterException | UnsupportedEncodingException ex) {
+        } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit(result);
