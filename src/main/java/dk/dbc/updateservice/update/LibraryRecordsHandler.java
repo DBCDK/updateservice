@@ -35,6 +35,7 @@ import java.util.Properties;
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
     static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
+    static final String classificationFields = "008|009|038|039|100|110|239|245|652";
 
     @EJB
     private Scripter scripter;
@@ -92,27 +93,20 @@ public class LibraryRecordsHandler {
      * @param record The record.
      * @return <code>true</code> if classifications where found,
      * <code>false</code> otherwise.
-     * @throws ScripterException
      */
-    public boolean hasClassificationData(MarcRecord record) throws ScripterException {
+    public boolean hasClassificationData(MarcRecord record) {
         logger.entry(record);
-        Object jsResult = null;
+        boolean result = false;
         try {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(record);
-                jsResult = scripter.callMethod("hasClassificationData", json);
-            } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: hasClassificationData", ex);
+            List<MarcField> it = record.getFields();
+            for (int ix = 0; ix < it.size(); ix++) {
+                if (classificationFields.contains(it.get(ix).getName())) {
+                    return result = true;
+                }
             }
-            logger.trace("Result from hasClassificationData JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof Boolean) {
-                logger.exit();
-                return ((Boolean) jsResult);
-            }
-            throw new ScripterException("The JavaScript function %s must return a boolean value.", "hasClassificationData");
+            return result = false;
         } finally {
-            logger.exit(jsResult);
+            logger.exit(result);
         }
     }
 
