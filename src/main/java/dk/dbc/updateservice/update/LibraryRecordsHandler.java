@@ -19,6 +19,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -66,24 +67,11 @@ public class LibraryRecordsHandler {
      */
     public boolean isRecordInProduction(MarcRecord record) throws ScripterException {
         logger.entry(record);
-        Object jsResult = null;
+
         try {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writeValueAsString(record);
-                logger.trace("Kalder IRP - data {}", json);
-                jsResult = scripter.callMethod("isRecordInProduction", json);
-            } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: isRecordInProduction", ex);
-            }
-            logger.trace("Result from isRecordInProduction JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof Boolean) {
-                logger.exit();
-                return ((Boolean) jsResult);
-            }
-            throw new ScripterException("The JavaScript function %s must return a boolean value.", "isRecordInProduction");
+            return CatalogExtractionCode.isUnderProduction(record, LocalDate.now());
         } finally {
-            logger.exit(jsResult);
+            logger.exit();
         }
     }
 
