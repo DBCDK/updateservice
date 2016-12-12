@@ -19,7 +19,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class LibraryRecordsHandler {
         logger.entry(record);
 
         try {
-            return CatalogExtractionCode.isUnderProduction(record, LocalDate.now());
+            return CatalogExtractionCode.isUnderProduction(record);
         } finally {
             logger.exit();
         }
