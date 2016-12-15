@@ -141,7 +141,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             }
-            bizLoggerOutput(updReader);
+            logRecordInfo(updReader);
             if (isDoubleRecordPossible(updReader)) {
                 if (state.getUpdateMode().isFBSMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDto().getDoubleRecordKey());
@@ -181,7 +181,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void bizLoggerOutput(MarcRecordReader updReader) throws UpdateException {
+    private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
         logger.info("Delete?................: " + updReader.markedForDeletion());
         logger.info("isDBC?.................: " + updReader.isDBCRecord());
         logger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
