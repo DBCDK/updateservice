@@ -236,7 +236,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq("700100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -296,7 +295,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq("700100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -313,7 +311,7 @@ public class OverwriteSingleRecordActionTest {
      * Test performAction(): Update single common record with changes to
      * its current classifications, and with holdings for a local library.
      * <p>
-     * LibraryRecordsHandler.shouldCreateEnrichmentRecords returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
+     * LibraryRecordsHandler.valueIsDifferent returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
      * so new enrichment records should not be created.
      * </p>
      * <p>
@@ -355,7 +353,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -558,7 +555,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -634,7 +630,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -652,7 +647,7 @@ public class OverwriteSingleRecordActionTest {
      * Test performAction(): Update single common record with changes to
      * its current classifications, and creation/update of enrichments.
      * <p>
-     * LibraryRecordsHandler.shouldCreateEnrichmentRecords returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
+     * LibraryRecordsHandler.valueIsDifferent returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
      * so new enrichment records should not be created.
      * </p>
      * <p>
@@ -696,6 +691,7 @@ public class OverwriteSingleRecordActionTest {
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
         String recordId = AssertActionsUtil.getRecordId(record);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
@@ -713,7 +709,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -732,7 +727,7 @@ public class OverwriteSingleRecordActionTest {
      * Test performAction(): Update single common record with changes to
      * its current classifications, and creation/update of enrichments.
      * <p>
-     * LibraryRecordsHandler.shouldCreateEnrichmentRecords returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
+     * LibraryRecordsHandler.valueIsDifferent returns UpdateStatusEnum.FAILED_UPDATE_INTERNAL_ERROR
      * so new enrichment records should not be created.
      * </p>
      * <p>
@@ -792,7 +787,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(record), eq(record))).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -1098,7 +1092,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(c2))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c2), eq(c1))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -1162,6 +1155,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(c2).addOrReplaceSubfield("032", "a", "DBI999999");
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
@@ -1173,7 +1167,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(c2))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c2), eq(c1))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -1245,7 +1238,6 @@ public class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c2), eq(c1))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));

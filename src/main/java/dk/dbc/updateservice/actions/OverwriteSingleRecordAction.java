@@ -10,6 +10,7 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
@@ -116,12 +117,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         } else if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
-                            ServiceResult serviceResult = state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, currentRecord, record);
-                            if (serviceResult.getStatus() != UpdateStatusEnumDto.OK) {
-                                logger.info("Enrichment record is not created for reason: {}", serviceResult);
-                            } else {
+                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
                                 logger.info("Create new extended library record: [{}:{}].", recordId, id);
                                 result.add(getActionDataForEnrichmentWithClassification(currentRecord, id.toString()));
+                            } else {
+                                logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                             }
                         }
                     }
@@ -291,7 +291,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                     enrichmentCandidate.put(holdingAgencyIdString, marcRecords);
                                 }
                             }
-                            if (state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(settings, linkRecord, currentRecord).getStatus() == UpdateStatusEnumDto.OK) {
+                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(),linkRecord, currentRecord)) {
                                 children.add(getActionDataForEnrichmentRecord(holdingAgencyIdString, destinationCommonRecordId, linkRecord));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);

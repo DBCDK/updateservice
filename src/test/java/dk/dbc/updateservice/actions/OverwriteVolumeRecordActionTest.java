@@ -258,7 +258,6 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -415,7 +414,6 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(volumeRecord), eq(volumeRecord))).thenReturn(ServiceResult.newOkResult());
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));

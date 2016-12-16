@@ -34,7 +34,6 @@ import java.util.Properties;
 @Stateless
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
-    static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
     static final String classificationFieldas = "008|009|038|039|100|110|239|245|652";
     static final List<String> classificationFields =  Arrays.asList( "008", "009", "038", "039", "100", "110", "239", "245" ,"652" );
 
@@ -207,44 +206,6 @@ public class LibraryRecordsHandler {
             throw new ScripterException("The JavaScript function %s must return a boolean value.", "hasClassificationsChanged");
         } finally {
             logger.exit(jsResult);
-        }
-    }
-
-    /**
-     * Tests if we should create new enrichment records for a common record.
-     * <p>
-     * This function is implementated by calling the JavaScript function: shouldCreateEnrichmentRecords
-     * </p>
-     * <p>
-     * This function returns a ServiceResult with status <code>OK</code> if we should create enrichment
-     * records. Otherwise we should not create enrichment records. An entry in the result is added to
-     * explain why enrichment records should not be created.
-     * </p>
-     * <p>
-     * This feature is provided so the ServiceAction has a change to write to the business log why enrichment
-     * records should not be created.
-     * </p>
-     *
-     * @param currentCommonRecord  The current common record in rawrepo.
-     * @param updatingCommonRecord The common record to create enrichment records for.
-     * @return ServiceResult with the result.
-     * @throws ScripterException In case of an error from JavaScript.
-     */
-    public ServiceResult shouldCreateEnrichmentRecords(Properties settings, MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord) throws ScripterException {
-        logger.entry(settings, currentCommonRecord, updatingCommonRecord);
-        ServiceResult result = null;
-        try {
-            Object jsResult = scripter.callMethod(CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, settings, Json.encode(currentCommonRecord), Json.encode(updatingCommonRecord));
-            logger.debug("Result from " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
-            if (jsResult instanceof String) {
-                return result = Json.decode(jsResult.toString(), ServiceResult.class);
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME));
-        } catch (IOException ex) {
-            logger.catching(ex);
-            throw new ScripterException("Error when executing JavaScript function: " + CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME, ex);
-        } finally {
-            logger.exit(result);
         }
     }
 
