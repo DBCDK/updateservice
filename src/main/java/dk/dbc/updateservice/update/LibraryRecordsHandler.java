@@ -35,7 +35,8 @@ import java.util.Properties;
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
     static final String CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME = "shouldCreateEnrichmentRecords";
-    static final String classificationFields = "008|009|038|039|100|110|239|245|652";
+    static final String classificationFieldas = "008|009|038|039|100|110|239|245|652";
+    static final List<String> classificationFields =  Arrays.asList( "008", "009", "038", "039", "100", "110", "239", "245" ,"652" );
 
     @EJB
     private Scripter scripter;
@@ -85,9 +86,9 @@ public class LibraryRecordsHandler {
         logger.entry(record);
         boolean result = false;
         try {
-            List<MarcField> it = record.getFields();
-            for (int ix = 0; ix < it.size(); ix++) {
-                if (classificationFields.contains(it.get(ix).getName())) {
+            List<MarcField> fields = record.getFields();
+            for (int fieldno = 0; fieldno < fields.size(); fieldno++) {
+                if (classificationFields.contains(fields.get(fieldno).getName())) {
                     return result = true;
                 }
             }
@@ -109,6 +110,84 @@ public class LibraryRecordsHandler {
      * <code>false</code> otherwise.
      * @throws ScripterException
      */
+    public boolean NEWhasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) {
+
+        MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
+        MarcRecordReader newReader = new MarcRecordReader(newRecord);
+        String oldValue;
+        String newValue;
+
+        // if 008*t has changed from m or s to p and reverse return true.
+        oldValue = oldReader.getValue("008", "t");
+        newValue = newReader.getValue("008", "t");
+        oldValue = oldValue == null ? "" : oldValue;
+        newValue = newValue == null ? "" : newValue;
+        if ( (oldValue.equals("m") || oldValue.equals("s")) && newValue.equals("p")) {
+            return true;
+        }
+        if ( (newValue.equals("m") || newValue.equals("s")) && oldValue.equals("p")) {
+            return true;
+        }
+
+        // Check if content of 009*a has changed - NB there can be more than one *a
+        // Check if content of 009*g has changed - NB there can be more than one *g
+        // NBNBNB if more than one ag, then pairs og them should be checked
+        // se evt her : http://praxis.dbc.dk/formatpraksis/px-for1796.html/#pxkoko
+
+        // if content of 038 has changed return true
+        List<MarcSubField> soldValue = oldReader.getField("038").getSubfields();
+        newValue = newReader.getValue("038", "t");
+        oldValue = oldValue == null ? "" : oldValue;
+        newValue = newValue == null ? "" : newValue;
+        if (!oldValue.equals("") || !newValue.equals("")) {
+            if (!oldValue.equals(newValue)) {
+                return true;
+            }
+        }
+
+        // if content of 039 has changed return true
+
+        // if content of 100*[ahkef] stripped has changed return true.
+
+        // if content of 110*[saceikj] stripped has changed return true
+
+        // if 239 is changed
+        //      (checkfield = true, check245a = true)
+        //      if no 239 in old and 239 in new : checkfield = old 245a != new 239t ; check245a = checkfield
+        //      else if 239 in old and 239 in new : checkfield = true ; check245a = no 239t in new
+        //      else if 239 in old and no 239 in new : checkfield = old 239t != new 245a ; check245a = checkfield
+        //      else if no 239 in old and no 239 in new : checkfield = false ; check245a = true
+        // if checkfield : if 239*[ahkeftø] stripped 10 has changed return true.
+
+        // if 245a stripped 10 has changed then
+        //      if new 004a == s then
+        //          get 245n stripped from old and new
+        //          if equal check245a false
+        //      else
+        //      if new 004a == b then
+        //          get 245g stripped 10 from old and new
+        //          if equal check245a false
+        //  if check245a
+        //      return true.
+        //
+        //  if 245g stripped 10 changed return true
+        //  if 245m changed return true
+        //  if 245n stripped changed return true
+        //  if 245o stripped 10 changed return true
+        //  if 245y stripped 10 changed return true
+        //  if 245æ stripped 10 changed return true
+        //  if 245ø stripped 10 changed return true
+        //
+        //  if 652a stripped 10 changed return true
+        //  if 652b stripped 10 changed return true
+        //  if 652m or 652o then
+        //      if 652e stripped changed return true
+        //      if 652f stripped changed return true
+        //      if 652h stripped changed return true
+        //  if 652m stripped changed return true
+        //  if 652o stripped changed return true
+        return false;
+    }
     public boolean hasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) throws ScripterException {
         logger.entry(oldRecord, newRecord);
         Object jsResult = null;
