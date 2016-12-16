@@ -41,7 +41,7 @@ public class StatusService {
     }
 
     @GET
-    @Path("/isReady")
+    @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() throws Exception {
         logger.entry();
