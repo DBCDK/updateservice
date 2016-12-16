@@ -46,41 +46,6 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testCreateEnrichmentRecords_True() throws Exception {
-        MarcRecord currentCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcRecord updatingCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
-        String currentCommonRecordArgument = Json.encode(currentCommonRecord);
-        String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
-        String scripterResult = Json.encode(ServiceResult.newOkResult());
-        when(scripter.callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
-                isNull(Properties.class),
-                eq(currentCommonRecordArgument),
-                eq(updatingCommonRecordArgument))).thenReturn(scripterResult);
-
-        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(ServiceResult.newOkResult()));
-    }
-
-    @Test
-    public void testCreateEnrichmentRecords_False() throws Exception {
-        MarcRecord currentCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcRecord updatingCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
-        String currentCommonRecordArgument = Json.encode(currentCommonRecord);
-        String updatingCommonRecordArgument = Json.encode(updatingCommonRecord);
-        ServiceResult scripterReason = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "reason", state);
-        String scripterResult = Json.encode(scripterReason);
-        when(scripter.callMethod(eq(LibraryRecordsHandler.CREATE_ENRICHMENT_RECORDS_FUNCTION_NAME),
-                isNull(Properties.class),
-                eq(currentCommonRecordArgument),
-                eq(updatingCommonRecordArgument))).thenReturn(scripterResult);
-
-        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        assertThat(instance.shouldCreateEnrichmentRecords(null, currentCommonRecord, updatingCommonRecord), equalTo(scripterReason));
-    }
-
-    @Test
     public void testsplitCompleteBasisRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);

@@ -73,7 +73,6 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newOkResult());
         when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c2))).thenReturn(true);
 
@@ -132,7 +131,6 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getLibraryRecordsHandler().shouldCreateEnrichmentRecords(eq(settings), eq(c1), eq(c2))).thenReturn(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED));
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1, false, false);
         instance.setCommonRecord(c2);
