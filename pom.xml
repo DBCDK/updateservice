@@ -44,6 +44,14 @@
         </repository>
     </repositories>
 
+
+    <scm>
+        <connection>scm:svn:https://svn.dbc.dk/repos/saouservice/trunk/sources/</connection>
+        <developerConnection>scm:svn:https://svn.dbc.dk/repos/saouservice/trunk/sources/</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://svn.dbc.dk/repos/saouservice/trunk/sources/</url>
+    </scm>
+
     <pluginRepositories>
         <pluginRepository>
             <id>mavenrepo.dbc.dk</id>
@@ -366,6 +374,22 @@
                 <configuration>
                     <show>private</show>
                     <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>create-metadata</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <attach>true</attach>
+                    <addOutputDirectoryToResources>true</addOutputDirectoryToResources>
                 </configuration>
             </plugin>
         </plugins>

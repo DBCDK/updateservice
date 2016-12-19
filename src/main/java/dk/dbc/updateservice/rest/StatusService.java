@@ -12,6 +12,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import java.net.URL;
+import java.util.Properties;
+
 import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 /**
@@ -54,6 +57,27 @@ public class StatusService {
             return Response.status(SERVICE_UNAVAILABLE).build();
         } finally {
             logger.exit(res);
+        }
+    }
+
+    @GET
+    @Path("/getrevision")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getRevision() throws Exception {
+        logger.entry();
+        try {
+            URL path = StatusService.class.getClassLoader().getResource("build.properties");
+            Properties properties = new Properties();
+            properties.load(path.openStream());
+            if (properties.containsKey("revision")) {
+                return Response.ok("Svn revision nr is " + properties.getProperty("revision"), MediaType.TEXT_PLAIN).build();
+            }
+            return Response.ok("Cannot resolve an svn revision number, the machine building the app might not have svn installed", MediaType.TEXT_PLAIN).build();
+        } catch (Exception e) {
+            logger.catching(e);
+            return Response.serverError().build();
+        } finally {
+            logger.exit();
         }
     }
 }
