@@ -36,6 +36,11 @@ public class ValidateOperationAction extends AbstractAction {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         children.add(validateSchemaAction);
 
+        if (state.getUpdateMode().isFBSMode() && state.getUpdateServiceRequestDto().getDoubleRecordKey() == null) {
+            DoubleRecordFrontendAction doubleRecordFrontendAction = new DoubleRecordFrontendAction(state, settings, state.readRecord());
+            children.add(doubleRecordFrontendAction);
+        }
+
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
         validateRecordAction.setOkStatus(okStatus);
         children.add(validateRecordAction);
