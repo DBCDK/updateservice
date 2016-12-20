@@ -39,7 +39,7 @@ public class DefaultEnrichmentRecordHandler {
      *
      */
     public static boolean shouldCreateEnrichmentRecordsResult(ResourceBundle resourceBundle, MarcRecord updatingCommonRecord, MarcRecord currentCommonRecord) {
-        logger.entry(currentCommonRecord, updatingCommonRecord);
+        logger.entry(updatingCommonRecord, currentCommonRecord);
         boolean result = true;
         try {
             MarcRecordReader updatingCommonRecordReader = new MarcRecordReader(updatingCommonRecord);

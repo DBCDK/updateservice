@@ -256,7 +256,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     continue;
                 }
                 MarcRecord linkRecord = loadRecord(recordId, agencyId);
-                boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(record, linkRecord);
+                boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(linkRecord, record);
                 boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(linkRecord);
 				// The real boolean wanted is :
 				// (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
