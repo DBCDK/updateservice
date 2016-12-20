@@ -119,7 +119,7 @@ public class ScripterPool {
             Thread jsInitThreads = new Thread(() -> {
                 //final XLogger logger = XLoggerFactory.getXLogger("ScripterPool.PostConstruct.InitThread");
                 final XLogger logger = XLoggerFactory.getXLogger(this.getClass());
-                logger.info("Starting Creating {} JS enviroments ", active_javaScriptPoolSize);
+                logger.info("Started creating {} JS environment(s) ", active_javaScriptPoolSize);
                 Profiler profiler = new Profiler("JS init thread");
                 for (int i = 0; i < active_javaScriptPoolSize; i++) {
                     try {
@@ -129,15 +129,14 @@ public class ScripterPool {
                         initializedEnvironments.incrementAndGet();
                         logger.info("Environment " + (i + 1) + "/" + active_javaScriptPoolSize + " added to ready queue");
                     } catch (Exception e) {
-                        logger.error("JavaScript Environment creation failed ", e);
+                        logger.error("JavaScript environment creation failed ", e);
                         e.printStackTrace();
                     } finally {
-                        logger.exit("Finally");
+                        logger.exit();
                     }
                 }
                 logger.info("JS init thread done:\n{}", profiler.stop());
             });
-
             jsInitThreads.setDaemon(true);
             jsInitThreads.start();
         } finally {
@@ -154,10 +153,10 @@ public class ScripterPool {
      * @return the head of this pool
      * @throws InterruptedException if interrupted while waiting
      */
+    @SuppressWarnings("Duplicates")
     public ScripterEnvironment take() throws InterruptedException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("javascript.env.take");
-
         try {
             logger.info("Take environment from queue with size: {}", environments.size());
             return environments.take();
