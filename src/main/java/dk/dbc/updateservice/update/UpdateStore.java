@@ -38,7 +38,7 @@ public class UpdateStore {
 
     public boolean doesDoubleRecordKeyExist(String key) {
         boolean res = false;
-        DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key, LockModeType.WRITE);
+        DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key, LockModeType.PESSIMISTIC_WRITE);
         logger.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: " + dpkOverride);
         if (dpkOverride != null) {
             entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
