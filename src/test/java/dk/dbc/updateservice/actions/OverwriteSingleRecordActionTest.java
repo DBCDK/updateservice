@@ -1091,7 +1091,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(c2))).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c2), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
