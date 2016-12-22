@@ -8,7 +8,6 @@ import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -95,7 +94,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             addDatefieldTo001d(reader);
             children.add(new AuthenticateRecordAction(state));
-            MarcRecordReader updReader = new MarcRecordReader(record);
+            MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
 
@@ -104,7 +103,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, validatePreviousFaustMessage, state);
             }
-            addDoubleRecordFrontendActionIfNecessary(updReader);
+            addDoubleRecordFrontendActionIfNecessary();
 
             logger.info("Split record into records to store in rawrepo. UpdateMode is {}", state.getUpdateMode().isFBSMode() ? "FBS" : "DATAIO");
 
@@ -142,7 +141,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
             logRecordInfo(updReader);
-            if (isDoubleRecordPossible(updReader)) {
+            if (state.isDoubleRecordPossible()) {
                 if (state.getUpdateMode().isFBSMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDto().getDoubleRecordKey());
                     if (test) {
@@ -174,8 +173,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void addDoubleRecordFrontendActionIfNecessary(MarcRecordReader reader) throws UpdateException {
-        if (isDoubleRecordPossible(reader) && state.getUpdateMode().isFBSMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey())) {
+    private void addDoubleRecordFrontendActionIfNecessary() throws UpdateException {
+        Boolean doubleRecordPossible = state.isDoubleRecordPossible();
+        Boolean fbsMode = state.getUpdateMode().isFBSMode();
+        Boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey());
+        if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings, record));
         }
@@ -187,11 +189,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
         logger.info("agency id?.............: " + updReader.agencyIdAsInteger());
         logger.info("RR common library?.....: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-        logger.info("isDoubleRecordPossible?: " + isDoubleRecordPossible(updReader));
-    }
-
-    private boolean isDoubleRecordPossible(MarcRecordReader updReader) throws UpdateException {
-        return !updReader.markedForDeletion() && !updReader.isDBCRecord() && !rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()) && updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY);
+        logger.info("isDoubleRecordPossible?: " + state.isDoubleRecordPossible());
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {

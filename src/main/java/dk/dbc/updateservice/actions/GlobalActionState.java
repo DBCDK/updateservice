@@ -13,6 +13,7 @@ import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
 import org.slf4j.ext.XLogger;
@@ -45,6 +46,8 @@ public class GlobalActionState {
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
     private UpdateMode updateMode = null;
+    private MarcRecordReader marcRecordReader = null;
+    private Boolean doubleRecordPossible = null;
 
     public GlobalActionState() {
     }
@@ -73,6 +76,8 @@ public class GlobalActionState {
         recordPid = null;
         marcRecord = null;
         bibliographicRecordExtraData = null;
+        marcRecordReader = null;
+        doubleRecordPossible = null;
     }
 
     public UpdateServiceRequestDto getUpdateServiceRequestDto() {
@@ -184,31 +189,26 @@ public class GlobalActionState {
 
     public void setUpdateMode(UpdateMode updateMode) { this.updateMode = updateMode; }
 
-    public String getRecordPid() {
-        logger.entry();
-        try {
-            if (recordPid == null) {
-                String faustNbr = "faust";
-                String agencyId = "agency";
-                MarcRecord record = readRecord();
-                if (record != null) {
-                    MarcRecordReader reader = new MarcRecordReader(record);
-                    String newFaustNbr = reader.recordId();
-                    if (newFaustNbr != null) {
-                        faustNbr = newFaustNbr;
-                    }
-                    String newAgencyId = reader.agencyId();
-                    if (newAgencyId != null) {
-                        agencyId = newAgencyId;
-                    }
-                }
-                recordPid = faustNbr + ":" + agencyId;
-            }
-            return recordPid;
-        } finally {
-            logger.exit(recordPid);
+    public MarcRecordReader getMarcRecordReader() {
+        if (marcRecordReader == null) {
+            marcRecordReader = new MarcRecordReader(readRecord());
         }
+        return marcRecordReader;
     }
+
+    public boolean isDoubleRecordPossible() throws UpdateException {
+        marcRecordReader = getMarcRecordReader();
+        if (doubleRecordPossible == null) {
+            Boolean markedForDeletion = marcRecordReader.markedForDeletion();
+            Boolean dataIOMode = updateMode.isDataIOMode();
+            Boolean recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
+            Integer agencyIdAsInteger = marcRecordReader.agencyIdAsInteger();
+            Boolean agencyIdEqualsRawRepoCommonLibrary = agencyIdAsInteger.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
+            doubleRecordPossible = !markedForDeletion && !dataIOMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
+        }
+        return doubleRecordPossible;
+    }
+
 
     /**
      * Reads the validation scheme, also known as the template name, of the

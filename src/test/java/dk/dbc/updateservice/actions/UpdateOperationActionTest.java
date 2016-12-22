@@ -226,8 +226,9 @@ public class UpdateOperationActionTest {
      * </dd>
      * </dl>
      */
+
     @Test
-    public void testPerformAction_CreateCommonRecord() throws Exception {
+    public void testPerformAction_CreateCommonRecord_test1() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -244,7 +245,7 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
         updwriter.addOrReplaceSubfield("001", "a", "206111600");
-        updwriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
 
         UpdateMode updateModeDataIO = new UpdateMode(UpdateMode.Mode.DATAIO);
         UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
@@ -260,8 +261,6 @@ public class UpdateOperationActionTest {
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
-        updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
-
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -272,44 +271,144 @@ public class UpdateOperationActionTest {
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_CreateCommonRecord_test2() throws Exception {
+        // Load a 191919 record - this is the rawrepo record
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+
+        // Load an enrichment record. Set the library to 870970 in 001*b
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+
+        // Load the updating record - set the library to 870970 in 001*b
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
+        MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
+        updwriter.addOrReplaceSubfield("001", "a", "206111600");
+        updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+
+        UpdateMode updateModeDataIO = new UpdateMode(UpdateMode.Mode.DATAIO);
+        UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
+        state.setUpdateMode(updateModeDataFBS);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
         // this shall create an doublerecord action
-        state.setUpdateMode(updateModeDataFBS);
-
         updwriter.addOrReplaceSubfield("996", "a", "810010");
 
-        updateOperationAction = new UpdateOperationAction(state, settings);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
-        children = updateOperationAction.children();
+
+        List<ServiceAction> children = updateOperationAction.children();
+        System.out.println("children = " + children);
         assertThat(children.size(), is(5));
-        iterator = children.listIterator();
+        ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord, state.getScripter());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_CreateCommonRecord_test3() throws Exception {
+        // Load a 191919 record - this is the rawrepo record
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+
+        // Load an enrichment record. Set the library to 870970 in 001*b
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+
+        // Load the updating record - set the library to 870970 in 001*b
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
+        MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
+        updwriter.addOrReplaceSubfield("001", "a", "206111600");
+        updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+
+        UpdateMode updateModeDataIO = new UpdateMode(UpdateMode.Mode.DATAIO);
+        UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
+        state.setUpdateMode(updateModeDataFBS);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 3 - Doublepost frontend, forced update, key found
         String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
         state.getUpdateServiceRequestDto().setDoubleRecordKey(doubleRecordKey);
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(true);
-        updateOperationAction = new UpdateOperationAction(state, settings);
+
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
-        children = updateOperationAction.children();
+
+        List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(4));
-        iterator = children.listIterator();
+        ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_CreateCommonRecord_test4() throws Exception {
+        // Load a 191919 record - this is the rawrepo record
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+
+        // Load an enrichment record. Set the library to 870970 in 001*b
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+
+        // Load the updating record - set the library to 870970 in 001*b
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
+        MarcRecordWriter updwriter = new MarcRecordWriter(updateRecord);
+        updwriter.addOrReplaceSubfield("001", "a", "206111600");
+        updwriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+
+        UpdateMode updateModeDataIO = new UpdateMode(UpdateMode.Mode.DATAIO);
+        UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
+        state.setUpdateMode(updateModeDataFBS);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 4 - Doublepost frontend, forced update, key not found
+        String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
+        state.getUpdateServiceRequestDto().setDoubleRecordKey(doubleRecordKey);
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
-        updateOperationAction = new UpdateOperationAction(state, settings);
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
