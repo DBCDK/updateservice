@@ -1,39 +1,28 @@
 package dk.dbc.updateservice.update;
 
-
 import dk.dbc.iscrum.records.*;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class DefaultEnrichmentRecordHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
 
-    /*
-    * Regex explanation:
-    * (?i) = case insensitive
-    * (value1|value2) Matches either "value1" or "value2"
-    * 999999 must end with "999999"
-    */
-    private static final String CAT_CODES = "(?i)(DBF|DLF|DBI|DMF|DMO|DPF|BKM|GBF|GMO|GPF|FPF|DBR|UTI)";
-    private static final String CAT_CODES_ANY_DATE = CAT_CODES + "(.+?)";
-    private static final String CAT_CODES_TEMPORARY_DATE = CAT_CODES + "(999999)";
-    private static final String NO_OPSTILLING = "(?i)ny\\stitel|Uden\\sklassem\\xe6rke";
+    private static final List<String> CAT_CODES = Arrays.asList("DBF", "DLF", "DBI", "DMF", "DMO", "DPF", "BKM", "GBF", "GMO", "GPF", "FPF", "DBR", "UTI");
 
     /**
      * Checks if we should create enrichment records for a common record.
      * An enrichment record should be created if:
-     * - The current record doesn't have opstilling
+     * - The current record doesn't have classification (opstilling)
      * - The new record does not have a temporary production date
      * - The current record is not under production
      *
-     * In case no enrichment should be created a log is added with an explanation
+     * In case no enrichment should be created a log is added with an reason
      *
-     * @param updatingCommonRecord The common record begin updated as a json.
-     * @param currentCommonRecord  The current common record as a json.
+     * @param updatingCommonRecord The common record being updated
+     * @param currentCommonRecord  The current common record
      *
      * @return boolean - true if enrichment record should be created, otherwise false
      *
@@ -45,17 +34,17 @@ public class DefaultEnrichmentRecordHandler {
             MarcRecordReader updatingCommonRecordReader = new MarcRecordReader(updatingCommonRecord);
             MarcRecordReader currentCommonRecordReader = new MarcRecordReader(currentCommonRecord);
 
-            if (currentCommonRecordReader.matchValue("652", "m", NO_OPSTILLING)) {
+            if (matchesNoClassification(currentCommonRecordReader.getValue("652", "m"))) {
                 logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
                 return result = false;
             }
 
-            if (updatingCommonRecordReader.matchValue("032", "x", CAT_CODES_TEMPORARY_DATE)) {
+            if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "x"))) {
                 logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
                 return result = false;
             }
 
-            if (updatingCommonRecordReader.matchValue("032", "a", CAT_CODES_TEMPORARY_DATE)) {
+            if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "a"))) {
                 logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
                 return result = false;
             }
@@ -98,7 +87,7 @@ public class DefaultEnrichmentRecordHandler {
             MarcField field = reader.getField("032");
             if (field != null) {
                 for (MarcSubField subfield : field.getSubfields()) {
-                    if (subfield.getValue().matches(CAT_CODES_ANY_DATE)) {
+                    if (matchesCatCodeAndDate(subfield.getValue())) {
                         result.add(subfield.getName() + ":" + subfield.getValue());
                     }
                 }
@@ -126,8 +115,8 @@ public class DefaultEnrichmentRecordHandler {
             List<String> oldValues = collectProductionCodes(actualRec);
             List<String> newValues = collectProductionCodes(newRec);
 
-            java.util.Collections.sort(oldValues);
-            java.util.Collections.sort(newValues);
+            Collections.sort(oldValues);
+            Collections.sort(newValues);
 
             logger.debug("oldValues: {}", oldValues);
             logger.debug("newValues: {}", newValues);
@@ -149,6 +138,37 @@ public class DefaultEnrichmentRecordHandler {
         } finally {
             logger.exit(result);
         }
+    }
+
+    private static boolean matchesCatCodeAndDate(String input) {
+        if (input.length() == 9) {
+            String firstThreeLetters = input.substring(0,3);
+            String lastSixLetters = input.substring(3);
+            if (CAT_CODES.contains(firstThreeLetters.toUpperCase()) && StringUtils.isNumeric(lastSixLetters)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean matchesCatCodeAndTemporaryDate(String input) {
+        if (input != null && input.length() == 9) {
+            String firstThreeLetters = input.substring(0,3);
+            String lastSixLetters = input.substring(3);
+            if (CAT_CODES.contains(firstThreeLetters.toUpperCase()) && "999999".equalsIgnoreCase(lastSixLetters)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean matchesNoClassification(String input) {
+        String newTitle = "ny titel";
+        String withoutClass = "uden klassemærke";
+
+        return newTitle.equalsIgnoreCase(input) || withoutClass.equalsIgnoreCase(input);
     }
 
 }
