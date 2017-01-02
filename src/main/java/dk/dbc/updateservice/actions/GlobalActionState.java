@@ -199,12 +199,23 @@ public class GlobalActionState {
     public boolean isDoubleRecordPossible() throws UpdateException {
         marcRecordReader = getMarcRecordReader();
         if (doubleRecordPossible == null) {
-            Boolean markedForDeletion = marcRecordReader.markedForDeletion();
-            Boolean dataIOMode = updateMode.isDataIOMode();
-            Boolean recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
-            Integer agencyIdAsInteger = marcRecordReader.agencyIdAsInteger();
-            Boolean agencyIdEqualsRawRepoCommonLibrary = agencyIdAsInteger.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
-            doubleRecordPossible = !markedForDeletion && !dataIOMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
+            if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
+                Boolean markedForDeletion = marcRecordReader.markedForDeletion();
+                Boolean dataIOMode = updateMode.isDataIOMode();
+                Boolean recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
+                Integer agencyIdAsInteger = marcRecordReader.agencyIdAsInteger();
+                Boolean agencyIdEqualsRawRepoCommonLibrary = agencyIdAsInteger.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
+                doubleRecordPossible = !markedForDeletion && !dataIOMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
+            } else {
+                /*
+                     If the record lacks 001a and 001b it is not a valid record and will be rejected at a later stage.
+                     However since we want to perform the double record possible check as soon as possible we have to
+                     handle empty records - therefor this check/hack.
+
+                     False is returned as a record without 001a and 001b can't possibly exist already.
+                 */
+                doubleRecordPossible = false;
+            }
         }
         return doubleRecordPossible;
     }
