@@ -19,7 +19,7 @@ import java.util.Properties;
  * These cases must be handled by other actions.
  * </p>
  */
-public class DeleteRecordAction extends StoreRecordAction {
+public class  DeleteRecordAction extends StoreRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
     public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
@@ -28,6 +28,9 @@ public class DeleteRecordAction extends StoreRecordAction {
     }
 
     /**
+     * Note 2017-01-04: It has been decided that deletion of posts should not be filtered and instead the entire input
+     * record should be passed to rawrepo.
+     *
      * Returns the record that should be stored in the rawrepo.
      * <p>
      * This implementation constructs a new record with the fields
@@ -37,8 +40,8 @@ public class DeleteRecordAction extends StoreRecordAction {
      *
      * @return The record to store.
      */
-    @Override
-    public MarcRecord recordToStore() {
+    //@Override
+    public MarcRecord recordToStoreDeprecated() {
         logger.entry();
         MarcRecord result = null;
         try {
@@ -48,6 +51,9 @@ public class DeleteRecordAction extends StoreRecordAction {
                     result.getFields().add(field);
                 }
                 if (field.getName().equals("004")) {
+                    result.getFields().add(field);
+                }
+                if (field.getName().equals("248")) {
                     result.getFields().add(field);
                 }
             }
