@@ -43,7 +43,7 @@ public class DeleteRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         DeleteRecordAction instance = new DeleteRecordAction(state, properties, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.DELETED_BOOK_TO_STORE_RESOURCE);
+        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         assertThat(instance.recordToStore(), equalTo(expected));
     }
 }
