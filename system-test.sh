@@ -5,7 +5,7 @@ function die() {
     exit 1
 }
 
-export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | head -1)
+export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
 echo "Using host IP: ${HOST_IP}"
 
 cd docker/deployments/systemtests || die "cd docker/deployments/systemtests"
@@ -39,8 +39,8 @@ docker-compose up -d update-systemtests-rawrepo-db \
 sleep 10 || die "sleep 10"
 
 echo "Wait for glassfish containers"
-../../bin/return-when-status-ok.sh ${HOST_IP} 18180 '[dataio]'
-../../bin/return-when-status-ok.sh ${HOST_IP} 18280 '[fbs]'
+../../bin/return-when-status-ok.sh ${HOST_IP} 18180 '[dataio]' || die "could not start dataio"
+../../bin/return-when-status-ok.sh ${HOST_IP} 18280 '[fbs]' || die "could not start fbs"
 
 sleep 3 || die "sleep 3"
 
