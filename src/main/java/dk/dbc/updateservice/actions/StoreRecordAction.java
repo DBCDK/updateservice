@@ -83,7 +83,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      *
      * @return The record to store.
      */
-    public MarcRecord recordToStore() {
+    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
         return record;
     }
 

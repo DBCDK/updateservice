@@ -2,10 +2,15 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -28,37 +33,30 @@ public class  DeleteRecordAction extends StoreRecordAction {
     }
 
     /**
-     * Note 2017-01-04: It has been decided that deletion of posts should not be filtered and instead the entire input
-     * record should be passed to rawrepo.
-     *
      * Returns the record that should be stored in the rawrepo.
      * <p>
-     * This implementation constructs a new record with the fields
-     * <code>001</code> and <code>004</code> from <code>this.record</code>.
-     * <code>004r</code> is overwritten with a <code>d</code> value.
+     * If the record is a simple delete record containing only 001 and 004 then this function gets the full record
+     * and returns that record with 004 *r = d.
+     * This is done in order to not remove all the fields of the record.
      * </p>
      *
      * @return The record to store.
      */
-    //@Override
-    public MarcRecord recordToStoreDeprecated() {
+    @Override
+    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException{
         logger.entry();
         MarcRecord result = null;
         try {
-            result = new MarcRecord();
-            for (MarcField field : record.getFields()) {
-                if (field.getName().equals("001")) {
-                    result.getFields().add(field);
-                }
-                if (field.getName().equals("004")) {
-                    result.getFields().add(field);
-                }
-                if (field.getName().equals("248")) {
-                    result.getFields().add(field);
-                }
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            if (record.getFields().size() == 2 && reader.hasField("001") && reader.hasField("004")) {
+                result = loadCurrentRecord();
+
+                new MarcRecordWriter(result).markForDeletion();
+            } else {
+                result = record;
             }
-            MarcRecordWriter writer = new MarcRecordWriter(result);
-            writer.markForDeletion();
+
             return result;
         } finally {
             logger.exit(result);
@@ -76,6 +74,21 @@ public class  DeleteRecordAction extends StoreRecordAction {
             return deleteRecordAction;
         } finally {
             logger.exit();
+        }
+    }
+
+    MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
+        logger.entry();
+        MarcRecord result = null;
+        try {
+            MarcRecordReader reader = new MarcRecordReader(record);
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
+
+            Record record = rawRepo.fetchRecord(recordId, agencyId);
+            return result = new RawRepoDecoder().decodeRecord(record.getContent());
+        } finally {
+            logger.exit(result);
         }
     }
 
