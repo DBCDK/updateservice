@@ -47,13 +47,22 @@ public class StatusService {
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() throws Exception {
+        logger.debug("mvs debug entering  isReady : ");
+        logger.debug("mvs debug #0");
         logger.entry();
         boolean res = false;
         try {
+            logger.debug("mvs debug Statusservice : " + scripterPool);
+            logger.debug("mvs debug #1");
             res = scripterPool.isAllEnviromentsLoaded();
+            logger.debug("mvs debug #2");
+            logger.debug("mvs debug Statusservice : " + scripterPool);
             if (res) {
+                logger.debug("mvs debug #3");
+                logger.debug("mvs debug Statusservice : " + scripterPool);
                 return Response.ok("All enviroments are initialized").build();
             }
+            logger.debug("mvs debug #4");
             return Response.status(SERVICE_UNAVAILABLE).build();
         } finally {
             logger.exit(res);
