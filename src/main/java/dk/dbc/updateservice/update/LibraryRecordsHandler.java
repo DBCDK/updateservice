@@ -1,30 +1,24 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.records.*;
-import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateMode;
 import dk.dbc.updateservice.dto.AuthenticationDto;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.text.Normalizer;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -34,8 +28,7 @@ import java.util.Properties;
 @Stateless
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
-    static final String classificationFieldas = "008|009|038|039|100|110|239|245|652";
-    static final List<String> classificationFields =  Arrays.asList( "008", "009", "038", "039", "100", "110", "239", "245" ,"652" );
+    private static final List<String> classificationFields = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
 
     @EJB
     private Scripter scripter;
@@ -45,9 +38,6 @@ public class LibraryRecordsHandler {
 
     @EJB
     private RawRepo rawRepo;
-
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
-    private Properties settings;
 
     public LibraryRecordsHandler() {
     }
@@ -62,7 +52,7 @@ public class LibraryRecordsHandler {
      * @param record The record.
      * @return <code>true</code> if published
      * <code>false</code> otherwise.
-     * @throws ScripterException
+     * @throws ScripterException in case of an error
      */
     public boolean isRecordInProduction(MarcRecord record) throws ScripterException {
         logger.entry(record);
@@ -86,8 +76,8 @@ public class LibraryRecordsHandler {
         boolean result = false;
         try {
             List<MarcField> fields = record.getFields();
-            for (int fieldno = 0; fieldno < fields.size(); fieldno++) {
-                if (classificationFields.contains(fields.get(fieldno).getName())) {
+            for (int fieldNo = 0; fieldNo < fields.size(); fieldNo++) {
+                if (classificationFields.contains(fields.get(fieldNo).getName())) {
                     return result = true;
                 }
             }
@@ -96,6 +86,181 @@ public class LibraryRecordsHandler {
             logger.exit(result);
         }
     }
+
+    /**
+     * Collect pairs og subfields a and g from field 009
+     *
+     * @param reader reader for the record
+     * @return List of paired subfields
+     */
+    private List<String> get_ag_pairs(MarcRecordReader reader) {
+        List<String> result = new ArrayList<>();
+        MarcField field;
+        field = reader.getField("009");
+        if (field == null) {
+            logger.info("field NULL");
+            return result;
+        }
+        List<MarcSubField> SubfieldList = field.getSubfields();
+        boolean got_a = false;
+        String aString = "";
+        String gString;
+        // run through until a - search for g - if a first, then push a,<empty>
+        // if g then push a,g - start from scratch.
+        // after : if a and no g then push a,<empty>
+        // can there be a after a ? what about g after g ?
+        // There are no validation for them being paired so yes
+        // test cases :
+        // *a s *b b -> as
+        // *a p *b a *a g -> ap ag
+        // *a s *b b *g xc -> asgxc
+        // *a s *b b *g xc *a p -> asgxc ap
+        // *a s *b b *g xc *g tk -> asgxc gtk
+        // *a s *b a *g xc *a s *b m *g th *a s *g xk *b a *h xx -> asgxc asgth asgxk
+        for (int d = 0; d < SubfieldList.size(); d++) {
+            if (SubfieldList.get(d).getName().equals("a")) {
+                if (got_a) {
+                    result.add("a" + aString);
+                }
+                got_a = true;
+                aString = SubfieldList.get(d).getValue();
+            } else {
+                if (SubfieldList.get(d).getName().equals("g")) {
+                    gString = SubfieldList.get(d).getValue();
+                    if (got_a) {
+                        result.add("a" + aString + "g" + gString);
+                        got_a = false;
+                    } else {
+                        result.add("g" + gString);
+                    }
+
+                }
+            }
+        }
+        if (got_a) {
+            result.add("a" + aString);
+        }
+        return result;
+    }
+
+    /**
+     * Returns a string containing subfield content maybe stripped, maybe normalized
+     *
+     * @param subfieldList List of subfields in the field
+     * @param subfields    subfields to pick data from
+     * @param normalize    should it be normalized ? NB : all other than alphanumeric are always stripped
+     * @param cut          Should we look at less than the full content of a subfield ?
+     * @return The collected data
+     */
+    private String getCompareString(List<MarcSubField> subfieldList, String subfields, boolean normalize, int cut) {
+
+        if (subfieldList == null) {
+            return "";
+        }
+        StringBuilder collector = new StringBuilder("");
+        String subCollector;
+        for (int d = 0; d < subfieldList.size(); d++) {
+            if (subfields.contains(subfieldList.get(d).getName())) {
+                if (normalize) {
+                    subCollector = Normalizer.normalize(subfieldList.get(d).getValue(), Normalizer.Form.NFD).replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+                } else {
+                    subCollector = subfieldList.get(d).getValue();
+                }
+                subCollector = subCollector.toLowerCase().replaceAll("[^a-z0-9\u00E6\u00F8\u00E5]", "");
+                if (cut > 0) {
+                    if (subCollector.length() > cut) {
+                        subCollector = subCollector.substring(0, cut);
+                    }
+                }
+                collector.append(subCollector);
+            }
+        }
+        return collector.toString();
+    }
+
+    /**
+     * Compares two lists of specified subfields possibly with normalization and limit
+     * Extraction of data need to be done even if one of the lists are null because the content of the subfields may be empty
+     * which is comparable with null.
+     *
+     * @param oldList   subfieldlist from existing record
+     * @param newList   subfieldlist from new record
+     * @param subfields subfields that should be compared
+     * @param normalize toLower and removing accents
+     * @param cut       reduced range of subfield content
+     * @return returns true if equal otherwise false
+     */
+    private boolean compareSubfieldContent(List<MarcSubField> oldList, List<MarcSubField> newList, String subfields, boolean normalize, int cut) {
+        if (oldList == null && newList == null) {
+            logger.info("CSC both NULL");
+            return true;
+        }
+        String oldMatch = getCompareString(oldList, subfields, normalize, cut);
+        String newMatch = getCompareString(newList, subfields, normalize, cut);
+        logger.info("Old str <{}>, new str <{}>", oldMatch, newMatch);
+        return oldMatch.equals(newMatch);
+    }
+
+    /**
+     * Normalize and cut a string
+     *
+     * @param objekt    the string to treat
+     * @param normalize should we normalize ?
+     * @param cut       should we cut ?
+     * @return Nicely trimmed string
+     */
+    private String cutAndClean(String objekt, boolean normalize, int cut) {
+        String result = "";
+        if (normalize) {
+            result = Normalizer.normalize(objekt, Normalizer.Form.NFD).replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        }
+        result = result.toLowerCase().replaceAll("[^a-z0-9\u00E6\u00F8\u00E5]", "");
+        if (cut > 0) {
+            if (result.length() > cut) {
+                result = result.substring(0, cut);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Compares content of multi occurence fields
+     *
+     * @param oldList   reader for old record
+     * @param newList   reader for new record
+     * @param field     field to check
+     * @param subfield  subfields to check
+     * @param normalize should we normalize ?
+     * @param cut       should we cut ?
+     * @return The result of the comparison
+     */
+    private boolean compareSubfieldContentMultiField(MarcRecordReader oldList, MarcRecordReader newList, String field, String subfield, boolean normalize, int cut) {
+        String oldValue = oldList.getValue(field, subfield);
+        String newValue = newList.getValue(field, subfield);
+        if (oldValue != null && newValue != null) {
+            if (cutAndClean(oldValue, normalize, cut).equals(cutAndClean(newValue, normalize, cut))) {
+                return true;
+            }
+        }
+        if (oldValue == null && newValue == null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Returns the content of a field/subfield if exists and an empty string if not
+     * @param reader    record reader
+     * @param field     the wanted field
+     * @param subfield  the wanted subfield
+     * @return          subfield content or an empty string
+     */
+    private String getSubfieldContent(MarcRecordReader reader, String field, String subfield) {
+        String value = reader.getValue(field, subfield);
+        if (value == null) return "";
+        else return value;
+    }
+
 
     /**
      * Tests if the classifications has changed between 2 records.
@@ -107,56 +272,144 @@ public class LibraryRecordsHandler {
      * @param newRecord The new record.
      * @return <code>true</code> if there is changes in the classifications,
      * <code>false</code> otherwise.
-     * @throws ScripterException
      */
-    public boolean NEWhasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) {
+    public boolean hasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) {
 
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
+        logger.info("Old record {}", oldRecord);
+        logger.info("New record {}", newRecord);
         String oldValue;
         String newValue;
+        List<MarcSubField> oldSubfieldList;
+        List<MarcSubField> newSubfieldList;
+        MarcField oldField;
+        MarcField newField;
 
         // if 008*t has changed from m or s to p and reverse return true.
-        oldValue = oldReader.getValue("008", "t");
-        newValue = newReader.getValue("008", "t");
-        oldValue = oldValue == null ? "" : oldValue;
-        newValue = newValue == null ? "" : newValue;
-        if ( (oldValue.equals("m") || oldValue.equals("s")) && newValue.equals("p")) {
+        oldValue = getSubfieldContent(oldReader,"008", "t");
+        newValue = getSubfieldContent(newReader, "008", "t");
+        if ((oldValue.equals("m") || oldValue.equals("s")) && newValue.equals("p")) {
+            logger.info("Classification has changed - reason 008t m|s -> p");
             return true;
         }
-        if ( (newValue.equals("m") || newValue.equals("s")) && oldValue.equals("p")) {
+        if ((newValue.equals("m") || newValue.equals("s")) && oldValue.equals("p")) {
+            logger.info("Classification has changed - reason 008t p -> m|s");
             return true;
         }
 
-        // Check if content of 009*a has changed - NB there can be more than one *a
-        // Check if content of 009*g has changed - NB there can be more than one *g
-        // NBNBNB if more than one ag, then pairs og them should be checked
-        // se evt her : http://praxis.dbc.dk/formatpraksis/px-for1796.html/#pxkoko
+        // has content of 009ag changed
+        // se evt her for baggrund : http://praxis.dbc.dk/formatpraksis/px-for1796.html/#pxkoko
+        List<String> old_ag_pairs = get_ag_pairs(oldReader);
+        List<String> new_ag_pairs = get_ag_pairs(newReader);
+        if (!old_ag_pairs.containsAll(new_ag_pairs) || !new_ag_pairs.containsAll(old_ag_pairs)) {
+            logger.info("Classification has changed - reason 009ag difference");
+            return true;
+        }
 
-        // if content of 038 has changed return true
-        List<MarcSubField> soldValue = oldReader.getField("038").getSubfields();
-        newValue = newReader.getValue("038", "t");
-        oldValue = oldValue == null ? "" : oldValue;
-        newValue = newValue == null ? "" : newValue;
-        if (!oldValue.equals("") || !newValue.equals("")) {
-            if (!oldValue.equals(newValue)) {
-                return true;
-            }
+        // if content of 038a has changed return true
+        oldValue = getSubfieldContent(oldReader,"038", "a");
+        newValue = getSubfieldContent(newReader, "038", "a");
+        if (!oldValue.equals(newValue)) {
+            logger.info("Classification has changed - reason 038a difference");
+            return true;
         }
 
         // if content of 039 has changed return true
+        boolean result = false;
+        oldField = oldReader.getField("039");
+        newField = newReader.getField("039");
+        if (oldField != null && newField != null) {
+            oldSubfieldList = oldReader.getField("039").getSubfields();
+            newSubfieldList = newReader.getField("039").getSubfields();
+            if (!oldSubfieldList.containsAll(newSubfieldList) || !newSubfieldList.containsAll(oldSubfieldList)) {
+                result = true;
+            }
+        }
+        if (result || ((oldField == null && newField != null) || (oldField != null && newField == null))) {
+            logger.info("Classification has changed - reason 039 difference");
+            return true;
+        }
 
         // if content of 100*[ahkef] stripped has changed return true.
+        oldField = oldReader.getField("100");
+        newField = newReader.getField("100");
+        oldSubfieldList = oldField == null ? null : oldField.getSubfields();
+        newSubfieldList = newField == null ? null : newField.getSubfields();
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkef", true, 0)) {
+            logger.info("Classification has changed - reason 100ahkef difference");
+            return true;
+        }
 
         // if content of 110*[saceikj] stripped has changed return true
+        oldField = oldReader.getField("110");
+        newField = newReader.getField("110");
+        oldSubfieldList = oldField == null ? null : oldField.getSubfields();
+        newSubfieldList = newField == null ? null : newField.getSubfields();
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "saceikj", true, 0)) {
+            logger.info("Classification has changed - reason 110saceikj difference");
+            return true;
+        }
 
-        // if 239 is changed
-        //      (checkfield = true, check245a = true)
-        //      if no 239 in old and 239 in new : checkfield = old 245a != new 239t ; check245a = checkfield
-        //      else if 239 in old and 239 in new : checkfield = true ; check245a = no 239t in new
-        //      else if 239 in old and no 239 in new : checkfield = old 239t != new 245a ; check245a = checkfield
-        //      else if no 239 in old and no 239 in new : checkfield = false ; check245a = true
-        // if checkfield : if 239*[ahkeftø] stripped 10 has changed return true.
+        // 239 og evt 245 check :
+        // hvis der ikke er 239 i old/new så skal der checkes 245a (se senere)
+        // hvis der er 239 i begge, så skal 239 checkes. Hvis der ikke er 239t i ny post så skal 245a checkes
+        // hvis der kun er 239 i en af posterne, så skal 239 checkes hvis old245a != new239t og omvendt. 245a check følger dette.
+        //      hvis der er et 239t og det er forskelligt fra 245a så skal der returneres (ingen grund til at checke øvrige delfelter).
+        //
+        // hvis 245a har ændret sig :
+        // hvis 004a = s og der er et 245n i mindst en af posterne og 245n ikke har ændet sig så skal 239 betinget 245 check ikke gælde
+        // hvis 004a = b og der er et 245g i mindst en af posterne og 245g ikke har ændet sig så skal 239 betinget 245 check ikke gælde
+        // if checkField : if 239*[ahkeftø] stripped 10 has changed return true.
+        oldField = oldReader.getField("239");
+        newField = newReader.getField("239");
+        boolean checkField239 = false;
+        boolean checkField245 = true;
+        String f245a = "";
+        if (oldField == null) {
+            if (newField != null) {
+                MarcField Field245 = oldReader.getField("245");
+                if (Field245 != null) {
+                    f245a = getCompareString(Field245.getSubfields(), "a", true, 10);
+                }
+                String f239t = getCompareString(newReader.getField("239").getSubfields(), "t", true, 10);
+                checkField239 = !f245a.equals(f239t);
+                if (checkField239 && !f239t.equals("")) {
+                    logger.info("Classification has changed - reason 239t difference");
+                    return true;
+                }
+                checkField245 = checkField239;
+            }
+        } else {
+            if (newField == null) {
+                MarcField Field245 = newReader.getField("245");
+                if (Field245 != null) {
+                    f245a = getCompareString(Field245.getSubfields(), "a", true, 10);
+                }
+                String f239t = getCompareString(oldReader.getField("239").getSubfields(), "t", true, 10);
+                checkField239 = !f245a.equals(f239t);
+                if (checkField239 && !f239t.equals("")) {
+                    logger.info("Classification has changed - reason 239t difference ");
+                    return true;
+                }
+                checkField245 = checkField239;
+            } else {
+                checkField239 = true;
+                newValue = newReader.getValue("239", "t");
+                if (newValue != null) {
+                    checkField245 = false;
+                }
+            }
+        }
+
+        if (checkField239) {
+            oldSubfieldList = oldField == null ? null : oldField.getSubfields();
+            newSubfieldList = newField == null ? null : newField.getSubfields();
+            if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkeft\u00F8", true, 10)) {
+                logger.info("Classification has changed - reason 239ahkeft\u00F8 difference");
+                return true;
+            }
+        }
 
         // if 245a stripped 10 has changed then
         //      if new 004a == s then
@@ -168,45 +421,110 @@ public class LibraryRecordsHandler {
         //          if equal check245a false
         //  if check245a
         //      return true.
-        //
+        oldField = oldReader.getField("245");
+        newField = newReader.getField("245");
+        oldSubfieldList = oldField == null ? null : oldField.getSubfields();
+        newSubfieldList = newField == null ? null : newField.getSubfields();
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "a", true, 10)) {
+            newValue = newReader.getValue("004", "a");
+            newValue = newValue == null ? "" : newValue;
+            if (newValue.equals("s")) {
+                if (compareSubfieldContent(oldSubfieldList, newSubfieldList, "n", true, 0)) {
+                    checkField245 = false;
+                }
+            } else {
+                if (newValue.equals("b")) {
+                    if (compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 0)) {
+                        checkField245 = false;
+                    }
+                }
+            }
+            if (checkField245) {
+                logger.info("Classification has changed - reason 245a difference");
+                return true;
+            }
+        }
         //  if 245g stripped 10 changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 10)) {
+            logger.info("Classification has changed - reason 245g difference");
+            return true;
+        }
         //  if 245m changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "m", false, 0)) {
+            logger.info("Classification has changed - reason 245m difference");
+            return true;
+        }
         //  if 245n stripped changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "n", true, 0)) {
+            logger.info("Classification has changed - reason 245n difference");
+            return true;
+        }
         //  if 245o stripped 10 changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "o", true, 10)) {
+            logger.info("Classification has changed - reason 245o difference");
+            return true;
+        }
         //  if 245y stripped 10 changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "y", true, 10)) {
+            logger.info("Classification has changed - reason 245y difference");
+            return true;
+        }
         //  if 245æ stripped 10 changed return true
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00E6", true, 10)) {
+            logger.info("Classification has changed - reason 245æ difference");
+            return true;
+        }
         //  if 245ø stripped 10 changed return true
-        //
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00F8", true, 10)) {
+            logger.info("Classification has changed - reason 245ø difference");
+            return true;
+        }
+
+        // 652 section
         //  if 652a stripped 10 changed return true
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "a", true, 10)) {
+            logger.info("Classification has changed - reason 652a difference");
+            return true;
+        }
         //  if 652b stripped 10 changed return true
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "b", true, 10)) {
+            logger.info("Classification has changed - reason 652b difference");
+            return true;
+        }
         //  if 652m or 652o then
         //      if 652e stripped changed return true
         //      if 652f stripped changed return true
         //      if 652h stripped changed return true
-        //  if 652m stripped changed return true
-        //  if 652o stripped changed return true
-        return false;
-    }
-    public boolean hasClassificationsChanged(MarcRecord oldRecord, MarcRecord newRecord) throws ScripterException {
-        logger.entry(oldRecord, newRecord);
-        Object jsResult = null;
-        try {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                String jsonOldRecord = mapper.writeValueAsString(oldRecord);
-                String jsonNewRecord = mapper.writeValueAsString(newRecord);
-                jsResult = scripter.callMethod("hasClassificationsChanged", jsonOldRecord, jsonNewRecord);
-            } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: hasClassificationsChanged", ex);
+        String f652m = oldReader.getValue("652", "m");
+        String f652o = oldReader.getValue("652", "o");
+        if (f652m != null || f652o != null) {
+            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "e", true, 0)) {
+                logger.info("Classification has changed - reason 652m|o : subfield e difference");
+                return true;
             }
-            logger.debug("Result from hasClassificationsChanged JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof Boolean) {
-                return ((Boolean) jsResult);
+            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "f", true, 0)) {
+                logger.info("Classification has changed - reason 652m|o : subfield f difference");
+                return true;
             }
-            throw new ScripterException("The JavaScript function %s must return a boolean value.", "hasClassificationsChanged");
-        } finally {
-            logger.exit(jsResult);
+            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "h", true, 0)) {
+                logger.info("Classification has changed - reason 652m|o : subfield h difference");
+                return true;
+            }
+
         }
+
+        //  if 652m stripped changed return true
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
+            logger.info("Classification has changed - reason 652m difference");
+            return true;
+        }
+        //  if 652o stripped changed return true
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
+            logger.info("Classification has changed - reason 652o difference");
+            return true;
+        }
+        logger.info("Classification has NOT changed");
+        return false;
     }
 
     /**
@@ -218,7 +536,7 @@ public class LibraryRecordsHandler {
      *                            record will be created for.
      * @return Returns the library record after it has been updated.
      * <code>libraryRecord</code> may have changed.
-     * @throws ScripterException
+     * @throws ScripterException in case of an error
      */
     public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, agencyId);
@@ -249,7 +567,7 @@ public class LibraryRecordsHandler {
      * @param enrichmentRecord     The library extended record.
      * @return Returns the library record after it has been updated.
      * <code>enrichmentRecord</code> may have changed.
-     * @throws ScripterException
+     * @throws ScripterException in case of an error
      */
     public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
@@ -307,10 +625,10 @@ public class LibraryRecordsHandler {
      * @param record            The record to be updated
      * @param authenticationDto Auth DTO from the ws request
      * @param updateMode        Whether it is a FBS or DataIO template
-     * @return
-     * @throws OpenAgencyException
-     * @throws UnsupportedEncodingException
-     * @throws UpdateException
+     * @return a list of records to put in rawrepo
+     * @throws OpenAgencyException          in case of an error
+     * @throws UnsupportedEncodingException in case of an error
+     * @throws UpdateException              in case of an error
      */
     public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDto authenticationDto, UpdateMode updateMode) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
         logger.entry(record, authenticationDto, updateMode);
@@ -330,7 +648,7 @@ public class LibraryRecordsHandler {
         }
     }
 
-    List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
         logger.entry(record, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
@@ -354,7 +672,7 @@ public class LibraryRecordsHandler {
         }
     }
 
-    List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws OpenAgencyException {
+    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws OpenAgencyException {
         logger.entry(record, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
@@ -384,11 +702,11 @@ public class LibraryRecordsHandler {
      * @param record  The record to be updated
      * @param groupId The groupId from the ws request
      * @return List containing common and DBC record
-     * @throws OpenAgencyException
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
+     * @throws OpenAgencyException          in case of an error
+     * @throws UpdateException              in case of an error
+     * @throws UnsupportedEncodingException in case of an error
      */
-    List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
         logger.entry(record, groupId);
 
         try {
@@ -517,18 +835,17 @@ public class LibraryRecordsHandler {
 
     /**
      * Creates a 512 notefield from one record.
-     * utilizes the create512 notefield functionality , which nexpects two records, one current, one updating
+     * utilizes the create512 notefield functionality , which expects two records, one current, one updating
      * In this case we are not updating , but just wants a 512 field from existing data.
      *
      * @param record The record.
      * @return MarcField containing 512 data
-     * @throws ScripterException
+     * @throws ScripterException in case of an error
      */
 
     public MarcField fetchNoteField(MarcRecord record) throws ScripterException {
         logger.entry(record);
 
-        // TODO create function for this, very similar code in all of the above
         MarcField mf = null;
         Object jsResult;
         ObjectMapper mapper = new ObjectMapper();
