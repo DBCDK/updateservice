@@ -21,7 +21,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 public class LibraryRecordsHandlerTest {
-    private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
 
     @Before
     public void before() throws IOException {

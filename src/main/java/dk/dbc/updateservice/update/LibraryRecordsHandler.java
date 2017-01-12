@@ -1,5 +1,6 @@
 package dk.dbc.updateservice.update;
 
+// import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.records.*;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -17,8 +18,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -88,7 +91,7 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * Collect pairs og subfields a and g from field 009
+     * Collect pairs of subfields a and g from field 009
      *
      * @param reader reader for the record
      * @return List of paired subfields
@@ -117,16 +120,16 @@ public class LibraryRecordsHandler {
         // *a s *b b *g xc *a p -> asgxc ap
         // *a s *b b *g xc *g tk -> asgxc gtk
         // *a s *b a *g xc *a s *b m *g th *a s *g xk *b a *h xx -> asgxc asgth asgxk
-        for (int d = 0; d < SubfieldList.size(); d++) {
-            if (SubfieldList.get(d).getName().equals("a")) {
+        for (MarcSubField aSubfieldList : SubfieldList) {
+            if ("a".equals(aSubfieldList.getName())) {
                 if (got_a) {
                     result.add("a" + aString);
                 }
                 got_a = true;
-                aString = SubfieldList.get(d).getValue();
+                aString = aSubfieldList.getValue();
             } else {
-                if (SubfieldList.get(d).getName().equals("g")) {
-                    gString = SubfieldList.get(d).getValue();
+                if ("g".equals(aSubfieldList.getName())) {
+                    gString = aSubfieldList.getValue();
                     if (got_a) {
                         result.add("a" + aString + "g" + gString);
                         got_a = false;
@@ -159,12 +162,12 @@ public class LibraryRecordsHandler {
         }
         StringBuilder collector = new StringBuilder("");
         String subCollector;
-        for (int d = 0; d < subfieldList.size(); d++) {
-            if (subfields.contains(subfieldList.get(d).getName())) {
+        for (MarcSubField aSubfieldList : subfieldList) {
+            if (subfields.contains(aSubfieldList.getName())) {
                 if (normalize) {
-                    subCollector = Normalizer.normalize(subfieldList.get(d).getValue(), Normalizer.Form.NFD).replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+                    subCollector = Normalizer.normalize(aSubfieldList.getValue(), Normalizer.Form.NFD).replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
                 } else {
-                    subCollector = subfieldList.get(d).getValue();
+                    subCollector = aSubfieldList.getValue();
                 }
                 subCollector = subCollector.toLowerCase().replaceAll("[^a-z0-9\u00E6\u00F8\u00E5]", "");
                 if (cut > 0) {
@@ -277,8 +280,8 @@ public class LibraryRecordsHandler {
 
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
-        logger.info("Old record {}", oldRecord);
-        logger.info("New record {}", newRecord);
+        logger.debug("Old record {}", oldRecord);
+        logger.debug("New record {}", newRecord);
         String oldValue;
         String newValue;
         List<MarcSubField> oldSubfieldList;
