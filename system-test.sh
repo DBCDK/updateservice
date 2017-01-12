@@ -5,10 +5,18 @@ function die() {
     exit 1
 }
 
+if [ $1 == "payara" ]; then
+    echo "Running in payara mode: "
+    SYSTEST_PATH="docker/deployments/systemtests-payara"
+else
+    echo "Running in glassfish mode: "
+    SYSTEST_PATH="docker/deployments/systemtests"
+fi
+
 export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
 echo "Using host IP: ${HOST_IP}"
 
-cd docker/deployments/systemtests || die "cd docker/deployments/systemtests"
+cd ${SYSTEST_PATH} || die "cd ${SYSTEST_PATH}"
 rm -rf logs  || die "rm -rf logs"
 
 mkdir -p logs/dataio || die "mkdir -p logs/dataio"
