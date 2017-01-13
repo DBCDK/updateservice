@@ -5,13 +5,11 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.iscrum.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,6 +21,8 @@ import static org.mockito.Mockito.when;
 public class DeleteRecordActionTest {
     private GlobalActionState state;
     private Properties properties;
+    private String localSingleRecordId = "20611529";
+    private Integer localSingleAgencyId = 700400;
 
     @Before
     public void before() throws IOException {
@@ -52,17 +52,23 @@ public class DeleteRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         DeleteRecordAction instance = new DeleteRecordAction(state, properties, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+
+        MarcRecord rr = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        when(state.getRawRepo().fetchRecord(eq(localSingleRecordId), eq(localSingleAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
+
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        assertThat(instance.recordToStore(), equalTo(expected));
+        new MarcRecordWriter(expected).markForDeletion();
+        new MarcRecordWriter(expected).setChangedTimestamp();
+
+        AssertActionsUtil.assertRecord(instance.recordToStore(), expected);
     }
 
     @Test
     public void testRecordToStoreTwoFields() throws Exception {
-        String recordId = "20611529";
-        Integer agencyId = 700400;
+
         List<MarcSubField> field001 = new ArrayList<>();
-        field001.add(new MarcSubField("a", recordId));
-        field001.add(new MarcSubField("b", Integer.toString(agencyId)));
+        field001.add(new MarcSubField("a", localSingleRecordId));
+        field001.add(new MarcSubField("b", Integer.toString(localSingleAgencyId)));
 
         List<MarcSubField> field004 = new ArrayList<>();
         field001.add(new MarcSubField("r", "d"));
@@ -72,14 +78,15 @@ public class DeleteRecordActionTest {
         record.getFields().add(new MarcField("004", "00", field004));
 
         MarcRecord rr = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(localSingleRecordId), eq(localSingleAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
 
         DeleteRecordAction instance = new DeleteRecordAction(state, properties, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(expected).markForDeletion();
+        new MarcRecordWriter(expected).setChangedTimestamp();
 
-        assertThat(instance.recordToStore(), equalTo(expected));
+        AssertActionsUtil.assertRecord(instance.recordToStore(), expected);
     }
 }

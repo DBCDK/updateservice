@@ -57,9 +57,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
-            record = sortRecord(record);
+            MarcRecord recordToStore = recordToStore();
+            recordToStore = sortRecord(recordToStore);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
-            rawRepoRecord.setContent(encoder.encodeRecord(recordToStore()));
+            rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
             rawRepoRecord.setMimeType(mimetype);
             rawRepoRecord.setDeleted(deletionMarkToStore());
             rawRepoRecord.setTrackingId(MDC.get(UpdateService.MDC_TRACKING_ID_LOG_CONTEXT));

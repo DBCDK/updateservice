@@ -657,16 +657,11 @@ public class LibraryRecordsHandler {
         List<MarcRecord> result = new ArrayList<>();
 
         try {
-            DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-            LocalDateTime dateTime = LocalDateTime.now();
-
-            logger.info("New date for 001 *c is {}", dateTime.format(format));
-
             result = splitRecordFBS(record, groupId);
 
             for (MarcRecord r : result) {
                 MarcRecordWriter writer = new MarcRecordWriter(r);
-                writer.addOrReplaceSubfield("001", "c", dateTime.format(format));
+                writer.setChangedTimestamp();
             }
 
             return result;
