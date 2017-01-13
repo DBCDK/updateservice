@@ -47,15 +47,11 @@ public class  DeleteRecordAction extends StoreRecordAction {
         logger.entry();
         MarcRecord result = null;
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            result = loadCurrentRecord();
+            MarcRecordWriter writer = new MarcRecordWriter(result);
 
-            if (record.getFields().size() == 2 && reader.hasField("001") && reader.hasField("004")) {
-                result = loadCurrentRecord();
-
-                new MarcRecordWriter(result).markForDeletion();
-            } else {
-                result = record;
-            }
+            writer.markForDeletion();
+            writer.setChangedTimestamp();
 
             return result;
         } finally {

@@ -1,9 +1,6 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -27,9 +24,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -363,5 +358,37 @@ public class AssertActionsUtil {
         assertThat(moveEnrichmentRecordAction.getRecord(), is(record));
         assertThat(moveEnrichmentRecordAction.getCommonRecord(), is(commonRecord));
         assertThat(moveEnrichmentRecordAction.settings, equalTo(settings));
+    }
+
+    /**
+     * Helper function for comparing two full records where 001 *c and *d are excluded from the comparison
+     * @param actual
+     * @param expected
+     * @throws UpdateException
+     */
+    public static void assertRecord(MarcRecord actual, MarcRecord expected) throws UpdateException {
+        assertThat(actual, notNullValue());
+        assertThat(expected, notNullValue());
+        assertThat(actual.getFields().size(), is(expected.getFields().size()));
+        assertThat(actual.getFields().get(1), is(expected.getFields().get(1)));
+
+        for (int f = 0; f < actual.getFields().size(); f++) {
+            MarcField actualField = actual.getFields().get(f);
+            MarcField expectedField = expected.getFields().get(f);
+            if ("001".equals(actualField.getName())) {
+                List<String> ignoredSubfields = Arrays.asList("c", "d");
+                assertThat(actualField.getSubfields().size(), is(expectedField.getSubfields().size()));
+
+                for (int s = 0; s < actualField.getSubfields().size(); s++) {
+                    MarcSubField actualSubfield = actualField.getSubfields().get(s);
+                    MarcSubField expectedSubfield = expectedField.getSubfields().get(s);
+                    if (!ignoredSubfields.contains(actualSubfield.getName())) {
+                        assertThat(actualSubfield, is(expectedSubfield));
+                    }
+                }
+            } else {
+                assertThat(actualField, is(expectedField));
+            }
+        }
     }
 }
