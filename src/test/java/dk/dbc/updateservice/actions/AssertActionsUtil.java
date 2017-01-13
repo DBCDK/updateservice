@@ -1,6 +1,11 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.records.MarcField;
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordFactory;
+import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.records.MarcSubField;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -24,7 +29,11 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -362,8 +371,9 @@ public class AssertActionsUtil {
 
     /**
      * Helper function for comparing two full records where 001 *c and *d are excluded from the comparison
-     * @param actual
-     * @param expected
+     *
+     * @param actual The actual record
+     * @param expected The expected record
      * @throws UpdateException
      */
     public static void assertRecord(MarcRecord actual, MarcRecord expected) throws UpdateException {
