@@ -47,10 +47,10 @@
 
 
     <scm>
-        <connection>scm:svn:https://svn.dbc.dk/repos/saouservice/trunk/sources/</connection>
-        <developerConnection>scm:svn:https://svn.dbc.dk/repos/saouservice/trunk/sources/</developerConnection>
+        <connection>scm:svn:https://svn.dbc.dk/repos/updateservice/trunk/</connection>
+        <developerConnection>scm:svn:https://svn.dbc.dk/repos/updateservice/trunk/</developerConnection>
         <tag>HEAD</tag>
-        <url>https://svn.dbc.dk/repos/saouservice/trunk/sources/</url>
+        <url>https://svn.dbc.dk/repos/updateservice/trunk/</url>
     </scm>
 
     <pluginRepositories>
