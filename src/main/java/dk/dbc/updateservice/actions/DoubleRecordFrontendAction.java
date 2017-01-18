@@ -1,11 +1,10 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.DoubleRecordFrontendContent;
-import dk.dbc.updateservice.update.DoubleRecordFrontendStatus;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDto;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDto;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -21,13 +20,11 @@ public class DoubleRecordFrontendAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordFrontendAction.class);
     private static final String ENTRY_POINT = "checkDoubleRecordFrontend";
 
-    MarcRecord record;
     Properties settings;
 
-    public DoubleRecordFrontendAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+    public DoubleRecordFrontendAction(GlobalActionState globalActionState, Properties properties) {
         super(DoubleRecordFrontendAction.class.getSimpleName(), globalActionState);
         settings = properties;
-        record = marcRecord;
     }
 
     /**
@@ -41,8 +38,8 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record:\n{}", record);
-            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
+            logger.info("Handling record:\n{}", state.readRecord());
+            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, Json.encode(state.readRecord()), settings);
             logger.debug("Result from " + ENTRY_POINT + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
             result = parseJavascript(jsResult);
             return result;
@@ -57,19 +54,19 @@ public class DoubleRecordFrontendAction extends AbstractAction {
 
     private ServiceResult parseJavascript(Object o) throws IOException {
         ServiceResult result;
-        DoubleRecordFrontendStatus doubleRecordFrontendStatus = Json.decode(o.toString(), DoubleRecordFrontendStatus.class);
-        if ("ok".equals(doubleRecordFrontendStatus.getStatus())) {
+        DoubleRecordFrontendStatusDto doubleRecordFrontendStatusDto = Json.decode(o.toString(), DoubleRecordFrontendStatusDto.class);
+        if ("ok".equals(doubleRecordFrontendStatusDto.getStatus())) {
             result = ServiceResult.newOkResult();
-        } else if ("doublerecord".equals(doubleRecordFrontendStatus.getStatus())) {
+        } else if ("doublerecord".equals(doubleRecordFrontendStatusDto.getStatus())) {
             result = new ServiceResult();
-            for (DoubleRecordFrontendContent drfc : doubleRecordFrontendStatus.getDoubleRecordFrontendContents()) {
-                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDto.FAILED, drfc, state));
+            for (DoubleRecordFrontendDto doubleRecordFrontendDto : doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos()) {
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDto.FAILED, doubleRecordFrontendDto, state));
             }
             result.setDoubleRecordKey(state.getUpdateStore().getNewDoubleRecordKey());
         } else {
             String msg = "Unknown error";
-            if (doubleRecordFrontendStatus.getDoubleRecordFrontendContents() != null && !doubleRecordFrontendStatus.getDoubleRecordFrontendContents().isEmpty()) {
-                msg = doubleRecordFrontendStatus.getDoubleRecordFrontendContents().get(0).getMessage();
+            if (doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos() != null && !doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos().isEmpty()) {
+                msg = doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos().get(0).getMessage();
             }
             result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
         }
@@ -78,6 +75,6 @@ public class DoubleRecordFrontendAction extends AbstractAction {
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(record);
+        MDCUtil.setupContextForRecord(state.readRecord());
     }
 }

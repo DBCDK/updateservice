@@ -334,7 +334,7 @@ public class AssertActionsUtil {
         assertThat(action.getClass().getName(), equalTo(DoubleRecordFrontendAction.class.getName()));
 
         DoubleRecordFrontendAction doubleRecordFrontendAction = (DoubleRecordFrontendAction) action;
-        Assert.assertThat(doubleRecordFrontendAction.record, is(record));
+        Assert.assertThat(doubleRecordFrontendAction.state.getMarcRecord(), is(record));
         Assert.assertThat(doubleRecordFrontendAction.state.getScripter(), is(scripter));
     }
 

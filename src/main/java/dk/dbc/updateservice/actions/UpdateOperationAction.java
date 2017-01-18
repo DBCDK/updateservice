@@ -179,7 +179,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         Boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDto().getDoubleRecordKey());
         if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
-            children.add(new DoubleRecordFrontendAction(state, settings, record));
+            children.add(new DoubleRecordFrontendAction(state, settings));
         }
     }
 
