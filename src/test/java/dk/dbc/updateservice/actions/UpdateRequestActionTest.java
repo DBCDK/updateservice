@@ -406,7 +406,6 @@ public class UpdateRequestActionTest {
         assertThat(validateOperationAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
         assertThat(validateOperationAction.state.getWsContext(), is(state.getWsContext()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(state.getUpdateServiceRequestDto().getSchemaName()));
-        assertThat(validateOperationAction.okStatus, is(UpdateStatusEnumDto.OK));
         assertThat(validateOperationAction.state.readRecord(), equalTo(state.readRecord()));
         assertThat(validateOperationAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateOperationAction.settings, equalTo(settings));

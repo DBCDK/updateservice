@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 
@@ -10,16 +9,11 @@ import java.util.Properties;
  * Action that setup actions to validate a record.
  */
 public class ValidateOperationAction extends AbstractAction {
-    UpdateStatusEnumDto okStatus = null;
     Properties settings;
 
     public ValidateOperationAction(GlobalActionState globalActionState, Properties properties) {
         super(ValidateOperationAction.class.getSimpleName(), globalActionState);
         settings = properties;
-    }
-
-    public void setOkStatus(UpdateStatusEnumDto okStatus) {
-        this.okStatus = okStatus;
     }
 
     /**
@@ -37,15 +31,13 @@ public class ValidateOperationAction extends AbstractAction {
         children.add(validateSchemaAction);
 
         if (state.isDoubleRecordPossible() && state.getUpdateMode().isFBSMode() && state.getUpdateServiceRequestDto().getDoubleRecordKey() == null) {
-            DoubleRecordFrontendAction doubleRecordFrontendAction = new DoubleRecordFrontendAction(state, settings, state.readRecord());
-            children.add(doubleRecordFrontendAction);
+            DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, settings);
+            children.add(doubleRecordFrontendAndValidateAction);
+        } else {
+            ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+            children.add(validateRecordAction);
         }
-
-        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(okStatus);
-        children.add(validateRecordAction);
-
-        return ServiceResult.newStatusResult(okStatus);
+        return ServiceResult.newOkResult();
     }
 
     @Override

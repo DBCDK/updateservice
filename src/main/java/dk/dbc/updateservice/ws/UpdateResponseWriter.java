@@ -1,16 +1,11 @@
 package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDto;
 import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDto;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
-import dk.dbc.updateservice.service.api.DoubleRecordEntries;
-import dk.dbc.updateservice.service.api.DoubleRecordEntry;
-import dk.dbc.updateservice.service.api.MessageEntry;
-import dk.dbc.updateservice.service.api.Messages;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateRecordResult;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.service.api.*;
 
 import java.util.List;
 
@@ -40,15 +35,15 @@ public class UpdateResponseWriter {
         return convertResponseFromInternalFormatToExternalFormat(updateRecordResponseDto);
     }
 
-    public void addMessageEntries(List<MessageEntryDto> entries) {
+    private void addMessageEntries(List<MessageEntryDto> entries) {
         if (entries != null && entries.size() > 0) {
             updateRecordResponseDto.addMessageEntryDtos(entries);
         }
     }
 
-    public void addMessageEntry(MessageEntryDto entry) {
-        if (entry != null) {
-            updateRecordResponseDto.addMessageEntryDtos(entry);
+    private void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
+        if (doubleRecordFrontendDtos != null && !doubleRecordFrontendDtos.isEmpty()) {
+            updateRecordResponseDto.addDoubleRecordFrontendDtos(doubleRecordFrontendDtos);
         }
     }
 
@@ -57,9 +52,12 @@ public class UpdateResponseWriter {
     }
 
     public void setServiceResult(ServiceResult serviceResult) {
-        updateRecordResponseDto.setUpdateStatusEnumDto(serviceResult.getStatus());
-        updateRecordResponseDto.setDoubleRecordKey(serviceResult.getDoubleRecordKey());
-        addMessageEntries(serviceResult.getEntries());
+        if (serviceResult != null) {
+            updateRecordResponseDto.setUpdateStatusEnumDto(serviceResult.getStatus());
+            updateRecordResponseDto.setDoubleRecordKey(serviceResult.getDoubleRecordKey());
+            addMessageEntries(serviceResult.getEntries());
+            addDoubleRecordFrontendDtos(serviceResult.getDoubleRecordFrontendDtos());
+        }
     }
 
     private UpdateRecordResult convertResponseFromInternalFormatToExternalFormat(UpdateRecordResponseDto updateRecordResponseDto) {
@@ -69,58 +67,41 @@ public class UpdateResponseWriter {
             updateRecordResult.setDoubleRecordKey(updateRecordResponseDto.getDoubleRecordKey());
             DoubleRecordEntries doubleRecordEntries = new DoubleRecordEntries();
             updateRecordResult.setDoubleRecordEntries(doubleRecordEntries);
+            if (updateRecordResponseDto.getDoubleRecordFrontendDtos() != null && !updateRecordResponseDto.getDoubleRecordFrontendDtos().isEmpty()) {
+                for (DoubleRecordFrontendDto doubleRecordFrontendDto : updateRecordResponseDto.getDoubleRecordFrontendDtos()) {
+                    doubleRecordEntries.getDoubleRecordEntry().add(convertDoubleRecordEntryFromInternalToExternalFormat(doubleRecordFrontendDto));
+                }
+            }
+        }
+        if (updateRecordResponseDto.getMessageEntryDtos() != null) {
+            Messages messages = new Messages();
+            updateRecordResult.setMessages(messages);
             if (updateRecordResponseDto.getMessageEntryDtos() != null && !updateRecordResponseDto.getMessageEntryDtos().isEmpty()) {
                 for (MessageEntryDto med : updateRecordResponseDto.getMessageEntryDtos()) {
-                    doubleRecordEntries.getDoubleRecordEntry().add(convertDoubleRecordEntryFromInternalToExternalFormat(med));
+                    messages.getMessageEntry().add(convertMessageEntryFromInternalToExternalFormat(med));
                 }
             }
-        } else {
-            if (updateRecordResponseDto.getMessageEntryDtos() != null) {
-                Messages messages = new Messages();
-                updateRecordResult.setMessages(messages);
-                if (updateRecordResponseDto.getMessageEntryDtos() != null && !updateRecordResponseDto.getMessageEntryDtos().isEmpty()) {
-                    for (MessageEntryDto med : updateRecordResponseDto.getMessageEntryDtos()) {
-                        messages.getMessageEntry().add(convertMessageEntryFromInternalToExternalFormat(med));
-                    }
-                }
-            }
-
         }
         return updateRecordResult;
     }
 
     private UpdateStatusEnum convertUpdateStatusEnumFromInternalToExternalFormat(UpdateRecordResponseDto updateRecordResponseDto) {
-        UpdateStatusEnum updateStatusEnum = null;
         if (updateRecordResponseDto != null && updateRecordResponseDto.getUpdateStatusEnumDto() != null) {
             switch (updateRecordResponseDto.getUpdateStatusEnumDto()) {
                 case OK:
-                    updateStatusEnum = UpdateStatusEnum.OK;
-                    break;
+                    return UpdateStatusEnum.OK;
                 case FAILED:
-                    updateStatusEnum = UpdateStatusEnum.FAILED;
-                    break;
+                    return UpdateStatusEnum.FAILED;
                 default:
                     break;
             }
         }
-        return updateStatusEnum;
+        return null;
     }
 
     private MessageEntry convertMessageEntryFromInternalToExternalFormat(MessageEntryDto messageEntryDto) {
         MessageEntry messageEntry = new MessageEntry();
-        switch (messageEntryDto.getType()) {
-            case ERROR:
-                messageEntry.setType(Type.ERROR);
-                break;
-            case FATAL:
-                messageEntry.setType(Type.FATAL);
-                break;
-            case WARNING:
-                messageEntry.setType(Type.WARNING);
-                break;
-            default:
-                break;
-        }
+        messageEntry.setType(convertInternalTypeEnumDtoToExternalType(messageEntryDto));
         messageEntry.setMessage(messageEntryDto.getMessage());
         messageEntry.setCode(messageEntryDto.getCode());
         messageEntry.setUrlForDocumentation(messageEntryDto.getUrlForDocumentation());
@@ -130,10 +111,26 @@ public class UpdateResponseWriter {
         return messageEntry;
     }
 
-    private DoubleRecordEntry convertDoubleRecordEntryFromInternalToExternalFormat(MessageEntryDto messageEntryDto) {
+    private Type convertInternalTypeEnumDtoToExternalType(MessageEntryDto messageEntryDto) {
+        if (messageEntryDto != null && messageEntryDto.getType() != null) {
+            switch (messageEntryDto.getType()) {
+                case ERROR:
+                    return Type.ERROR;
+                case FATAL:
+                    return Type.FATAL;
+                case WARNING:
+                    return Type.WARNING;
+                default:
+                    break;
+            }
+        }
+        return null;
+    }
+
+    private DoubleRecordEntry convertDoubleRecordEntryFromInternalToExternalFormat(DoubleRecordFrontendDto doubleRecordFrontendDto) {
         DoubleRecordEntry doubleRecordEntry = new DoubleRecordEntry();
-        doubleRecordEntry.setPid(messageEntryDto.getPid());
-        doubleRecordEntry.setMessage(messageEntryDto.getMessage());
+        doubleRecordEntry.setPid(doubleRecordFrontendDto.getPid());
+        doubleRecordEntry.setMessage(doubleRecordFrontendDto.getMessage());
         return doubleRecordEntry;
     }
 }

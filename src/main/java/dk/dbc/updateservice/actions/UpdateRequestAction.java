@@ -48,7 +48,7 @@ public class UpdateRequestAction extends AbstractAction {
             if (message != null) {
                 return message;
             }
-            children.add(createValidateOperation());
+            children.add(new ValidateOperationAction(state, settings));
             if (!hasValidateOnlyOption()) {
                 children.add(createUpdateOperation());
             }
@@ -101,12 +101,6 @@ public class UpdateRequestAction extends AbstractAction {
         } finally {
             logger.exit();
         }
-    }
-
-    private ServiceAction createValidateOperation() {
-        ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
-        validateOperationAction.setOkStatus(UpdateStatusEnumDto.OK);
-        return validateOperationAction;
     }
 
     private ServiceAction createUpdateOperation() throws UpdateException {

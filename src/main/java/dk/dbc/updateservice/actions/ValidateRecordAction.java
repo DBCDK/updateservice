@@ -38,7 +38,6 @@ public class ValidateRecordAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(ValidateRecordAction.class);
 
     Properties settings;
-    UpdateStatusEnumDto okStatus;
 
     /**
      * Constructs an instance with a template name and a record.
@@ -52,10 +51,6 @@ public class ValidateRecordAction extends AbstractAction {
     public ValidateRecordAction(GlobalActionState globalActionState, Properties properties) {
         super(ValidateRecordAction.class.getSimpleName(), globalActionState);
         settings = properties;
-    }
-
-    public void setOkStatus(UpdateStatusEnumDto okStatus) {
-        this.okStatus = okStatus;
     }
 
     /**
@@ -96,7 +91,7 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDto.FAILED);
             } else {
                 logger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
-                result.setStatus(okStatus);
+                result.setStatus(UpdateStatusEnumDto.OK);
             }
             return result;
         } catch (IOException | ScripterException ex) {

@@ -7,6 +7,7 @@ public class UpdateRecordResponseDto {
     private UpdateStatusEnumDto updateStatusEnumDto;
     private String doubleRecordKey;
     private List<MessageEntryDto> messageEntryDtos;
+    private List<DoubleRecordFrontendDto> doubleRecordFrontendDtos;
 
     public UpdateStatusEnumDto getUpdateStatusEnumDto() {
         return updateStatusEnumDto;
@@ -28,6 +29,9 @@ public class UpdateRecordResponseDto {
         return messageEntryDtos;
     }
 
+    public List<DoubleRecordFrontendDto> getDoubleRecordFrontendDtos() {
+        return doubleRecordFrontendDtos;
+    }
 
     public void addMessageEntryDtos(List<MessageEntryDto> messageEntryDtos) {
         if (messageEntryDtos != null && !messageEntryDtos.isEmpty()) {
@@ -38,12 +42,12 @@ public class UpdateRecordResponseDto {
         }
     }
 
-    public void addMessageEntryDtos(MessageEntryDto messageEntryDto) {
-        if (messageEntryDto != null) {
-            if (messageEntryDtos == null) {
-                messageEntryDtos = new ArrayList<>();
+    public void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
+        if (doubleRecordFrontendDtos != null && !doubleRecordFrontendDtos.isEmpty()) {
+            if (this.doubleRecordFrontendDtos == null) {
+                this.doubleRecordFrontendDtos = new ArrayList<>();
             }
-            messageEntryDtos.add(messageEntryDto);
+            this.doubleRecordFrontendDtos.addAll(doubleRecordFrontendDtos);
         }
     }
 

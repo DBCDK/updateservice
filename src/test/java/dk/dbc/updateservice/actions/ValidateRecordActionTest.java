@@ -68,7 +68,6 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_Ok() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(UpdateStatusEnumDto.OK);
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn("[]");
         assertThat(validateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
@@ -95,7 +94,6 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_ValidationWarnings() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(UpdateStatusEnumDto.OK);
 
         List<MessageEntryDto> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDto.WARNING, "warning");
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
@@ -127,7 +125,6 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_ValidationErrors() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(UpdateStatusEnumDto.OK);
 
         List<MessageEntryDto> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDto.ERROR, "error");
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
@@ -159,7 +156,6 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_JavaScriptException() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(UpdateStatusEnumDto.OK);
 
         ScripterException ex = new ScripterException("error");
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenThrow(ex);
@@ -191,7 +187,6 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_JavaScriptWrongReturnType() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        validateRecordAction.setOkStatus(UpdateStatusEnumDto.OK);
 
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(27);
 

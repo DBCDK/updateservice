@@ -3,7 +3,6 @@ package dk.dbc.updateservice.dto;
 public class MessageEntryDto {
     private TypeEnumDto type;
     private String code;
-    private String pid;
     private String urlForDocumentation;
     private Integer ordinalPositionOfField;
     private Integer ordinalPositionOfSubfield;
@@ -24,14 +23,6 @@ public class MessageEntryDto {
 
     public void setCode(String code) {
         this.code = code;
-    }
-
-    public String getPid() {
-        return pid;
-    }
-
-    public void setPid(String pid) {
-        this.pid = pid;
     }
 
     public String getUrlForDocumentation() {
@@ -83,7 +74,6 @@ public class MessageEntryDto {
 
         if (type != that.type) return false;
         if (code != null ? !code.equals(that.code) : that.code != null) return false;
-        if (pid != null ? !pid.equals(that.pid) : that.pid != null) return false;
         if (urlForDocumentation != null ? !urlForDocumentation.equals(that.urlForDocumentation) : that.urlForDocumentation != null)
             return false;
         if (ordinalPositionOfField != null ? !ordinalPositionOfField.equals(that.ordinalPositionOfField) : that.ordinalPositionOfField != null)
@@ -100,7 +90,6 @@ public class MessageEntryDto {
     public int hashCode() {
         int result = type != null ? type.hashCode() : 0;
         result = 31 * result + (code != null ? code.hashCode() : 0);
-        result = 31 * result + (pid != null ? pid.hashCode() : 0);
         result = 31 * result + (urlForDocumentation != null ? urlForDocumentation.hashCode() : 0);
         result = 31 * result + (ordinalPositionOfField != null ? ordinalPositionOfField.hashCode() : 0);
         result = 31 * result + (ordinalPositionOfSubfield != null ? ordinalPositionOfSubfield.hashCode() : 0);
@@ -114,7 +103,6 @@ public class MessageEntryDto {
         return "MessageEntryDto{" +
                 "type=" + type +
                 ", code='" + code + '\'' +
-                ", pid='" + pid + '\'' +
                 ", urlForDocumentation='" + urlForDocumentation + '\'' +
                 ", ordinalPositionOfField=" + ordinalPositionOfField +
                 ", ordinalPositionOfSubfield=" + ordinalPositionOfSubfield +

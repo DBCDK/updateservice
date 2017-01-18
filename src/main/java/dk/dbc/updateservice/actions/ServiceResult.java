@@ -3,9 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.dto.TypeEnumDto;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
-import dk.dbc.updateservice.update.DoubleRecordFrontendContent;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,10 +22,9 @@ import java.util.List;
  * </ol>
  */
 public class ServiceResult {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ServiceResult.class);
-
     private UpdateStatusEnumDto status = UpdateStatusEnumDto.OK;
     private List<MessageEntryDto> entries = null;
+    private List<DoubleRecordFrontendDto> doubleRecordFrontendDtos = null;
     private String doubleRecordKey = null;
 
     public UpdateStatusEnumDto getStatus() {
@@ -46,6 +43,14 @@ public class ServiceResult {
         this.entries = messageEntryDtos;
     }
 
+    public List<DoubleRecordFrontendDto> getDoubleRecordFrontendDtos() {
+        return doubleRecordFrontendDtos;
+    }
+
+    public void setDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
+        this.doubleRecordFrontendDtos = doubleRecordFrontendDtos;
+    }
+
     public String getDoubleRecordKey() {
         return doubleRecordKey;
     }
@@ -56,25 +61,29 @@ public class ServiceResult {
 
     public void addServiceResult(ServiceResult serviceResult) {
         if (serviceResult != null) {
-            if (serviceResult.getEntries() != null) {
-                if (entries == null) {
-                    entries = new ArrayList<>();
-                }
-                entries.addAll(serviceResult.getEntries());
+            addMessageEntryDtos(serviceResult);
+            addDoubleRecordFrontendDtos(serviceResult);
+            if (serviceResult.getDoubleRecordKey() != null) {
+                doubleRecordKey = serviceResult.getDoubleRecordKey();
             }
-            doubleRecordKey = serviceResult.getDoubleRecordKey();
-            calculateAndAddUpdateStatusEnumDtoValue(serviceResult.getStatus());
             calculateAndAddUpdateStatusEnumDtoValue(serviceResult.getStatus());
         }
     }
 
-    public void calculateAndAddUpdateStatusEnumDtoValue(UpdateStatusEnumDto updateStatusEnumDto) {
+    private void calculateAndAddUpdateStatusEnumDtoValue(UpdateStatusEnumDto updateStatusEnumDto) {
         if (updateStatusEnumDto != UpdateStatusEnumDto.OK) {
             status = updateStatusEnumDto;
         }
     }
 
-    public void addMessageEntryDto(MessageEntryDto messageEntryDto) {
+
+    private void addMessageEntryDtos(ServiceResult serviceResult) {
+        if (serviceResult != null) {
+            addMessageEntryDtos(serviceResult.getEntries());
+        }
+    }
+
+    private void addMessageEntryDto(MessageEntryDto messageEntryDto) {
         if (messageEntryDto != null) {
             if (entries == null) {
                 entries = new ArrayList<>();
@@ -85,10 +94,34 @@ public class ServiceResult {
 
     public void addMessageEntryDtos(List<MessageEntryDto> messageEntryDtos) {
         if (messageEntryDtos != null && !messageEntryDtos.isEmpty()) {
-            if (this.entries == null) {
-                this.entries = new ArrayList<>();
+            if (entries == null) {
+                entries = new ArrayList<>();
             }
-            this.entries.addAll(messageEntryDtos);
+            entries.addAll(messageEntryDtos);
+        }
+    }
+
+    private void addDoubleRecordFrontendDto(DoubleRecordFrontendDto doubleRecordFrontendDto) {
+        if (doubleRecordFrontendDto != null) {
+            if (doubleRecordFrontendDtos == null) {
+                doubleRecordFrontendDtos = new ArrayList<>();
+            }
+            doubleRecordFrontendDtos.add(doubleRecordFrontendDto);
+        }
+    }
+
+    private void addDoubleRecordFrontendDtos(ServiceResult serviceResult) {
+        if (serviceResult != null) {
+            addDoubleRecordFrontendDtos(serviceResult.getDoubleRecordFrontendDtos());
+        }
+    }
+
+    private void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
+        if (doubleRecordFrontendDtos != null && !doubleRecordFrontendDtos.isEmpty()) {
+            if (this.doubleRecordFrontendDtos == null) {
+                this.doubleRecordFrontendDtos = new ArrayList<>();
+            }
+            this.doubleRecordFrontendDtos.addAll(doubleRecordFrontendDtos);
         }
     }
 
@@ -162,13 +195,10 @@ public class ServiceResult {
         return serviceResult;
     }
 
-    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDto status, DoubleRecordFrontendContent doubleRecordFrontendContent, GlobalActionState globalActionState) {
+    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDto status, DoubleRecordFrontendDto doubleRecordFrontendDto, GlobalActionState globalActionState) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
-        MessageEntryDto messageEntryDto = new MessageEntryDto();
-        serviceResult.addMessageEntryDto(messageEntryDto);
-        messageEntryDto.setMessage(doubleRecordFrontendContent.getMessage());
-        messageEntryDto.setPid(doubleRecordFrontendContent.getPid());
+        serviceResult.addDoubleRecordFrontendDto(doubleRecordFrontendDto);
         return serviceResult;
     }
 
@@ -180,16 +210,17 @@ public class ServiceResult {
         ServiceResult that = (ServiceResult) o;
 
         if (status != that.status) return false;
-        if (entries != null ? !entries.equals(that.entries) : that.entries != null)
+        if (entries != null ? !entries.equals(that.entries) : that.entries != null) return false;
+        if (doubleRecordFrontendDtos != null ? !doubleRecordFrontendDtos.equals(that.doubleRecordFrontendDtos) : that.doubleRecordFrontendDtos != null)
             return false;
         return doubleRecordKey != null ? doubleRecordKey.equals(that.doubleRecordKey) : that.doubleRecordKey == null;
-
     }
 
     @Override
     public int hashCode() {
         int result = status != null ? status.hashCode() : 0;
         result = 31 * result + (entries != null ? entries.hashCode() : 0);
+        result = 31 * result + (doubleRecordFrontendDtos != null ? doubleRecordFrontendDtos.hashCode() : 0);
         result = 31 * result + (doubleRecordKey != null ? doubleRecordKey.hashCode() : 0);
         return result;
     }
@@ -199,6 +230,7 @@ public class ServiceResult {
         return "ServiceResult{" +
                 "status=" + status +
                 ", entries=" + entries +
+                ", doubleRecordFrontendDtos=" + doubleRecordFrontendDtos +
                 ", doubleRecordKey='" + doubleRecordKey + '\'' +
                 '}';
     }
