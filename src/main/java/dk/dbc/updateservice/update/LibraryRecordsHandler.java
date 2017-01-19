@@ -229,7 +229,7 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * Compares content of multi occurence fields
+     * Compares content of multi occurrence fields
      *
      * @param oldList   reader for old record
      * @param newList   reader for new record

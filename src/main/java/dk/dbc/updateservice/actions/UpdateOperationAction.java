@@ -98,10 +98,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
 
-            // Perform check of 002a and b,c
-            String validatePreviousFaustMessage = validatePreviousFaust(updReader);
-            if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, validatePreviousFaustMessage, state);
+            // Perform check of 002a and b,c - 870970 only
+            if (updAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                String validatePreviousFaustMessage = validatePreviousFaust(updReader);
+                if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, validatePreviousFaustMessage, state);
+                }
             }
             addDoubleRecordFrontendActionIfNecessary();
 
@@ -119,6 +121,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                 }
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                    logger.info("PLIM");
                     if (!updReader.markedForDeletion() &&
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
