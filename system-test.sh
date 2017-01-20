@@ -2,6 +2,7 @@
 
 function die() {
     echo "Error: $@ failed"
+    docker-compose down
     exit 1
 }
 
@@ -33,11 +34,15 @@ echo "Stop glassfish containers"
 docker-compose down || die "docker-compose down"
 
 echo "Removing old images"
-../../bin/remove-images docker-i.dbc.dk*
-../../bin/remove-dangling-images
+docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
+docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres:latest'
+docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
+docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
+docker rmi 'docker-i.dbc.dk/update-glassfish-deployer:candidate'
+docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 
 sleep 3 || die "sleep 3"
-echo "Startup glassfish containers"
+echo "Startup glassfish containers here : `pwd`"
 docker-compose up -d update-systemtests-rawrepo-db \
                      update-systemtests-holdingsitems-db \
                      update-systemtests-update-db \
