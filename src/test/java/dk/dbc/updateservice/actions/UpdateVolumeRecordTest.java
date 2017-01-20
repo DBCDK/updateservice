@@ -25,7 +25,7 @@ public class UpdateVolumeRecordTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 

@@ -1,9 +1,6 @@
 package dk.dbc.updateservice.dto;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.updateservice.client.BibliographicRecordExtraData;
-
-public class BibliographicRecordDto {
+public class BibliographicRecordDTO {
     private String recordSchema;
     private String recordPacking;
     private RecordDataDto recordDataDto;
@@ -46,7 +43,7 @@ public class BibliographicRecordDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        BibliographicRecordDto that = (BibliographicRecordDto) o;
+        BibliographicRecordDTO that = (BibliographicRecordDTO) o;
 
         if (recordSchema != null ? !recordSchema.equals(that.recordSchema) : that.recordSchema != null) return false;
         if (recordPacking != null ? !recordPacking.equals(that.recordPacking) : that.recordPacking != null)
@@ -68,7 +65,7 @@ public class BibliographicRecordDto {
 
     @Override
     public String toString() {
-        return "BibliographicRecordDto{" +
+        return "BibliographicRecordDTO{" +
                 "recordSchema='" + recordSchema + '\'' +
                 ", recordPacking='" + recordPacking + '\'' +
                 ", recordDataDto=" + recordDataDto +

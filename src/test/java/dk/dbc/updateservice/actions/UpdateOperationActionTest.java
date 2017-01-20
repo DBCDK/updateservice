@@ -79,7 +79,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -87,7 +87,7 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
     }
 
@@ -125,7 +125,7 @@ public class UpdateOperationActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(enrichmentAgencyId.toString());
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(enrichmentAgencyId.toString());
 
         UpdateMode updateMode = new UpdateMode(UpdateMode.Mode.FBS);
         state.setUpdateMode(updateMode);
@@ -133,7 +133,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -142,7 +142,7 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
     }
 
@@ -180,7 +180,7 @@ public class UpdateOperationActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
         Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(enrichmentAgencyId.toString());
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(enrichmentAgencyId.toString());
 
         UpdateMode updateMode = new UpdateMode(UpdateMode.Mode.DATAIO);
         state.setUpdateMode(updateMode);
@@ -188,7 +188,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         state.setMarcRecord(enrichmentRecord);
@@ -198,7 +198,7 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getHoldingsItems());
     }
 
@@ -252,11 +252,11 @@ public class UpdateOperationActionTest {
         state.setUpdateMode(updateModeDataIO);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
@@ -267,7 +267,7 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -298,11 +298,11 @@ public class UpdateOperationActionTest {
         state.setUpdateMode(updateModeDataFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
@@ -316,7 +316,7 @@ public class UpdateOperationActionTest {
         System.out.println("children = " + children);
         assertThat(children.size(), is(5));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord, state.getScripter());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -349,11 +349,11 @@ public class UpdateOperationActionTest {
         state.setUpdateMode(updateModeDataFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 3 - Doublepost frontend, forced update, key found
         String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
@@ -366,7 +366,7 @@ public class UpdateOperationActionTest {
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(4));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
@@ -398,11 +398,11 @@ public class UpdateOperationActionTest {
         state.setUpdateMode(updateModeDataFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataIO))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateModeDataFBS))).thenReturn(rawRepoRecords);
 
         // TEST 4 - Doublepost frontend, forced update, key not found
         String doubleRecordKey = "8d83dc66-87df-4ef5-a50f-82e9e870c66c";
@@ -457,7 +457,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
@@ -465,7 +465,7 @@ public class UpdateOperationActionTest {
 
         List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -509,7 +509,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
@@ -555,7 +555,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(commonSchoolRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(commonSchoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(commonSchoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonSchoolRecord, MarcXChangeMimeType.MARCXCHANGE));
 
@@ -563,7 +563,7 @@ public class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -599,7 +599,7 @@ public class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String groupId = AssertActionsUtil.getAgencyId(schoolRecord);
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(groupId);
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(groupId);
         state.setMarcRecord(schoolRecord);
 
         UpdateMode updateMode = new UpdateMode(UpdateMode.Mode.DATAIO);
@@ -608,14 +608,14 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(schoolRecord);
-        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDto()), eq(updateMode))).thenReturn(rawRepoRecords);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(state.getUpdateServiceRequestDto().getAuthenticationDTO()), eq(updateMode))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDto());
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDto().getAuthenticationDTO());
         AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
         assertThat(iterator.hasNext(), is(false));
     }

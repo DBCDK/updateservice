@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.dto;
 
-public class AuthenticationDto {
+public class AuthenticationDTO {
     private String userId;
     private String groupId;
     private String password;
@@ -34,7 +34,7 @@ public class AuthenticationDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        AuthenticationDto that = (AuthenticationDto) o;
+        AuthenticationDTO that = (AuthenticationDTO) o;
 
         if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
         if (groupId != null ? !groupId.equals(that.groupId) : that.groupId != null) return false;
@@ -52,7 +52,7 @@ public class AuthenticationDto {
 
     @Override
     public String toString() {
-        return "AuthenticationDto{" +
+        return "AuthenticationDTO{" +
                 "userId='" + userId + '\'' +
                 ", groupId='" + groupId + '\'' +
                 ", password='" + password + '\'' +

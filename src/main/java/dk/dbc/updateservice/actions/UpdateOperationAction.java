@@ -109,7 +109,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("Split record into records to store in rawrepo. UpdateMode is {}", state.getUpdateMode().isFBSMode() ? "FBS" : "DATAIO");
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDto(), state.getUpdateMode());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDto().getAuthenticationDTO(), state.getUpdateMode());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
@@ -122,16 +122,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
                 if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
                     if (!updReader.markedForDeletion() &&
-                            !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
                         return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
                     children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
+                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {

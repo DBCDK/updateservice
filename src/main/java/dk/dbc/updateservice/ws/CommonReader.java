@@ -1,17 +1,17 @@
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.service.api.Authentication;
 
 public class CommonReader {
-    protected AuthenticationDto convertExternalAuthenticationToInternalAuthenticationDto(Authentication authentication) {
-        AuthenticationDto res = null;
+    protected AuthenticationDTO convertExternalAuthenticationToInternalAuthenticationDto(Authentication authentication) {
+        AuthenticationDTO authenticationDTO = null;
         if (authentication != null) {
-            res = new AuthenticationDto();
-            res.setGroupId(authentication.getGroupIdAut());
-            res.setPassword(authentication.getPasswordAut());
-            res.setUserId(authentication.getUserIdAut());
+            authenticationDTO = new AuthenticationDTO();
+            authenticationDTO.setGroupId(authentication.getGroupIdAut());
+            authenticationDTO.setPassword(authentication.getPasswordAut());
+            authenticationDTO.setUserId(authentication.getUserIdAut());
         }
-        return res;
+        return authenticationDTO;
     }
 }

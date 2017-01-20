@@ -1,12 +1,7 @@
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.updateservice.dto.AuthenticationDto;
-import dk.dbc.updateservice.dto.BibliographicRecordDto;
-import dk.dbc.updateservice.dto.ExtraRecordDataDto;
-import dk.dbc.updateservice.dto.OptionEnumDto;
-import dk.dbc.updateservice.dto.OptionsDto;
-import dk.dbc.updateservice.dto.RecordDataDto;
-import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
+import dk.dbc.updateservice.dto.*;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
@@ -52,34 +47,34 @@ public class UpdateRequestReader extends CommonReader {
     }
 
     private UpdateServiceRequestDto convertRequestFromExternalFormatToInternalFormat(UpdateRecordRequest updateRecordRequest) {
-        UpdateServiceRequestDto res = null;
+        UpdateServiceRequestDto updateServiceRequestDto = null;
         if (updateRecordRequest != null) {
-            res = new UpdateServiceRequestDto();
-            res.setDoubleRecordKey(updateRecordRequest.getDoubleRecordKey());
-            res.setSchemaName(updateRecordRequest.getSchemaName());
-            res.setTrackingId(updateRecordRequest.getTrackingId());
-            AuthenticationDto authenticationDto = convertExternalAuthenticationToInternalAuthenticationDto(updateRecordRequest.getAuthentication());
-            res.setAuthenticationDto(authenticationDto);
+            updateServiceRequestDto = new UpdateServiceRequestDto();
+            updateServiceRequestDto.setDoubleRecordKey(updateRecordRequest.getDoubleRecordKey());
+            updateServiceRequestDto.setSchemaName(updateRecordRequest.getSchemaName());
+            updateServiceRequestDto.setTrackingId(updateRecordRequest.getTrackingId());
+            AuthenticationDTO authenticationDTO = convertExternalAuthenticationToInternalAuthenticationDto(updateRecordRequest.getAuthentication());
+            updateServiceRequestDto.setAuthenticationDTO(authenticationDTO);
             OptionsDto optionsDto = convertExternalOptionsToInternalOptionsDto(updateRecordRequest);
-            res.setOptionsDto(optionsDto);
-            BibliographicRecordDto bibliographicRecordDto = convertExternalBibliographicRecordToInternalBibliographicRecordDto(updateRecordRequest);
-            res.setBibliographicRecordDto(bibliographicRecordDto);
+            updateServiceRequestDto.setOptionsDto(optionsDto);
+            BibliographicRecordDTO bibliographicRecordDTO = convertExternalBibliographicRecordToInternalBibliographicRecordDto(updateRecordRequest);
+            updateServiceRequestDto.setBibliographicRecordDTO(bibliographicRecordDTO);
         }
-        return res;
+        return updateServiceRequestDto;
     }
 
-    private BibliographicRecordDto convertExternalBibliographicRecordToInternalBibliographicRecordDto(UpdateRecordRequest updateRecordRequest) {
-        BibliographicRecordDto res = null;
+    private BibliographicRecordDTO convertExternalBibliographicRecordToInternalBibliographicRecordDto(UpdateRecordRequest updateRecordRequest) {
+        BibliographicRecordDTO res = null;
         if (updateRecordRequest != null && updateRecordRequest.getBibliographicRecord() != null) {
             res = convertExternalBibliographicRecordToInternalBibliographicRecordDto(updateRecordRequest.getBibliographicRecord());
         }
         return res;
     }
 
-    public static BibliographicRecordDto convertExternalBibliographicRecordToInternalBibliographicRecordDto(BibliographicRecord bibliographicRecord) {
-        BibliographicRecordDto res = null;
+    public static BibliographicRecordDTO convertExternalBibliographicRecordToInternalBibliographicRecordDto(BibliographicRecord bibliographicRecord) {
+        BibliographicRecordDTO res = null;
         if (bibliographicRecord != null) {
-            res = new BibliographicRecordDto();
+            res = new BibliographicRecordDTO();
             res.setRecordPacking(bibliographicRecord.getRecordPacking());
             res.setRecordSchema(bibliographicRecord.getRecordSchema());
             if (bibliographicRecord.getRecordData() != null) {

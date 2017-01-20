@@ -1,15 +1,15 @@
 package dk.dbc.updateservice.dto;
 
 public class SchemasRequestDto {
-    private AuthenticationDto authenticationDto;
+    private AuthenticationDTO authenticationDTO;
     private String trackingId;
 
-    public AuthenticationDto getAuthenticationDto() {
-        return authenticationDto;
+    public AuthenticationDTO getAuthenticationDTO() {
+        return authenticationDTO;
     }
 
-    public void setAuthenticationDto(AuthenticationDto authenticationDto) {
-        this.authenticationDto = authenticationDto;
+    public void setAuthenticationDTO(AuthenticationDTO authenticationDTO) {
+        this.authenticationDTO = authenticationDTO;
     }
 
     public String getTrackingId() {
@@ -27,7 +27,7 @@ public class SchemasRequestDto {
 
         SchemasRequestDto that = (SchemasRequestDto) o;
 
-        if (authenticationDto != null ? !authenticationDto.equals(that.authenticationDto) : that.authenticationDto != null)
+        if (authenticationDTO != null ? !authenticationDTO.equals(that.authenticationDTO) : that.authenticationDTO != null)
             return false;
         return trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null;
 
@@ -35,7 +35,7 @@ public class SchemasRequestDto {
 
     @Override
     public int hashCode() {
-        int result = authenticationDto != null ? authenticationDto.hashCode() : 0;
+        int result = authenticationDTO != null ? authenticationDTO.hashCode() : 0;
         result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
         return result;
     }
@@ -43,7 +43,7 @@ public class SchemasRequestDto {
     @Override
     public String toString() {
         return "SchemasRequestDto{" +
-                "authenticationDto=" + authenticationDto +
+                "authenticationDTO=" + authenticationDTO +
                 ", trackingId='" + trackingId + '\'' +
                 '}';
     }

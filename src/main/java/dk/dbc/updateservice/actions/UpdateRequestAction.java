@@ -60,18 +60,18 @@ public class UpdateRequestAction extends AbstractAction {
 
     private ServiceResult verifyData() throws UpdateException {
         if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
-            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
             return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
         }
-        if (state.getUpdateServiceRequestDto().getBibliographicRecordDto() == null) {
+        if (state.getUpdateServiceRequestDto().getBibliographicRecordDTO() == null) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("request.record.is.missing"), state);
         }
         if (!state.isRecordSchemaValid()) {
-            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordSchema());
+            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDTO().getRecordSchema());
             return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         if (!state.isRecordPackingValid()) {
-            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDto().getRecordPacking());
+            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDTO().getRecordPacking());
             return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
         }
         return null;
@@ -168,9 +168,9 @@ public class UpdateRequestAction extends AbstractAction {
             boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
             if (isProduction
                     && state.getUpdateServiceRequestDto() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDto() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().startsWith("13")) {
+                    && state.getUpdateServiceRequestDto().getAuthenticationDTO() != null
+                    && state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId() != null
+                    && state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId().startsWith("13")) {
                 res = false;
             }
             return res;

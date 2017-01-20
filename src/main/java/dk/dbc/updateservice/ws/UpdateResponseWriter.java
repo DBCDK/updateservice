@@ -6,6 +6,8 @@ import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDto;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
 import dk.dbc.updateservice.service.api.*;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.util.List;
 
@@ -24,6 +26,8 @@ import java.util.List;
  * complete valid response that can be returned thought the JavaEE container.
  */
 public class UpdateResponseWriter {
+    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateResponseWriter.class);
+
     private UpdateRecordResponseDto updateRecordResponseDto;
 
     public UpdateResponseWriter() {
@@ -124,7 +128,8 @@ public class UpdateResponseWriter {
                     break;
             }
         }
-        return null;
+        logger.warn("Got messageEntryDto without type, returning ERROR as type, messageEntryDto: " + messageEntryDto);
+        return Type.ERROR;
     }
 
     private DoubleRecordEntry convertDoubleRecordEntryFromInternalToExternalFormat(DoubleRecordFrontendDto doubleRecordFrontendDto) {

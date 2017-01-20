@@ -48,7 +48,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             if (reader.markedForDeletion()) {
                 boolean hasHoldings = !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty();
                 if (hasHoldings) {
-                    AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+                    AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
                     logger.info("Found holdings for agency '{}'", groupAgencyNumber);
                     boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     if (hasAuthExportHoldings) {

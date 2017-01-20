@@ -24,9 +24,9 @@ public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-        ServiceResult result = null;
+        ServiceResult result = new ServiceResult();
         try {
-            result = doubleRecordFrontendAction.performAction();
+            result.addServiceResult(doubleRecordFrontendAction.performAction());
             result.addServiceResult(validateRecordAction.performAction());
             return result;
         } finally {

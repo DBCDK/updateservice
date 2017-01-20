@@ -10,7 +10,7 @@ import dk.dbc.iscrum.records.UpdateOwnership;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.actions.UpdateMode;
-import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -694,23 +694,23 @@ public class LibraryRecordsHandler {
      * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
      * @param record            The record to be updated
-     * @param authenticationDto Auth DTO from the ws request
+     * @param authenticationDTO Auth DTO from the ws request
      * @param updateMode        Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws OpenAgencyException          in case of an error
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDto authenticationDto, UpdateMode updateMode) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
-        logger.entry(record, authenticationDto, updateMode);
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDTO authenticationDTO, UpdateMode updateMode) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+        logger.entry(record, authenticationDTO, updateMode);
 
         List<MarcRecord> result = new ArrayList<>();
 
         try {
             if (updateMode.isFBSMode()) {
-                result = recordDataForRawRepoFBS(record, authenticationDto.getGroupId());
+                result = recordDataForRawRepoFBS(record, authenticationDTO.getGroupId());
             } else { // Assuming DataIO mode
-                result = recordDataForRawRepoDataIO(record, authenticationDto.getGroupId());
+                result = recordDataForRawRepoDataIO(record, authenticationDTO.getGroupId());
             }
 
             return result;

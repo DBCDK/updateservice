@@ -31,7 +31,7 @@ public class ValidateOperationActionTest {
     public void testPerformAction_fbs_noDoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
         state.getUpdateServiceRequestDto().setSchemaName(schemaName);
 
@@ -46,7 +46,7 @@ public class ValidateOperationActionTest {
         assertTrue(child.getClass() == AuthenticateUserAction.class);
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
+        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
@@ -71,7 +71,7 @@ public class ValidateOperationActionTest {
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
 
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
         state.getUpdateServiceRequestDto().setSchemaName(schemaName);
         UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
@@ -88,7 +88,7 @@ public class ValidateOperationActionTest {
         assertTrue(child.getClass() == AuthenticateUserAction.class);
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
+        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);

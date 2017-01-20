@@ -66,7 +66,7 @@ public class AuthenticateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Login user: {}/{}", state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+            logger.info("Login user: {}/{}", state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
             logger.info("Handling record:\n{}", state.readRecord());
 
             List<MessageEntryDto> errors = state.getAuthenticator().authenticateRecord(state);
@@ -77,10 +77,10 @@ public class AuthenticateRecordAction extends AbstractAction {
             String recordId = reader.recordId();
             String agencyId = reader.agencyId();
             if (result.hasErrors()) {
-                logger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
+                logger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId());
                 result.setStatus(UpdateStatusEnumDto.FAILED);
             } else {
-                logger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId());
+                logger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId());
                 result.setStatus(UpdateStatusEnumDto.OK);
             }
             return result;

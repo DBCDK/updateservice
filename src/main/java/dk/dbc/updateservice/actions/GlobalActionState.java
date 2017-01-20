@@ -257,8 +257,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (marcRecord == null) {
-                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordDataDto() != null) {
-                    list = updateServiceRequestDto.getBibliographicRecordDto().getRecordDataDto().getContent();
+                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordDataDto() != null) {
+                    list = updateServiceRequestDto.getBibliographicRecordDTO().getRecordDataDto().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }
@@ -290,8 +290,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordSchema() != null) {
-                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDto.getBibliographicRecordDto().getRecordSchema());
+            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordSchema() != null) {
+                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDto.getBibliographicRecordDTO().getRecordSchema());
             } else {
                 logger.warn("Unable to record schema from request");
             }
@@ -314,8 +314,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getRecordPacking() != null) {
-                result = RECORD_PACKING_XML.equals(updateServiceRequestDto.getBibliographicRecordDto().getRecordPacking());
+            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordPacking() != null) {
+                result = RECORD_PACKING_XML.equals(updateServiceRequestDto.getBibliographicRecordDTO().getRecordPacking());
             } else {
                 logger.warn("Unable to record packing from request");
             }
@@ -339,8 +339,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (bibliographicRecordExtraData == null) {
-                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDto() != null && updateServiceRequestDto.getBibliographicRecordDto().getExtraRecordDataDto() != null) {
-                    list = updateServiceRequestDto.getBibliographicRecordDto().getExtraRecordDataDto().getContent();
+                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getExtraRecordDataDto() != null) {
+                    list = updateServiceRequestDto.getBibliographicRecordDTO().getExtraRecordDataDto().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }

@@ -31,7 +31,7 @@ public class UpdateSingleRecordTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -117,7 +117,7 @@ public class UpdateSingleRecordTest {
         assertThat(overwriteSingleRecordAction, notNullValue());
         assertThat(overwriteSingleRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(overwriteSingleRecordAction.record, is(record));
-        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(GROUP_ID));
+        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
