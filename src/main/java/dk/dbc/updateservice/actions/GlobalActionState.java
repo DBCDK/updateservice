@@ -6,7 +6,7 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
-import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -30,7 +30,7 @@ public class GlobalActionState {
     public static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
     public static final String RECORD_PACKING_XML = "xml";
 
-    private UpdateServiceRequestDto updateServiceRequestDto = null;
+    private UpdateServiceRequestDTO updateServiceRequestDTO = null;
     private WebServiceContext wsContext = null;
     private Authenticator authenticator = null;
     private Scripter scripter = null;
@@ -52,8 +52,8 @@ public class GlobalActionState {
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDto updateServiceRequestDto, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, UpdateMode updateMode) {
-        this.updateServiceRequestDto = updateServiceRequestDto;
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, UpdateMode updateMode) {
+        this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
         this.scripter = scripter;
@@ -69,7 +69,7 @@ public class GlobalActionState {
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDto(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getUpdateMode());
+        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getUpdateMode());
     }
 
     private void resetState() {
@@ -80,13 +80,13 @@ public class GlobalActionState {
         doubleRecordPossible = null;
     }
 
-    public UpdateServiceRequestDto getUpdateServiceRequestDto() {
-        return updateServiceRequestDto;
+    public UpdateServiceRequestDTO getUpdateServiceRequestDTO() {
+        return updateServiceRequestDTO;
     }
 
-    public void setUpdateServiceRequestDto(UpdateServiceRequestDto updateServiceRequestDto) {
+    public void setUpdateServiceRequestDTO(UpdateServiceRequestDTO updateServiceRequestDTO) {
         resetState();
-        this.updateServiceRequestDto = updateServiceRequestDto;
+        this.updateServiceRequestDTO = updateServiceRequestDTO;
     }
 
     public WebServiceContext getWsContext() {
@@ -232,8 +232,8 @@ public class GlobalActionState {
         logger.entry();
         String result = "";
         try {
-            if (updateServiceRequestDto != null) {
-                result = updateServiceRequestDto.getSchemaName();
+            if (updateServiceRequestDTO != null) {
+                result = updateServiceRequestDTO.getSchemaName();
             } else {
                 logger.warn("Unable to validate schema from request");
             }
@@ -257,8 +257,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (marcRecord == null) {
-                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordDataDto() != null) {
-                    list = updateServiceRequestDto.getBibliographicRecordDTO().getRecordDataDto().getContent();
+                if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
+                    list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }
@@ -290,8 +290,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordSchema() != null) {
-                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDto.getBibliographicRecordDTO().getRecordSchema());
+            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
+                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
             } else {
                 logger.warn("Unable to record schema from request");
             }
@@ -314,8 +314,8 @@ public class GlobalActionState {
         logger.entry();
         boolean result = false;
         try {
-            if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getRecordPacking() != null) {
-                result = RECORD_PACKING_XML.equals(updateServiceRequestDto.getBibliographicRecordDTO().getRecordPacking());
+            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking() != null) {
+                result = RECORD_PACKING_XML.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking());
             } else {
                 logger.warn("Unable to record packing from request");
             }
@@ -339,8 +339,8 @@ public class GlobalActionState {
         List<Object> list = null;
         try {
             if (bibliographicRecordExtraData == null) {
-                if (updateServiceRequestDto != null && updateServiceRequestDto.getBibliographicRecordDTO() != null && updateServiceRequestDto.getBibliographicRecordDTO().getExtraRecordDataDto() != null) {
-                    list = updateServiceRequestDto.getBibliographicRecordDTO().getExtraRecordDataDto().getContent();
+                if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO() != null) {
+                    list = updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO().getContent();
                 } else {
                     logger.warn("Unable to read record from request");
                 }
@@ -366,7 +366,7 @@ public class GlobalActionState {
 
         GlobalActionState state = (GlobalActionState) o;
 
-        if (updateServiceRequestDto != null ? !updateServiceRequestDto.equals(state.updateServiceRequestDto) : state.updateServiceRequestDto != null)
+        if (updateServiceRequestDTO != null ? !updateServiceRequestDTO.equals(state.updateServiceRequestDTO) : state.updateServiceRequestDTO != null)
             return false;
         if (wsContext != null ? !wsContext.equals(state.wsContext) : state.wsContext != null) return false;
         if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
@@ -392,7 +392,7 @@ public class GlobalActionState {
 
     @Override
     public int hashCode() {
-        int result = updateServiceRequestDto != null ? updateServiceRequestDto.hashCode() : 0;
+        int result = updateServiceRequestDTO != null ? updateServiceRequestDTO.hashCode() : 0;
         result = 31 * result + (wsContext != null ? wsContext.hashCode() : 0);
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
         result = 31 * result + (scripter != null ? scripter.hashCode() : 0);
@@ -413,7 +413,7 @@ public class GlobalActionState {
     @Override
     public String toString() {
         return "GlobalActionState{" +
-                "updateServiceRequestDto=" + updateServiceRequestDto +
+                "updateServiceRequestDTO=" + updateServiceRequestDTO +
                 ", wsContext=" + wsContext +
                 ", authenticator=" + authenticator +
                 ", scripter=" + scripter +

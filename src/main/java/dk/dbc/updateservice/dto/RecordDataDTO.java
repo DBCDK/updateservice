@@ -2,7 +2,7 @@ package dk.dbc.updateservice.dto;
 
 import java.util.List;
 
-public class RecordDataDto {
+public class RecordDataDTO {
     private List<Object> content;
 
     public List<Object> getContent() {
@@ -18,7 +18,7 @@ public class RecordDataDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RecordDataDto that = (RecordDataDto) o;
+        RecordDataDTO that = (RecordDataDTO) o;
 
         return content != null ? content.equals(that.content) : that.content == null;
 
@@ -31,7 +31,7 @@ public class RecordDataDto {
 
     @Override
     public String toString() {
-        return "RecordDataDto{" +
+        return "RecordDataDTO{" +
                 "content=" + content +
                 '}';
     }

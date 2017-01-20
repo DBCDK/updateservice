@@ -8,7 +8,7 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -54,7 +54,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
@@ -114,7 +114,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                                 result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
                             }
-                        } else if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId().equals(id.toString())) {
+                        } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {

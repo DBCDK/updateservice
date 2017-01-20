@@ -1,10 +1,10 @@
 package dk.dbc.updateservice.dto;
 
-public class UpdateServiceRequestDto {
+public class UpdateServiceRequestDTO {
     private AuthenticationDTO authenticationDTO;
     private String schemaName;
     private BibliographicRecordDTO bibliographicRecordDTO;
-    private OptionsDto optionsDto;
+    private OptionsDTO optionsDTO;
     private String trackingId;
     private String doubleRecordKey;
 
@@ -32,12 +32,12 @@ public class UpdateServiceRequestDto {
         this.bibliographicRecordDTO = bibliographicRecordDTO;
     }
 
-    public OptionsDto getOptionsDto() {
-        return optionsDto;
+    public OptionsDTO getOptionsDTO() {
+        return optionsDTO;
     }
 
-    public void setOptionsDto(OptionsDto optionsDto) {
-        this.optionsDto = optionsDto;
+    public void setOptionsDTO(OptionsDTO optionsDTO) {
+        this.optionsDTO = optionsDTO;
     }
 
     public String getTrackingId() {
@@ -61,14 +61,14 @@ public class UpdateServiceRequestDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        UpdateServiceRequestDto that = (UpdateServiceRequestDto) o;
+        UpdateServiceRequestDTO that = (UpdateServiceRequestDTO) o;
 
         if (authenticationDTO != null ? !authenticationDTO.equals(that.authenticationDTO) : that.authenticationDTO != null)
             return false;
         if (schemaName != null ? !schemaName.equals(that.schemaName) : that.schemaName != null) return false;
         if (bibliographicRecordDTO != null ? !bibliographicRecordDTO.equals(that.bibliographicRecordDTO) : that.bibliographicRecordDTO != null)
             return false;
-        if (optionsDto != null ? !optionsDto.equals(that.optionsDto) : that.optionsDto != null) return false;
+        if (optionsDTO != null ? !optionsDTO.equals(that.optionsDTO) : that.optionsDTO != null) return false;
         if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) return false;
         return doubleRecordKey != null ? doubleRecordKey.equals(that.doubleRecordKey) : that.doubleRecordKey == null;
 
@@ -79,7 +79,7 @@ public class UpdateServiceRequestDto {
         int result = authenticationDTO != null ? authenticationDTO.hashCode() : 0;
         result = 31 * result + (schemaName != null ? schemaName.hashCode() : 0);
         result = 31 * result + (bibliographicRecordDTO != null ? bibliographicRecordDTO.hashCode() : 0);
-        result = 31 * result + (optionsDto != null ? optionsDto.hashCode() : 0);
+        result = 31 * result + (optionsDTO != null ? optionsDTO.hashCode() : 0);
         result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
         result = 31 * result + (doubleRecordKey != null ? doubleRecordKey.hashCode() : 0);
         return result;
@@ -87,11 +87,11 @@ public class UpdateServiceRequestDto {
 
     @Override
     public String toString() {
-        return "UpdateServiceRequestDto{" +
+        return "UpdateServiceRequestDTO{" +
                 "authenticationDTO=" + authenticationDTO +
                 ", schemaName='" + schemaName + '\'' +
                 ", bibliographicRecordDTO=" + bibliographicRecordDTO +
-                ", optionsDto=" + optionsDto +
+                ", optionsDTO=" + optionsDTO +
                 ", trackingId='" + trackingId + '\'' +
                 ", doubleRecordKey='" + doubleRecordKey + '\'' +
                 '}';

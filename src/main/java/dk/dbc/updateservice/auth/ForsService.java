@@ -56,11 +56,11 @@ public class ForsService {
      * @return A response from forsrights.
      */
     public ForsRights.RightSet forsRights(GlobalActionState globalActionState) throws ForsRightsException {
-        logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), "****");
+        logger.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
         StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
         try {
-            logger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
-            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getPassword(), null);
+            logger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword(), null);
         } finally {
             watch.stop();
             logger.exit();
@@ -75,11 +75,11 @@ public class ForsService {
      * @return A response from forsrights.
      */
     public ForsRights.RightSet forsRightsWithIp(GlobalActionState globalActionState, String ipAddress) throws ForsRightsException {
-        logger.entry(globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), "****", ipAddress);
+        logger.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****", ipAddress);
         StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
         try {
-            logger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
-            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDto().getAuthenticationDTO().getPassword(), ipAddress);
+            logger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY));
+            return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword(), ipAddress);
         } finally {
             watch.stop();
             logger.exit();

@@ -6,7 +6,7 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -50,7 +50,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 String errorMessage = String.format(message, recordId);
 
                 logger.error("Unable to create sub actions doing to an error: {}", errorMessage);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, errorMessage, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage, state);
             }
 
             for (RecordId enrichmentId : rawRepo.enrichments(record)) {
@@ -72,7 +72,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit();
         }

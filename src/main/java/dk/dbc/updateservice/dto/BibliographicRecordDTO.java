@@ -3,8 +3,8 @@ package dk.dbc.updateservice.dto;
 public class BibliographicRecordDTO {
     private String recordSchema;
     private String recordPacking;
-    private RecordDataDto recordDataDto;
-    private ExtraRecordDataDto extraRecordDataDto;
+    private RecordDataDTO recordDataDTO;
+    private ExtraRecordDataDTO extraRecordDataDTO;
 
     public String getRecordSchema() {
         return recordSchema;
@@ -22,20 +22,20 @@ public class BibliographicRecordDTO {
         this.recordPacking = recordPacking;
     }
 
-    public RecordDataDto getRecordDataDto() {
-        return recordDataDto;
+    public RecordDataDTO getRecordDataDTO() {
+        return recordDataDTO;
     }
 
-    public void setRecordDataDto(RecordDataDto recordDataDto) {
-        this.recordDataDto = recordDataDto;
+    public void setRecordDataDTO(RecordDataDTO recordDataDTO) {
+        this.recordDataDTO = recordDataDTO;
     }
 
-    public ExtraRecordDataDto getExtraRecordDataDto() {
-        return extraRecordDataDto;
+    public ExtraRecordDataDTO getExtraRecordDataDTO() {
+        return extraRecordDataDTO;
     }
 
-    public void setExtraRecordDataDto(ExtraRecordDataDto extraRecordDataDto) {
-        this.extraRecordDataDto = extraRecordDataDto;
+    public void setExtraRecordDataDTO(ExtraRecordDataDTO extraRecordDataDTO) {
+        this.extraRecordDataDTO = extraRecordDataDTO;
     }
 
     @Override
@@ -48,9 +48,9 @@ public class BibliographicRecordDTO {
         if (recordSchema != null ? !recordSchema.equals(that.recordSchema) : that.recordSchema != null) return false;
         if (recordPacking != null ? !recordPacking.equals(that.recordPacking) : that.recordPacking != null)
             return false;
-        if (recordDataDto != null ? !recordDataDto.equals(that.recordDataDto) : that.recordDataDto != null)
+        if (recordDataDTO != null ? !recordDataDTO.equals(that.recordDataDTO) : that.recordDataDTO != null)
             return false;
-        return extraRecordDataDto != null ? extraRecordDataDto.equals(that.extraRecordDataDto) : that.extraRecordDataDto == null;
+        return extraRecordDataDTO != null ? extraRecordDataDTO.equals(that.extraRecordDataDTO) : that.extraRecordDataDTO == null;
 
     }
 
@@ -58,8 +58,8 @@ public class BibliographicRecordDTO {
     public int hashCode() {
         int result = recordSchema != null ? recordSchema.hashCode() : 0;
         result = 31 * result + (recordPacking != null ? recordPacking.hashCode() : 0);
-        result = 31 * result + (recordDataDto != null ? recordDataDto.hashCode() : 0);
-        result = 31 * result + (extraRecordDataDto != null ? extraRecordDataDto.hashCode() : 0);
+        result = 31 * result + (recordDataDTO != null ? recordDataDTO.hashCode() : 0);
+        result = 31 * result + (extraRecordDataDTO != null ? extraRecordDataDTO.hashCode() : 0);
         return result;
     }
 
@@ -68,8 +68,8 @@ public class BibliographicRecordDTO {
         return "BibliographicRecordDTO{" +
                 "recordSchema='" + recordSchema + '\'' +
                 ", recordPacking='" + recordPacking + '\'' +
-                ", recordDataDto=" + recordDataDto +
-                ", extraRecordDataDto=" + extraRecordDataDto +
+                ", recordDataDTO=" + recordDataDTO +
+                ", extraRecordDataDTO=" + extraRecordDataDTO +
                 '}';
     }
 }

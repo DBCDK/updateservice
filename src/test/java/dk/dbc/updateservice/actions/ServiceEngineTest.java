@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,8 +49,8 @@ public class ServiceEngineTest {
     public void testExecuteAction_ActionReturnsErrors() throws UpdateException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
-        when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state));
-        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state)));
+        when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state));
+        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
     }
 
     @Test
@@ -102,7 +102,7 @@ public class ServiceEngineTest {
         when(c3.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c3.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
         when(root.performAction()).thenReturn(err);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
@@ -135,7 +135,7 @@ public class ServiceEngineTest {
         when(c3.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c3.children()).thenReturn(null);
 
-        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDto.OK, "warning", state);
+        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning", state);
         when(root.performAction()).thenReturn(warn);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
         assertThat(instance.executeAction(root), equalTo(warn));
@@ -158,7 +158,7 @@ public class ServiceEngineTest {
         when(c1.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c1.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
         ServiceAction c2 = mock(ServiceAction.class);
         when(c2.performAction()).thenReturn(err);
         when(c2.children()).thenReturn(null);
@@ -187,12 +187,12 @@ public class ServiceEngineTest {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
-        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDto.OK, "warning", state);
+        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning", state);
         ServiceAction c1 = mock(ServiceAction.class);
         when(c1.performAction()).thenReturn(warn);
         when(c1.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
         ServiceAction c2 = mock(ServiceAction.class);
         when(c2.performAction()).thenReturn(err);
         when(c2.children()).thenReturn(null);
@@ -205,7 +205,7 @@ public class ServiceEngineTest {
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
         ServiceResult expected = new ServiceResult();
-        expected.setStatus(UpdateStatusEnumDto.FAILED);
+        expected.setStatus(UpdateStatusEnumDTO.FAILED);
         expected.addServiceResult(warn);
         expected.addServiceResult(err);
         assertThat(instance.executeAction(root), equalTo(expected));

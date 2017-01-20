@@ -6,7 +6,7 @@ import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -115,7 +115,7 @@ public class StoreRecordActionTest {
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
         when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state)));
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -159,7 +159,7 @@ public class StoreRecordActionTest {
         when(storeRecordAction.sortRecord(record)).thenReturn(record);
 
         ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "error", state)));
+        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 

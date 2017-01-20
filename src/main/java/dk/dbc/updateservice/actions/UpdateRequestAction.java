@@ -1,9 +1,9 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
-import dk.dbc.updateservice.dto.OptionEnumDto;
-import dk.dbc.updateservice.dto.OptionsDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.OptionEnumDTO;
+import dk.dbc.updateservice.dto.OptionsDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -60,19 +60,19 @@ public class UpdateRequestAction extends AbstractAction {
 
     private ServiceResult verifyData() throws UpdateException {
         if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
-            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         }
-        if (state.getUpdateServiceRequestDto().getBibliographicRecordDTO() == null) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("request.record.is.missing"), state);
+        if (state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() == null) {
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"), state);
         }
         if (!state.isRecordSchemaValid()) {
-            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDTO().getRecordSchema());
-            return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
+            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
+            return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         }
         if (!state.isRecordPackingValid()) {
-            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDto().getBibliographicRecordDTO().getRecordPacking());
-            return ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
+            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
+            return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         }
         return null;
     }
@@ -93,9 +93,9 @@ public class UpdateRequestAction extends AbstractAction {
     public boolean hasValidateOnlyOption() {
         logger.entry();
         try {
-            OptionsDto optionsDto = state.getUpdateServiceRequestDto().getOptionsDto();
-            if (optionsDto != null && optionsDto.getOption() != null) {
-                return optionsDto.getOption().contains(OptionEnumDto.VALIDATE_ONLY);
+            OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
+            if (optionsDTO != null && optionsDTO.getOption() != null) {
+                return optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
             }
             return false;
         } finally {
@@ -167,10 +167,10 @@ public class UpdateRequestAction extends AbstractAction {
             }
             boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
             if (isProduction
-                    && state.getUpdateServiceRequestDto() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDTO() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId() != null
-                    && state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId().startsWith("13")) {
+                    && state.getUpdateServiceRequestDTO() != null
+                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO() != null
+                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() != null
+                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().startsWith("13")) {
                 res = false;
             }
             return res;

@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.validate;
 
-import dk.dbc.updateservice.dto.SchemaDto;
+import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -27,15 +27,15 @@ public class Validator {
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
-    public List<SchemaDto> getValidateSchemas(String groupId) throws ScripterException {
+    public List<SchemaDTO> getValidateSchemas(String groupId) throws ScripterException {
         logger.entry();
-        List<SchemaDto> result = null;
+        List<SchemaDTO> result = null;
         try {
             result = new ArrayList<>();
             ObjectMapper mapper = new ObjectMapper();
             Object jsResult = scripter.callMethod("getValidateSchemas", groupId, settings);
             logger.debug("Result from getValidateSchemas JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            SchemaDto[] names = mapper.readValue(jsResult.toString(), SchemaDto[].class);
+            SchemaDTO[] names = mapper.readValue(jsResult.toString(), SchemaDTO[].class);
             result.addAll(Arrays.asList(names));
             logger.trace("Number of templates: {}", result.size());
             return result;

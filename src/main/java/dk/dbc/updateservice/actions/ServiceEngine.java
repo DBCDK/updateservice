@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import org.apache.commons.lang3.StringUtils;
 import org.perf4j.StopWatch;
@@ -102,7 +102,7 @@ public class ServiceEngine {
             if (actionResult.getServiceErrorList() != null) {
                 return true;
             }
-            if (actionResult.getStatus() == UpdateStatusEnumDto.OK) {
+            if (actionResult.getStatus() == UpdateStatusEnumDTO.OK) {
                 return false;
             }
             return true;

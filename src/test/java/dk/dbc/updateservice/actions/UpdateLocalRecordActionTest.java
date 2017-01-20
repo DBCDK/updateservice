@@ -7,7 +7,7 @@ import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -150,7 +150,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**
@@ -182,7 +182,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
     }
 
@@ -216,7 +216,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
     }
 
@@ -354,7 +354,7 @@ public class UpdateLocalRecordActionTest {
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**
@@ -480,7 +480,7 @@ public class UpdateLocalRecordActionTest {
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**

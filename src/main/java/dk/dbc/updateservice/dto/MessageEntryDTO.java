@@ -1,7 +1,7 @@
 package dk.dbc.updateservice.dto;
 
-public class MessageEntryDto {
-    private TypeEnumDto type;
+public class MessageEntryDTO {
+    private TypeEnumDTO type;
     private String code;
     private String urlForDocumentation;
     private Integer ordinalPositionOfField;
@@ -9,12 +9,12 @@ public class MessageEntryDto {
     private Integer ordinalPositionInSubfield;
     private String message;
 
-    public TypeEnumDto getType() {
+    public TypeEnumDTO getType() {
         return type;
     }
 
-    public void setType(TypeEnumDto typeEnumDto) {
-        this.type = typeEnumDto;
+    public void setType(TypeEnumDTO typeEnumDTO) {
+        this.type = typeEnumDTO;
     }
 
     public String getCode() {
@@ -70,7 +70,7 @@ public class MessageEntryDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        MessageEntryDto that = (MessageEntryDto) o;
+        MessageEntryDTO that = (MessageEntryDTO) o;
 
         if (type != that.type) return false;
         if (code != null ? !code.equals(that.code) : that.code != null) return false;
@@ -100,7 +100,7 @@ public class MessageEntryDto {
 
     @Override
     public String toString() {
-        return "MessageEntryDto{" +
+        return "MessageEntryDTO{" +
                 "type=" + type +
                 ", code='" + code + '\'' +
                 ", urlForDocumentation='" + urlForDocumentation + '\'' +

@@ -2,8 +2,8 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.updateservice.dto.MessageEntryDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
@@ -77,7 +77,7 @@ public class ValidateRecordAction extends AbstractAction {
             Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
 
-            List<MessageEntryDto> errors = Json.decodeArray(jsResult.toString(), MessageEntryDto.class);
+            List<MessageEntryDTO> errors = Json.decodeArray(jsResult.toString(), MessageEntryDTO.class);
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
@@ -88,16 +88,16 @@ public class ValidateRecordAction extends AbstractAction {
 
             if (result.hasErrors()) {
                 logger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnumDto.FAILED);
+                result.setStatus(UpdateStatusEnumDTO.FAILED);
             } else {
                 logger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnumDto.OK);
+                result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
         } catch (IOException | ScripterException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         } finally {
             logger.exit(result);
         }

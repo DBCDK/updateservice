@@ -85,9 +85,9 @@ public class UpdateService {
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
 
-    private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDto updateServiceRequestDto) {
+    private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
-        newGlobalActionStateObject.setUpdateServiceRequestDto(updateServiceRequestDto);
+        newGlobalActionStateObject.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         newGlobalActionStateObject.setAuthenticator(authenticator);
         newGlobalActionStateObject.setScripter(scripter);
         newGlobalActionStateObject.setRawRepo(rawRepo);
@@ -113,23 +113,23 @@ public class UpdateService {
      * </ol>
      * The actual operation is specified in the request by Options object
      *
-     * @param updateServiceRequestDto The request.
+     * @param updateServiceRequestDTO The request.
      * @return Returns an instance of UpdateRecordResult with the status of the
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public ServiceResult updateRecord(UpdateServiceRequestDto updateServiceRequestDto, GlobalActionState globalActionState) {
+    public ServiceResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
-        GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDto);
+        GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
             if (state.readRecord() != null) {
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
-                logger.info("Request tracking id: " + updateServiceRequestDto.getTrackingId());
+                logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
                 updateRequestAction = new UpdateRequestAction(state, settings);
                 serviceEngine = new ServiceEngine();
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
@@ -138,7 +138,7 @@ public class UpdateService {
                 ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
-                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
                 logger.error("Updateservice blev kaldt med tom record DTO");
             }
 
@@ -179,13 +179,13 @@ public class UpdateService {
     }
 
     private void logMdcUpdateMethodEntry(GlobalActionState globalActionState) {
-        UpdateServiceRequestDto updateServiceRequestDto = globalActionState.getUpdateServiceRequestDto();
+        UpdateServiceRequestDTO updateServiceRequestDTO = globalActionState.getUpdateServiceRequestDTO();
         UUID prefixId = UUID.randomUUID();
-        MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateServiceRequestDto.getTrackingId());
+        MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateServiceRequestDTO.getTrackingId());
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
         String trackingId = prefixId.toString();
-        if (updateServiceRequestDto.getTrackingId() != null) {
-            trackingId = updateServiceRequestDto.getTrackingId();
+        if (updateServiceRequestDTO.getTrackingId() != null) {
+            trackingId = updateServiceRequestDTO.getTrackingId();
         }
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
@@ -212,39 +212,39 @@ public class UpdateService {
      * The actual lookup of validation schemes is done by the Validator EJB
      * ({@link Validator#getValidateSchemas ()})
      *
-     * @param schemasRequestDto The request.
+     * @param schemasRequestDTO The request.
      * @return Returns an instance of GetValidateSchemasResult with the list of
      * validation schemes.
      * @throws EJBException In case of an error.
      */
-    public SchemasResponseDto getSchemas(SchemasRequestDto schemasRequestDto) {
+    public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
         StopWatch watch = new Log4JStopWatch();
-        SchemasResponseDto schemasResponseDto;
+        SchemasResponseDTO schemasResponseDTO;
         try {
-            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDto.getTrackingId());
-            logger.entry(schemasRequestDto);
-            logger.info(Json.encodePretty(schemasRequestDto));
-            List<SchemaDto> schemaDtoList = validator.getValidateSchemas(schemasRequestDto.getAuthenticationDTO().getGroupId());
-            schemasResponseDto = new SchemasResponseDto();
-            schemasResponseDto.getSchemaDtoList().addAll(schemaDtoList);
-            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.OK);
-            schemasResponseDto.setError(false);
-            return schemasResponseDto;
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
+            logger.entry(schemasRequestDTO);
+            logger.info(Json.encodePretty(schemasRequestDTO));
+            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(schemasRequestDTO.getAuthenticationDTO().getGroupId());
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
+            schemasResponseDTO.setError(false);
+            return schemasResponseDTO;
         } catch (ScripterException ex) {
             logger.error("Caught JavaScript exception: {}", ex.getCause());
-            schemasResponseDto = new SchemasResponseDto();
-            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.FAILED);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             // TODO: sæt en korrekt message vedr. fejl
 
-            schemasResponseDto.setError(true);
-            return schemasResponseDto;
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
         } catch (IOException ex) {
             logger.error("Caught runtime exception: {}", ex.getCause());
-            schemasResponseDto = new SchemasResponseDto();
+            schemasResponseDTO = new SchemasResponseDTO();
             // TODO: sæt en korrekt message vedr. fejl
-            schemasResponseDto.setUpdateStatusEnumDto(UpdateStatusEnumDto.FAILED);
-            schemasResponseDto.setError(true);
-            return schemasResponseDto;
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
         } catch (RuntimeException ex) {
             // TODO: returner ordentlig fejl her
             logger.error("Caught runtime exception: {}", ex.getCause());
@@ -295,7 +295,7 @@ public class UpdateService {
 
     private ServiceResult convertUpdateErrorToResponse(Throwable ex, GlobalActionState globalActionState) {
         Throwable throwable = findServiceException(ex);
-        ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDto.FAILED, throwable.getMessage(), globalActionState);
+        ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage(), globalActionState);
         return serviceResult;
     }
 

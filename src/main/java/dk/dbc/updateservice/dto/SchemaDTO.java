@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.dto;
 
-public class SchemaDto {
+public class SchemaDTO {
     private String schemaName;
     private String schemaInfo;
 
@@ -25,10 +25,10 @@ public class SchemaDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SchemaDto schemaDto = (SchemaDto) o;
+        SchemaDTO schemaDTO = (SchemaDTO) o;
 
-        if (schemaName != null ? !schemaName.equals(schemaDto.schemaName) : schemaDto.schemaName != null) return false;
-        return schemaInfo != null ? schemaInfo.equals(schemaDto.schemaInfo) : schemaDto.schemaInfo == null;
+        if (schemaName != null ? !schemaName.equals(schemaDTO.schemaName) : schemaDTO.schemaName != null) return false;
+        return schemaInfo != null ? schemaInfo.equals(schemaDTO.schemaInfo) : schemaDTO.schemaInfo == null;
 
     }
 
@@ -41,7 +41,7 @@ public class SchemaDto {
 
     @Override
     public String toString() {
-        return "SchemaDto{" +
+        return "SchemaDTO{" +
                 "schemaName='" + schemaName + '\'' +
                 ", schemaInfo='" + schemaInfo + '\'' +
                 '}';

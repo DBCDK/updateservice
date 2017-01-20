@@ -3,9 +3,9 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
-import dk.dbc.updateservice.dto.MessageEntryDto;
-import dk.dbc.updateservice.dto.TypeEnumDto;
-import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -27,13 +27,13 @@ public class UpdateTestUtils {
     public static String GROUP_ID = "700100";
     public static String USER_ID = "netpunkt";
 
-    public static List<MessageEntryDto> createMessageEntryList(TypeEnumDto typeEnumDto, String message) {
-        List<MessageEntryDto> messageEntryDtos = new ArrayList<>();
-        MessageEntryDto messageEntryDto = new MessageEntryDto();
-        messageEntryDtos.add(messageEntryDto);
-        messageEntryDto.setType(typeEnumDto);
-        messageEntryDto.setMessage(message);
-        return messageEntryDtos;
+    public static List<MessageEntryDTO> createMessageEntryList(TypeEnumDTO typeEnumDTO, String message) {
+        List<MessageEntryDTO> messageEntryDTOS = new ArrayList<>();
+        MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+        messageEntryDTOS.add(messageEntryDTO);
+        messageEntryDTO.setType(typeEnumDTO);
+        messageEntryDTO.setMessage(message);
+        return messageEntryDTOS;
     }
 
     public GlobalActionState getGlobalActionStateMockObject() throws IOException {
@@ -42,13 +42,13 @@ public class UpdateTestUtils {
 
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
         GlobalActionState globalActionState = new GlobalActionState();
-        UpdateServiceRequestDto updateServiceRequestDto = new UpdateServiceRequestDto();
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
-        updateServiceRequestDto.setAuthenticationDTO(AuthenticationDTO);
+        updateServiceRequestDTO.setAuthenticationDTO(AuthenticationDTO);
         AuthenticationDTO.setGroupId(GROUP_ID);
         AuthenticationDTO.setUserId(USER_ID);
         AuthenticationDTO.setPassword("passwd");
-        globalActionState.setUpdateServiceRequestDto(updateServiceRequestDto);
+        globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
         globalActionState.setScripter(mock(Scripter.class));

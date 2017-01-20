@@ -3,17 +3,17 @@ package dk.dbc.updateservice.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OptionsDto {
-    private List<OptionEnumDto> option;
+public class OptionsDTO {
+    private List<OptionEnumDTO> option;
 
-    public List<OptionEnumDto> getOption() {
+    public List<OptionEnumDTO> getOption() {
         if (option == null) {
             option = new ArrayList<>();
         }
         return option;
     }
 
-    public void setOption(List<OptionEnumDto> option) {
+    public void setOption(List<OptionEnumDTO> option) {
         this.option = option;
     }
 
@@ -22,7 +22,7 @@ public class OptionsDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        OptionsDto that = (OptionsDto) o;
+        OptionsDTO that = (OptionsDTO) o;
 
         return option != null ? option.equals(that.option) : that.option == null;
 
@@ -35,7 +35,7 @@ public class OptionsDto {
 
     @Override
     public String toString() {
-        return "OptionsDto{" +
+        return "OptionsDTO{" +
                 "option=" + option +
                 '}';
     }
