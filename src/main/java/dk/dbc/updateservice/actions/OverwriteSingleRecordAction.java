@@ -114,7 +114,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                 logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                                 result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
                             }
-                        } else if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId().equals(id.toString())) {
+                        } else if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {

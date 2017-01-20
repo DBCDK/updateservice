@@ -1,7 +1,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.auth.AuthenticatorException;
-import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,30 +33,30 @@ public class AuthenticateUserActionTest {
 
     @Test
     public void testAuthentication_UserIsNull() throws Exception {
-        AuthenticationDto authenticationDto = new AuthenticationDto();
-        authenticationDto.setGroupId("group");
-        authenticationDto.setPassword("passwd");
-        state.getUpdateServiceRequestDto().setAuthenticationDto(authenticationDto);
+        AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
+        AuthenticationDTO.setGroupId("group");
+        AuthenticationDTO.setPassword("passwd");
+        state.getUpdateServiceRequestDto().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "User name is missing in authentication arguments in the request")));
     }
 
     @Test
     public void testAuthentication_GroupIsNull() throws Exception {
-        AuthenticationDto authenticationDto = new AuthenticationDto();
-        authenticationDto.setUserId("user");
-        authenticationDto.setPassword("passwd");
-        state.getUpdateServiceRequestDto().setAuthenticationDto(authenticationDto);
+        AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
+        AuthenticationDTO.setUserId("user");
+        AuthenticationDTO.setPassword("passwd");
+        state.getUpdateServiceRequestDto().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Group name is missing in authentication arguments in the request")));
     }
 
     @Test
     public void testAuthentication_PasswordIsNull() throws Exception {
-        AuthenticationDto authenticationDto = new AuthenticationDto();
-        authenticationDto.setUserId("user");
-        authenticationDto.setGroupId("group");
-        state.getUpdateServiceRequestDto().setAuthenticationDto(authenticationDto);
+        AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
+        AuthenticationDTO.setUserId("user");
+        AuthenticationDTO.setGroupId("group");
+        state.getUpdateServiceRequestDto().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Password is missing in authentication arguments in the request")));
     }

@@ -41,10 +41,10 @@ public class ValidateSchemaAction extends AbstractAction {
             if (state.getSchemaName() == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "validateSchema must not be empty", state);
             }
-            if (state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId() == null) {
+            if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId() == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, "groupId must not be empty", state);
             }
-            Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings);
+            Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), settings);
             logger.debug("Result from checkTemplate JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof Boolean) {
                 Boolean validateSchemaFound = (Boolean) jsResult;

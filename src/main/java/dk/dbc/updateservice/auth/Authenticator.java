@@ -48,7 +48,7 @@ public class Authenticator {
      * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
-        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), "****");
+        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), "****");
         boolean result = false;
         try {
             String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL_KEY).toString();
@@ -73,11 +73,11 @@ public class Authenticator {
     }
 
     public List<MessageEntryDto> authenticateRecord(GlobalActionState state) throws ScripterException {
-        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
         List<MessageEntryDto> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDto().getAuthenticationDto().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), settings);
+            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), settings);
             logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof String) {
                 // TODO: HUST RET JAVASCRIPT OGSÅ

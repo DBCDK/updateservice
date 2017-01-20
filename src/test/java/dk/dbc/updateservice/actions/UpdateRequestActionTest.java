@@ -62,9 +62,9 @@ public class UpdateRequestActionTest {
 
     @Test
     public void test13LibraryInProduction() throws Exception {
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("131010");
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("131010");
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId());
+        String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
     }
 
@@ -90,13 +90,13 @@ public class UpdateRequestActionTest {
     @Test
     public void testWrongRecordSchema() throws Exception {
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE));
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
 
-        state.getUpdateServiceRequestDto().getBibliographicRecordDto().setRecordSchema(null);
+        state.getUpdateServiceRequestDto().getBibliographicRecordDTO().setRecordSchema(null);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED)));
 
-        state.getUpdateServiceRequestDto().getBibliographicRecordDto().setRecordSchema("wrong");
+        state.getUpdateServiceRequestDto().getBibliographicRecordDTO().setRecordSchema("wrong");
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED)));
     }
 
@@ -122,13 +122,13 @@ public class UpdateRequestActionTest {
     @Test
     public void testWrongRecordPacking() throws Exception {
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE));
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
 
-        state.getUpdateServiceRequestDto().getBibliographicRecordDto().setRecordPacking(null);
+        state.getUpdateServiceRequestDto().getBibliographicRecordDTO().setRecordPacking(null);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED)));
 
-        state.getUpdateServiceRequestDto().getBibliographicRecordDto().setRecordPacking("wrong");
+        state.getUpdateServiceRequestDto().getBibliographicRecordDTO().setRecordPacking("wrong");
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED)));
     }
 
@@ -153,7 +153,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForValidate() throws Exception {
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE));
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
         OptionsDto optionsDto = new OptionsDto();
         optionsDto.getOption().add(OptionEnumDto.VALIDATE_ONLY);
@@ -193,7 +193,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForUpdate() throws Exception {
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE));
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -242,7 +242,7 @@ public class UpdateRequestActionTest {
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(marcRecord, bibliographicRecordExtraData);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -292,7 +292,7 @@ public class UpdateRequestActionTest {
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(marcRecord, bibliographicRecordExtraData);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -342,7 +342,7 @@ public class UpdateRequestActionTest {
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(marcRecord, bibliographicRecordExtraData);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -394,7 +394,7 @@ public class UpdateRequestActionTest {
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(marcRecord, bibliographicRecordExtraData);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName("book");
 
         UpdateRequestAction instance = new UpdateRequestAction(state, settings);
@@ -403,7 +403,7 @@ public class UpdateRequestActionTest {
 
     private void testValidateOperationActionOutput(ValidateOperationAction validateOperationAction) {
         assertThat(validateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(validateOperationAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
+        assertThat(validateOperationAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
         assertThat(validateOperationAction.state.getWsContext(), is(state.getWsContext()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(state.getUpdateServiceRequestDto().getSchemaName()));
         assertThat(validateOperationAction.state.readRecord(), equalTo(state.readRecord()));
@@ -414,7 +414,7 @@ public class UpdateRequestActionTest {
     private void testUpdateOperationAction(UpdateOperationAction updateOperationAction, Properties properties) {
         assertThat(updateOperationAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(updateOperationAction.state.getUpdateServiceRequestDto().getAuthenticationDto(), is(state.getUpdateServiceRequestDto().getAuthenticationDto()));
+        assertThat(updateOperationAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
         assertThat(updateOperationAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateOperationAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateOperationAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));

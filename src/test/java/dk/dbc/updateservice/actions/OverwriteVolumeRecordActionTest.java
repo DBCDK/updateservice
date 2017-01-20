@@ -243,7 +243,7 @@ public class OverwriteVolumeRecordActionTest {
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         String groupId = "700100";
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("700000");
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
@@ -308,7 +308,7 @@ public class OverwriteVolumeRecordActionTest {
      */
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("700000");
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
@@ -391,7 +391,7 @@ public class OverwriteVolumeRecordActionTest {
      */
     @Test
     public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("700000");
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);

@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDto;
 import dk.dbc.updateservice.dto.TypeEnumDto;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDto;
@@ -43,11 +43,11 @@ public class UpdateTestUtils {
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
         GlobalActionState globalActionState = new GlobalActionState();
         UpdateServiceRequestDto updateServiceRequestDto = new UpdateServiceRequestDto();
-        AuthenticationDto authenticationDto = new AuthenticationDto();
-        updateServiceRequestDto.setAuthenticationDto(authenticationDto);
-        authenticationDto.setGroupId(GROUP_ID);
-        authenticationDto.setUserId(USER_ID);
-        authenticationDto.setPassword("passwd");
+        AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
+        updateServiceRequestDto.setAuthenticationDTO(AuthenticationDTO);
+        AuthenticationDTO.setGroupId(GROUP_ID);
+        AuthenticationDTO.setUserId(USER_ID);
+        AuthenticationDTO.setPassword("passwd");
         globalActionState.setUpdateServiceRequestDto(updateServiceRequestDto);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));

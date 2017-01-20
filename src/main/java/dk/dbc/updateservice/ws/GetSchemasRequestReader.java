@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.updateservice.dto.AuthenticationDto;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDto;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 
@@ -17,13 +17,13 @@ public class GetSchemasRequestReader extends CommonReader {
 
     @SuppressWarnings("Duplicates")
     private SchemasRequestDto convertRequestFromExternalFormatToInternalFormat(GetSchemasRequest getSchemasRequest) {
-        SchemasRequestDto res = null;
+        SchemasRequestDto schemasRequestDto = null;
         if (getSchemasRequest != null) {
-            res = new SchemasRequestDto();
-            AuthenticationDto authenticationDto = convertExternalAuthenticationToInternalAuthenticationDto(getSchemasRequest.getAuthentication());
-            res.setAuthenticationDto(authenticationDto);
-            res.setTrackingId(getSchemasRequest.getTrackingId());
+            schemasRequestDto = new SchemasRequestDto();
+            AuthenticationDTO AuthenticationDTO = convertExternalAuthenticationToInternalAuthenticationDto(getSchemasRequest.getAuthentication());
+            schemasRequestDto.setAuthenticationDTO(AuthenticationDTO);
+            schemasRequestDto.setTrackingId(getSchemasRequest.getTrackingId());
         }
-        return res;
+        return schemasRequestDto;
     }
 }

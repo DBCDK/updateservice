@@ -27,7 +27,7 @@ public class UpdateCommonRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -73,7 +73,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -157,7 +157,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -208,7 +208,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateVolumeRecord, notNullValue());
         assertThat(updateVolumeRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateVolumeRecord.getRecord(), is(volumeRecord));
-        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDto().getAuthenticationDto().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateVolumeRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateVolumeRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateVolumeRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));

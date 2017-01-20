@@ -1,19 +1,19 @@
 package dk.dbc.updateservice.dto;
 
 public class UpdateServiceRequestDto {
-    private AuthenticationDto authenticationDto;
+    private AuthenticationDTO authenticationDTO;
     private String schemaName;
-    private BibliographicRecordDto bibliographicRecordDto;
+    private BibliographicRecordDTO bibliographicRecordDTO;
     private OptionsDto optionsDto;
     private String trackingId;
     private String doubleRecordKey;
 
-    public AuthenticationDto getAuthenticationDto() {
-        return authenticationDto;
+    public AuthenticationDTO getAuthenticationDTO() {
+        return authenticationDTO;
     }
 
-    public void setAuthenticationDto(AuthenticationDto authenticationDto) {
-        this.authenticationDto = authenticationDto;
+    public void setAuthenticationDTO(AuthenticationDTO authenticationDTO) {
+        this.authenticationDTO = authenticationDTO;
     }
 
     public String getSchemaName() {
@@ -24,12 +24,12 @@ public class UpdateServiceRequestDto {
         this.schemaName = schemaName;
     }
 
-    public BibliographicRecordDto getBibliographicRecordDto() {
-        return bibliographicRecordDto;
+    public BibliographicRecordDTO getBibliographicRecordDTO() {
+        return bibliographicRecordDTO;
     }
 
-    public void setBibliographicRecordDto(BibliographicRecordDto bibliographicRecordDto) {
-        this.bibliographicRecordDto = bibliographicRecordDto;
+    public void setBibliographicRecordDTO(BibliographicRecordDTO bibliographicRecordDTO) {
+        this.bibliographicRecordDTO = bibliographicRecordDTO;
     }
 
     public OptionsDto getOptionsDto() {
@@ -63,10 +63,10 @@ public class UpdateServiceRequestDto {
 
         UpdateServiceRequestDto that = (UpdateServiceRequestDto) o;
 
-        if (authenticationDto != null ? !authenticationDto.equals(that.authenticationDto) : that.authenticationDto != null)
+        if (authenticationDTO != null ? !authenticationDTO.equals(that.authenticationDTO) : that.authenticationDTO != null)
             return false;
         if (schemaName != null ? !schemaName.equals(that.schemaName) : that.schemaName != null) return false;
-        if (bibliographicRecordDto != null ? !bibliographicRecordDto.equals(that.bibliographicRecordDto) : that.bibliographicRecordDto != null)
+        if (bibliographicRecordDTO != null ? !bibliographicRecordDTO.equals(that.bibliographicRecordDTO) : that.bibliographicRecordDTO != null)
             return false;
         if (optionsDto != null ? !optionsDto.equals(that.optionsDto) : that.optionsDto != null) return false;
         if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) return false;
@@ -76,9 +76,9 @@ public class UpdateServiceRequestDto {
 
     @Override
     public int hashCode() {
-        int result = authenticationDto != null ? authenticationDto.hashCode() : 0;
+        int result = authenticationDTO != null ? authenticationDTO.hashCode() : 0;
         result = 31 * result + (schemaName != null ? schemaName.hashCode() : 0);
-        result = 31 * result + (bibliographicRecordDto != null ? bibliographicRecordDto.hashCode() : 0);
+        result = 31 * result + (bibliographicRecordDTO != null ? bibliographicRecordDTO.hashCode() : 0);
         result = 31 * result + (optionsDto != null ? optionsDto.hashCode() : 0);
         result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
         result = 31 * result + (doubleRecordKey != null ? doubleRecordKey.hashCode() : 0);
@@ -88,9 +88,9 @@ public class UpdateServiceRequestDto {
     @Override
     public String toString() {
         return "UpdateServiceRequestDto{" +
-                "authenticationDto=" + authenticationDto +
+                "authenticationDTO=" + authenticationDTO +
                 ", schemaName='" + schemaName + '\'' +
-                ", bibliographicRecordDto=" + bibliographicRecordDto +
+                ", bibliographicRecordDTO=" + bibliographicRecordDTO +
                 ", optionsDto=" + optionsDto +
                 ", trackingId='" + trackingId + '\'' +
                 ", doubleRecordKey='" + doubleRecordKey + '\'' +

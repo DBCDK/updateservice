@@ -39,9 +39,9 @@ public class ValidateRecordActionTest {
     @Before
     public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDto(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDto().setSchemaName(SCHEMA_NAME);
         settings = new UpdateTestUtils().getSettings();
     }

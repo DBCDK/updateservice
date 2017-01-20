@@ -23,7 +23,7 @@ public class AuthenticateRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        state.getUpdateServiceRequestDto().getAuthenticationDto().setGroupId("700400");
+        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700400");
     }
 
     /**
