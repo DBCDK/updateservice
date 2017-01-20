@@ -4,8 +4,8 @@ import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
-import dk.dbc.updateservice.dto.SchemasResponseDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.SchemasResponseDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
@@ -75,7 +75,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
             LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword ));
             UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
-            serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDto(), globalActionState);
+            serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDTO(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             updateRecordResult = updateResponseWriter.getResponse();
@@ -84,7 +84,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             return updateRecordResult;
         } catch (IOException e) {
             LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDto.FAILED, e.getMessage(), globalActionState);
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
@@ -101,8 +101,8 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
         try {
             GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
-            SchemasResponseDto schemasResponseDto = updateService.getSchemas(getSchemasRequestReader.getSchemasRequestDto());
-            GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDto);
+            SchemasResponseDTO schemasResponseDTO = updateService.getSchemas(getSchemasRequestReader.getSchemasRequestDTO());
+            GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
             return getSchemasResult;
         } finally {

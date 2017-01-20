@@ -3,29 +3,29 @@ package dk.dbc.updateservice.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SchemasResponseDto {
-    private UpdateStatusEnumDto updateStatusEnumDto;
-    private List<SchemaDto> schemaDtoList;
+public class SchemasResponseDTO {
+    private UpdateStatusEnumDTO updateStatusEnumDTO;
+    private List<SchemaDTO> schemaDTOList;
     private boolean error = false;
     private String errorMessage;
 
-    public UpdateStatusEnumDto getUpdateStatusEnumDto() {
-        return updateStatusEnumDto;
+    public UpdateStatusEnumDTO getUpdateStatusEnumDTO() {
+        return updateStatusEnumDTO;
     }
 
-    public void setUpdateStatusEnumDto(UpdateStatusEnumDto updateStatusEnumDto) {
-        this.updateStatusEnumDto = updateStatusEnumDto;
+    public void setUpdateStatusEnumDTO(UpdateStatusEnumDTO updateStatusEnumDTO) {
+        this.updateStatusEnumDTO = updateStatusEnumDTO;
     }
 
-    public List<SchemaDto> getSchemaDtoList() {
-        if (schemaDtoList == null) {
-            schemaDtoList = new ArrayList<>();
+    public List<SchemaDTO> getSchemaDTOList() {
+        if (schemaDTOList == null) {
+            schemaDTOList = new ArrayList<>();
         }
-        return schemaDtoList;
+        return schemaDTOList;
     }
 
-    public void setSchemaDtoList(List<SchemaDto> schemaDtoList) {
-        this.schemaDtoList = schemaDtoList;
+    public void setSchemaDTOList(List<SchemaDTO> schemaDTOList) {
+        this.schemaDTOList = schemaDTOList;
     }
 
     public boolean isError() {
@@ -49,11 +49,11 @@ public class SchemasResponseDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SchemasResponseDto that = (SchemasResponseDto) o;
+        SchemasResponseDTO that = (SchemasResponseDTO) o;
 
         if (error != that.error) return false;
-        if (updateStatusEnumDto != that.updateStatusEnumDto) return false;
-        if (schemaDtoList != null ? !schemaDtoList.equals(that.schemaDtoList) : that.schemaDtoList != null)
+        if (updateStatusEnumDTO != that.updateStatusEnumDTO) return false;
+        if (schemaDTOList != null ? !schemaDTOList.equals(that.schemaDTOList) : that.schemaDTOList != null)
             return false;
         return errorMessage != null ? errorMessage.equals(that.errorMessage) : that.errorMessage == null;
 
@@ -61,8 +61,8 @@ public class SchemasResponseDto {
 
     @Override
     public int hashCode() {
-        int result = updateStatusEnumDto != null ? updateStatusEnumDto.hashCode() : 0;
-        result = 31 * result + (schemaDtoList != null ? schemaDtoList.hashCode() : 0);
+        int result = updateStatusEnumDTO != null ? updateStatusEnumDTO.hashCode() : 0;
+        result = 31 * result + (schemaDTOList != null ? schemaDTOList.hashCode() : 0);
         result = 31 * result + (error ? 1 : 0);
         result = 31 * result + (errorMessage != null ? errorMessage.hashCode() : 0);
         return result;
@@ -70,9 +70,9 @@ public class SchemasResponseDto {
 
     @Override
     public String toString() {
-        return "SchemasResponseDto{" +
-                "updateStatusEnumDto=" + updateStatusEnumDto +
-                ", schemaDtoList=" + schemaDtoList +
+        return "SchemasResponseDTO{" +
+                "updateStatusEnumDTO=" + updateStatusEnumDTO +
+                ", schemaDTOList=" + schemaDTOList +
                 ", error=" + error +
                 ", errorMessage='" + errorMessage + '\'' +
                 '}';

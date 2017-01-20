@@ -32,40 +32,40 @@ public class AuthenticateUserAction extends AbstractAction {
         try {
             validateNullableData();
             String msg;
-            if (state.getUpdateServiceRequestDto().getAuthenticationDTO() == null) {
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
                 // TODO: MOVE TO RESOURCEBUNDLE
                 msg = "Authentication arguments is missing in the request.";
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-            if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId() == null) {
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
                 // TODO: MOVE TO RESOURCEBUNDLE
                 msg = "User name is missing in authentication arguments in the request";
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-            if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId() == null) {
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
                 // TODO: MOVE TO RESOURCEBUNDLE
                 msg = "Group name is missing in authentication arguments in the request";
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
-            if (state.getUpdateServiceRequestDto().getAuthenticationDTO().getPassword() == null) {
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
                 // TODO: MOVE TO RESOURCEBUNDLE
                 msg = "Password is missing in authentication arguments in the request";
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
             if (state.getAuthenticator().authenticateUser(state)) {
-                logger.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId());
+                logger.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 return result = ServiceResult.newOkResult();
             }
-            logger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId());
+            logger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
             return result = ServiceResult.newAuthErrorResult(state);
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             logger.error(message, ex);
-            logger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), ex.getMessage());
+            logger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), ex.getMessage());
             return result = ServiceResult.newAuthErrorResult(state);
         } finally {
             logger.exit(result);

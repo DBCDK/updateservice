@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -40,14 +40,14 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             if (!rawRepo.agenciesForRecord(record).isEmpty()) {
                 String message = state.getMessages().getString("create.record.with.locals");
                 logger.error("Unable to create sub actions doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             MarcRecordReader reader = new MarcRecordReader(record);
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             logger.info("Creating sub actions successfully");
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));

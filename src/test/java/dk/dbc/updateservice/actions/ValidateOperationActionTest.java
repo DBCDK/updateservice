@@ -31,9 +31,9 @@ public class ValidateOperationActionTest {
     public void testPerformAction_fbs_noDoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
-        state.getUpdateServiceRequestDto().setSchemaName(schemaName);
+        state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
 
@@ -46,20 +46,20 @@ public class ValidateOperationActionTest {
         assertTrue(child.getClass() == AuthenticateUserAction.class);
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
+        assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertTrue(child.getClass() == ValidateSchemaAction.class);
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
-        assertThat(validateSchemaAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(schemaName));
+        assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
         assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
         assertTrue(child.getClass() == ValidateRecordAction.class);
         ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
-        assertThat(validateRecordAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
+        assertThat(validateRecordAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
         assertThat(validateRecordAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateRecordAction.settings, is(settings));
@@ -71,9 +71,9 @@ public class ValidateOperationActionTest {
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
 
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
-        state.getUpdateServiceRequestDto().setSchemaName(schemaName);
+        state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
         UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
         state.setUpdateMode(updateModeDataFBS);
 
@@ -88,20 +88,20 @@ public class ValidateOperationActionTest {
         assertTrue(child.getClass() == AuthenticateUserAction.class);
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
-        assertThat(authenticateUserAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(state.getUpdateServiceRequestDto().getAuthenticationDTO()));
+        assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertTrue(child.getClass() == ValidateSchemaAction.class);
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
-        assertThat(validateSchemaAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(schemaName));
+        assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
         assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
         assertTrue(child.getClass() == DoubleRecordFrontendAndValidateAction.class);
         DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = (DoubleRecordFrontendAndValidateAction) child;
-        assertThat(doubleRecordFrontendAndValidateAction.state.getUpdateServiceRequestDto().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
+        assertThat(doubleRecordFrontendAndValidateAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(doubleRecordFrontendAndValidateAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
         assertThat(doubleRecordFrontendAndValidateAction.state.getScripter(), is(state.getScripter()));
         assertThat(doubleRecordFrontendAndValidateAction.settings, is(settings));

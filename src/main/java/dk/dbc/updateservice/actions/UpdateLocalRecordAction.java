@@ -8,7 +8,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -128,11 +128,11 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             Integer agencyId = reader.agencyIdAsInteger();
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -173,13 +173,13 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 MarcRecordReader reader = new MarcRecordReader(this.record);
                 String recordId = reader.recordId();
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
                 AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).agencyId());
                 if (state.getOpenAgencyService().hasFeature(agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)) {
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
             }
             children.add(new RemoveLinksAction(state, record));
@@ -205,7 +205,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             result = performSingleDeleteAction();
-            if (result.getStatus() != UpdateStatusEnumDto.OK) {
+            if (result.getStatus() != UpdateStatusEnumDTO.OK) {
                 return result;
             }
             MarcRecordReader reader = new MarcRecordReader(this.record);

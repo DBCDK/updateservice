@@ -1,11 +1,11 @@
 package dk.dbc.updateservice.dto;
 
-public enum OptionEnumDto {
+public enum OptionEnumDTO {
     VALIDATE_ONLY("VALIDATE_ONLY");
 
     private final String value;
 
-    OptionEnumDto(String v) {
+    OptionEnumDTO(String v) {
         this.value = v;
     }
 
@@ -13,13 +13,13 @@ public enum OptionEnumDto {
         return value;
     }
 
-    public static OptionEnumDto fromValue(String value) {
+    public static OptionEnumDTO fromValue(String value) {
         if (value == null) {
             return null;
         }
-        for (OptionEnumDto optionEnumDto : OptionEnumDto.values()) {
-            if (optionEnumDto.value.equals(value.toUpperCase())) {
-                return optionEnumDto;
+        for (OptionEnumDTO optionEnumDTO : OptionEnumDTO.values()) {
+            if (optionEnumDTO.value.equals(value.toUpperCase())) {
+                return optionEnumDTO;
             }
         }
         throw new IllegalArgumentException(value);
@@ -27,7 +27,7 @@ public enum OptionEnumDto {
 
     @Override
     public String toString() {
-        return "OptionEnumDto{" +
+        return "OptionEnumDTO{" +
                 "value='" + value + '\'' +
                 "} " + super.toString();
     }

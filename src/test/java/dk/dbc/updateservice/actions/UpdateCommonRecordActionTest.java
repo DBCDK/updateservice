@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Assert;
 import org.junit.Before;
@@ -27,7 +27,7 @@ public class UpdateCommonRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -73,7 +73,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -110,7 +110,7 @@ public class UpdateCommonRecordActionTest {
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**
@@ -157,7 +157,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -208,7 +208,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateVolumeRecord, notNullValue());
         assertThat(updateVolumeRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateVolumeRecord.getRecord(), is(volumeRecord));
-        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
         assertThat(updateVolumeRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateVolumeRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateVolumeRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));

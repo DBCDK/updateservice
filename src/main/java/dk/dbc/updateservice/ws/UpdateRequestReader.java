@@ -17,14 +17,14 @@ import dk.dbc.updateservice.service.api.UpdateRecordRequest;
  * and will include checks to ensure the information is valid.
  */
 public class UpdateRequestReader extends CommonReader {
-    private UpdateServiceRequestDto updateServiceRequestDto;
+    private UpdateServiceRequestDTO updateServiceRequestDTO;
 
     public UpdateRequestReader(UpdateRecordRequest updateRecordRequest) {
-        updateServiceRequestDto = convertRequestFromExternalFormatToInternalFormat(updateRecordRequest);
+        updateServiceRequestDTO = convertRequestFromExternalFormatToInternalFormat(updateRecordRequest);
     }
 
-    public UpdateServiceRequestDto getUpdateServiceRequestDto() {
-        return updateServiceRequestDto;
+    public UpdateServiceRequestDTO getUpdateServiceRequestDTO() {
+        return updateServiceRequestDTO;
     }
 
     public static UpdateRecordRequest cloneWithoutPassword(UpdateRecordRequest updateRecordRequest) {
@@ -46,21 +46,21 @@ public class UpdateRequestReader extends CommonReader {
         return res;
     }
 
-    private UpdateServiceRequestDto convertRequestFromExternalFormatToInternalFormat(UpdateRecordRequest updateRecordRequest) {
-        UpdateServiceRequestDto updateServiceRequestDto = null;
+    private UpdateServiceRequestDTO convertRequestFromExternalFormatToInternalFormat(UpdateRecordRequest updateRecordRequest) {
+        UpdateServiceRequestDTO updateServiceRequestDTO = null;
         if (updateRecordRequest != null) {
-            updateServiceRequestDto = new UpdateServiceRequestDto();
-            updateServiceRequestDto.setDoubleRecordKey(updateRecordRequest.getDoubleRecordKey());
-            updateServiceRequestDto.setSchemaName(updateRecordRequest.getSchemaName());
-            updateServiceRequestDto.setTrackingId(updateRecordRequest.getTrackingId());
+            updateServiceRequestDTO = new UpdateServiceRequestDTO();
+            updateServiceRequestDTO.setDoubleRecordKey(updateRecordRequest.getDoubleRecordKey());
+            updateServiceRequestDTO.setSchemaName(updateRecordRequest.getSchemaName());
+            updateServiceRequestDTO.setTrackingId(updateRecordRequest.getTrackingId());
             AuthenticationDTO authenticationDTO = convertExternalAuthenticationToInternalAuthenticationDto(updateRecordRequest.getAuthentication());
-            updateServiceRequestDto.setAuthenticationDTO(authenticationDTO);
-            OptionsDto optionsDto = convertExternalOptionsToInternalOptionsDto(updateRecordRequest);
-            updateServiceRequestDto.setOptionsDto(optionsDto);
+            updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+            OptionsDTO optionsDTO = convertExternalOptionsToInternalOptionsDto(updateRecordRequest);
+            updateServiceRequestDTO.setOptionsDTO(optionsDTO);
             BibliographicRecordDTO bibliographicRecordDTO = convertExternalBibliographicRecordToInternalBibliographicRecordDto(updateRecordRequest);
-            updateServiceRequestDto.setBibliographicRecordDTO(bibliographicRecordDTO);
+            updateServiceRequestDTO.setBibliographicRecordDTO(bibliographicRecordDTO);
         }
-        return updateServiceRequestDto;
+        return updateServiceRequestDTO;
     }
 
     private BibliographicRecordDTO convertExternalBibliographicRecordToInternalBibliographicRecordDto(UpdateRecordRequest updateRecordRequest) {
@@ -78,25 +78,25 @@ public class UpdateRequestReader extends CommonReader {
             res.setRecordPacking(bibliographicRecord.getRecordPacking());
             res.setRecordSchema(bibliographicRecord.getRecordSchema());
             if (bibliographicRecord.getRecordData() != null) {
-                RecordDataDto recordDataDto = new RecordDataDto();
-                res.setRecordDataDto(recordDataDto);
-                recordDataDto.setContent(bibliographicRecord.getRecordData().getContent());
+                RecordDataDTO recordDataDTO = new RecordDataDTO();
+                res.setRecordDataDTO(recordDataDTO);
+                recordDataDTO.setContent(bibliographicRecord.getRecordData().getContent());
             }
             if (bibliographicRecord.getExtraRecordData() != null) {
-                ExtraRecordDataDto extraRecordDataDto = new ExtraRecordDataDto();
-                res.setExtraRecordDataDto(extraRecordDataDto);
-                extraRecordDataDto.setContent(bibliographicRecord.getExtraRecordData().getContent());
+                ExtraRecordDataDTO extraRecordDataDTO = new ExtraRecordDataDTO();
+                res.setExtraRecordDataDTO(extraRecordDataDTO);
+                extraRecordDataDTO.setContent(bibliographicRecord.getExtraRecordData().getContent());
             }
         }
         return res;
     }
 
-    private OptionsDto convertExternalOptionsToInternalOptionsDto(UpdateRecordRequest updateRecordRequest) {
-        OptionsDto res = null;
+    private OptionsDTO convertExternalOptionsToInternalOptionsDto(UpdateRecordRequest updateRecordRequest) {
+        OptionsDTO res = null;
         if (updateRecordRequest != null && updateRecordRequest.getOptions() != null) {
-            res = new OptionsDto();
+            res = new OptionsDTO();
             for (UpdateOptionEnum uoe : updateRecordRequest.getOptions().getOption()) {
-                res.getOption().add(OptionEnumDto.fromValue(uoe.value()));
+                res.getOption().add(OptionEnumDTO.fromValue(uoe.value()));
             }
         }
         return res;

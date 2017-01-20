@@ -146,7 +146,7 @@ public class AssertActionsUtil {
         AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
         Assert.assertThat(authenticateRecordAction.state.readRecord(), is(record));
         Assert.assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
-        Assert.assertThat(authenticateRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDTO(), is(AuthenticationDTO));
+        Assert.assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
     }
 
     public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService) throws UpdateException {
@@ -156,7 +156,7 @@ public class AssertActionsUtil {
         UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction) action;
         Assert.assertThat(updateCommonRecordAction.getRawRepo(), is(rawRepo));
         Assert.assertThat(updateCommonRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(groupId));
+        Assert.assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
         Assert.assertThat(updateCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
         Assert.assertThat(updateCommonRecordAction.state.getHoldingsItems(), is(holdingsItems));
         Assert.assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
@@ -192,7 +192,7 @@ public class AssertActionsUtil {
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = (OverwriteVolumeRecordAction) action;
         assertThat(overwriteVolumeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(overwriteVolumeRecordAction.getRecord(), is(record));
-        assertThat(overwriteVolumeRecordAction.state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), equalTo(groupId));
+        assertThat(overwriteVolumeRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
         assertThat(overwriteVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
         assertThat(overwriteVolumeRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
     }

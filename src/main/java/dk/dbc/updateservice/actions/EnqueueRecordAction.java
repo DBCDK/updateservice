@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -63,7 +63,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID) == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, state.getMessages().getString("provider.id.not.set"), state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
             MarcRecordReader reader = new MarcRecordReader(record);

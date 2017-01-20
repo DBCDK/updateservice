@@ -3,7 +3,7 @@ package dk.dbc.updateservice.auth;
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.dto.MessageEntryDto;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -48,7 +48,7 @@ public class Authenticator {
      * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
-        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), "****");
+        logger.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
         boolean result = false;
         try {
             String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL_KEY).toString();
@@ -72,16 +72,16 @@ public class Authenticator {
         }
     }
 
-    public List<MessageEntryDto> authenticateRecord(GlobalActionState state) throws ScripterException {
-        logger.entry(state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId());
-        List<MessageEntryDto> result = new ArrayList<>();
+    public List<MessageEntryDTO> authenticateRecord(GlobalActionState state) throws ScripterException {
+        logger.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+        List<MessageEntryDTO> result = new ArrayList<>();
         try {
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDto().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDto().getAuthenticationDTO().getGroupId(), settings);
+            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), settings);
             logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof String) {
                 // TODO: HUST RET JAVASCRIPT OGSÅ
-                List<MessageEntryDto> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MessageEntryDto.class));
+                List<MessageEntryDTO> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MessageEntryDTO.class));
                 result.addAll(validationErrors);
                 logger.trace("Number of errors: {}", result.size());
                 return result;

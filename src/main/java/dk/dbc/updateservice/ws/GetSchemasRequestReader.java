@@ -1,29 +1,29 @@
 package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.dto.AuthenticationDTO;
-import dk.dbc.updateservice.dto.SchemasRequestDto;
+import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 
 public class GetSchemasRequestReader extends CommonReader {
-    private SchemasRequestDto schemasRequestDto;
+    private SchemasRequestDTO schemasRequestDTO;
 
     public GetSchemasRequestReader(GetSchemasRequest getSchemasRequest) {
-        schemasRequestDto = convertRequestFromExternalFormatToInternalFormat(getSchemasRequest);
+        schemasRequestDTO = convertRequestFromExternalFormatToInternalFormat(getSchemasRequest);
     }
 
-    public SchemasRequestDto getSchemasRequestDto() {
-        return schemasRequestDto;
+    public SchemasRequestDTO getSchemasRequestDTO() {
+        return schemasRequestDTO;
     }
 
     @SuppressWarnings("Duplicates")
-    private SchemasRequestDto convertRequestFromExternalFormatToInternalFormat(GetSchemasRequest getSchemasRequest) {
-        SchemasRequestDto schemasRequestDto = null;
+    private SchemasRequestDTO convertRequestFromExternalFormatToInternalFormat(GetSchemasRequest getSchemasRequest) {
+        SchemasRequestDTO schemasRequestDTO = null;
         if (getSchemasRequest != null) {
-            schemasRequestDto = new SchemasRequestDto();
+            schemasRequestDTO = new SchemasRequestDTO();
             AuthenticationDTO AuthenticationDTO = convertExternalAuthenticationToInternalAuthenticationDto(getSchemasRequest.getAuthentication());
-            schemasRequestDto.setAuthenticationDTO(AuthenticationDTO);
-            schemasRequestDto.setTrackingId(getSchemasRequest.getTrackingId());
+            schemasRequestDTO.setAuthenticationDTO(AuthenticationDTO);
+            schemasRequestDTO.setTrackingId(getSchemasRequest.getTrackingId());
         }
-        return schemasRequestDto;
+        return schemasRequestDTO;
     }
 }

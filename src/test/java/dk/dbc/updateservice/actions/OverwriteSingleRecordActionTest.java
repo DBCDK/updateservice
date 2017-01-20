@@ -29,7 +29,7 @@ public class OverwriteSingleRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700000");
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -1075,7 +1075,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1149,7 +1149,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1222,7 +1222,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1295,7 +1295,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1366,7 +1366,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
@@ -1446,7 +1446,7 @@ public class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);

@@ -1,19 +1,19 @@
 package dk.dbc.updateservice.dto;
 
-public enum TypeEnumDto {
+public enum TypeEnumDTO {
     WARNING("warning"),
     ERROR("error"),
     FATAL("fatal");
     private final String value;
 
-    TypeEnumDto(String v) {
+    TypeEnumDTO(String v) {
         this.value = v;
     }
 
-    public static TypeEnumDto fromValue(String value) {
-        for (TypeEnumDto typeEnumDto : TypeEnumDto.values()) {
-            if (typeEnumDto.value.equals(value)) {
-                return typeEnumDto;
+    public static TypeEnumDTO fromValue(String value) {
+        for (TypeEnumDTO typeEnumDTO : TypeEnumDTO.values()) {
+            if (typeEnumDTO.value.equals(value)) {
+                return typeEnumDTO;
             }
         }
         throw new IllegalArgumentException(value);

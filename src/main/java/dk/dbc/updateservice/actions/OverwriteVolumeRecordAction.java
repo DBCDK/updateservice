@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -51,13 +51,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                 }
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
                 logger.error("Unable to create sub actions doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
                 logger.error("Unable to create sub actions doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             MarcRecord currentRecord = loadCurrentRecord();
@@ -70,7 +70,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }

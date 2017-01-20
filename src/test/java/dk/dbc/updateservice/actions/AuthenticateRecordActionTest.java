@@ -1,8 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.dto.MessageEntryDto;
-import dk.dbc.updateservice.dto.TypeEnumDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,7 +23,7 @@ public class AuthenticateRecordActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId("700400");
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700400");
     }
 
     /**
@@ -76,10 +76,10 @@ public class AuthenticateRecordActionTest {
      */
     @Test
     public void testPerformAction_Errors() throws Exception {
-        List<MessageEntryDto> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDto.ERROR, "error");
+        List<MessageEntryDTO> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
         when(state.getAuthenticator().authenticateRecord(state)).thenReturn(entries);
         AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state);
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(entries);
         assertThat(authenticateRecordAction.performAction(), equalTo(expected));
         verify(state.getAuthenticator()).authenticateRecord(state);
@@ -106,10 +106,10 @@ public class AuthenticateRecordActionTest {
      */
     @Test
     public void testPerformAction_Warnings() throws Exception {
-        List<MessageEntryDto> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDto.WARNING, "warning");
+        List<MessageEntryDTO> entries = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
         when(state.getAuthenticator().authenticateRecord(state)).thenReturn(entries);
         AuthenticateRecordAction authenticateRecordAction = new AuthenticateRecordAction(state);
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDto.OK);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.OK);
         expected.setEntries(entries);
         assertThat(authenticateRecordAction.performAction(), equalTo(expected));
         verify(state.getAuthenticator()).authenticateRecord(state);
@@ -141,7 +141,7 @@ public class AuthenticateRecordActionTest {
         when(state.getAuthenticator().authenticateRecord(state)).thenThrow(ex);
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state);
         String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), ex.getMessage());
-        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         Assert.assertThat(instance.performAction(), equalTo(expected));
         verify(state.getAuthenticator()).authenticateRecord(state);
     }

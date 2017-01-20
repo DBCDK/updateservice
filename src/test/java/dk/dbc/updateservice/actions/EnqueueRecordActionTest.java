@@ -3,7 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class EnqueueRecordActionTest {
         EnqueueRecordAction instance = new EnqueueRecordAction(state, new Properties(), record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         String message = state.getMessages().getString("provider.id.not.set");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         verify(state.getRawRepo(), never()).changedRecord(anyString(), any(RecordId.class), anyString());
     }
 

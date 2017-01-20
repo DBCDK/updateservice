@@ -1,10 +1,10 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.dto.DoubleRecordFrontendDto;
-import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDto;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -54,21 +54,21 @@ public class DoubleRecordFrontendAction extends AbstractAction {
 
     private ServiceResult parseJavascript(Object o) throws IOException {
         ServiceResult result;
-        DoubleRecordFrontendStatusDto doubleRecordFrontendStatusDto = Json.decode(o.toString(), DoubleRecordFrontendStatusDto.class);
-        if ("ok".equals(doubleRecordFrontendStatusDto.getStatus())) {
+        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = Json.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
+        if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = ServiceResult.newOkResult();
-        } else if ("doublerecord".equals(doubleRecordFrontendStatusDto.getStatus())) {
+        } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = new ServiceResult();
-            for (DoubleRecordFrontendDto doubleRecordFrontendDto : doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos()) {
-                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDto.FAILED, doubleRecordFrontendDto, state));
+            for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO, state));
             }
             result.setDoubleRecordKey(state.getUpdateStore().getNewDoubleRecordKey());
         } else {
             String msg = "Unknown error";
-            if (doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos() != null && !doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos().isEmpty()) {
-                msg = doubleRecordFrontendStatusDto.getDoubleRecordFrontendDtos().get(0).getMessage();
+            if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
+                msg = doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().get(0).getMessage();
             }
-            result = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, msg, state);
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
         }
         return result;
     }

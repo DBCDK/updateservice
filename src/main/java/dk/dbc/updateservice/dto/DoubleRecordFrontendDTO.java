@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.dto;
 
-public class DoubleRecordFrontendDto {
+public class DoubleRecordFrontendDTO {
     private String message;
     private String pid;
 
@@ -25,7 +25,7 @@ public class DoubleRecordFrontendDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        DoubleRecordFrontendDto that = (DoubleRecordFrontendDto) o;
+        DoubleRecordFrontendDTO that = (DoubleRecordFrontendDTO) o;
 
         if (message != null ? !message.equals(that.message) : that.message != null) return false;
         return pid != null ? pid.equals(that.pid) : that.pid == null;

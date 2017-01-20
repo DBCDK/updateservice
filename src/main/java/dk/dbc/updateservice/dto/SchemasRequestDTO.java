@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.dto;
 
-public class SchemasRequestDto {
+public class SchemasRequestDTO {
     private AuthenticationDTO authenticationDTO;
     private String trackingId;
 
@@ -25,7 +25,7 @@ public class SchemasRequestDto {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        SchemasRequestDto that = (SchemasRequestDto) o;
+        SchemasRequestDTO that = (SchemasRequestDTO) o;
 
         if (authenticationDTO != null ? !authenticationDTO.equals(that.authenticationDTO) : that.authenticationDTO != null)
             return false;
@@ -42,7 +42,7 @@ public class SchemasRequestDto {
 
     @Override
     public String toString() {
-        return "SchemasRequestDto{" +
+        return "SchemasRequestDTO{" +
                 "authenticationDTO=" + authenticationDTO +
                 ", trackingId='" + trackingId + '\'' +
                 '}';

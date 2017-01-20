@@ -3,9 +3,9 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
-import dk.dbc.updateservice.dto.MessageEntryDto;
-import dk.dbc.updateservice.dto.TypeEnumDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
@@ -39,10 +39,10 @@ public class ValidateRecordActionTest {
     @Before
     public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
-        state.getUpdateServiceRequestDto().getAuthenticationDTO().setGroupId(GROUP_ID);
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDto().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
-        state.getUpdateServiceRequestDto().setSchemaName(SCHEMA_NAME);
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setSchemaName(SCHEMA_NAME);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -95,7 +95,7 @@ public class ValidateRecordActionTest {
     public void testPerformAction_ValidationWarnings() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        List<MessageEntryDto> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDto.WARNING, "warning");
+        List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
 
         ServiceResult expected = ServiceResult.newOkResult();
@@ -126,10 +126,10 @@ public class ValidateRecordActionTest {
     public void testPerformAction_ValidationErrors() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        List<MessageEntryDto> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDto.ERROR, "error");
+        List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
 
-        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDto.FAILED);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
@@ -161,7 +161,7 @@ public class ValidateRecordActionTest {
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenThrow(ex);
 
         String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
-        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDto.FAILED, message, state);
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
 
@@ -191,7 +191,7 @@ public class ValidateRecordActionTest {
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(27);
 
         ServiceResult serviceResult = validateRecordAction.performAction();
-        assertThat(serviceResult.getStatus(), equalTo(UpdateStatusEnumDto.FAILED));
+        assertThat(serviceResult.getStatus(), equalTo(UpdateStatusEnumDTO.FAILED));
         assertThat(serviceResult.getEntries(), notNullValue());
         assertThat(serviceResult.getEntries().size(), is(1));
         String message = String.format(state.getMessages().getString("internal.validate.record.error"), "");

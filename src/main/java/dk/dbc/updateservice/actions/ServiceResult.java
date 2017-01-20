@@ -1,9 +1,9 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.updateservice.dto.MessageEntryDto;
-import dk.dbc.updateservice.dto.TypeEnumDto;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDto;
-import dk.dbc.updateservice.dto.DoubleRecordFrontendDto;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,33 +22,33 @@ import java.util.List;
  * </ol>
  */
 public class ServiceResult {
-    private UpdateStatusEnumDto status = UpdateStatusEnumDto.OK;
-    private List<MessageEntryDto> entries = null;
-    private List<DoubleRecordFrontendDto> doubleRecordFrontendDtos = null;
+    private UpdateStatusEnumDTO status = UpdateStatusEnumDTO.OK;
+    private List<MessageEntryDTO> entries = null;
+    private List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOS = null;
     private String doubleRecordKey = null;
 
-    public UpdateStatusEnumDto getStatus() {
+    public UpdateStatusEnumDTO getStatus() {
         return status;
     }
 
-    public void setStatus(UpdateStatusEnumDto status) {
+    public void setStatus(UpdateStatusEnumDTO status) {
         this.status = status;
     }
 
-    public List<MessageEntryDto> getEntries() {
+    public List<MessageEntryDTO> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<MessageEntryDto> messageEntryDtos) {
-        this.entries = messageEntryDtos;
+    public void setEntries(List<MessageEntryDTO> messageEntryDTOS) {
+        this.entries = messageEntryDTOS;
     }
 
-    public List<DoubleRecordFrontendDto> getDoubleRecordFrontendDtos() {
-        return doubleRecordFrontendDtos;
+    public List<DoubleRecordFrontendDTO> getDoubleRecordFrontendDTOS() {
+        return doubleRecordFrontendDTOS;
     }
 
-    public void setDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
-        this.doubleRecordFrontendDtos = doubleRecordFrontendDtos;
+    public void setDoubleRecordFrontendDTOS(List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOS) {
+        this.doubleRecordFrontendDTOS = doubleRecordFrontendDTOS;
     }
 
     public String getDoubleRecordKey() {
@@ -70,9 +70,9 @@ public class ServiceResult {
         }
     }
 
-    private void calculateAndAddUpdateStatusEnumDtoValue(UpdateStatusEnumDto updateStatusEnumDto) {
-        if (updateStatusEnumDto != UpdateStatusEnumDto.OK) {
-            status = updateStatusEnumDto;
+    private void calculateAndAddUpdateStatusEnumDtoValue(UpdateStatusEnumDTO updateStatusEnumDTO) {
+        if (updateStatusEnumDTO != UpdateStatusEnumDTO.OK) {
+            status = updateStatusEnumDTO;
         }
     }
 
@@ -83,53 +83,53 @@ public class ServiceResult {
         }
     }
 
-    private void addMessageEntryDto(MessageEntryDto messageEntryDto) {
-        if (messageEntryDto != null) {
+    private void addMessageEntryDto(MessageEntryDTO messageEntryDTO) {
+        if (messageEntryDTO != null) {
             if (entries == null) {
                 entries = new ArrayList<>();
             }
-            entries.add(messageEntryDto);
+            entries.add(messageEntryDTO);
         }
     }
 
-    public void addMessageEntryDtos(List<MessageEntryDto> messageEntryDtos) {
-        if (messageEntryDtos != null && !messageEntryDtos.isEmpty()) {
+    public void addMessageEntryDtos(List<MessageEntryDTO> messageEntryDTOS) {
+        if (messageEntryDTOS != null && !messageEntryDTOS.isEmpty()) {
             if (entries == null) {
                 entries = new ArrayList<>();
             }
-            entries.addAll(messageEntryDtos);
+            entries.addAll(messageEntryDTOS);
         }
     }
 
-    private void addDoubleRecordFrontendDto(DoubleRecordFrontendDto doubleRecordFrontendDto) {
-        if (doubleRecordFrontendDto != null) {
-            if (doubleRecordFrontendDtos == null) {
-                doubleRecordFrontendDtos = new ArrayList<>();
+    private void addDoubleRecordFrontendDto(DoubleRecordFrontendDTO doubleRecordFrontendDTO) {
+        if (doubleRecordFrontendDTO != null) {
+            if (doubleRecordFrontendDTOS == null) {
+                doubleRecordFrontendDTOS = new ArrayList<>();
             }
-            doubleRecordFrontendDtos.add(doubleRecordFrontendDto);
+            doubleRecordFrontendDTOS.add(doubleRecordFrontendDTO);
         }
     }
 
     private void addDoubleRecordFrontendDtos(ServiceResult serviceResult) {
         if (serviceResult != null) {
-            addDoubleRecordFrontendDtos(serviceResult.getDoubleRecordFrontendDtos());
+            addDoubleRecordFrontendDtos(serviceResult.getDoubleRecordFrontendDTOS());
         }
     }
 
-    private void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDto> doubleRecordFrontendDtos) {
-        if (doubleRecordFrontendDtos != null && !doubleRecordFrontendDtos.isEmpty()) {
-            if (this.doubleRecordFrontendDtos == null) {
-                this.doubleRecordFrontendDtos = new ArrayList<>();
+    private void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOS) {
+        if (doubleRecordFrontendDTOS != null && !doubleRecordFrontendDTOS.isEmpty()) {
+            if (this.doubleRecordFrontendDTOS == null) {
+                this.doubleRecordFrontendDTOS = new ArrayList<>();
             }
-            this.doubleRecordFrontendDtos.addAll(doubleRecordFrontendDtos);
+            this.doubleRecordFrontendDTOS.addAll(doubleRecordFrontendDTOS);
         }
     }
 
-    public List<MessageEntryDto> getServiceErrorList() {
-        List<MessageEntryDto> entryErrors = null;
+    public List<MessageEntryDTO> getServiceErrorList() {
+        List<MessageEntryDTO> entryErrors = null;
         if (entries != null) {
-            for (MessageEntryDto entry : entries) {
-                if (entry.getType() == TypeEnumDto.ERROR) {
+            for (MessageEntryDTO entry : entries) {
+                if (entry.getType() == TypeEnumDTO.ERROR) {
                     if (entryErrors == null) {
                         entryErrors = new ArrayList<>();
                     }
@@ -143,8 +143,8 @@ public class ServiceResult {
     public boolean hasErrors() {
         boolean res = false;
         if (entries != null) {
-            for (MessageEntryDto entry : entries) {
-                if (entry.getType() == TypeEnumDto.ERROR) {
+            for (MessageEntryDTO entry : entries) {
+                if (entry.getType() == TypeEnumDTO.ERROR) {
                     res = true;
                 }
             }
@@ -154,51 +154,51 @@ public class ServiceResult {
 
     public static ServiceResult newOkResult() {
         ServiceResult serviceResult = new ServiceResult();
-        serviceResult.setStatus(UpdateStatusEnumDto.OK);
+        serviceResult.setStatus(UpdateStatusEnumDTO.OK);
         return serviceResult;
     }
 
 
-    public static ServiceResult newStatusResult(UpdateStatusEnumDto status) {
+    public static ServiceResult newStatusResult(UpdateStatusEnumDTO status) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
         return serviceResult;
     }
 
     public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState) {
-        return newEntryResult(UpdateStatusEnumDto.FAILED, TypeEnumDto.ERROR, "Authentication error", globalActionState);
+        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, "Authentication error", globalActionState);
     }
 
     public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState, String message) {
-        return newEntryResult(UpdateStatusEnumDto.FAILED, TypeEnumDto.ERROR, message, globalActionState);
+        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, message, globalActionState);
     }
 
-    public static ServiceResult newErrorResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDto.ERROR, message, globalActionState);
+    public static ServiceResult newErrorResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDTO.ERROR, message, globalActionState);
     }
 
-    public static ServiceResult newFatalResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDto.FATAL, message, globalActionState);
+    public static ServiceResult newFatalResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDTO.FATAL, message, globalActionState);
     }
 
-    public static ServiceResult newWarningResult(UpdateStatusEnumDto status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDto.WARNING, message, globalActionState);
+    public static ServiceResult newWarningResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
+        return newEntryResult(status, TypeEnumDTO.WARNING, message, globalActionState);
     }
 
-    public static ServiceResult newEntryResult(UpdateStatusEnumDto status, TypeEnumDto type, String message, GlobalActionState globalActionState) {
+    public static ServiceResult newEntryResult(UpdateStatusEnumDTO status, TypeEnumDTO type, String message, GlobalActionState globalActionState) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
-        MessageEntryDto messageEntryDto = new MessageEntryDto();
-        serviceResult.addMessageEntryDto(messageEntryDto);
-        messageEntryDto.setType(type);
-        messageEntryDto.setMessage(message);
+        MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+        serviceResult.addMessageEntryDto(messageEntryDTO);
+        messageEntryDTO.setType(type);
+        messageEntryDTO.setMessage(message);
         return serviceResult;
     }
 
-    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDto status, DoubleRecordFrontendDto doubleRecordFrontendDto, GlobalActionState globalActionState) {
+    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDTO status, DoubleRecordFrontendDTO doubleRecordFrontendDTO, GlobalActionState globalActionState) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
-        serviceResult.addDoubleRecordFrontendDto(doubleRecordFrontendDto);
+        serviceResult.addDoubleRecordFrontendDto(doubleRecordFrontendDTO);
         return serviceResult;
     }
 
@@ -211,7 +211,7 @@ public class ServiceResult {
 
         if (status != that.status) return false;
         if (entries != null ? !entries.equals(that.entries) : that.entries != null) return false;
-        if (doubleRecordFrontendDtos != null ? !doubleRecordFrontendDtos.equals(that.doubleRecordFrontendDtos) : that.doubleRecordFrontendDtos != null)
+        if (doubleRecordFrontendDTOS != null ? !doubleRecordFrontendDTOS.equals(that.doubleRecordFrontendDTOS) : that.doubleRecordFrontendDTOS != null)
             return false;
         return doubleRecordKey != null ? doubleRecordKey.equals(that.doubleRecordKey) : that.doubleRecordKey == null;
     }
@@ -220,7 +220,7 @@ public class ServiceResult {
     public int hashCode() {
         int result = status != null ? status.hashCode() : 0;
         result = 31 * result + (entries != null ? entries.hashCode() : 0);
-        result = 31 * result + (doubleRecordFrontendDtos != null ? doubleRecordFrontendDtos.hashCode() : 0);
+        result = 31 * result + (doubleRecordFrontendDTOS != null ? doubleRecordFrontendDTOS.hashCode() : 0);
         result = 31 * result + (doubleRecordKey != null ? doubleRecordKey.hashCode() : 0);
         return result;
     }
@@ -230,7 +230,7 @@ public class ServiceResult {
         return "ServiceResult{" +
                 "status=" + status +
                 ", entries=" + entries +
-                ", doubleRecordFrontendDtos=" + doubleRecordFrontendDtos +
+                ", doubleRecordFrontendDTOS=" + doubleRecordFrontendDTOS +
                 ", doubleRecordKey='" + doubleRecordKey + '\'' +
                 '}';
     }
