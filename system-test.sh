@@ -14,8 +14,8 @@ function collect_logs () {
 
 function die() {
     echo "Error: $@ failed"
-    docker-compose down
     collect_logs
+    docker-compose down
     exit 1
 }
 
@@ -77,8 +77,8 @@ UPDATEFBS_IMAGE=`docker-compose ps -q update-systemtests-fbs`
 UPDATEFBS_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATEFBS_IMAGE} `
 echo -e "UPDATEFBS_PORT_8080 is $UPDATEFBS_PORT_8080\n"
 echo "Wait for glassfish containers"
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEDATAIO_PORT_8080} '[dataio]' || die "could not start dataio"
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEFBS_PORT_8080} '[fbs]' || die "could not start fbs"
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEDATAIO_PORT_8080} 60 '[dataio]' || die "could not start dataio"
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEFBS_PORT_8080} 60 '[fbs]' || die "could not start fbs"
 
 sleep 3 || die "sleep 3"
 
