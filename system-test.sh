@@ -1,20 +1,34 @@
 #!/usr/bin/env bash
 
+function collect_logs () {
+
+   echo "Collect log files"
+   docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
+   docker logs systemtests_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
+   docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
+   docker logs systemtests_update-systemtests-fbs_1 > logs/gf-fbs.log
+   docker logs systemtests_update-systemtests-dataio_1 > logs/gf-dataio.log
+   docker logs systemtests_ocb-tools-systemtests_1 > logs/ocb-tools.log
+
+}
+
 function die() {
     echo "Error: $@ failed"
     docker-compose down
+    collect_logs
     exit 1
 }
 
 if [ "$1" == "payara" ]; then
     echo "Running in payara mode: "
     SYSTEST_PATH="docker/deployments/systemtests-payara"
+    export COMPOSE_PROJECT_NAME=systemtestspayara
 else
     echo "Running in glassfish mode: "
     SYSTEST_PATH="docker/deployments/systemtests"
+    export COMPOSE_PROJECT_NAME=systemtests
 fi
 
-COMPOSE_PROJECT_NAME=systemtests
 export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
 echo "Using host IP: ${HOST_IP}"
 
@@ -71,13 +85,7 @@ sleep 3 || die "sleep 3"
 echo "Start and run systemtests"
 docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests"
 
-echo "Collect log files"
-docker logs systemtests_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
-docker logs systemtests_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
-docker logs systemtests_update-systemtests-update-db_1 > logs/pg-updatedb.log
-docker logs systemtests_update-systemtests-fbs_1 > logs/gf-fbs.log
-docker logs systemtests_update-systemtests-dataio_1 > logs/gf-dataio.log
-docker logs systemtests_ocb-tools-systemtests_1 > logs/ocb-tools.log
+collect_logs
 
 sleep 3 || die "sleep 3"
 echo "Stop glassfish containers"
