@@ -4,18 +4,20 @@ if [ "$1" == "payara" ]; then
     echo "Running in payara mode: "
     SYSTEST_PATH="docker/deployments/systemtests-payara"
     export COMPOSE_PROJECT_NAME=systemtestspayara
+    export systest="-payara"
 else
     echo "Running in glassfish mode: "
     SYSTEST_PATH="docker/deployments/systemtests"
     export COMPOSE_PROJECT_NAME=systemtests
+    export systest=""
 fi
 
 function collect_logs () {
 
    echo "Collect log files"
-   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
-   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
-   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-update-db_1 > logs/pg-updatedb.log
+   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-rawrepo-db${systest}_1 > logs/pg-rawrepo.log
+   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-holdingsitems-db${systest}_1 > logs/pg-holdingsitems.log
+   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-update-db${systest}_1 > logs/pg-updatedb.log
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-fbs_1 > logs/gf-fbs.log
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-dataio_1 > logs/gf-dataio.log
    docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
@@ -52,13 +54,13 @@ docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
 docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres:latest'
 docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
 docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
-docker rmi 'docker-i.dbc.dk/update-glassfish-deployer:candidate'
+docker rmi 'docker-i.dbc.dk/update-*:candidate'
 docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 
 echo "Startup glassfish containers here : `pwd`"
-docker-compose up -d update-systemtests-rawrepo-db \
-                     update-systemtests-holdingsitems-db \
-                     update-systemtests-update-db \
+docker-compose up -d update-systemtests-rawrepo-db${systest} \
+                     update-systemtests-holdingsitems-db${systest} \
+                     update-systemtests-update-db${systest} \
                      update-systemtests-fake-smtp \
                      update-systemtests-fbs \
                      update-systemtests-dataio  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-fbs \ update-systemtests-dataio"
@@ -76,8 +78,8 @@ UPDATEFBS_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.P
 echo -e "UPDATEFBS_PORT_8080 is $UPDATEFBS_PORT_8080\n"
 echo "Wait for glassfish containers"
 
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEDATAIO_PORT_8080} 120 '[dataio]' || die "could not start dataio"
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEFBS_PORT_8080} 120 '[fbs]' || die "could not start fbs"
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEDATAIO_PORT_8080} 220 '[dataio]' || die "could not start dataio"
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATEFBS_PORT_8080} 220 '[fbs]' || die "could not start fbs"
 
 sleep 3 || die "sleep 3"
 
