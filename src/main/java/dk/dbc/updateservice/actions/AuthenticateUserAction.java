@@ -61,7 +61,7 @@ public class AuthenticateUserAction extends AbstractAction {
                 return result = ServiceResult.newOkResult();
             }
             logger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
-            return result = ServiceResult.newAuthErrorResult(state);
+            return result = ServiceResult.  newAuthErrorResult(state);
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             logger.error(message, ex);
