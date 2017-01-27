@@ -47,7 +47,7 @@ mkdir -p logs/ocb-tools || die "mkdir -p logs/ocb-tools"
 chmod -R a+rw logs || die "chmod -R a+rw logs"
 
 echo "Stop glassfish containers"
-docker-compose down || die "docker-compose down"
+docker-compose down
 
 echo "Removing old images"
 docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
