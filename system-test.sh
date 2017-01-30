@@ -13,7 +13,6 @@ else
 fi
 
 function collect_logs () {
-
    echo "Collect log files"
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-rawrepo-db${systest}_1 > logs/pg-rawrepo.log
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-holdingsitems-db${systest}_1 > logs/pg-holdingsitems.log
@@ -21,9 +20,7 @@ function collect_logs () {
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-fbs_1 > logs/gf-fbs.log
    docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-dataio_1 > logs/gf-dataio.log
    docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
-
 }
-
 function die() {
     echo "Error: $@ failed"
     collect_logs
@@ -58,12 +55,19 @@ docker rmi 'docker-i.dbc.dk/update-*:candidate'
 docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 
 echo "Startup glassfish containers here : `pwd`"
-docker-compose up -d update-systemtests-rawrepo-db${systest} \
-                     update-systemtests-holdingsitems-db${systest} \
-                     update-systemtests-update-db${systest} \
-                     update-systemtests-fake-smtp \
-                     update-systemtests-fbs \
-                     update-systemtests-dataio  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-fbs \ update-systemtests-dataio"
+#docker-compose up -d update-systemtests-rawrepo-db${systest} \
+#                     update-systemtests-holdingsitems-db${systest} \
+#                     update-systemtests-update-db${systest} \
+#                     update-systemtests-fake-smtp \
+#                     update-systemtests-fbs \
+#                     update-systemtests-dataio  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-fbs \ update-systemtests-dataio"
+
+docker-compose up -d update-systemtests-rawrepo-db${systest} || die "rawrepo"
+docker-compose up -d                     update-systemtests-holdingsitems-db${systest} || die "holdingsitems"
+docker-compose up -d                     update-systemtests-update-db${systest} || die "updatedb"
+docker-compose up -d                     update-systemtests-fake-smtp || die "smtp"
+docker-compose up -d                     update-systemtests-fbs || die "fbs"
+docker-compose up -d                     update-systemtests-dataio  || die "dataio"
 
 docker tag docker-i.dbc.dk/mock-rawrepo-postgres:latest docker-i.dbc.dk/mock-rawrepo-postgres:${COMPOSE_PROJECT_NAME}
 docker rmi docker-i.dbc.dk/mock-rawrepo-postgres:latest
