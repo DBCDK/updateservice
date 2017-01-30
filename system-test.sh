@@ -9,7 +9,7 @@ else
     echo "Running in glassfish mode: "
     SYSTEST_PATH="docker/deployments/systemtests"
     export COMPOSE_PROJECT_NAME=systemtests
-    export systest="glasfish"
+    export systest="-glassfish"
 fi
 
 function collect_logs () {
