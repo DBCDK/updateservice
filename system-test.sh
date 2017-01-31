@@ -46,13 +46,13 @@ chmod -R a+rw logs || die "chmod -R a+rw logs"
 echo "Stop glassfish containers"
 docker-compose down
 
-echo "Removing old images"
-docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
-docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres:latest'
-docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
-docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
-docker rmi 'docker-i.dbc.dk/update-*:candidate'
-docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
+#echo "Removing old images"
+#docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
+#docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres:latest'
+#docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
+#docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
+#docker rmi 'docker-i.dbc.dk/update-*:candidate'
+#docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 
 echo "Startup glassfish containers here : `pwd`"
 docker-compose up -d update-systemtests-rawrepo-db${systest} \
@@ -62,6 +62,7 @@ docker-compose up -d update-systemtests-rawrepo-db${systest} \
                      update-systemtests-fbs \
                      update-systemtests-dataio  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-fbs \ update-systemtests-dataio"
 
+#echo "Startup glassfish containers here : `pwd`"
 #docker-compose up -d update-systemtests-rawrepo-db${systest} || die "rawrepo"
 #docker-compose up -d                     update-systemtests-holdingsitems-db${systest} || die "holdingsitems"
 #docker-compose up -d                     update-systemtests-update-db${systest} || die "updatedb"
