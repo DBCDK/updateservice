@@ -30,11 +30,11 @@ function removeImages() {
 
 function startContainers () {
   docker-compose up -d update-systemtests-rawrepo-db${systest}  || die "docker-compose up -d update-systemtests-rawrepo-db${systest}"
-  update-systemtests-holdingsitems-db${systest}                 || die "docker-compose up -d update-systemtests-holdingsitems-db${systest}"
-  update-systemtests-update-db${systest}                        || die "docker-compose up -d update-systemtests-update-db${systest}"
-  update-systemtests-fake-smtp                                  || die  "docker-compose up -d update-systemtests-fake-smtp"
-  update-systemtests-dataio                                     || die  "docker-compose up -d update-systemtests-dataio"
-  update-systemtests-fbs                                        || die  "docker-compose up -d update-systemtests-fbs"
+  docker-compose up -d update-systemtests-holdingsitems-db${systest}                 || die "docker-compose up -d update-systemtests-holdingsitems-db${systest}"
+  docker-compose up -d update-systemtests-update-db${systest}                        || die "docker-compose up -d update-systemtests-update-db${systest}"
+  docker-compose up -d update-systemtests-fake-smtp                                  || die  "docker-compose up -d update-systemtests-fake-smtp"
+  docker-compose up -d update-systemtests-dataio                                     || die  "docker-compose up -d update-systemtests-dataio"
+  docker-compose up -d update-systemtests-fbs                                        || die  "docker-compose up -d update-systemtests-fbs"
 }
 
 function reTagAndRemove () {
