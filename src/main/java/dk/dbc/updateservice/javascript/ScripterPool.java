@@ -123,15 +123,10 @@ public class ScripterPool {
                 Profiler profiler = new Profiler("JS init thread");
                 for (int i = 0; i < active_javaScriptPoolSize; i++) {
                     try {
-                        logger.debug ( "#1 nullpointer search")
                         profiler.start("JS enviroment " + i);
-                        logger.debug ( "#2 nullpointer search")
                         ScripterEnvironment scripterEnvironment = scripterEnvironmentFactory.newEnvironment(settings);
-                        logger.debug ( "#3 nullpointer search")
                         environments.put(scripterEnvironment);
-                        logger.debug ( "#4 nullpointer search")
                         initializedEnvironments.incrementAndGet();
-                        logger.debug ( "# 5 nullpointer search")
                         logger.info("Environment " + (i + 1) + "/" + active_javaScriptPoolSize + " added to ready queue");
                     } catch (Exception e) {
                         logger.error("JavaScript environment creation failed ", e);
