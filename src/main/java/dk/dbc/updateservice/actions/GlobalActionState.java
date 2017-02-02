@@ -3,18 +3,13 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcConverter;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
-import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -27,8 +22,8 @@ import java.util.ResourceBundle;
 
 public class GlobalActionState {
     private static final XLogger logger = XLoggerFactory.getXLogger(GlobalActionState.class);
-    public static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
-    public static final String RECORD_PACKING_XML = "xml";
+    private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
+    private static final String RECORD_PACKING_XML = "xml";
 
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
     private WebServiceContext wsContext = null;
@@ -45,14 +40,16 @@ public class GlobalActionState {
     private MarcRecord marcRecord = null;
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
-    private UpdateMode updateMode = null;
+    private OpenAgencyService.LibraryGroup libraryGroup = null;
+    private String templateGroup = null;
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
+    private Boolean recordExists = null;
 
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, UpdateMode updateMode) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, OpenAgencyService.LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
@@ -65,11 +62,11 @@ public class GlobalActionState {
         this.updateStore = updateStore;
         this.libraryRecordsHandler = libraryRecordsHandler;
         this.messages = messages;
-        this.updateMode = updateMode;
+        this.libraryGroup = libraryGroup;
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getUpdateMode());
+        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), null);
     }
 
     private void resetState() {
@@ -78,6 +75,7 @@ public class GlobalActionState {
         bibliographicRecordExtraData = null;
         marcRecordReader = null;
         doubleRecordPossible = null;
+        libraryGroup = null;
     }
 
     public UpdateServiceRequestDTO getUpdateServiceRequestDTO() {
@@ -185,9 +183,13 @@ public class GlobalActionState {
         this.marcRecord = marcRecord;
     }
 
-    public UpdateMode getUpdateMode() { return this.updateMode; }
+    public void setLibraryGroup(OpenAgencyService.LibraryGroup libraryGroup) {
+        this.libraryGroup = libraryGroup;
+    }
 
-    public void setUpdateMode(UpdateMode updateMode) { this.updateMode = updateMode; }
+    public void setTemplateGroup(String templateGroup) {
+        this.templateGroup = templateGroup;
+    }
 
     public MarcRecordReader getMarcRecordReader() {
         if (marcRecordReader == null) {
@@ -210,11 +212,11 @@ public class GlobalActionState {
 
             if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
                 Boolean markedForDeletion = marcRecordReader.markedForDeletion();
-                Boolean dataIOMode = updateMode.isDataIOMode();
-                Boolean recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
+                Boolean isDBCMode = getLibraryGroup().isDBC();
+                Boolean recordExists = recordExists();
                 Integer agencyIdAsInteger = marcRecordReader.agencyIdAsInteger();
                 Boolean agencyIdEqualsRawRepoCommonLibrary = agencyIdAsInteger.equals(RawRepo.RAWREPO_COMMON_LIBRARY);
-                doubleRecordPossible = !markedForDeletion && !dataIOMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
+                doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
         return doubleRecordPossible;
@@ -254,9 +256,11 @@ public class GlobalActionState {
      */
     public MarcRecord readRecord() {
         logger.entry();
-        List<Object> list = null;
+
         try {
             if (marcRecord == null) {
+                List<Object> list = null;
+
                 if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
                     list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
                 } else {
@@ -427,7 +431,48 @@ public class GlobalActionState {
                 ", messages=" + messages +
                 ", marcRecord=" + marcRecord +
                 ", bibliographicRecordExtraData=" + bibliographicRecordExtraData +
+                ", libraryGroup=" + libraryGroup +
                 ", recordPid='" + recordPid + '\'' +
                 '}';
     }
+
+    public boolean recordExists() throws UpdateException {
+        if (this.recordExists == null) {
+            this.recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
+        }
+
+        return this.recordExists;
+    }
+
+    public OpenAgencyService.LibraryGroup getLibraryGroup() throws UpdateException {
+        if (libraryGroup == null) {
+            String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+
+            try {
+                libraryGroup = openAgencyService.getLibraryGroup(groupId);
+            } catch (OpenAgencyException ex) {
+                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        }
+
+        return libraryGroup;
+    }
+
+    public String getTemplateGroup() throws UpdateException {
+        if (templateGroup == null) {
+            String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+
+            try {
+                templateGroup = openAgencyService.getTemplateGroup(groupId);
+            } catch (OpenAgencyException ex) {
+                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        }
+
+        return templateGroup;
+    }
+
+
 }

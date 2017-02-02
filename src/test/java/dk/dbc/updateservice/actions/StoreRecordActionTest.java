@@ -7,6 +7,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -28,11 +29,13 @@ public class StoreRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String ENTRY_POINT = "sortRecord";
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.DBC;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
+        //libraryGroup = new LibraryGroup(LibraryGroup.Group.FBS);
     }
 
     /**
@@ -60,6 +63,7 @@ public class StoreRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
+        state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
@@ -106,6 +110,7 @@ public class StoreRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
+        state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = mock(RawRepoEncoder.class);
@@ -149,6 +154,7 @@ public class StoreRecordActionTest {
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
         RawRepoEncoder encoder = mock(RawRepoEncoder.class);
+        state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = encoder;

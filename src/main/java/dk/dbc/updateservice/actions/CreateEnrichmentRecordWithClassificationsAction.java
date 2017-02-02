@@ -116,12 +116,12 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         MDCUtil.setupContextForEnrichmentRecord(updatingCommonRecord, agencyId);
     }
 
-    public MarcRecord createRecord() throws ScripterException {
+    public MarcRecord createRecord() throws UpdateException, ScripterException {
         logger.entry();
         logger.debug("entering createRecord");
         MarcRecord result = null;
         try {
-            result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
+            result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId, state.getLibraryGroup());
             MarcRecordWriter writer = new MarcRecordWriter(result);
             MarcRecordReader reader = new MarcRecordReader(result);
 

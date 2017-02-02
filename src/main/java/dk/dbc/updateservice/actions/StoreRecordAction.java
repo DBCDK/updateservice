@@ -112,7 +112,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    public MarcRecord sortRecord(MarcRecord record) {
+    public MarcRecord sortRecord(MarcRecord record) throws UpdateException {
         logger.entry();
         MarcRecord result = record;
         ObjectMapper mapper = new ObjectMapper();

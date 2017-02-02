@@ -5,6 +5,7 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Assert;
@@ -26,11 +27,14 @@ import static org.mockito.Mockito.when;
 public class CreateEnrichmentRecordWithClassificationsActionTest {
     private GlobalActionState state;
     private Properties settings;
+    private OpenAgencyService.LibraryGroup libraryGroup;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
+        libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+        state.setLibraryGroup(libraryGroup);
     }
 
     /**
@@ -65,7 +69,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         String recordId = reader.recordId();
         String agencyId = reader.agencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId), eq(libraryGroup))).thenReturn(enrichmentRecord);
 
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(commonRecord);
@@ -133,7 +137,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         String recordId = reader.recordId();
         String agencyId = reader.agencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId), eq(libraryGroup))).thenReturn(enrichmentRecord);
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
@@ -201,7 +205,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String agencyId = reader.agencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenThrow(new ScripterException("Script error"));
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId), eq(libraryGroup))).thenThrow(new ScripterException("Script error"));
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);

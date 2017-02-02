@@ -2,7 +2,11 @@ package dk.dbc.updateservice.ws;
 
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
-import dk.dbc.updateservice.actions.*;
+import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.updateservice.actions.ServiceEngine;
+import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.*;
 import dk.dbc.updateservice.javascript.Scripter;
@@ -43,7 +47,6 @@ public class UpdateService {
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
-    private static final String UPDATE_SERIVCE_INTERNAL_ERROR = "update.service.internal.error";
 
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
     public static final String UPDATE_WATCHTAG = "request.updaterecord";
@@ -98,7 +101,7 @@ public class UpdateService {
         newGlobalActionStateObject.setUpdateStore(updateStore);
         newGlobalActionStateObject.setLibraryRecordsHandler(libraryRecordsHandler);
         newGlobalActionStateObject.setMessages(ResourceBundles.getBundle("actions"));
-        newGlobalActionStateObject.setUpdateMode(new UpdateMode(settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY)));
+        newGlobalActionStateObject.setLibraryGroup(null);
         validateRequiredSettings();
         return newGlobalActionStateObject;
     }
@@ -224,7 +227,9 @@ public class UpdateService {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             logger.entry(schemasRequestDTO);
             logger.info(Json.encodePretty(schemasRequestDTO));
-            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(schemasRequestDTO.getAuthenticationDTO().getGroupId());
+            String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+            OpenAgencyService.LibraryGroup libraryGroup = openAgencyService.getLibraryGroup(groupId);
+            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, libraryGroup);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
@@ -235,11 +240,17 @@ public class UpdateService {
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             // TODO: sæt en korrekt message vedr. fejl
-
             schemasResponseDTO.setError(true);
             return schemasResponseDTO;
         } catch (IOException ex) {
             logger.error("Caught runtime exception: {}", ex.getCause());
+            schemasResponseDTO = new SchemasResponseDTO();
+            // TODO: sæt en korrekt message vedr. fejl
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
+        } catch (OpenAgencyException ex) {
+            logger.error("Caught OpenAgencyException exception: {}", ex.getCause());
             schemasResponseDTO = new SchemasResponseDTO();
             // TODO: sæt en korrekt message vedr. fejl
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
@@ -255,35 +266,6 @@ public class UpdateService {
             MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }
-
-//    private void logRequest(UpdateRequestReader reader) {
-//        MessageContext mc = wsContext.getMessageContext();
-//        HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-//        logger.info("REQUEST:");
-//        logger.info("======================================");
-//        logger.info("Auth type: {}", req.getAuthType());
-//        logger.info("Context path: {}", req.getContextPath());
-//        logger.info("Content type: {}", req.getContentType());
-//        logger.info("Content length: {}", req.getContentLengthLong());
-//        logger.info("URI: {}", req.getRequestURI());
-//        logger.info("Client address: {}", req.getRemoteAddr());
-//        logger.info("Client host: {}", req.getRemoteHost());
-//        logger.info("Client port: {}", req.getRemotePort());
-//        logger.info("Headers");
-//        logger.info("--------------------------------------");
-//        logger.info("");
-//        Enumeration<String> headerNames = req.getHeaderNames();
-//        while (headerNames.hasMoreElements()) {
-//            String name = headerNames.nextElement();
-//            logger.info("{}: {}", name, req.getHeader(name));
-//        }
-//        logger.info("--------------------------------------");
-//        logger.info("");
-//        logger.info("Template name: {}", globalActionState.getSchemaName());
-//        logger.info("ValidationOnly option: {}", reader.hasValidationOnlyOption() ? "True" : "False");
-//        logger.info("Request record: \n{}", reader.readRecord().toString());
-//        logger.info("======================================");
-//    }
 
     private Throwable findServiceException(Throwable ex) {
         Throwable throwable = ex;

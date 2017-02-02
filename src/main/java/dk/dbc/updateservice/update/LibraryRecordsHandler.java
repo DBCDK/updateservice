@@ -1,15 +1,8 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.CatalogExtractionCode;
-import dk.dbc.iscrum.records.MarcField;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.records.MarcSubField;
-import dk.dbc.iscrum.records.UpdateOwnership;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.actions.UpdateMode;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -609,14 +602,14 @@ public class LibraryRecordsHandler {
      * <code>libraryRecord</code> may have changed.
      * @throws ScripterException in case of an error
      */
-    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
+    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, agencyId);
         Object jsResult = null;
         try {
             ObjectMapper mapper = new ObjectMapper();
             String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
             String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-            jsResult = scripter.callMethod("createLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, Integer.valueOf(agencyId));
+            jsResult = scripter.callMethod("createLibraryExtendedRecord" + libraryGroup.toString(), jsonCurrentCommonRecord, jsonUpdatingCommonRecord, Integer.valueOf(agencyId));
             logger.debug("Result from createLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
             if (jsResult instanceof String) {
                 return mapper.readValue(jsResult.toString(), MarcRecord.class);
@@ -640,7 +633,7 @@ public class LibraryRecordsHandler {
      * <code>enrichmentRecord</code> may have changed.
      * @throws ScripterException in case of an error
      */
-    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
         Object jsResult = null;
         try {
@@ -649,7 +642,7 @@ public class LibraryRecordsHandler {
             String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
             String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
 
-            jsResult = scripter.callMethod("updateLibraryExtendedRecord", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
+            jsResult = scripter.callMethod("updateLibraryExtendedRecord" + libraryGroup.toString(), jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
 
             logger.debug("Result from updateLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -665,7 +658,7 @@ public class LibraryRecordsHandler {
         }
     }
 
-    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
         logger.entry(commonRecord, enrichmentRecord);
         Object jsResult = null;
 
@@ -674,7 +667,7 @@ public class LibraryRecordsHandler {
             String jsonCommonRecord = mapper.writeValueAsString(commonRecord);
             String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
 
-            jsResult = scripter.callMethod("correctLibraryExtendedRecord", jsonCommonRecord, jsonEnrichmentRecord);
+            jsResult = scripter.callMethod("correctLibraryExtendedRecord" + libraryGroup.toString(), jsonCommonRecord, jsonEnrichmentRecord);
 
             logger.debug("Result from correctLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
@@ -695,19 +688,19 @@ public class LibraryRecordsHandler {
      *
      * @param record            The record to be updated
      * @param authenticationDTO Auth DTO from the ws request
-     * @param updateMode        Whether it is a FBS or DataIO template
+     * @param libraryGroup        Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws OpenAgencyException          in case of an error
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDTO authenticationDTO, UpdateMode updateMode) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
-        logger.entry(record, authenticationDTO, updateMode);
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDTO authenticationDTO, OpenAgencyService.LibraryGroup libraryGroup) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+        logger.entry(record, authenticationDTO, libraryGroup);
 
         List<MarcRecord> result = new ArrayList<>();
 
         try {
-            if (updateMode.isFBSMode()) {
+            if (libraryGroup.isFBS()) {
                 result = recordDataForRawRepoFBS(record, authenticationDTO.getGroupId());
             } else { // Assuming DataIO mode
                 result = recordDataForRawRepoDataIO(record, authenticationDTO.getGroupId());

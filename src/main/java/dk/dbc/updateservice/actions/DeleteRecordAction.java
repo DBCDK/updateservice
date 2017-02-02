@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
@@ -24,7 +23,7 @@ import java.util.Properties;
  * These cases must be handled by other actions.
  * </p>
  */
-public class  DeleteRecordAction extends StoreRecordAction {
+public class DeleteRecordAction extends StoreRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
     public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
@@ -43,7 +42,7 @@ public class  DeleteRecordAction extends StoreRecordAction {
      * @return The record to store.
      */
     @Override
-    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException{
+    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
         MarcRecord result = null;
         try {
@@ -62,7 +61,7 @@ public class  DeleteRecordAction extends StoreRecordAction {
     /**
      * Factory method to create a DeleteRecordAction.
      */
-    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState,Properties properties, MarcRecord record, String mimetype) {
+    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, String mimetype) {
         logger.entry(globalActionState, record, mimetype);
         try {
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
@@ -73,7 +72,7 @@ public class  DeleteRecordAction extends StoreRecordAction {
         }
     }
 
-    MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
+    private MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
         logger.entry();
         MarcRecord result = null;
         try {

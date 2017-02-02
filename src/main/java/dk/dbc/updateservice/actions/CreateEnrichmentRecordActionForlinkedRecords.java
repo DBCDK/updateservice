@@ -1,10 +1,6 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcField;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.records.MarcSubField;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -170,6 +166,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
             if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
                 return null;
             }
+
             List<MarcSubField> subFields = noteField.getSubfields();
             for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
                 MarcSubField sf = mfIter.next();

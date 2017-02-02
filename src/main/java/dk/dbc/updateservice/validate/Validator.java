@@ -3,6 +3,7 @@ package dk.dbc.updateservice.validate;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
@@ -27,13 +28,13 @@ public class Validator {
     @Resource(lookup = JNDIResources.SETTINGS_NAME)
     private Properties settings;
 
-    public List<SchemaDTO> getValidateSchemas(String groupId) throws ScripterException {
+    public List<SchemaDTO> getValidateSchemas(String groupId, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
         logger.entry();
         List<SchemaDTO> result = null;
         try {
             result = new ArrayList<>();
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod("getValidateSchemas", groupId, settings);
+            Object jsResult = scripter.callMethod("getValidateSchemas", groupId, libraryGroup.toString(), settings);
             logger.debug("Result from getValidateSchemas JS ({}): {}", jsResult.getClass().getName(), jsResult);
             SchemaDTO[] names = mapper.readValue(jsResult.toString(), SchemaDTO[].class);
             result.addAll(Arrays.asList(names));
