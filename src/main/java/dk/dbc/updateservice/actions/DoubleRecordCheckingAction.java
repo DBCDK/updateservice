@@ -39,7 +39,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
         ServiceResult result = null;
         try {
             logger.info("Handling record:\n{}", record);
-            state.getScripter().callMethod(ENTRY_POINT + state.getLibraryGroup().toString(), Json.encode(record), settings);
+            state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
             return result = ServiceResult.newOkResult();
         } catch (IOException | ScripterException ex) {
             String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
