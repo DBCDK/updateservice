@@ -74,6 +74,7 @@ public class ValidateRecordAction extends AbstractAction {
         ServiceResult result = null;
         try {
             logger.info("Handling record:\n{}", state.readRecord());
+            logger.info("state.getLibraryGroup().toString()");
             Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
 

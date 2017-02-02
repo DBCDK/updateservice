@@ -4,6 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -41,7 +42,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
      * @throws ScripterException In case of en JavaScript error.
      */
     @Override
-    public MarcRecord createRecord() throws ScripterException {
+    public MarcRecord createRecord() throws ScripterException, UpdateException {
         logger.entry();
         try {
             if (updatingCommonRecord == null) {
@@ -55,7 +56,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             if (state.getLibraryRecordsHandler() == null) {
                 throw new IllegalStateException("recordsHandler is not assigned a value");
             }
-            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
+            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord, state.getLibraryGroup());
             MarcRecordReader reader = new MarcRecordReader(record);
             MarcRecordWriter writer = new MarcRecordWriter(record);
 

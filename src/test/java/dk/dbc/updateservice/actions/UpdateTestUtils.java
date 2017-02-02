@@ -7,12 +7,7 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.update.HoldingsItems;
-import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrService;
-import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 
@@ -59,7 +54,6 @@ public class UpdateTestUtils {
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
-        globalActionState.setUpdateMode(mock(UpdateMode.class));
         if (marcRecordName != null) {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
         }

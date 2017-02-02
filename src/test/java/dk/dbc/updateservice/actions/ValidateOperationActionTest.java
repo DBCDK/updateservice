@@ -4,6 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +35,8 @@ public class ValidateOperationActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
+        OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+        state.setLibraryGroup(libraryGroup);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
 
@@ -74,8 +77,8 @@ public class ValidateOperationActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
-        UpdateMode updateModeDataFBS = new UpdateMode(UpdateMode.Mode.FBS);
-        state.setUpdateMode(updateModeDataFBS);
+        OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+        state.setLibraryGroup(libraryGroup);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
 

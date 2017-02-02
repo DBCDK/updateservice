@@ -18,11 +18,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -107,9 +103,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             addDoubleRecordFrontendActionIfNecessary();
 
-            logger.info("Split record into records to store in rawrepo. UpdateMode is {}", state.getUpdateMode().isFBSMode() ? "FBS" : "DATAIO");
+            logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().isFBS() ? "FBS" : "DBC");
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO(), state.getUpdateMode());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO(), state.getLibraryGroup());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
@@ -144,7 +140,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             logRecordInfo(updReader);
             if (state.isDoubleRecordPossible()) {
-                if (state.getUpdateMode().isFBSMode() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
+                if (state.getLibraryGroup().isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                     if (test) {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
@@ -152,7 +148,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                         return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                     }
-                } else if (state.getUpdateMode().isFBSMode() || state.getUpdateMode().isDataIOMode() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
+                } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, record));
                 }
             }
@@ -164,10 +160,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void addDatefieldTo001d(MarcRecordReader reader) {
+    private void addDatefieldTo001d(MarcRecordReader reader) throws UpdateException {
         String valOf001 = reader.getValue("001", "d");
         if (StringUtils.isEmpty(valOf001)) {
-            if (state.getUpdateMode().isFBSMode()) {
+            if (state.getLibraryGroup().isFBS()) {
                 MarcRecordWriter writer = new MarcRecordWriter(record);
                 writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
                 logger.info("Adding new date to field 001 , subfield d : " + record);
@@ -177,7 +173,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
     private void addDoubleRecordFrontendActionIfNecessary() throws UpdateException {
         Boolean doubleRecordPossible = state.isDoubleRecordPossible();
-        Boolean fbsMode = state.getUpdateMode().isFBSMode();
+        Boolean fbsMode = state.getLibraryGroup().isFBS();
         Boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
         if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections

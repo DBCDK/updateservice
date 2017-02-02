@@ -28,7 +28,6 @@ public class JNDIResources {
     public static final String AUTH_USE_IP_KEY = "auth.use.ip";
 
     public static final String JAVASCRIPT_BASEDIR_KEY = "javascript.basedir";
-    public static final String JAVASCRIPT_INSTALL_NAME_KEY = "javascript.install.name";
     public static final String JAVASCRIPT_POOL_SIZE_KEY = "javascript.pool.size";
 
     public static final String DOUBLE_RECORD_MAIL_HOST_KEY = "double.record.mail.host";
@@ -46,7 +45,6 @@ public class JNDIResources {
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {
         List<String> res = new ArrayList<>();
-        res.add(JAVASCRIPT_INSTALL_NAME_KEY);
         return res;
     }
 }

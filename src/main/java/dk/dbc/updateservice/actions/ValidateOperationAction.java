@@ -30,7 +30,7 @@ public class ValidateOperationAction extends AbstractAction {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         children.add(validateSchemaAction);
 
-        if (state.isDoubleRecordPossible() && state.getUpdateMode().isFBSMode() && state.getUpdateServiceRequestDTO().getDoubleRecordKey() == null) {
+        if (state.isDoubleRecordPossible() && state.getLibraryGroup().isFBS() && state.getUpdateServiceRequestDTO().getDoubleRecordKey() == null) {
             DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, settings);
             children.add(doubleRecordFrontendAndValidateAction);
         } else {

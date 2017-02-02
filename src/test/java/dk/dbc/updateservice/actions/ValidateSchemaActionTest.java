@@ -18,12 +18,14 @@ import static org.mockito.Mockito.when;
 public class ValidateSchemaActionTest {
     private GlobalActionState state;
     private Properties settings;
+    private String templateGroup = "fbs";
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().setSchemaName("book");
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("400700");
+        state.setTemplateGroup(templateGroup);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -56,14 +58,14 @@ public class ValidateSchemaActionTest {
     public void testScripterException() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         ScripterException ex = new ScripterException("message");
-        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"), eq(settings))).thenThrow(ex);
+        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"),anyString(), eq(settings))).thenThrow(ex);
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state)));
     }
 
     @Test
     public void testScripterWrongDatatype() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"), eq(settings))).thenReturn(27);
+        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"), anyString(), eq(settings))).thenReturn(27);
         String message = "The JavaScript function checkTemplate must return a boolean value.";
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
@@ -71,14 +73,14 @@ public class ValidateSchemaActionTest {
     @Test
     public void testSchemaFound() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"), eq(settings))).thenReturn(true);
+        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"),anyString(), eq(settings))).thenReturn(true);
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
     @Test
     public void testSchemaNotFound() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"), eq(settings))).thenReturn(false);
+        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"), anyString(), eq(settings))).thenReturn(false);
         String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }

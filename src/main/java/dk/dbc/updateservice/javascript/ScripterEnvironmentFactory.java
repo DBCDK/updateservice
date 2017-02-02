@@ -1,21 +1,13 @@
 package dk.dbc.updateservice.javascript;
 
-import dk.dbc.jslib.ClasspathSchemeHandler;
-import dk.dbc.jslib.Environment;
-import dk.dbc.jslib.FileSchemeHandler;
-import dk.dbc.jslib.ModuleHandler;
-import dk.dbc.jslib.SchemeURI;
+import dk.dbc.jslib.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 /**
@@ -24,8 +16,8 @@ import java.util.Properties;
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironmentFactory.class);
     private static final String COMMON_INSTALL_NAME = "common";
-    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/%s/src/entrypoints/update/%s";
-    private static final String MODULES_PATH_PATTERN = "%s/distributions/%s/src";
+    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/common/src/entrypoints/update/%s";
+    private static final String MODULES_PATH_PATTERN = "%s/distributions/common/src";
     private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
 
     /**
@@ -58,10 +50,9 @@ public class ScripterEnvironmentFactory {
         logger.entry();
         try {
             String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
-            String installName = settings.getProperty(JNDIResources.JAVASCRIPT_INSTALL_NAME_KEY);
             Environment envir = new Environment();
-            envir.registerUseFunction(createModulesHandler(baseDir, installName));
-            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir, installName, ENTRYPOINT_FILENAME));
+            envir.registerUseFunction(createModulesHandler(baseDir));
+            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir, ENTRYPOINT_FILENAME));
             return envir;
         } catch (Exception e) {
             logger.catching(e);
@@ -71,18 +62,16 @@ public class ScripterEnvironmentFactory {
         }
     }
 
-    private ModuleHandler createModulesHandler(String baseDir, String installName) {
+    private ModuleHandler createModulesHandler(String baseDir) {
         logger.entry();
         try {
             ModuleHandler handler = new ModuleHandler();
             String modulesDir;
-            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, installName);
+
+            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME);
             handler.registerHandler("file", new FileSchemeHandler(modulesDir));
             addSearchPathsFromSettingsFile(handler, "file", modulesDir);
 
-            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME);
-            handler.registerHandler(COMMON_INSTALL_NAME, new FileSchemeHandler(modulesDir));
-            addSearchPathsFromSettingsFile(handler, COMMON_INSTALL_NAME, modulesDir);
 
             handler.registerHandler("classpath", new ClasspathSchemeHandler(this.getClass().getClassLoader()));
             addSearchPathsFromSettingsFile(handler, "classpath", getClass().getClassLoader().getResourceAsStream("jsmodules.settings"));

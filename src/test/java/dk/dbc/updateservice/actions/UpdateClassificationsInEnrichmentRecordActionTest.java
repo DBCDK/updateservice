@@ -2,6 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,11 +18,13 @@ import static org.mockito.Mockito.when;
 public class UpdateClassificationsInEnrichmentRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
+        state.setLibraryGroup(libraryGroup);
     }
 
     /**
@@ -139,7 +142,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("504", "a", "Ny Note");
 
-        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
+        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord), eq(libraryGroup))).thenReturn(newEnrichmentRecord);
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
