@@ -53,11 +53,11 @@ docker-compose down
 #docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 
 echo "Startup glassfish containers here : `pwd`"
-docker-compose up -d update-systemtests-rawrepo-db${systest} \
-                     update-systemtests-holdingsitems-db${systest} \
-                     update-systemtests-update-db${systest} \
-                     update-systemtests-fake-smtp \
-                     update-systemtests-updateservice  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-updateservice"
+docker-compose up -d update-systemtests-rawrepo-db${systest} || die "docker-compose up -d update-systemtests-rawrepo-db"
+docker-compose up -d update-systemtests-holdingsitems-db${systest} || die "docker-compose up -d update-systemtests-holdingsitems-db"
+docker-compose up -d update-systemtests-update-db${systest} || die "docker-compose up -d update-systemtests-update-db"
+docker-compose up -d update-systemtests-fake-smtp || die "docker-compose up -d update-systemtests-fake-smtp"
+docker-compose up -d update-systemtests-updateservice  || die "docker-compose up -d update-systemtests-updateservice"
 
 #echo "Startup glassfish containers here : `pwd`"
 #docker-compose up -d update-systemtests-rawrepo-db${systest} || die "rawrepo"
