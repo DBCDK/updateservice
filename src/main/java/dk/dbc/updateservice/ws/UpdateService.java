@@ -30,10 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * UpdateService web service.
@@ -130,6 +127,7 @@ public class UpdateService {
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
+
             if (state.readRecord() != null) {
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
