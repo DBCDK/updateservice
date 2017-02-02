@@ -57,7 +57,7 @@ docker-compose up -d update-systemtests-rawrepo-db${systest} \
                      update-systemtests-holdingsitems-db${systest} \
                      update-systemtests-update-db${systest} \
                      update-systemtests-fake-smtp \
-                     update-systemtests-updateservice  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-fbs \ update-systemtests-dataio"
+                     update-systemtests-updateservice  || die "docker-compose up -d update-systemtests-rawrepo-db \ update-systemtests-holdingsitems-db \ update-systemtests-update-db \  update-systemtests-fake-smtp \ update-systemtests-updateservice"
 
 #echo "Startup glassfish containers here : `pwd`"
 #docker-compose up -d update-systemtests-rawrepo-db${systest} || die "rawrepo"
