@@ -56,7 +56,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             if (state.getLibraryRecordsHandler() == null) {
                 throw new IllegalStateException("recordsHandler is not assigned a value");
             }
-            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord, state.getLibraryGroup());
+            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
             MarcRecordReader reader = new MarcRecordReader(record);
             MarcRecordWriter writer = new MarcRecordWriter(record);
 

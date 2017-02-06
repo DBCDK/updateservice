@@ -41,7 +41,7 @@ public class Validator {
             logger.trace("Number of templates: {}", result.size());
             return result;
         } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: createLibraryExtendedRecord", ex);
+            throw new ScripterException("Error when executing JavaScript function: getValidateSchemas", ex);
         } finally {
             logger.exit(result);
         }

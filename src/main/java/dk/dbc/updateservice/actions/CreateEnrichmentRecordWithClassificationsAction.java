@@ -121,7 +121,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.debug("entering createRecord");
         MarcRecord result = null;
         try {
-            result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId, state.getLibraryGroup());
+            result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(result);
             MarcRecordReader reader = new MarcRecordReader(result);
 

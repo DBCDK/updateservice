@@ -165,7 +165,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         if (StringUtils.isEmpty(valOf001)) {
             if (state.getLibraryGroup().isFBS()) {
                 MarcRecordWriter writer = new MarcRecordWriter(record);
-                writer.addOrReplaceSubfield("001", "d", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+                writer.setCreationTimestamp();
                 logger.info("Adding new date to field 001 , subfield d : " + record);
             }
         }
