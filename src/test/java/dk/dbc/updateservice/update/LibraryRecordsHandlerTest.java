@@ -38,6 +38,13 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
+    public void testCleanupEnrichmentRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+        // assertThat(instance.splitRecordDataIO(record), equalTo(""));
+    }
+
+    @Test
     public void testSplitCompleteBasisRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);

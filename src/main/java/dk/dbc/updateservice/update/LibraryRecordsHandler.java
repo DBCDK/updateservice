@@ -10,6 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
@@ -17,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,6 +30,10 @@ import java.util.List;
 public class LibraryRecordsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandler.class);
     private static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
+    private static final List<String> REFERENCE_FIELDS = Arrays.asList("900", "910", "945");
+    private static final List<String> RECORD_CONTROL_FIELDS = Arrays.asList("001", "004", "996");
+    private static final List<String> CONTROL_AND_CLASSIFICATION_FIELDS = new ArrayList<>();
+    private static final List<String> IGNORABLE_CONTROL_SUBFIELDS = Arrays.asList("&", "0", "1", "4");
     private static final String DIACRITICAL_MARKS = "[\\p{InCombiningDiacriticalMarks}]";
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
 
@@ -39,6 +45,12 @@ public class LibraryRecordsHandler {
 
     @EJB
     private RawRepo rawRepo;
+
+    @PostConstruct
+    public void setList() {
+        CONTROL_AND_CLASSIFICATION_FIELDS.addAll(RECORD_CONTROL_FIELDS);
+        CONTROL_AND_CLASSIFICATION_FIELDS.addAll(CLASSIFICATION_FIELDS);
+    }
 
     public LibraryRecordsHandler() {
     }
@@ -591,6 +603,31 @@ public class LibraryRecordsHandler {
         return false;
     }
 
+    private MarcRecord updateClassificationsInRecord(MarcRecord currentCommonMarc, MarcRecord libraryRecord) {
+        MarcRecord result = new MarcRecord(libraryRecord);
+        if (!hasClassificationData(libraryRecord)) {
+            MarcRecordWriter writer = new MarcRecordWriter(result);
+            writer.copyFieldsFromRecord(CLASSIFICATION_FIELDS, currentCommonMarc);
+        }
+        return result;
+    }
+
+    private MarcRecord correctRecordIfEmpty(MarcRecord record) {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String agency = reader.agencyId();
+        if (RawRepo.COMMON_LIBRARY.toString().equals(agency) || RawRepo.RAWREPO_COMMON_LIBRARY.toString().equals(agency)) {
+            return record;
+        }
+        // IF record contains other fields than 001, 004 and 996, return the record, otherwise an empty
+        List<MarcField> fieldList = record.getFields();
+        for (MarcField wFieldList : fieldList) {
+        if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
+                return record;
+            }
+        }
+        return new MarcRecord();
+    }
+
     /**
      * Creates an extended library record based on the bibliographic
      * classification elements of the record from DBC
@@ -602,24 +639,18 @@ public class LibraryRecordsHandler {
      * <code>libraryRecord</code> may have changed.
      * @throws ScripterException in case of an error
      */
-    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
-        logger.entry(currentCommonRecord, updatingCommonRecord, agencyId);
-        Object jsResult = null;
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
-            String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-            jsResult = scripter.callMethod("createLibraryExtendedRecord" + libraryGroup.toString(), jsonCurrentCommonRecord, jsonUpdatingCommonRecord, Integer.valueOf(agencyId));
-            logger.debug("Result from createLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof String) {
-                return mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "createLibraryExtendedRecord"));
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: createLibraryExtendedRecord", ex);
-        } finally {
-            logger.exit(jsResult);
-        }
+    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
+        MarcRecord result = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(result);
+        MarcRecordReader reader = new MarcRecordReader(updatingCommonRecord);
+
+        writer.addOrReplaceSubfield("001", "a", reader.recordId());
+        writer.addOrReplaceSubfield("001", "b", agencyId);
+        writer.setChangedTimestamp();
+        writer.setCreationTimestamp();
+        writer.addOrReplaceSubfield("001", "f", "a");
+        result = updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, result);
+        return result;
     }
 
     /**
@@ -633,54 +664,117 @@ public class LibraryRecordsHandler {
      * <code>enrichmentRecord</code> may have changed.
      * @throws ScripterException in case of an error
      */
-    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
-        logger.entry(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
-        Object jsResult = null;
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
-            String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-            String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
-
-            jsResult = scripter.callMethod("updateLibraryExtendedRecord" + libraryGroup.toString(), jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonEnrichmentRecord);
-
-            logger.debug("Result from updateLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
-            if (jsResult instanceof String) {
-                return mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "updateLibraryExtendedRecord"));
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: updateLibraryExtendedRecord", ex);
-        } finally {
-            logger.exit(jsResult);
-        }
+    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+        MarcRecord result = updateClassificationsInRecord(currentCommonRecord, enrichmentRecord);
+        result = recategorization(currentCommonRecord, updatingCommonRecord, result);
+        MarcRecordWriter writer = new MarcRecordWriter(result);
+        writer.removeField("004");
+        writer.copyFieldsFromRecord(Collections.singletonList("004"), updatingCommonRecord);
+        result = correctRecordIfEmpty(result);
+        return result;
     }
 
-    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord, OpenAgencyService.LibraryGroup libraryGroup) throws ScripterException {
-        logger.entry(commonRecord, enrichmentRecord);
-        Object jsResult = null;
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonCommonRecord = mapper.writeValueAsString(commonRecord);
-            String jsonEnrichmentRecord = mapper.writeValueAsString(enrichmentRecord);
-
-            jsResult = scripter.callMethod("correctLibraryExtendedRecord" + libraryGroup.toString(), jsonCommonRecord, jsonEnrichmentRecord);
-
-            logger.debug("Result from correctLibraryExtendedRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-
-            if (jsResult instanceof String) {
-                return mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "correctLibraryExtendedRecord"));
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: correctLibraryExtendedRecord", ex);
-        } finally {
-            logger.exit(jsResult);
+    private Boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
+        MarcFieldReader fieldReader = new MarcFieldReader(field);
+        String subfieldZ = fieldReader.getValue("z");
+        if (subfieldZ != null && subfieldZ.length() > 4) {
+            subfieldZ = subfieldZ.substring(0, 2);
         }
+        if (subfieldZ != null) {
+            List<MarcField> fields = enrichment.getFields();
+            for (MarcField lField : fields) {
+                if (subfieldZ.equals(lField.getName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private Boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
+        String cleanedEnrichmentField = enrichmentField.toString().trim();
+        for (MarcField field : commonRecordFieldList) {
+            if (cleanedEnrichmentField.equals(field.toString().trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private MarcField createRecordFieldWithoutIgnorableSubfields(MarcField enrichmentField) {
+        MarcField newField = new MarcField();
+        for (MarcSubField subfield : enrichmentField.getSubfields()) {
+            if (!IGNORABLE_CONTROL_SUBFIELDS.contains(subfield.getName())) {
+                newField.getSubfields().add(new MarcSubField(subfield.getName(), subfield.getValue()));
+            }
+        }
+        return newField;
+    }
+
+    private List<MarcField> createRecordFieldListWithoutIgnorableSubfields(List<MarcField> commonFieldList) {
+        List<MarcField> collector = new ArrayList<>();
+        for (MarcField field : commonFieldList) {
+            collector.add(createRecordFieldWithoutIgnorableSubfields(field));
+        }
+        return collector;
+    }
+
+    private Boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
+        MarcField cleanedField = createRecordFieldWithoutIgnorableSubfields(enrichmentField);
+        List<MarcField> listCleanedFields = createRecordFieldListWithoutIgnorableSubfields(commonFieldList);
+        return isFieldPresentInList(cleanedField, listCleanedFields);
+    }
+
+    // This function checks if a specific enrichment field should be kept, by examine the following:
+    // (1) if the field nbr. is in the list of always keep fields (001, 004, 996 + classification fields)
+    // (2) if field is not found in the common record from RawRepo
+    // (3) if the field is a reference field that points to either a field from (1) or (2)
+    private Boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
+        if (CONTROL_AND_CLASSIFICATION_FIELDS.contains(enrichmentField.getName())) {
+            return true;
+        }
+        MarcRecordReader reader = new MarcRecordReader(common);
+        if (reader.hasField(enrichmentField.getName())) {
+            if (REFERENCE_FIELDS.contains(enrichmentField.getName())) {
+                return isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(enrichmentField, enrichment);
+            } else {
+                // skaf en liste over felter i common med samme navn som enrichmentField
+                List<MarcField> fields = reader.getFieldAll(enrichmentField.getName());
+                return !isEnrichmentFieldPresentInCommonFieldList(enrichmentField, fields);
+            }
+        }
+        return true;
+    }
+
+    private MarcRecord cleanupEnrichmentRecord(MarcRecord enrichment, MarcRecord common) {
+        MarcRecord newRecord = new MarcRecord();
+        List<MarcField> fields = enrichment.getFields();
+        for (MarcField field : fields) {
+           if (shouldEnrichmentRecordFieldBeKept(field, common, enrichment)) {
+               newRecord.getFields().add(field);
+           }
+        }
+        return newRecord;
+    }
+
+    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+        logger.entry(commonRecord, enrichmentRecord);
+        logger.info("correctLibraryExtendedRecord common : {}", commonRecord);
+        logger.info("correctLibraryExtendedRecord enrichment : {}", enrichmentRecord);
+        MarcRecord result = null;
+        if (hasClassificationData(commonRecord)) {
+            if (!hasClassificationsChanged(commonRecord, enrichmentRecord)) {
+                MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+                writer.removeFields(CLASSIFICATION_FIELDS);
+            } else {
+                result = enrichmentRecord;
+            }
+        }
+        if (result == null) {
+            result = new MarcRecord(enrichmentRecord);
+        }
+        result = cleanupEnrichmentRecord(result, commonRecord);
+        return correctRecordIfEmpty(result);
     }
 
     /**
@@ -891,6 +985,35 @@ public class LibraryRecordsHandler {
         }
     }
 
+
+    /**
+     * Modifies the new record if record is being recategorized
+     * @param currentCommonRecord   record in rr
+     * @param updatingCommonRecord  incoming record
+     * @param extendedRecord        extended record in rr
+     * @return                      record with notes about eventual recategorization
+     * @throws ScripterException    Trouble calling js.
+     */
+    private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws ScripterException {
+        logger.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
+        Object jsResult = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
+            String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
+            String jsonNewRecord = mapper.writeValueAsString(extendedRecord);
+            jsResult = scripter.callMethod("doRecategorizationThings", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonNewRecord);
+            logger.debug("Result from doRecategorizationThings JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            if (jsResult instanceof String) {
+                return mapper.readValue(jsResult.toString(), MarcRecord.class);
+            }
+            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "doRecategorizationThings"));
+        } catch (IOException ex) {
+            throw new ScripterException("Error when executing JavaScript function: doRecategorizationThings", ex);
+        } finally {
+            logger.exit(jsResult);
+        }
+    }
 
     /**
      * Creates a 512 notefield from one record.

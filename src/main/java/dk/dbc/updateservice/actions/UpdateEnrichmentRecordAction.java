@@ -93,7 +93,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             }
             Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
             MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
-            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, record, state.getLibraryGroup());
+            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, record);
 
             logger.info("Correct content of enrichment record.");
             logger.info("Old content:\n" + record);
