@@ -454,6 +454,14 @@ public class GlobalActionState {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
+
+            // Make sure that we didn't get nul
+            if (libraryGroup == null) {
+                String err = "LibraryGroup not found for groupId " + groupId;
+                logger.info(err);
+                throw new UpdateException(err);
+            }
+
         }
 
         return libraryGroup;
@@ -468,6 +476,13 @@ public class GlobalActionState {
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
+            }
+
+            // Make sure that we didn't get nul
+            if (templateGroup == null) {
+                String err = "TemplateGroup not found for groupId " + groupId;
+                logger.info(err);
+                throw new UpdateException(err);
             }
         }
 
