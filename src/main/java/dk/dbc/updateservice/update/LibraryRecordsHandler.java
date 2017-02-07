@@ -677,16 +677,12 @@ public class LibraryRecordsHandler {
     private Boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
         MarcFieldReader fieldReader = new MarcFieldReader(field);
         String subfieldZ = fieldReader.getValue("z");
-        if (subfieldZ != null && subfieldZ.length() > 4) {
-            subfieldZ = subfieldZ.substring(0, 2);
-        }
         if (subfieldZ != null) {
-            List<MarcField> fields = enrichment.getFields();
-            for (MarcField lField : fields) {
-                if (subfieldZ.equals(lField.getName())) {
-                    return true;
-                }
+            if (subfieldZ.length() > 4) {
+                subfieldZ = subfieldZ.substring(0, 2);
             }
+            MarcRecordReader reader = new MarcRecordReader(enrichment);
+            return reader.hasField(subfieldZ);
         }
         return false;
     }
@@ -738,7 +734,7 @@ public class LibraryRecordsHandler {
             if (REFERENCE_FIELDS.contains(enrichmentField.getName())) {
                 return isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(enrichmentField, enrichment);
             } else {
-                // skaf en liste over felter i common med samme navn som enrichmentField
+                // get a list of fields in common with same name as enrichmentField
                 List<MarcField> fields = reader.getFieldAll(enrichmentField.getName());
                 return !isEnrichmentFieldPresentInCommonFieldList(enrichmentField, fields);
             }
@@ -759,8 +755,6 @@ public class LibraryRecordsHandler {
 
     public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
         logger.entry(commonRecord, enrichmentRecord);
-        logger.info("correctLibraryExtendedRecord common : {}", commonRecord);
-        logger.info("correctLibraryExtendedRecord enrichment : {}", enrichmentRecord);
         MarcRecord result = null;
         if (hasClassificationData(commonRecord)) {
             if (!hasClassificationsChanged(commonRecord, enrichmentRecord)) {
