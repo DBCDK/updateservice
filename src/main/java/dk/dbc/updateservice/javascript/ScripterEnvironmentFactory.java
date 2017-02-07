@@ -15,10 +15,9 @@ import java.util.Properties;
  */
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironmentFactory.class);
-    private static final String COMMON_INSTALL_NAME = "common";
-    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/common/src/entrypoints/update/%s";
+    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/common/src/entrypoints/update/entrypoint.js";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/common/src";
-    private static final String ENTRYPOINT_FILENAME = "entrypoint.js";
+
 
     /**
      * Constructs a new engine and adds is to the parsed pool.
@@ -52,7 +51,7 @@ public class ScripterEnvironmentFactory {
             String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
             Environment envir = new Environment();
             envir.registerUseFunction(createModulesHandler(baseDir));
-            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir, ENTRYPOINT_FILENAME));
+            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir));
             return envir;
         } catch (Exception e) {
             logger.catching(e);
@@ -68,7 +67,7 @@ public class ScripterEnvironmentFactory {
             ModuleHandler handler = new ModuleHandler();
             String modulesDir;
 
-            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir, COMMON_INSTALL_NAME);
+            modulesDir = String.format(MODULES_PATH_PATTERN, baseDir);
             handler.registerHandler("file", new FileSchemeHandler(modulesDir));
             addSearchPathsFromSettingsFile(handler, "file", modulesDir);
 
