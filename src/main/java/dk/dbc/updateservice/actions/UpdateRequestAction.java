@@ -105,11 +105,7 @@ public class UpdateRequestAction extends AbstractAction {
 
     private ServiceAction createUpdateOperation() throws UpdateException {
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        boolean allowExtraRecordData = false;
-        if (settings.containsKey(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY)) {
-            allowExtraRecordData = Boolean.valueOf(settings.get(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY).toString());
-        }
-        if (allowExtraRecordData) {
+        if (state.getLibraryGroup().isDBC()) {
             // Overwrite "settings" with provider name from RecordExtraData
             BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
             if (bibliographicRecordExtraData != null) {
