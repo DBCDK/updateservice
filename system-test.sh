@@ -78,34 +78,24 @@ function setSysVars () {
 
 echo "Setting systest variables"
 setSysVars ${1}
-
 echo "systest ---> Setting up logdirs"
 setupLogAndLogdir
-
 echo "systest ---> systest ---> Stop glassfish containers"
 docker-compose down
-
 echo "systest ---> Removing old images"
 removeImages
-
 echo "systest ---> Starting containers"
 startContainers
-
 echo "systest ---> retagging and removing containers"
 reTagAndRemove
-
 echo "systest ---> waiting on containers"
 waitForOk
-
 echo "systest ---> Sleeping 3"
 sleep 3 || die "sleep 3"
-
 echo "systest ---> Start and run systemtests"
 docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests"
-
 echo "systest ---> Collect log files"
 collect_logs
-
 sleep 3 || die "sleep 3"
 echo "systest ---> Stop glassfish containers"
 docker-compose down || die "docker-compose down"
