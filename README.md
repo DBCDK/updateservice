@@ -62,8 +62,6 @@ helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
 * *javascript.pool.size*: Heltal som angiver hvor mange Nashorn/Rhino engines som skal oprettes i det JavaScript Engine pool som Update anvender 
  til JavaScript. Et udgangspunkt vil være intervallet mellem *thread-pool.size / 2* og *thread-pool.size*.
-* *allow.extra.record.data*: True/False. True angiver at et request må indeholde ekstra data for posten. Hvis
- settingen ikke er oprettet i Glassfish anvendes værdien "False".
 * *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
 * *prod.state*: Angiver om update kører i produktion eller ej, og derfor om 13 biblioteker må sende poster ind. Kan være True/true eller False/false.
 

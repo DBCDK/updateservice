@@ -7,9 +7,10 @@ import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.UpdateRequestReader;
 import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -195,6 +196,7 @@ public class UpdateRequestActionTest {
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE));
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -238,6 +240,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
@@ -287,7 +290,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
-        settings.setProperty(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "False");
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
@@ -337,7 +340,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
-        settings.setProperty(JNDIResources.ALLOW_EXTRA_RECORD_DATA_KEY, "True");
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");

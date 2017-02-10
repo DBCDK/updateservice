@@ -37,7 +37,6 @@ public class JNDIResources {
     public static final String DOUBLE_RECORD_MAIL_FROM_KEY = "double.record.mail.from";
     public static final String DOUBLE_RECORD_MAIL_RECIPIENT_KEY = "double.record.mail.recipients";
 
-    public static final String ALLOW_EXTRA_RECORD_DATA_KEY = "allow.extra.record.data";
     public static final String RAWREPO_PROVIDER_ID = "rawrepo.provider.id";
 
     public static final String UPDATE_PROD_STATE_KEY = "prod.state";
