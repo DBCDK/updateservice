@@ -19,10 +19,8 @@ function removeImages() {
   docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres'${systest}':latest'
   docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres'${systest}':latest'
   docker rmi 'docker-i.dbc.dk/update-postgres'${systest}':candidate'
-  
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
   docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
-  
   docker rmi 'docker-i.dbc.dk/update-updateservice:candidate'
 }
 
@@ -45,6 +43,8 @@ function setupLogAndLogdir () {
   cd ${SYSTEST_PATH} || die "cd ${SYSTEST_PATH}"
   rm -rf logs  || die "rm -rf logs"
   mkdir -p logs/updateservice || die "mkdir -p logs/updateservice"
+  mkdir -p logs/update || die "mkdir -p logs/update"
+  mkdir -p logs/fakesmtp || die "mkdir -p logs/fakesmtp"
   cp ../../../update-logback-include.xml logs/updateservice/  || die "cp ../../../update-logback-include.xml logs/updateservice/"
   mkdir -p logs/ocb-tools || die "mkdir -p logs/ocb-tools"
   chmod -R a+rw logs || die "chmod -R a+rw logs"
@@ -75,27 +75,31 @@ function setSysVars () {
   export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
   echo "systest ---> Using host IP: ${HOST_IP}"
 }
+function main ()  {
+  echo "Setting systest variables"
+  setSysVars ${1}
+  echo "systest ---> Setting up logdirs"
+  setupLogAndLogdir
+  echo "systest ---> systest ---> Stop glassfish containers"
+  docker-compose down
+  echo "systest ---> Removing old images"
+  removeImages
+  echo "systest ---> Starting containers"
+  startContainers
+  echo "systest ---> retagging and removing containers"
+  reTagAndRemove
+  echo "systest ---> waiting on containers"
+  waitForOk
+  echo "systest ---> Sleeping 3"
+  sleep 3 || die "sleep 3"
+  echo "systest ---> Start and run systemtests"
+  docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests"
+  echo "systest ---> Collect log files"
+  collect_logs
+  sleep 3 || die "sleep 3"
+  echo "systest ---> Stop glassfish containers"
+  docker-compose down || die "docker-compose down"
+}
 
-echo "Setting systest variables"
-setSysVars ${1}
-echo "systest ---> Setting up logdirs"
-setupLogAndLogdir
-echo "systest ---> systest ---> Stop glassfish containers"
-docker-compose down
-echo "systest ---> Removing old images"
-removeImages
-echo "systest ---> Starting containers"
-startContainers
-echo "systest ---> retagging and removing containers"
-reTagAndRemove
-echo "systest ---> waiting on containers"
-waitForOk
-echo "systest ---> Sleeping 3"
-sleep 3 || die "sleep 3"
-echo "systest ---> Start and run systemtests"
-docker-compose up ocb-tools-systemtests || die "docker-compose up ocb-tools-systemtests"
-echo "systest ---> Collect log files"
-collect_logs
-sleep 3 || die "sleep 3"
-echo "systest ---> Stop glassfish containers"
-docker-compose down || die "docker-compose down"
+main $1
+
