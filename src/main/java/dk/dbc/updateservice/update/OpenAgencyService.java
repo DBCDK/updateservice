@@ -25,9 +25,6 @@ public class OpenAgencyService {
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    public static final String LIBRARY_GROUP_DBC = "DBC";
-    public static final String LIBRARY_GROUP_FBS = "FBS";
-
     /**
      * Resource to lookup the product name for authentication.
      */
@@ -37,7 +34,7 @@ public class OpenAgencyService {
     private OpenAgencyServiceFromURL service;
 
     public enum LibraryGroup {
-        DBC("DBC"), FBS("FBS");
+        DBC("dbc"), FBS("fbs");
 
         private final String value;
 
