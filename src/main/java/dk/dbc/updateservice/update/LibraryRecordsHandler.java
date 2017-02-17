@@ -823,15 +823,17 @@ public class LibraryRecordsHandler {
         logger.entry(record, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
+        MarcRecordReader reader = new MarcRecordReader(record);
 
         try {
-            if (openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)) {
+            if (reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY) &&
+                    (openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
+                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
 
-                logger.info("Record has either USE_ENRICHMENT or AUTH_ROOT so calling splitCompleteBasisRecord");
+                logger.info("Record is 870970 and has either USE_ENRICHMENT or AUTH_ROOT so calling splitRecordDataIO");
                 result = splitRecordDataIO(record);
             } else {
-                logger.info("Record has neither USE_ENRICHMENT nor AUTH_ROOT so returning record");
+                logger.info("Record is not 870970 or has neither USE_ENRICHMENT nor AUTH_ROOT so returning same record");
                 result = Arrays.asList(record);
             }
 
