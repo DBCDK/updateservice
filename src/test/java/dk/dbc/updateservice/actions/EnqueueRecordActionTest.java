@@ -4,6 +4,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,10 +23,12 @@ import static org.mockito.Mockito.verify;
 public class EnqueueRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -91,7 +94,7 @@ public class EnqueueRecordActionTest {
         ArgumentCaptor<String> argMimetype = ArgumentCaptor.forClass(String.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), argMimetype.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID)));
+        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
         assertThat(argId.getValue(), equalTo(new RecordId(recordId, agencyId)));
         assertThat(argMimetype.getValue(), equalTo(enqueueRecordAction.getMimetype()));
     }

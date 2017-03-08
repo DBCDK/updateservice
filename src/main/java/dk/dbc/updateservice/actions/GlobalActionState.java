@@ -11,6 +11,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
@@ -489,5 +490,15 @@ public class GlobalActionState {
         return templateGroup;
     }
 
+    public String getRawRepoProviderId() throws UpdateException {
+        String providerId;
+        if (this.getLibraryGroup().isDBC()) {
+            providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;
+        } else {
+            providerId = JNDIResources.RAWREPO_PROVIDER_ID_FBS;
+        }
+
+        return providerId;
+    }
 
 }
