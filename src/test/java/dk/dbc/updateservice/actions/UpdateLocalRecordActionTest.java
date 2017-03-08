@@ -8,6 +8,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,19 +23,17 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UpdateLocalRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -71,7 +70,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -115,7 +114,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -258,7 +257,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -315,7 +314,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
 
         new MarcRecordWriter(mainRecord).markForDeletion();
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), mainRecord, state.getHoldingsItems());
@@ -404,7 +403,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -445,7 +444,7 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -529,6 +528,6 @@ public class UpdateLocalRecordActionTest {
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
     }
 }

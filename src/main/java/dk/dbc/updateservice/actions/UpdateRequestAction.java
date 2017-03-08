@@ -112,10 +112,10 @@ public class UpdateRequestAction extends AbstractAction {
                 if (bibliographicRecordExtraData.getProviderName() == null) {
                     throw new UpdateException(state.getMessages().getString("extra.record.data.provider.name.is.missing"));
                 }
-                String oldProviderName = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID);
+                String oldProviderName = settings.getProperty(state.getRawRepoProviderId());
                 logger.info("Overwrite provider id with new value from request. [{}] ==> [{}]", oldProviderName, bibliographicRecordExtraData.getProviderName());
                 Properties newSettings = (Properties) settings.clone();
-                newSettings.put(JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName());
+                newSettings.put(state.getRawRepoProviderId(), bibliographicRecordExtraData.getProviderName());
                 updateOperationAction.setSettings(newSettings);
             }
         }

@@ -7,7 +7,6 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -538,7 +537,7 @@ public class UpdateOperationActionTest {
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -589,7 +588,7 @@ public class UpdateOperationActionTest {
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
 

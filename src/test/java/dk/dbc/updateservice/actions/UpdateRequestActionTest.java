@@ -26,12 +26,14 @@ import static org.junit.Assert.assertTrue;
 public class UpdateRequestActionTest {
     private GlobalActionState state;
     private Properties settings;
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
         state.setMarcRecord(null);
+        state.setLibraryGroup(libraryGroup);
     }
 
     /**
@@ -239,7 +241,7 @@ public class UpdateRequestActionTest {
      */
     @Test
     public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
-        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
+        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
         state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -289,8 +291,7 @@ public class UpdateRequestActionTest {
      */
     @Test
     public void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
-        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
@@ -339,14 +340,14 @@ public class UpdateRequestActionTest {
      */
     @Test
     public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
-        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, "opencataloging");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(marcRecord, bibliographicRecordExtraData);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -360,7 +361,7 @@ public class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         Properties expectedSettings = (Properties) settings.clone();
-        expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID, bibliographicRecordExtraData.getProviderName());
+        expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC, bibliographicRecordExtraData.getProviderName());
 
         child = children.get(1);
         assertTrue(child.getClass() == UpdateOperationAction.class);

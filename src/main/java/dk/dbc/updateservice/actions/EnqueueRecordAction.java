@@ -59,10 +59,17 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Using provider id: '{}'", settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+            String providerId;
+            if (state.getLibraryGroup().isDBC()) {
+                providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;
+            } else {
+                providerId = JNDIResources.RAWREPO_PROVIDER_ID_FBS;
+            }
+
+            logger.info("Using provider id: '{}'", settings.getProperty(providerId));
             logger.info("Handling record:\n{}", record);
 
-            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID) == null) {
+            if (settings.getProperty(providerId) == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
@@ -70,7 +77,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), new RecordId(recId, agencyId), this.mimetype);
+            rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recId, agencyId), this.mimetype);
             logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
             return result = ServiceResult.newOkResult();
         } finally {

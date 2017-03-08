@@ -3,8 +3,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,10 +22,12 @@ import static org.mockito.Mockito.when;
 public class CreateSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -67,7 +69,7 @@ public class CreateSingleRecordActionTest {
         List<ServiceAction> children = createSingleRecordAction.children();
         Assert.assertThat(children.size(), is(2));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**

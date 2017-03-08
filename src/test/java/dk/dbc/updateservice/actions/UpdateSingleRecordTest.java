@@ -3,6 +3,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -27,11 +28,13 @@ public class UpdateSingleRecordTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String GROUP_ID = "700000";
+    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
+        state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
     }
 
@@ -69,7 +72,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
-        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrService(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrService(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -160,7 +163,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -202,7 +205,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -283,7 +286,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID));
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
 }
