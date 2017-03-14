@@ -30,7 +30,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.UUID;
 
 /**
  * UpdateService web service.
@@ -226,8 +229,8 @@ public class UpdateService {
             logger.entry(schemasRequestDTO);
             logger.info(Json.encodePretty(schemasRequestDTO));
             String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-            OpenAgencyService.LibraryGroup libraryGroup = openAgencyService.getLibraryGroup(groupId);
-            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, libraryGroup);
+            String templateGroup = openAgencyService.getTemplateGroup(groupId);
+            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
