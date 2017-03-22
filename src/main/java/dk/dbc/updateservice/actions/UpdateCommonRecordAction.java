@@ -54,7 +54,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             String parentId = reader.parentId();
             if (parentId != null && !parentId.isEmpty()) {
-                logger.info("Update vol:\n{}", parentId);
+                logger.info("Update vol: {}", parentId);
                 children.add(new UpdateVolumeRecord(state, settings, record));
             } else {
                 logger.info("Update single");

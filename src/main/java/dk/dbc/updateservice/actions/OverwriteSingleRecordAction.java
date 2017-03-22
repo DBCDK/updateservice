@@ -18,11 +18,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
@@ -86,6 +82,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
+
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
         logger.entry(currentRecord);
         List<ServiceAction> result = new ArrayList<>();
@@ -98,7 +95,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
                     logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
                     Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                    logger.info("Found holdings : {}", holdingsLibraries.toString());
+                    holdingsLibraries.addAll(state.getRawRepo().agenciesForRecord(record));
+                    logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
 
                     RawRepoDecoder decoder = new RawRepoDecoder();
                     for (Integer id : holdingsLibraries) {
@@ -110,10 +108,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = decoder.decodeRecord(extRecord.getContent());
-                            if (!state.getLibraryRecordsHandler().hasClassificationData(extRecordData)) {
-                                logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                                result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
-                            }
+                            logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
+                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
@@ -258,10 +254,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 MarcRecord linkRecord = loadRecord(recordId, agencyId);
                 boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(linkRecord, record);
                 boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(linkRecord);
-				// The real boolean wanted is :
-				// (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
-				// Fortunatedly it can be reduced to :
-                boolean isOneOrBothInProduction = ! (isTargetRecordInProduction && isLinkRecInProduction);
+                // The real boolean wanted is :
+                // (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
+                // Fortunatedly it can be reduced to :
+                boolean isOneOrBothInProduction = !(isTargetRecordInProduction && isLinkRecInProduction);
                 logger.info("Is linkrec InProduction {}", isLinkRecInProduction);
                 logger.info("IsOneOrBothInProduction {}", isOneOrBothInProduction);
                 logger.info("Will classifications change from {{}:{}} to record '{{}:{}}': {}", recordId, agencyId, destinationCommonRecordId, agencyId, classificationsChanged);
@@ -291,7 +287,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                                     enrichmentCandidate.put(holdingAgencyIdString, marcRecords);
                                 }
                             }
-                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(),linkRecord, currentRecord)) {
+                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), linkRecord, currentRecord)) {
                                 children.add(getActionDataForEnrichmentRecord(holdingAgencyIdString, destinationCommonRecordId, linkRecord));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);
