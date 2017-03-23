@@ -104,7 +104,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
         logger.entry(currentRecord);
         List<ServiceAction> result = new ArrayList<>();
