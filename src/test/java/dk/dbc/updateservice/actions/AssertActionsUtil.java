@@ -338,7 +338,6 @@ public class AssertActionsUtil {
         assertThat(enqueueRecordAction.getRawRepo(), is(rawRepo));
         assertThat(enqueueRecordAction.getRecord(), is(record));
         assertThat(enqueueRecordAction.settings.getProperty(enqueueRecordAction.state.getRawRepoProviderId()), is(providerId));
-        assertThat(enqueueRecordAction.getMimetype(), equalTo(mimetype));
     }
 
     public static void assertMoveEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, Properties settings) throws UpdateException {

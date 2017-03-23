@@ -39,6 +39,7 @@ public class JNDIResources {
 
     public static final String RAWREPO_PROVIDER_ID_DBC = "rawrepo.provider.id.dbc";
     public static final String RAWREPO_PROVIDER_ID_FBS = "rawrepo.provider.id.fbs";
+    public static final String RAWREPO_PROVIDER_ID_PH = "rawrepo.provider.id.ph";
 
     public static final String UPDATE_PROD_STATE_KEY = "prod.state";
 

@@ -99,7 +99,6 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
             children.add(linkRecordAction);
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
-            enqueueRecordAction.setMimetype(MIMETYPE);
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
         } catch (ScripterException ex) {

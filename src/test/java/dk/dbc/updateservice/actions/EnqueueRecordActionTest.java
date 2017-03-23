@@ -1,7 +1,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -54,10 +53,9 @@ public class EnqueueRecordActionTest {
     public void testActionPerform_WithNoProviderId() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         EnqueueRecordAction instance = new EnqueueRecordAction(state, new Properties(), record);
-        instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         String message = state.getMessages().getString("provider.id.not.set");
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
-        verify(state.getRawRepo(), never()).changedRecord(anyString(), any(RecordId.class), anyString());
+        verify(state.getRawRepo(), never()).changedRecord(anyString(), any(RecordId.class));
     }
 
     /**
@@ -86,16 +84,14 @@ public class EnqueueRecordActionTest {
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
 
         EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-        enqueueRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<String> argMimetype = ArgumentCaptor.forClass(String.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), argMimetype.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
         assertThat(argId.getValue(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(argMimetype.getValue(), equalTo(enqueueRecordAction.getMimetype()));
     }
 }
