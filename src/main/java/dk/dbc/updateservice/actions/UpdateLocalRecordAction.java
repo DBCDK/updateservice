@@ -95,7 +95,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add(new RemoveLinksAction(state, record));
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-            enqueueRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
@@ -143,7 +142,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add(linkRecordAction);
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-            enqueueRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
         } finally {
@@ -189,7 +187,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add(deleteRecordAction);
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-            enqueueRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();

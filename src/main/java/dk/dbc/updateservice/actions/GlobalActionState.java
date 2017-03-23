@@ -20,6 +20,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.WebServiceContext;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 public class GlobalActionState {
     private static final XLogger logger = XLoggerFactory.getXLogger(GlobalActionState.class);
@@ -46,6 +47,7 @@ public class GlobalActionState {
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
     private Boolean recordExists = null;
+    private Set<String> phLibraries = null;
 
     public GlobalActionState() {
     }
@@ -488,6 +490,19 @@ public class GlobalActionState {
         }
 
         return templateGroup;
+    }
+
+    public Set<String> getPHLibraries() throws UpdateException {
+        if (phLibraries == null) {
+            try {
+                phLibraries = openAgencyService.getPHLibraries();
+            } catch (OpenAgencyException ex) {
+                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        }
+
+        return phLibraries;
     }
 
     public String getRawRepoProviderId() throws UpdateException {

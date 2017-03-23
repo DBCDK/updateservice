@@ -48,6 +48,35 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
             result = performActionsFor002Links();
             children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
+
+            Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
+            Set<String> phLibraries = state.getPHLibraries();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("Record has the following holdings: ");
+            for (String agencyId : phLibraries) {
+                sb.append(agencyId + " ");
+            }
+            logger.info(sb.toString());
+
+            /*
+                Special handling of PH libraries with holdings
+                In order to update records in danbib for PH libraries it is necessary to inform dataIO when an
+                common record which a PH library has holding on is updated.
+
+                Note that the record with recordId = record.recordId and agency = phLibrary.agencyId proably doesn't exist
+                 but that isn't important as rawrepo won't be modified. This only serves as a marker for dataIO to do
+                 something.
+             */
+            for (Integer id : holdingsLibraries) {
+                if (phLibraries.contains(id.toString())) {
+                    logger.info("Found PH library with holding! " + id);
+                    RecordId recordId = new RecordId(new MarcRecordReader(record).recordId(), id);
+                    EnqueuePHHoldingsRecordAction enqueuePHHoldingsRecordAction = new EnqueuePHHoldingsRecordAction(state, settings, record, recordId);
+                    children.add(enqueuePHHoldingsRecordAction);
+                }
+            }
+
             return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
@@ -95,11 +124,16 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
                     logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
                     Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                    holdingsLibraries.addAll(state.getRawRepo().agenciesForRecord(record));
+                    Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecord(record);
+
+                    Set<Integer> librariesWithPosts = new HashSet<>();
+                    librariesWithPosts.addAll(holdingsLibraries);
+                    librariesWithPosts.addAll(enrichmentLibraries);
+
                     logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
 
                     RawRepoDecoder decoder = new RawRepoDecoder();
-                    for (Integer id : holdingsLibraries) {
+                    for (Integer id : librariesWithPosts) {
                         logger.info("Local library for record: {}", id);
 
                         if (!state.getOpenAgencyService().hasFeature(id.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
@@ -110,6 +144,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             MarcRecord extRecordData = decoder.decodeRecord(extRecord.getContent());
                             logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                             result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
+                            if (state.getLibraryGroup().isPH() && holdingsLibraries.contains(id)) {
+                                // If the library is PH and has holding, then dataIO needs to do something - so enqueue the record
+
+                            }
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {

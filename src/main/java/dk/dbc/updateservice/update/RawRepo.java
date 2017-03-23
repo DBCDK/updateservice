@@ -430,14 +430,14 @@ public class RawRepo {
         }
     }
 
-    public void changedRecord(String provider, RecordId recId, String mimetype) throws UpdateException {
-        logger.entry(provider, recId, mimetype);
+    public void changedRecord(String provider, RecordId recId) throws UpdateException {
+        logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-                dao.changedRecord(provider, recId, mimetype);
+                dao.changedRecord(provider, recId);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);

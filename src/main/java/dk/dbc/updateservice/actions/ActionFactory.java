@@ -17,11 +17,9 @@ public class ActionFactory {
         EnqueueRecordAction enqueueRecordAction;
         try {
             enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
-            enqueueRecordAction.setMimetype(mimetype);
             return enqueueRecordAction;
         } finally {
             logger.exit();
         }
     }
-
 }

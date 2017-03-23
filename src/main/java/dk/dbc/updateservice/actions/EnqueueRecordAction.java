@@ -33,19 +33,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
 
     Properties settings;
-    private String mimetype;
 
     public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
         settings = properties;
-    }
-
-    public String getMimetype() {
-        return mimetype;
-    }
-
-    public void setMimetype(String mimetype) {
-        this.mimetype = mimetype;
     }
 
     /**
@@ -77,7 +68,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recId, agencyId), this.mimetype);
+            rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recId, agencyId));
             logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
             return result = ServiceResult.newOkResult();
         } finally {

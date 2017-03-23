@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * EJB to access the OpenAgency web service.
@@ -34,7 +35,7 @@ public class OpenAgencyService {
     private OpenAgencyServiceFromURL service;
 
     public enum LibraryGroup {
-        DBC("dbc"), FBS("fbs");
+        DBC("dbc"), FBS("fbs"), PH("ph");
 
         private final String value;
 
@@ -51,8 +52,10 @@ public class OpenAgencyService {
             return this.getValue();
         }
 
+        // PH is also a FBS library
         public boolean isDBC() { return DBC.getValue().equals(this.getValue()); }
-        public boolean isFBS() { return FBS.getValue().equals(this.getValue()); }
+        public boolean isFBS() { return FBS.getValue().equals(this.getValue()) || PH.getValue().equals(this.getValue()); }
+        public boolean isPH() { return PH.getValue().equals(this.getValue()); }
     }
 
     @PostConstruct
@@ -116,6 +119,8 @@ public class OpenAgencyService {
 
             if ("dbc".equals(reply) || "ffu".equals(reply)) {
                 result = LibraryGroup.DBC;
+            } else if ("ph".equals(reply)) {
+                result = LibraryGroup.PH;
             } else {
                 result =  LibraryGroup.FBS;
             }
@@ -154,6 +159,36 @@ public class OpenAgencyService {
             return result;
         } catch (OpenAgencyException ex) {
             logger.error("Failed to read CatalogingTemplate for ['{}']: {}", agencyId, ex.getMessage());
+            try {
+                if (ex.getRequest() != null) {
+                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                }
+                if (ex.getResponse() != null) {
+                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                }
+            } catch (IOException ioError) {
+                logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
+            }
+
+            throw ex;
+        } finally {
+            watch.stop();
+            logger.exit(result);
+        }
+    }
+
+    public Set<String> getPHLibraries() throws OpenAgencyException{
+        logger.entry();
+        StopWatch watch = new Log4JStopWatch("service.openagency.getPHLibraries");
+
+        Set<String> result = null;
+        try {
+            result = service.libraryRules().getPHLibraries();
+
+            //logger.info("Agency '{}' has CatalogingTemplate {}", agencyId, result);
+            return result;
+        } catch (OpenAgencyException ex) {
+            logger.error("Failed to read PH Libraries: {}", ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
                     logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));

@@ -99,7 +99,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             children.add(linkRecordAction);
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
-            enqueueRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();

@@ -97,7 +97,6 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(enqueueRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(enqueueRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
     }
 
     /**
@@ -166,7 +165,6 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(enqueueRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(enqueueRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
     }
 
     /**
