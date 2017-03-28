@@ -13,8 +13,8 @@ public class NoteAndSubjectExtensionsHandler {
     private OpenAgencyService openAgencyService;
     private RawRepo rawRepo;
 
-    static final String EXTENDABLE_NOTE_FIELDS = "504|530";
-    static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|666";
+    static final String EXTENDABLE_NOTE_FIELDS = "504|530|534";
+    static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
 
     public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo) {
         this.openAgencyService = openAgencyService;
@@ -77,18 +77,18 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecordReader reader = new MarcRecordReader(clone);
             MarcFieldReader fieldReader = new MarcFieldReader(field);
 
-            if (!reader.hasSubfield("001", "c")) {
-                reader.getField("001").getSubfields().add(2, new MarcSubField("c", fieldReader.getValue("c")));
+            if (reader.hasSubfield("001", "c")) {
+                new MarcRecordWriter(clone).addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
             }
 
             if (!reader.hasSubfield("001", "d")) {
-                reader.getField("001").getSubfields().add(3, new MarcSubField("d", fieldReader.getValue("d")));
+                new MarcRecordWriter(clone).addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
             }
         }
 
         for (MarcField cf : clone.getFields()) {
             if (cf.getName().equals(field.getName())) {
-                if (!cf.equals(field)) {
+                if (cf.equals(field)) {
                     return false;
                 }
             }
@@ -117,6 +117,8 @@ public class NoteAndSubjectExtensionsHandler {
             }
             extendableFields += EXTENDABLE_SUBJECT_FIELDS;
         }
+
+        logger.info("Bibliotek {} har ret til at rette i følgende felter i en national post: {}", agencyId, extendableFields);
 
         return extendableFields;
     }
@@ -159,7 +161,7 @@ public class NoteAndSubjectExtensionsHandler {
         try {
             MarcFieldReader reader = new MarcFieldReader(field);
 
-            return field.getName().equals("032") && reader.hasSubfield("a") && reader.getValue("a").matches("BKM*|NET*|SF*");
+            return field.getName().equals("032") && reader.hasSubfield("a") && !reader.getValue("a").matches("^(BKM|NET|SF).*$");
         } finally {
             logger.exit();
         }
