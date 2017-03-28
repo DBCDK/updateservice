@@ -51,7 +51,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "ABC"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
+        assertThat(instance.isFieldNationalCommonField(field), equalTo(true));
     }
 
     @Test
@@ -61,7 +61,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isFieldNationalCommonField(field), equalTo(true));
+        assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(false));
+        assertThat(instance.isNationalCommonRecord(record), equalTo(true));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         writer.addOrReplaceSubfield("032", "a", "NET");
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(true));
+        assertThat(instance.isNationalCommonRecord(record), equalTo(false));
     }
 
     @Test
@@ -127,7 +127,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_001_nomatch() throws Exception {
+    public void testisFieldChangedInOtherRecord_001_match() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcField field = new MarcField("001", "00");
         field.getSubfields().add(new MarcSubField("a", "111111111"));
@@ -137,11 +137,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("f", "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_001_match() throws Exception {
+    public void testisFieldChangedInOtherRecord_001_nomatch() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
@@ -153,7 +153,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("f", "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
     @Test
@@ -218,7 +218,7 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
         MarcRecord expected = new MarcRecord(record);
-        new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
+        //new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expected));
     }
