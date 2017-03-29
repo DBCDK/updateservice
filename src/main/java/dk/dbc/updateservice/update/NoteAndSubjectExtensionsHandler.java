@@ -72,21 +72,21 @@ public class NoteAndSubjectExtensionsHandler {
      */
     Boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord record) {
         MarcRecord clone = new MarcRecord(record);
+        MarcRecordReader reader = new MarcRecordReader(clone);
+        MarcRecordWriter writer = new MarcRecordWriter(clone);
+        MarcFieldReader fieldReader = new MarcFieldReader(field);
 
         if (field.getName().equals("001")) {
-            MarcRecordReader reader = new MarcRecordReader(clone);
-            MarcFieldReader fieldReader = new MarcFieldReader(field);
-
-            if (reader.hasSubfield("001", "c")) {
-                new MarcRecordWriter(clone).addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
+            if (fieldReader.hasSubfield("c")) {
+                writer.addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
             }
 
-            if (!reader.hasSubfield("001", "d")) {
-                new MarcRecordWriter(clone).addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
+            if (fieldReader.hasSubfield("d")) {
+                writer.addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
             }
         }
 
-        for (MarcField cf : clone.getFields()) {
+        for (MarcField cf : reader.getFieldAll(field.getName())) {
             if (cf.getName().equals(field.getName())) {
                 if (cf.equals(field)) {
                     return false;
