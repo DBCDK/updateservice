@@ -8,7 +8,7 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.Properties;
 
 public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordFrontendAndValidateAction.class);
 
     Properties settings;
     DoubleRecordFrontendAction doubleRecordFrontendAction;
