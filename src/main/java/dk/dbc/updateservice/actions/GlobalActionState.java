@@ -48,6 +48,8 @@ public class GlobalActionState {
     private Boolean doubleRecordPossible = null;
     private Boolean recordExists = null;
     private Set<String> phLibraries = null;
+    private Set<String> ffuLibraries = null;
+
 
     public GlobalActionState() {
     }
@@ -503,6 +505,19 @@ public class GlobalActionState {
         }
 
         return phLibraries;
+    }
+
+    public Set<String> getFFULibraries() throws UpdateException {
+        if (ffuLibraries == null) {
+            try {
+                ffuLibraries = openAgencyService.getFFULibraries();
+            } catch (OpenAgencyException ex) {
+                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        }
+
+        return ffuLibraries;
     }
 
     public String getRawRepoProviderId() throws UpdateException {

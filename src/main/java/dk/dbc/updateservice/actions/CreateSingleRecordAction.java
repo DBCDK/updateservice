@@ -10,6 +10,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * This action is used to create a new common record.
@@ -36,14 +37,31 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
         try {
             logger.info("Handling record:\n{}", record);
+            MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!rawRepo.agenciesForRecord(record).isEmpty()) {
-                String message = state.getMessages().getString("create.record.with.locals");
-                logger.error("Unable to create sub actions doing to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            // The rule is: FBS and DBC libraries cannot have overlapping records.
+            // However, FFU libraries are allowed to have overlapping posts as they never use enrichment posts
+            Set<Integer> agenciesForRecord = rawRepo.agenciesForRecord(record);
+            if (!agenciesForRecord.isEmpty()) {
+                logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", agenciesForRecord, reader.recordId());
+                Set<String> ffuAgencyIds = state.getFFULibraries();
+                boolean allAgenciesAreFFU = true;
+                for (Integer agencyForRecord : agenciesForRecord) {
+                    if (!ffuAgencyIds.contains(agencyForRecord.toString())) {
+                        logger.info("The library {} is not a FFU library.", agencyForRecord);
+                        allAgenciesAreFFU = false;
+                        break;
+                    }
+                }
+
+                if (!allAgenciesAreFFU) {
+                    String message = state.getMessages().getString("create.record.with.locals");
+
+                    logger.error("Unable to create sub actions doing to an error: {}", message);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                }
             }
 
-            MarcRecordReader reader = new MarcRecordReader(record);
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions doing to an error: {}", message);
