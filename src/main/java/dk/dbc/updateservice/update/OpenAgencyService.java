@@ -53,9 +53,17 @@ public class OpenAgencyService {
         }
 
         // PH is also a FBS library
-        public boolean isDBC() { return DBC.getValue().equals(this.getValue()); }
-        public boolean isFBS() { return FBS.getValue().equals(this.getValue()) || PH.getValue().equals(this.getValue()); }
-        public boolean isPH() { return PH.getValue().equals(this.getValue()); }
+        public boolean isDBC() {
+            return DBC.getValue().equals(this.getValue());
+        }
+
+        public boolean isFBS() {
+            return FBS.getValue().equals(this.getValue()) || PH.getValue().equals(this.getValue());
+        }
+
+        public boolean isPH() {
+            return PH.getValue().equals(this.getValue());
+        }
     }
 
     @PostConstruct
@@ -108,8 +116,7 @@ public class OpenAgencyService {
         }
     }
 
-
-    public LibraryGroup getLibraryGroup(String agencyId) throws OpenAgencyException{
+    public LibraryGroup getLibraryGroup(String agencyId) throws OpenAgencyException {
         logger.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.openagency.getCatalogingTemplate");
 
@@ -122,7 +129,7 @@ public class OpenAgencyService {
             } else if ("ph".equals(reply)) {
                 result = LibraryGroup.PH;
             } else {
-                result =  LibraryGroup.FBS;
+                result = LibraryGroup.FBS;
             }
 
             logger.info("Agency '{}' has LibraryGroup {}", agencyId, result.toString());
@@ -147,7 +154,7 @@ public class OpenAgencyService {
         }
     }
 
-    public String getTemplateGroup(String agencyId) throws OpenAgencyException{
+    public String getTemplateGroup(String agencyId) throws OpenAgencyException {
         logger.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.openagency.getCatalogingTemplate");
 
@@ -177,7 +184,7 @@ public class OpenAgencyService {
         }
     }
 
-    public Set<String> getPHLibraries() throws OpenAgencyException{
+    public Set<String> getPHLibraries() throws OpenAgencyException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("service.openagency.getPHLibraries");
 
@@ -206,7 +213,7 @@ public class OpenAgencyService {
         }
     }
 
-    public Set<String> getFFULibraries() throws OpenAgencyException{
+    public Set<String> getFFULibraries() throws OpenAgencyException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("service.openagency.getFFULibraries");
 
