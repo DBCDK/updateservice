@@ -39,7 +39,7 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
-            rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recordId.getBibliographicRecordId(), recordId.getAgencyId()));
+            rawRepo.changedRecord(settings.getProperty(providerId), recordId);
             logger.info("The record {}:{} with provider '{}' was successfully enqueued", recordId.getBibliographicRecordId(), recordId.getAgencyId(), settings.getProperty(providerId));
 
             return result = ServiceResult.newOkResult();
