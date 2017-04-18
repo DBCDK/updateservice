@@ -33,7 +33,7 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            String providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH;
+            String providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS;
 
             if (settings.getProperty(providerId) == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
