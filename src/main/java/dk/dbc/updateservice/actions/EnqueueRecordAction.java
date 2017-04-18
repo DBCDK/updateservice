@@ -53,6 +53,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             String providerId;
             if (state.getLibraryGroup().isDBC()) {
                 providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;
+            } else if (state.getLibraryGroup().isPH()) {
+                providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH;
             } else {
                 providerId = JNDIResources.RAWREPO_PROVIDER_ID_FBS;
             }
