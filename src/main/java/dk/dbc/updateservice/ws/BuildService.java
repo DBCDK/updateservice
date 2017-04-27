@@ -185,7 +185,7 @@ public class BuildService implements BuildPortType {
         logger.entry(name);
         Boolean result = null;
         try {
-            Object jsResult = scripter.callMethod("checkTemplate", name, buildProperties);
+            Object jsResult = scripter.callMethod("checkTemplateBuild", name, buildProperties);
 
             logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
