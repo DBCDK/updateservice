@@ -48,14 +48,15 @@ import java.util.*;
  * <p/>
  * This class implements the SOAP operations for our web service.
  */
-@WebService(serviceName = "CatalogingBuildServices",
+@WebService(
+        serviceName = "CatalogingBuildServices",
         portName = "BuildPort",
         endpointInterface = "dk.dbc.oss.ns.catalogingbuild.BuildPortType",
         targetNamespace = "http://oss.dbc.dk/ns/catalogingBuild",
         wsdlLocation = "WEB-INF/classes/META-INF/wsdl/build/catalogingBuild.wsdl")
 @Stateless
-public class BuildService implements BuildPortType {
-    private static final XLogger logger = XLoggerFactory.getXLogger(BuildService.class);
+public class OpenBuild implements BuildPortType {
+    private static final XLogger logger = XLoggerFactory.getXLogger(OpenBuild.class);
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
