@@ -55,7 +55,7 @@ public class UpdateService {
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     public static final String UPDATE_SERVICE_VERSION = "2.0";
 
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     @EJB
@@ -284,7 +284,7 @@ public class UpdateService {
 
     private void validateRequiredSettings() {
         if (settings == null) {
-            throw new IllegalStateException("JNDI settings '" + JNDIResources.SETTINGS_NAME + "' cannot be empty");
+            throw new IllegalStateException("JNDI settings '" + JNDIResources.JNDI_NAME_UPDATESERVICE + "' cannot be empty");
         }
         for (String s : JNDIResources.getListOfRequiredJNDIResources()) {
             if (!settings.containsKey(s)) {

@@ -32,7 +32,7 @@ import java.util.Properties;
 public class Authenticator {
     private static final XLogger logger = XLoggerFactory.getXLogger(Authenticator.class);
 
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     @SuppressWarnings("EjbEnvironmentInspection")

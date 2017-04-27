@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+  ~  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+  -->
+
+<wsdl:definitions xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/catalogingBuild" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" name="BuildServices" targetNamespace="http://oss.dbc.dk/ns/catalogingBuild">
+  <wsdl:types>
+    <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
+      <xs:import namespace="http://oss.dbc.dk/ns/catalogingBuild" schemaLocation="catalogingBuild.xsd"/>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="BuildInputMessage">
+    <wsdl:part name="parameters" element="tns:build"/>
+  </wsdl:message>
+  <wsdl:message name="BuildOutputMessage">
+    <wsdl:part name="parameters" element="tns:buildResponse"/>
+  </wsdl:message>
+  <wsdl:portType name="BuildPortType">
+    <wsdl:operation name="build">
+      <wsdl:input wsaw:Action="http://oss.dbc.dk/ns/catalogingBuild/Build" message="tns:BuildInputMessage"/>
+      <wsdl:output wsaw:Action="http://oss.dbc.dk/ns/catalogingBuild/BuildResponse" message="tns:BuildOutputMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BuildBinding" type="tns:BuildPortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="build">
+      <soap:operation soapAction="http://oss.dbc.dk/ns/catalogingBuild/Build" style="document"/>
+      <wsdl:input>
+        <soap:body use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="CatalogingBuildServices">
+    <wsdl:port name="BuildPort" binding="tns:BuildBinding">
+      <soap:address location="http://catalogingbuild.addi.dk/"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
