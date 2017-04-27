@@ -15,7 +15,8 @@ import java.util.Properties;
  */
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironmentFactory.class);
-    private static final String ENTRYPOINTS_PATTERN = "%s/distributions/common/src/entrypoints/update/entrypoint.js";
+    private static final String ENTRYPOINTS_PATTERN_UPDATE = "%s/distributions/common/src/entrypoints/update/entrypoint.js";
+    private static final String ENTRYPOINTS_PATTERN_BUILD = "%s/distributions/common/src/entrypoints/build/openbuild.js";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/common/src";
 
 
@@ -51,7 +52,8 @@ public class ScripterEnvironmentFactory {
             String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
             Environment envir = new Environment();
             envir.registerUseFunction(createModulesHandler(baseDir));
-            envir.evalFile(String.format(ENTRYPOINTS_PATTERN, baseDir));
+            envir.evalFile(String.format(ENTRYPOINTS_PATTERN_UPDATE, baseDir));
+            envir.evalFile(String.format(ENTRYPOINTS_PATTERN_BUILD, baseDir));
             return envir;
         } catch (Exception e) {
             logger.catching(e);
