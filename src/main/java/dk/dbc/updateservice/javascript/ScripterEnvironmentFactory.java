@@ -53,7 +53,6 @@ public class ScripterEnvironmentFactory {
             Environment envir = new Environment();
             envir.registerUseFunction(createModulesHandler(baseDir));
             envir.evalFile(String.format(ENTRYPOINTS_PATTERN_UPDATE, baseDir));
-            envir.evalFile(String.format(ENTRYPOINTS_PATTERN_BUILD, baseDir));
             return envir;
         } catch (Exception e) {
             logger.catching(e);
