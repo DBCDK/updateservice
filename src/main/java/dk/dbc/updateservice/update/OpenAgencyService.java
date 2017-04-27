@@ -29,7 +29,7 @@ public class OpenAgencyService {
     /**
      * Resource to lookup the product name for authentication.
      */
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     private OpenAgencyServiceFromURL service;

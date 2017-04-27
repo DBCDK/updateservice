@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.utils.CharSetControl;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.ws.JNDIResources;
@@ -18,7 +17,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -31,7 +29,7 @@ public class SolrService {
     private static XLogger logger = XLoggerFactory.getXLogger(SolrService.class);
     private static String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
 
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     private ResourceBundle messages;

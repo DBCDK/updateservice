@@ -20,7 +20,9 @@ public class JNDIResources {
     public static final String JDBC_UPDATE_STORE_NAME = "jdbc/updateservice/updateservicestore";
 
     // Settings resource
-    public static final String SETTINGS_NAME = "updateservice/settings";
+    public static final String JNDI_NAME_UPDATESERVICE = "updateservice/settings";
+    public static final String JNDI_NAME_BUILDSERVICE = "env/iscrum/build/properties";
+
     public static final String SOLR_URL_KEY = "solr.url";
     public static final String FORSRIGHTS_URL_KEY = "forsrights.url";
     public static final String OPENAGENCY_URL_KEY = "openagency.url";
@@ -43,6 +45,25 @@ public class JNDIResources {
     public static final String RAWREPO_PROVIDER_ID_PH_HOLDINGS = "rawrepo.provider.id.ph.holdings";
 
     public static final String UPDATE_PROD_STATE_KEY = "prod.state";
+
+    /**
+     * Defines SRU constant for RecordSchema tag to accept marcXChange 1.1.
+     */
+    public static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
+
+    /**
+     * Defines SRU constant for RecordPacking tag to accept xml.
+     */
+    public static final String RECORD_PACKING_XML = "xml";
+
+    /**
+     * Defines MarcXchange v2 schema location.
+     */
+    public static final String MARCXCHANGE_1_1_SCHEMA_LOCATION = "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd";
+
+
+
+    public static final String PROP_OPENNUMBERROLL = "opennumberroll";
 
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {

@@ -30,7 +30,7 @@ public class ForsService {
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     private ForsRights.RightsCache forsRightsCache;

@@ -43,7 +43,7 @@ public class RawRepo {
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
 
-    @Resource(lookup = JNDIResources.SETTINGS_NAME)
+    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     @EJB
