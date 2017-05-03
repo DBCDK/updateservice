@@ -78,7 +78,9 @@ public class OpenAgencyService {
 
         try {
             OpenAgencyServiceFromURL.Builder builder = OpenAgencyServiceFromURL.builder();
-            builder = builder.connectTimeout(CONNECT_TIMEOUT).requestTimeout(REQUEST_TIMEOUT);
+            builder = builder.connectTimeout(CONNECT_TIMEOUT).
+                    requestTimeout(REQUEST_TIMEOUT).
+                    setCacheAge(Integer.parseInt(settings.getProperty(JNDIResources.OPENAGENCY_CACHE_AGE_KEY)));
 
             service = builder.build(settings.getProperty(JNDIResources.OPENAGENCY_URL_KEY));
         } finally {
