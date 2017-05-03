@@ -1,7 +1,11 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.dto.*;
-import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.UpdateOptionEnum;
