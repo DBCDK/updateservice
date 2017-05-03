@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.ws;
 
 import com.sun.xml.ws.developer.SchemaValidation;
@@ -6,12 +11,7 @@ import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
-import dk.dbc.updateservice.service.api.GetSchemasRequest;
-import dk.dbc.updateservice.service.api.GetSchemasResult;
-import dk.dbc.updateservice.service.api.ObjectFactory;
-import dk.dbc.updateservice.service.api.UpdateRecordRequest;
-import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.service.api.*;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;

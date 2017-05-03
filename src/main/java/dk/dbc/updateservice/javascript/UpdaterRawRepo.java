@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.javascript;
 
 import dk.dbc.iscrum.records.MarcRecord;
@@ -19,7 +24,6 @@ import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 

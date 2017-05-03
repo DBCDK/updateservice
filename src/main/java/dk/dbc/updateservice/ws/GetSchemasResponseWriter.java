@@ -1,13 +1,13 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
-import dk.dbc.updateservice.service.api.GetSchemasResult;
-import dk.dbc.updateservice.service.api.MessageEntry;
-import dk.dbc.updateservice.service.api.Messages;
-import dk.dbc.updateservice.service.api.Schema;
-import dk.dbc.updateservice.service.api.Type;
-import dk.dbc.updateservice.service.api.UpdateStatusEnum;
+import dk.dbc.updateservice.service.api.*;
 
 public class GetSchemasResponseWriter {
     private GetSchemasResult getSchemasResult;

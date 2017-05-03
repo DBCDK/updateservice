@@ -1,14 +1,21 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.iscrum.records.MarcRecordFactory;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.javascript.Scripter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,9 +23,6 @@ import java.util.List;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
-
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 public class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
