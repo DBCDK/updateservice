@@ -52,10 +52,16 @@ public class DeleteRecordAction extends StoreRecordAction {
         MarcRecord result = null;
         try {
             result = loadCurrentRecord();
-            MarcRecordWriter writer = new MarcRecordWriter(result);
+            MarcRecordWriter currentWriter = new MarcRecordWriter(result);
+            MarcRecordReader currentReader = new MarcRecordReader(result);
 
-            writer.markForDeletion();
-            writer.setChangedTimestamp();
+            if (currentReader.getField("004") == null) {
+                // This is done because the database by historical reasons are pestered with
+                // a large number of records without field 004
+                currentWriter.copyFieldFromRecord("004", record);
+            }
+            currentWriter.markForDeletion();
+            currentWriter.setChangedTimestamp();
 
             return result;
         } finally {
