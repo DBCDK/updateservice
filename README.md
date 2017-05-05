@@ -1,5 +1,6 @@
-UpdaterService
-==============
+<img src="http://www.dbc.dk/logo.png" alt="DBC" title="DBC" align="right">
+
+# UpdateService
 
 UpdaterService er en SOAP webservice som bruges til at validerer og indlægge poster i råpostrepositoriet.
 Servicen er udviklet med Java EE og kræver en Java EE 7 container for at kunne afvikles. Servicen er blevet testet
