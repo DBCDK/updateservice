@@ -28,11 +28,11 @@ function removeImages() {
 
 function startContainers () {
   echo "systest ---> Starting containers"
-  docker-compose up -d update-systemtests-rawrepo-db  || die "docker-compose up -d update-systemtests-rawrepo-db"
-  docker-compose up -d update-systemtests-holdingsitems-db                 || die "docker-compose up -d update-systemtests-holdingsitems-db"
-  docker-compose up -d update-systemtests-update-db                        || die "docker-compose up -d update-systemtests-update-db"
-  docker-compose up -d update-systemtests-fake-smtp                                  || die  "docker-compose up -d update-systemtests-fake-smtp"
-  docker-compose up -d update-systemtests-updateservice                                     || die  "docker-compose up -d update-systemtests-updateservice"
+  docker-compose up -d update-systemtests-rawrepo-db       || die "docker-compose up -d update-systemtests-rawrepo-db"
+  docker-compose up -d update-systemtests-holdingsitems-db || die "docker-compose up -d update-systemtests-holdingsitems-db"
+  docker-compose up -d update-systemtests-update-db        || die "docker-compose up -d update-systemtests-update-db"
+  docker-compose up -d update-systemtests-fake-smtp        || die "docker-compose up -d update-systemtests-fake-smtp"
+  docker-compose up -d update-systemtests-updateservice    || die "docker-compose up -d update-systemtests-updateservice"
 }
 
 function reTagAndRemove () {
@@ -73,6 +73,7 @@ function setSysVars () {
   export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
   echo "systest ---> Using host IP: ${HOST_IP}"
 }
+
 function main ()  {
   setSysVars ${1}
   setupLogAndLogdir
