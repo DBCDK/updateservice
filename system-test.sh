@@ -20,10 +20,10 @@ function removeImages() {
   echo "systest ---> Removing old images"
   docker rmi 'docker-i.dbc.dk/mock-rawrepo-postgres:latest'
   docker rmi 'docker-i.dbc.dk/mock-holdingsitems-postgres:latest'
-  docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
+  docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
+  docker rmi 'docker-i.dbc.dk/update-payara-deployer:candidate'
   docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
-  docker rmi 'docker-i.dbc.dk/update-updateservice:candidate'
 }
 
 function startContainers () {
