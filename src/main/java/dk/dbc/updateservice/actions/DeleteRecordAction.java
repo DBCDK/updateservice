@@ -54,6 +54,8 @@ public class DeleteRecordAction extends StoreRecordAction {
             result = loadCurrentRecord();
             MarcRecordWriter currentWriter = new MarcRecordWriter(result);
             MarcRecordReader currentReader = new MarcRecordReader(result);
+            logger.debug("Record to store before 004 check {}", result);
+            logger.debug("Request record before 004 check {}", record);
 
             if (currentReader.getField("004") == null) {
                 // This is done because the database by historical reasons are pestered with
