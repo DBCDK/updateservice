@@ -52,7 +52,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add(new RemoveLinksAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
             result = performActionsFor002Links();
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
             Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
             Set<String> phLibraries = state.getPHLibraries();
