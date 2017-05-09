@@ -82,4 +82,18 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             logger.exit(result);
         }
     }
+
+    /**
+     * Factory method to create a EnqueueRecordAction.
+     */
+    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties, String mimetype) {
+        logger.entry(globalActionState, record);
+        EnqueueRecordAction enqueueRecordAction;
+        try {
+            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
+            return enqueueRecordAction;
+        } finally {
+            logger.exit();
+        }
+    }
 }

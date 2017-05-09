@@ -80,7 +80,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
                 linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));
                 children.add(linkRecordAction);
-                children.add(ActionFactory.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
+                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
             }
         } finally {
             logger.exit();

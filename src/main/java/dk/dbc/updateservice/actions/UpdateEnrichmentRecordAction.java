@@ -142,7 +142,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, commonRecordAgencyId()));
             children.add(linkRecordAction);
-            children.add(ActionFactory.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
@@ -181,7 +181,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
-            children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.ENRICHMENT));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
