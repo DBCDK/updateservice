@@ -58,6 +58,7 @@ public class DeleteRecordAction extends StoreRecordAction {
             logger.debug("Request record before 004 check {}", record);
             logger.debug("MORE LOG");
             logger.debug("YET MORE LOG");
+            logger.debug("MUCHO MORE LOG");
 
             if (currentReader.getField("004") == null) {
                 // This is done because the database by historical reasons are pestered with
