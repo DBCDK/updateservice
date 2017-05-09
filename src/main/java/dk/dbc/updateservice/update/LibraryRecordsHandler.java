@@ -626,7 +626,7 @@ public class LibraryRecordsHandler {
         // IF record contains other fields than 001, 004 and 996, return the record, otherwise an empty
         List<MarcField> fieldList = record.getFields();
         for (MarcField wFieldList : fieldList) {
-        if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
+            if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
                 return record;
             }
         }
@@ -751,9 +751,9 @@ public class LibraryRecordsHandler {
         MarcRecord newRecord = new MarcRecord();
         List<MarcField> fields = enrichment.getFields();
         for (MarcField field : fields) {
-           if (shouldEnrichmentRecordFieldBeKept(field, common, enrichment)) {
-               newRecord.getFields().add(field);
-           }
+            if (shouldEnrichmentRecordFieldBeKept(field, common, enrichment)) {
+                newRecord.getFields().add(field);
+            }
         }
         return newRecord;
     }
@@ -781,7 +781,7 @@ public class LibraryRecordsHandler {
      *
      * @param record            The record to be updated
      * @param authenticationDTO Auth DTO from the ws request
-     * @param libraryGroup        Whether it is a FBS or DataIO template
+     * @param libraryGroup      Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws OpenAgencyException          in case of an error
      * @throws UnsupportedEncodingException in case of an error
@@ -831,19 +831,20 @@ public class LibraryRecordsHandler {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         try {
-            if (reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY) &&
-                    (openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
+            if ((reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY) ||
+                    RawRepo.INTERNAL_LIBRARY_LIST.contains(reader.agencyIdAsInteger())
+            ) && (
+                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
+                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
 
                 logger.info("Record is 870970 and has either USE_ENRICHMENT or AUTH_ROOT so calling splitRecordDataIO");
-                result = splitRecordDataIO(record);
+                result = splitRecordDataIO(record, reader.agencyId());
             } else {
                 logger.info("Record is not 870970 or has neither USE_ENRICHMENT nor AUTH_ROOT so returning same record");
                 result = Arrays.asList(record);
             }
 
             return result;
-
         } finally {
             logger.exit(result);
         }
@@ -940,16 +941,24 @@ public class LibraryRecordsHandler {
      * @param record The record to be updated
      * @return List containing common and DBC record
      */
-    List<MarcRecord> splitRecordDataIO(MarcRecord record) {
+    List<MarcRecord> splitRecordDataIO(MarcRecord record, String agencyId) {
         logger.entry(record);
 
         try {
             MarcRecord dbcRecord = new MarcRecord();
             MarcRecord commonRecord = new MarcRecord();
 
-            for (int i = 0; i < record.getFields().size(); i++) {
-                MarcField field = record.getFields().get(i);
+            for (MarcField field : record.getFields()) {
+                //MarcField field = record.getFields().get(i);
                 if (field.getName().equals("001")) {
+                    MarcField commonField = new MarcField(field);
+                    for (int c = 0; c < commonField.getSubfields().size(); c++) {
+                        if (commonField.getSubfields().get(c).getName().equals("b")) {
+                            commonField.getSubfields().get(c).setValue(agencyId);
+                        }
+                    }
+                    commonRecord.getFields().add(commonField);
+
                     MarcField dbcField = new MarcField(field);
                     for (int d = 0; d < dbcField.getSubfields().size(); d++) {
                         if (dbcField.getSubfields().get(d).getName().equals("b")) {
@@ -957,15 +966,6 @@ public class LibraryRecordsHandler {
                         }
                     }
                     dbcRecord.getFields().add(dbcField);
-
-                    MarcField commonField = new MarcField(field);
-                    for (int c = 0; c < commonField.getSubfields().size(); c++) {
-                        if (commonField.getSubfields().get(c).getName().equals("b")) {
-                            commonField.getSubfields().get(c).setValue(RawRepo.RAWREPO_COMMON_LIBRARY.toString());
-                        }
-                    }
-                    commonRecord.getFields().add(commonField);
-
                 } else if (field.getName().equals("004")) {
                     dbcRecord.getFields().add(field);
                     commonRecord.getFields().add(field);
@@ -975,7 +975,6 @@ public class LibraryRecordsHandler {
                     commonRecord.getFields().add(field);
                 }
             }
-
 
             logger.info("commonRecord\n{}", commonRecord);
             logger.info("dbcRecord\n{}", dbcRecord);
@@ -989,11 +988,12 @@ public class LibraryRecordsHandler {
 
     /**
      * Modifies the new record if record is being recategorized
-     * @param currentCommonRecord   record in rr
-     * @param updatingCommonRecord  incoming record
-     * @param extendedRecord        extended record in rr
-     * @return                      record with notes about eventual recategorization
-     * @throws ScripterException    Trouble calling js.
+     *
+     * @param currentCommonRecord  record in rr
+     * @param updatingCommonRecord incoming record
+     * @param extendedRecord       extended record in rr
+     * @return record with notes about eventual recategorization
+     * @throws ScripterException Trouble calling js.
      */
     private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws ScripterException {
         logger.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);

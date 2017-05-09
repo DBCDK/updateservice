@@ -32,9 +32,7 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 /**
  * EJB to provide access to the RawRepo database.
@@ -43,6 +41,7 @@ import java.util.Set;
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
+    public static final List<Integer> INTERNAL_LIBRARY_LIST = Arrays.asList(870971);
     public static final Integer COMMON_LIBRARY = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;

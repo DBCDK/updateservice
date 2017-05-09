@@ -5,10 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordFactory;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.javascript.Scripter;
 import org.junit.Before;
@@ -50,30 +47,62 @@ public class LibraryRecordsHandlerTest {
 
     @Test
     public void testSplitCompleteBasisRecord() throws Exception {
+        // Prepare record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcRecord expectedDBCRecord = new MarcRecord();
-
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-
+        writer.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
         writer.addOrReplaceSubfield("aaa", "a", "b");
         writer.addOrReplaceSubfield("bbb", "a", "b");
 
-        expectedDBCRecord.getFields().add(reader.getField("001"));
-        expectedDBCRecord.getFields().add(reader.getField("004"));
-        expectedDBCRecord.getFields().add(reader.getField("aaa"));
-        expectedDBCRecord.getFields().add(reader.getField("bbb"));
-        MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
-        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
-
+        // Prepare expected common record
+        MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
         expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+
+        // Prepare expected DBC/191919 record
+        MarcRecord expectedDBCRecord = new MarcRecord();
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("001")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("004")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
+        MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
+        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
 
         List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
 
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        assertThat(instance.splitRecordDataIO(record), equalTo(expectedList));
+        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", "b")), equalTo(expectedList));
+    }
+
+    @Test
+    public void testSplitCompleteBasisRecord870971() throws Exception {
+        // Prepare record
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addOrReplaceSubfield("001", "b", "870971");
+        writer.addOrReplaceSubfield("aaa", "a", "b");
+        writer.addOrReplaceSubfield("bbb", "a", "b");
+
+        // Prepare expected common record
+        MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
+        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", "870971");
+
+        // Prepare expected DBC/191919 record
+        MarcRecord expectedDBCRecord = new MarcRecord();
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("001")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("004")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
+        expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
+        MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
+        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+
+        List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
+
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", "b")), equalTo(expectedList));
     }
 
     @Test
