@@ -56,6 +56,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             String providerId;
+            MarcRecordReader reader = new MarcRecordReader(record);
+            String recId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
+
             if (state.getLibraryGroup().isDBC()) {
                 providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;
             } else if (state.getLibraryGroup().isPH()) {
@@ -70,10 +74,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             if (settings.getProperty(providerId) == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
-
-            MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
 
             rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recId, agencyId));
             logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
