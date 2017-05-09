@@ -72,7 +72,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
 
             result = performActionsFor002Links();
-            children.add(ActionFactory.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
             return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
