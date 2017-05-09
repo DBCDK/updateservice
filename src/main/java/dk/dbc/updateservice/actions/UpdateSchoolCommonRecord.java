@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
@@ -80,7 +79,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
                 linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));
                 children.add(linkRecordAction);
-                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings, MarcXChangeMimeType.ENRICHMENT));
+                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
             }
         } finally {
             logger.exit();

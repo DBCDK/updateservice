@@ -74,7 +74,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             }
             logger.info("Creating sub actions successfully");
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
