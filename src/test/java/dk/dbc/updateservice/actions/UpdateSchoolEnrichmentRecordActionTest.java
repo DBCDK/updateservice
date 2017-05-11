@@ -37,7 +37,7 @@ public class UpdateSchoolEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
         UpdateSchoolEnrichmentRecordAction instance = new UpdateSchoolEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.getParentAgencyId(), is(RawRepo.RAWREPO_COMMON_LIBRARY));
+        assertThat(instance.getParentAgencyId(), is(RawRepo.COMMON_AGENCY));
     }
 
     @Test

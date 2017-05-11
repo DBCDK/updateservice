@@ -620,7 +620,7 @@ public class LibraryRecordsHandler {
     private MarcRecord correctRecordIfEmpty(MarcRecord record) {
         MarcRecordReader reader = new MarcRecordReader(record);
         String agency = reader.agencyId();
-        if (RawRepo.COMMON_LIBRARY.toString().equals(agency) || RawRepo.RAWREPO_COMMON_LIBRARY.toString().equals(agency)) {
+        if (RawRepo.DBC_ENRICHMENT.toString().equals(agency) || RawRepo.COMMON_AGENCY.toString().equals(agency)) {
             return record;
         }
         // IF record contains other fields than 001, 004 and 996, return the record, otherwise an empty
@@ -831,9 +831,7 @@ public class LibraryRecordsHandler {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         try {
-            if ((reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY) ||
-                    RawRepo.INTERNAL_AGENCY_LIST.contains(reader.agencyIdAsInteger())
-            ) && (
+            if (RawRepo.DBC_AGENCY_LIST.contains(reader.agencyId()) && (
                     openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
                             openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
 
@@ -866,7 +864,7 @@ public class LibraryRecordsHandler {
 
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            if (!reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+            if (!reader.agencyIdAsInteger().equals(RawRepo.COMMON_AGENCY)) {
                 logger.info("Agency id of record is not 870970 - returning same record");
                 return Arrays.asList(record);
             }
@@ -879,16 +877,16 @@ public class LibraryRecordsHandler {
             MarcRecord dbcEnrichmentRecord;
 
             String recId = correctedRecordReader.recordId();
-            Integer agencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
+            Integer agencyId = RawRepo.COMMON_AGENCY;
 
             MarcRecord curRecord;
 
-            if (rawRepo.recordExists(recId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
+            if (rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, agencyId).getContent());
                 correctedRecord = UpdateOwnership.mergeRecord(correctedRecord, curRecord);
                 logger.info("correctedRecord after mergeRecord\n{}", correctedRecord);
             } else {
-                logger.info("Common record [{}:{}] does not exist", recId, RawRepo.RAWREPO_COMMON_LIBRARY);
+                logger.info("Common record [{}:{}] does not exist", recId, RawRepo.COMMON_AGENCY);
             }
 
             String owner = correctedRecordReader.getValue("996", "a");
@@ -901,16 +899,16 @@ public class LibraryRecordsHandler {
                 logger.info("Owner of record is {}", owner);
             }
 
-            if (!rawRepo.recordExists(recId, RawRepo.COMMON_LIBRARY)) {
-                logger.debug("DBC enrichment record [{}:{}] does not exist.", recId, RawRepo.COMMON_LIBRARY);
+            if (!rawRepo.recordExists(recId, RawRepo.DBC_ENRICHMENT)) {
+                logger.debug("DBC enrichment record [{}:{}] does not exist.", recId, RawRepo.DBC_ENRICHMENT);
                 dbcEnrichmentRecord = new MarcRecord();
                 MarcField corrected001Field = new MarcField(correctedRecordReader.getField("001"));
                 dbcEnrichmentRecord.getFields().add(corrected001Field);
 
-                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
             } else {
-                logger.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.COMMON_LIBRARY);
-                dbcEnrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_LIBRARY).getContent());
+                logger.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.DBC_ENRICHMENT);
+                dbcEnrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
             }
 
             String recordStatus = correctedRecordReader.getValue("004", "r");
@@ -962,7 +960,7 @@ public class LibraryRecordsHandler {
                     MarcField dbcField = new MarcField(field);
                     for (int d = 0; d < dbcField.getSubfields().size(); d++) {
                         if (dbcField.getSubfields().get(d).getName().equals("b")) {
-                            dbcField.getSubfields().get(d).setValue(RawRepo.COMMON_LIBRARY.toString());
+                            dbcField.getSubfields().get(d).setValue(RawRepo.DBC_ENRICHMENT.toString());
                         }
                     }
                     dbcRecord.getFields().add(dbcField);

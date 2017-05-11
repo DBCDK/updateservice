@@ -102,7 +102,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             Integer updAgencyId = updReader.agencyIdAsInteger();
 
             // Perform check of 002a and b,c - 870970 only
-            if (RawRepo.RAWREPO_COMMON_LIBRARY.equals(updAgencyId)) {
+            if (RawRepo.COMMON_AGENCY.equals(updAgencyId)) {
                 String validatePreviousFaustMessage = validatePreviousFaust(updReader);
                 if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage, state);
@@ -123,7 +123,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
-                if (RawRepo.INTERNAL_AGENCY_LIST.contains(agencyId)) {
+                if (RawRepo.DBC_AGENCY_LIST.contains(agencyId.toString())) {
                     if (!updReader.markedForDeletion() &&
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
@@ -134,7 +134,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
                     children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    if (agencyId.equals(RawRepo.COMMON_LIBRARY) && commonRecordExists(records, rec, updAgencyId)) {
+                    if (agencyId.equals(RawRepo.DBC_ENRICHMENT) && commonRecordExists(records, rec, updAgencyId)) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
@@ -144,7 +144,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
-                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.RAWREPO_COMMON_LIBRARY));
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
                         }
                     } else {
                         children.add(new UpdateLocalRecordAction(state, settings, rec));
@@ -200,14 +200,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("Schema name?.............: " + state.getSchemaName());
         logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
         logger.info("agency id?...............: " + updReader.agencyIdAsInteger());
-        logger.info("RR common library?.......: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-        logger.info("DBC internal agency?.....: " + RawRepo.INTERNAL_AGENCY_LIST.contains(updReader.agencyIdAsInteger()));
+        logger.info("RR common library?.......: " + updReader.agencyIdAsInteger().equals(RawRepo.COMMON_AGENCY));
+        logger.info("DBC internal agency?.....: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.agencyId()));
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
 
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
-        return commonRecordExists(records, rec, RawRepo.RAWREPO_COMMON_LIBRARY);
+        return commonRecordExists(records, rec, RawRepo.COMMON_AGENCY);
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, Integer parentAgencyId) throws UpdateException {
@@ -245,8 +245,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             String recordId = reader.recordId();
             int agencyId = reader.agencyIdAsInteger();
             int rawRepoAgencyId = agencyId;
-            if (agencyId == RawRepo.COMMON_LIBRARY) {
-                rawRepoAgencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
+            if (agencyId == RawRepo.DBC_ENRICHMENT) {
+                rawRepoAgencyId = RawRepo.COMMON_AGENCY;
             }
             RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
             logger.debug("UpdateOperationAction.checkRecordForUpdatability().newRecordId: " + newRecordId);

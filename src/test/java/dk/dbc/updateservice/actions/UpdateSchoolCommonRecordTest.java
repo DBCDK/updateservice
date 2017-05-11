@@ -64,7 +64,7 @@ public class UpdateSchoolCommonRecordTest {
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = new UpdateSchoolCommonRecord(state, settings, record);
@@ -108,7 +108,7 @@ public class UpdateSchoolCommonRecordTest {
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
@@ -156,7 +156,7 @@ public class UpdateSchoolCommonRecordTest {
         Integer schoolAgencyId = AssertActionsUtil.getAgencyIdAsInteger(schoolRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(schoolAgencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
@@ -208,7 +208,7 @@ public class UpdateSchoolCommonRecordTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
@@ -259,7 +259,7 @@ public class UpdateSchoolCommonRecordTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(schoolAgencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));

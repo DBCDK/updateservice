@@ -94,7 +94,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
         assertTrue(child.getClass() == EnqueueRecordAction.class);
@@ -162,7 +162,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
         assertTrue(child.getClass() == EnqueueRecordAction.class);

@@ -45,7 +45,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
-                moveSchoolEnrichmentsActions(RawRepo.RAWREPO_COMMON_LIBRARY);
+                moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
                 children.add(new UpdateEnrichmentRecordAction(state, settings, record));
             } else {
                 children.add(new UpdateEnrichmentRecordAction(state, settings, record));

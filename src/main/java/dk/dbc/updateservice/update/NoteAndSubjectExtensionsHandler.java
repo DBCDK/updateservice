@@ -33,12 +33,12 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
 
-            if (!rawRepo.recordExists(recId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
+            if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 logger.info("No existing record - returning same record");
                 return record;
             }
 
-            MarcRecord curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.RAWREPO_COMMON_LIBRARY).getContent());
+            MarcRecord curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
 
             if (!isNationalCommonRecord(curRecord)) {
                 logger.info("Record is not national common record - returning same record");

@@ -100,7 +100,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             children.add(storeRecordAction);
 
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-            linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
             children.add(linkRecordAction);
 
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
