@@ -186,7 +186,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
+        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
 
@@ -199,8 +199,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
 
@@ -216,8 +216,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         writer.addOrReplaceSubfield("032", "a", "NET");
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 

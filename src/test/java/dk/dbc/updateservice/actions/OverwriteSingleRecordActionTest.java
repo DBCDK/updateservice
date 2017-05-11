@@ -862,13 +862,13 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getOpenAgencyService().hasFeature(e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -942,13 +942,13 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1015,10 +1015,10 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getOpenAgencyService().hasFeature(e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -1088,10 +1088,10 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1163,10 +1163,10 @@ public class OverwriteSingleRecordActionTest {
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
         new MarcRecordWriter(c2).addOrReplaceSubfield("032", "a", "DBI999999");
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1235,10 +1235,10 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1308,10 +1308,10 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getOpenAgencyService().hasFeature(eq(localAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1382,13 +1382,13 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1462,13 +1462,13 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
@@ -1519,9 +1519,9 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);

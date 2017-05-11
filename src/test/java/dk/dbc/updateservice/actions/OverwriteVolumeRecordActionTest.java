@@ -500,15 +500,15 @@ public class OverwriteVolumeRecordActionTest {
         writer.addOrReplaceSubfield("002", "a", v2RecordId);
         writer.sort();
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(v1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(v2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(v1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v1, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(v2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v2, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(v1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(v2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(v2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().agenciesForRecord(eq(v1))).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getRawRepo().enrichments(eq(new RecordId(v2RecordId, RawRepo.RAWREPO_COMMON_LIBRARY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
+        when(state.getRawRepo().enrichments(eq(new RecordId(v2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(v1)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);

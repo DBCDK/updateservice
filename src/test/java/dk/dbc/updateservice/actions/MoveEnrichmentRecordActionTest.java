@@ -75,10 +75,10 @@ public class MoveEnrichmentRecordActionTest {
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
         new MarcRecordWriter(c1).addOrReplaceSubfield("z98", "a", "testPerformAction_CommonRecordPublished");
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c2))).thenReturn(true);
 
@@ -133,10 +133,10 @@ public class MoveEnrichmentRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
 
-        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1, false, false);
         instance.setCommonRecord(c2);

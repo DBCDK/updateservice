@@ -51,14 +51,14 @@ public class LibraryRecordsHandlerTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+        writer.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
         writer.addOrReplaceSubfield("aaa", "a", "b");
         writer.addOrReplaceSubfield("bbb", "a", "b");
 
         // Prepare expected common record
         MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
-        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.RAWREPO_COMMON_LIBRARY.toString());
+        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
 
         // Prepare expected DBC/191919 record
         MarcRecord expectedDBCRecord = new MarcRecord();
@@ -67,7 +67,7 @@ public class LibraryRecordsHandlerTest {
         expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
         expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
         MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
-        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
 
         List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
 
@@ -97,7 +97,7 @@ public class LibraryRecordsHandlerTest {
         expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
         expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
         MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
-        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_LIBRARY.toString());
+        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
 
         List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
 

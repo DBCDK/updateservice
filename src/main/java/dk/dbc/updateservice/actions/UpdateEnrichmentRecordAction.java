@@ -38,7 +38,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private Integer parentAgencyId;
 
     public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        this(globalActionState, properties, marcRecord, RawRepo.RAWREPO_COMMON_LIBRARY);
+        this(globalActionState, properties, marcRecord, RawRepo.COMMON_AGENCY);
     }
 
     public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, Integer parentAgencyId) {

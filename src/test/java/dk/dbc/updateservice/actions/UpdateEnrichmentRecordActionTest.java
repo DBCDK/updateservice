@@ -118,7 +118,7 @@ public class UpdateEnrichmentRecordActionTest {
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -226,7 +226,7 @@ public class UpdateEnrichmentRecordActionTest {
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -288,7 +288,7 @@ public class UpdateEnrichmentRecordActionTest {
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -318,7 +318,7 @@ public class UpdateEnrichmentRecordActionTest {
         String recordId = AssertActionsUtil.getRecordId(enrichmentRecord);
         String commonRecordId = AssertActionsUtil.getRecordId(commonRecord);
 
-        when(state.getRawRepo().recordExists(eq(commonRecordId), eq(RawRepo.RAWREPO_COMMON_LIBRARY))).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq(commonRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);

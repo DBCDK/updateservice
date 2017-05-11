@@ -18,7 +18,7 @@ public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAc
     public UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) throws UpdateException {
         super(globalActionState, properties, record);
         setName("UpdateSchoolEnrichmentRecordAction");
-        commonRecordAgencyId = RawRepo.RAWREPO_COMMON_LIBRARY;
+        commonRecordAgencyId = RawRepo.COMMON_AGENCY;
         if (rawRepo.recordExists(new MarcRecordReader(record).recordId(), RawRepo.SCHOOL_COMMON_AGENCY)) {
             this.commonRecordAgencyId = RawRepo.SCHOOL_COMMON_AGENCY;
         }

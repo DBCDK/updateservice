@@ -278,7 +278,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     continue;
                 }
 
-                if (!rawRepo.recordExists(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                if (!rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
                     logger.warn("002 linked record '{}' does not exist", recordId);
                     continue;
                 }
@@ -295,7 +295,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 if (classificationsChanged) {
                     Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordId);
-                    Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
+                    Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.COMMON_AGENCY));
 
                     if (holdingAgencies.isEmpty()) {
                         logger.info("No holdings found for record id '{}'", recordId);
@@ -328,10 +328,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 } else {
                     logger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.", recordId);
                 }
-                Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.RAWREPO_COMMON_LIBRARY));
+                Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.COMMON_AGENCY));
 
                 for (RecordId enrichmentId : enrichmentIds) {
-                    if (enrichmentId.getAgencyId() == RawRepo.COMMON_LIBRARY) {
+                    if (enrichmentId.getAgencyId() == RawRepo.DBC_ENRICHMENT) {
                         continue;
                     }
                     if (!state.getOpenAgencyService().hasFeature(String.valueOf(enrichmentId.getAgencyId()), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {

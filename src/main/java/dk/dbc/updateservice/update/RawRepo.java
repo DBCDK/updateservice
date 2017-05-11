@@ -40,9 +40,9 @@ import java.util.*;
 @Stateless
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    public static final Integer RAWREPO_COMMON_LIBRARY = 870970;
-    public static final List<Integer> INTERNAL_AGENCY_LIST = Arrays.asList(870970, 870971);
-    public static final Integer COMMON_LIBRARY = 191919;
+    public static final Integer COMMON_AGENCY = 870970;
+    public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
+    public static final Integer DBC_ENRICHMENT = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
@@ -130,8 +130,8 @@ public class RawRepo {
                 try {
                     RawRepoDAO dao = createDAO(conn);
                     result = dao.allAgenciesForBibliographicRecordId(recordId);
-                    result.remove(RAWREPO_COMMON_LIBRARY);
-                    result.remove(COMMON_LIBRARY);
+                    result.remove(COMMON_AGENCY);
+                    result.remove(DBC_ENRICHMENT);
                     return result;
                 } catch (RawRepoException ex) {
                     conn.rollback();
@@ -535,7 +535,7 @@ public class RawRepo {
     private void linkEnrichment(RawRepoDAO dao, Record record) throws RawRepoException, SQLException {
         logger.entry(dao, record);
         try {
-            linkToRecord(dao, record.getId(), new RecordId(record.getId().getBibliographicRecordId(), RAWREPO_COMMON_LIBRARY));
+            linkToRecord(dao, record.getId(), new RecordId(record.getId().getBibliographicRecordId(), COMMON_AGENCY));
         } finally {
             logger.exit();
         }

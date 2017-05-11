@@ -118,7 +118,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
                 logger.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-            MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.RAWREPO_COMMON_LIBRARY).getContent());
+            MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
             logger.info("ClassificationChangedInCommonRecs {} ", classificationChangedInCommonRecs);
             logger.info("IsOneOrBothInProduction {} ", isOneOrBothInProduction);

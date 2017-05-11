@@ -51,8 +51,8 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
 
             if (recordId.equals(parentId)) {
                 Integer errorAgencyId = agencyId;
-                if (errorAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
-                    errorAgencyId = RawRepo.COMMON_LIBRARY;
+                if (errorAgencyId.equals(RawRepo.COMMON_AGENCY)) {
+                    errorAgencyId = RawRepo.DBC_ENRICHMENT;
                 }
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
                 logger.error("Unable to create sub actions doing to an error: {}", message);
