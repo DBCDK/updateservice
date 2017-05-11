@@ -18,9 +18,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by stp on 14/12/15.
- */
+
 public class UpdateSchoolEnrichmentRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
@@ -39,7 +37,7 @@ public class UpdateSchoolEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
         UpdateSchoolEnrichmentRecordAction instance = new UpdateSchoolEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.commonRecordAgencyId(), is(RawRepo.RAWREPO_COMMON_LIBRARY));
+        assertThat(instance.getParentAgencyId(), is(RawRepo.RAWREPO_COMMON_LIBRARY));
     }
 
     @Test
@@ -50,6 +48,6 @@ public class UpdateSchoolEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
         UpdateSchoolEnrichmentRecordAction instance = new UpdateSchoolEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.commonRecordAgencyId(), is(RawRepo.SCHOOL_COMMON_AGENCY));
+        assertThat(instance.getParentAgencyId(), is(RawRepo.SCHOOL_COMMON_AGENCY));
     }
 }

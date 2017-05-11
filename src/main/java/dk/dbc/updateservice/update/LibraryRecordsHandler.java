@@ -832,7 +832,7 @@ public class LibraryRecordsHandler {
 
         try {
             if ((reader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY) ||
-                    RawRepo.INTERNAL_LIBRARY_LIST.contains(reader.agencyIdAsInteger())
+                    RawRepo.INTERNAL_AGENCY_LIST.contains(reader.agencyIdAsInteger())
             ) && (
                     openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
                             openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
