@@ -197,6 +197,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
         logger.info("Delete?..................: " + updReader.markedForDeletion());
         logger.info("Library group?...........: " + state.getLibraryGroup());
+        logger.info("Schema name?.............: " + state.getSchemaName());
         logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
         logger.info("agency id?...............: " + updReader.agencyIdAsInteger());
         logger.info("RR common library?.......: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
