@@ -123,7 +123,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
-                if (agencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                if (RawRepo.INTERNAL_AGENCY_LIST.contains(agencyId)) {
                     if (!updReader.markedForDeletion() &&
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
@@ -134,11 +134,17 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
                     children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    if (commonRecordExists(records, rec) && (agencyId.equals(RawRepo.COMMON_LIBRARY) || state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))) {
+                    if (agencyId.equals(RawRepo.COMMON_LIBRARY) && commonRecordExists(records, rec, updAgencyId)) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
-                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec));
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
+                        }
+                    } else if (commonRecordExists(records, rec) && state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)) {
+                        if (RawRepo.isSchoolEnrichment(agencyId)) {
+                            children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
+                        } else {
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.RAWREPO_COMMON_LIBRARY));
                         }
                     } else {
                         children.add(new UpdateLocalRecordAction(state, settings, rec));
@@ -189,15 +195,21 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
-        logger.info("Delete?................: " + updReader.markedForDeletion());
-        logger.info("isDBC?.................: " + updReader.isDBCRecord());
-        logger.info("RR record exists?......: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
-        logger.info("agency id?.............: " + updReader.agencyIdAsInteger());
-        logger.info("RR common library?.....: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
-        logger.info("isDoubleRecordPossible?: " + state.isDoubleRecordPossible());
+        logger.info("Delete?..................: " + updReader.markedForDeletion());
+        logger.info("Library group?...........: " + state.getLibraryGroup());
+        logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
+        logger.info("agency id?...............: " + updReader.agencyIdAsInteger());
+        logger.info("RR common library?.......: " + updReader.agencyIdAsInteger().equals(RawRepo.RAWREPO_COMMON_LIBRARY));
+        logger.info("DBC internal agency?.....: " + RawRepo.INTERNAL_AGENCY_LIST.contains(updReader.agencyIdAsInteger()));
+        logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
 
+
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
+        return commonRecordExists(records, rec, RawRepo.RAWREPO_COMMON_LIBRARY);
+    }
+
+    private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, Integer parentAgencyId) throws UpdateException {
         logger.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
@@ -205,14 +217,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if (rawRepo == null) {
                 logger.info("UpdateOperationAction.commonRecordExists(), rawRepo is NULL");
             }
-            if (rawRepo.recordExists(recordId, RawRepo.RAWREPO_COMMON_LIBRARY)) {
+            if (rawRepo.recordExists(recordId, parentAgencyId)) {
                 return true;
             }
             for (MarcRecord record : records) {
                 MarcRecordReader recordReader = new MarcRecordReader(record);
                 String checkRecordId = recordReader.recordId();
                 Integer checkAgencyId = recordReader.agencyIdAsInteger();
-                if (checkRecordId.equals(recordId) && checkAgencyId.equals(RawRepo.RAWREPO_COMMON_LIBRARY)) {
+                if (recordId.equals(checkRecordId) && parentAgencyId.equals(checkAgencyId)) {
                     return true;
                 }
             }

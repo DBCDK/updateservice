@@ -12,9 +12,6 @@ import dk.dbc.updateservice.update.UpdateException;
 
 import java.util.Properties;
 
-/**
- * Created by stp on 14/12/15.
- */
 public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAction {
     private Integer commonRecordAgencyId;
 
@@ -28,7 +25,7 @@ public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAc
     }
 
     @Override
-    protected Integer commonRecordAgencyId() {
+    protected Integer getParentAgencyId() {
         return this.commonRecordAgencyId;
     }
 }

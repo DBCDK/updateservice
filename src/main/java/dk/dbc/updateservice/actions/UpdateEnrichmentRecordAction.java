@@ -35,10 +35,16 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     RawRepoDecoder decoder = new RawRepoDecoder();
     Properties settings;
+    private Integer parentAgencyId;
 
     public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        this(globalActionState, properties, marcRecord, RawRepo.RAWREPO_COMMON_LIBRARY);
+    }
+
+    public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, Integer parentAgencyId) {
         super(UpdateEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
-        settings = properties;
+        this.settings = properties;
+        this.parentAgencyId = parentAgencyId;
     }
 
     /**
@@ -84,7 +90,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
-            if (!rawRepo.recordExists(recordId, commonRecordAgencyId())) {
+            if (!rawRepo.recordExists(recordId, getParentAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), recordId);
                 logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -96,7 +102,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
             }
-            Record commonRecord = rawRepo.fetchRecord(recordId, commonRecordAgencyId());
+            Record commonRecord = rawRepo.fetchRecord(recordId, getParentAgencyId());
             MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
             MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, record);
 
@@ -140,7 +146,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             children.add(storeRecordAction);
 
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-            linkRecordAction.setLinkToRecordId(new RecordId(recordId, commonRecordAgencyId()));
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, getParentAgencyId()));
             children.add(linkRecordAction);
             children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
             return ServiceResult.newOkResult();
@@ -188,7 +194,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected Integer commonRecordAgencyId() {
-        return RawRepo.RAWREPO_COMMON_LIBRARY;
+    protected Integer getParentAgencyId() {
+        return parentAgencyId;
     }
 }
