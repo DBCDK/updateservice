@@ -11,6 +11,7 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -51,8 +52,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             if (reader.markedForDeletion()) {
-                boolean hasHoldings = !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty();
-                if (hasHoldings) {
+                if (!RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger()) && !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty()) {
                     AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                     logger.info("Found holdings for agency '{}'", groupAgencyNumber);
                     boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);

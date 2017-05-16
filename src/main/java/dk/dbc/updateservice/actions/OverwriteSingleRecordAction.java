@@ -48,10 +48,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecord currentRecord = loadCurrentRecord();
+            MarcRecordReader reader = new MarcRecordReader(record);
             children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
             children.add(new RemoveLinksAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
-            result = performActionsFor002Links();
+            if (!RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+                result = performActionsFor002Links();
+            }
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
             Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
