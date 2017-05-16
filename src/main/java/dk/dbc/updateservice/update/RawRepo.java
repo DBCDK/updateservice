@@ -41,6 +41,7 @@ import java.util.*;
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     public static final Integer COMMON_AGENCY = 870970;
+    public static final Integer ARTICLE_AGENCY = 870971;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
     public static final Integer DBC_ENRICHMENT = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
