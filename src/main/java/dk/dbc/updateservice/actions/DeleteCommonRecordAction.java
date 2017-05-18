@@ -54,7 +54,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 String message = state.getMessages().getString("delete.record.children.error");
                 String errorMessage = String.format(message, recordId);
 
-                logger.error("Unable to create sub actions doing to an error: {}", errorMessage);
+                logger.error("Unable to create sub actions due to an error: {}", errorMessage);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage, state);
             }
 

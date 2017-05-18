@@ -52,14 +52,14 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
 
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
@@ -81,14 +81,14 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 if (!allAgenciesAreFFU) {
                     String message = state.getMessages().getString("create.record.with.locals");
 
-                    logger.error("Unable to create sub actions doing to an error: {}", message);
+                    logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
             }
 
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             logger.error("Creating sub actions successfully");

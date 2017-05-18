@@ -62,14 +62,14 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 if (!allAgenciesAreFFU) {
                     String message = state.getMessages().getString("create.record.with.locals");
 
-                    logger.error("Unable to create sub actions doing to an error: {}", message);
+                    logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
             }
 
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             logger.info("Creating sub actions successfully");
