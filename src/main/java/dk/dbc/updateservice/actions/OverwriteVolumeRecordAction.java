@@ -55,13 +55,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                     errorAgencyId = RawRepo.DBC_ENRICHMENT;
                 }
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-                logger.error("Unable to create sub actions doing to an error: {}", message);
+                logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
