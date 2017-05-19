@@ -623,11 +623,19 @@ public class LibraryRecordsHandler {
         if (RawRepo.DBC_ENRICHMENT.toString().equals(agency) || RawRepo.COMMON_AGENCY.toString().equals(agency)) {
             return record;
         }
-        // IF record contains other fields than 001, 004 and 996, return the record, otherwise an empty
+        // If record contains other fields than 001, 004 and 996, return the record, otherwise an empty record
         List<MarcField> fieldList = record.getFields();
         for (MarcField wFieldList : fieldList) {
             if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
                 return record;
+            }
+
+            // Special case for PH libraries: record with only 001 and 004 is allowed if 004 contains *n f
+            if ("004".equals(wFieldList.getName())) {
+                MarcFieldReader fieldReader = new MarcFieldReader(wFieldList);
+                if ("f".equals(fieldReader.getValue("n"))) {
+                    return record;
+                }
             }
         }
         return new MarcRecord();
@@ -762,18 +770,31 @@ public class LibraryRecordsHandler {
         logger.entry(commonRecord, enrichmentRecord);
         MarcRecord result = null;
         if (hasClassificationData(commonRecord)) {
+            logger.info("Enrichment has classificationData");
             if (!hasClassificationsChanged(commonRecord, enrichmentRecord)) {
+                logger.info("!hasClassificationsChanged");
                 MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                 writer.removeFields(CLASSIFICATION_FIELDS);
             } else {
+                logger.info("hasClassificationsChanged");
                 result = enrichmentRecord;
             }
         }
         if (result == null) {
             result = new MarcRecord(enrichmentRecord);
         }
+
+        logger.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP \n{}", result);
+
         result = cleanupEnrichmentRecord(result, commonRecord);
-        return correctRecordIfEmpty(result);
+
+        logger.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP \n{}", result);
+
+        result = correctRecordIfEmpty(result);
+
+        logger.info("Final result of correctLibraryExtendedRecord \n{}", result);
+
+        return result;
     }
 
     /**
