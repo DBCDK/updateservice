@@ -8,7 +8,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
@@ -49,7 +48,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecord currentRecord = loadCurrentRecord();
             MarcRecordReader reader = new MarcRecordReader(record);
-            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
+            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+                children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
+            } else {
+                children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+            }
             children.add(new RemoveLinksAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
             if (!RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {

@@ -7,8 +7,8 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -73,7 +73,13 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             logger.info("Creating sub actions successfully");
-            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
+
+            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+                children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
+            } else {
+                children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+            }
+
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             return ServiceResult.newOkResult();
         } finally {

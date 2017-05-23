@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
@@ -66,7 +65,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             }
 
             MarcRecord currentRecord = loadCurrentRecord();
-            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
             children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
