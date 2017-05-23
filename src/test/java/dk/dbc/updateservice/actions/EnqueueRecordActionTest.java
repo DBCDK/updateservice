@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordWriter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -34,6 +35,15 @@ public class EnqueueRecordActionTest {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
+    }
+
+    private MarcRecord prepareRecord(String faust, Integer agencyId) {
+        MarcRecord record = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addOrReplaceSubfield("001", "a", faust);
+        writer.addOrReplaceSubfield("001", "b", agencyId.toString());
+
+        return record;
     }
 
     /**
@@ -83,7 +93,7 @@ public class EnqueueRecordActionTest {
      * </dl>
      */
     @Test
-    public void testActionPerform_WithProviderId() throws Exception {
+    public void testActionPerform_ProviderIdFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
@@ -93,10 +103,88 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
-        ArgumentCaptor<String> argMimetype = ArgumentCaptor.forClass(String.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
         assertThat(argId.getValue(), equalTo(new RecordId(recordId, agencyId)));
+    }
+
+    @Test
+    public void testActionPerform_ProviderOverride() throws Exception {
+        String faust = "12345678";
+        Integer agencyId = 654321;
+
+        MarcRecord record = prepareRecord(faust, agencyId);
+
+        Properties clonedSettings = (Properties) settings.clone();
+        clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-update-well3.5");
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
+        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE)));
+        assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+    }
+
+    @Test
+    public void testActionPerform_ProviderArticle() throws Exception {
+        String faust = "12345678";
+        Integer agencyId = 870971;
+
+        MarcRecord record = prepareRecord(faust, agencyId);
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
+        assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+    }
+
+    @Test
+    public void testActionPerform_ProviderDBC() throws Exception {
+        String faust = "12345678";
+        Integer agencyId = 870970;
+
+        MarcRecord record = prepareRecord(faust, agencyId);
+
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
+        assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+    }
+
+    @Test
+    public void testActionPerform_ProviderPH() throws Exception {
+        String faust = "12345678";
+        Integer agencyId = 654321;
+
+        MarcRecord record = prepareRecord(faust, agencyId);
+
+        state.setLibraryGroup(OpenAgencyService.LibraryGroup.PH);
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH)));
+        assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
     }
 }
