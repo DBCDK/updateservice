@@ -141,10 +141,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             String recordId = new MarcRecordReader(record).recordId();
 
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
-            children.add(storeRecordAction);
-
+            children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, getParentAgencyId()));
             children.add(linkRecordAction);

@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -106,11 +107,45 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a StoreRecordAction.
      */
+    /*
     static StoreRecordAction newStoreAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, String mimetype) {
         logger.entry(globalActionState, record, mimetype);
         try {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
             storeRecordAction.setMimetype(mimetype);
+            return storeRecordAction;
+        } finally {
+            logger.exit();
+        }
+    }*/
+
+    static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        logger.entry(globalActionState, record);
+        try {
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+            return storeRecordAction;
+        } finally {
+            logger.exit();
+        }
+    }
+
+    static StoreRecordAction newStoreArticleAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        logger.entry(globalActionState, record);
+        try {
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
+            return storeRecordAction;
+        } finally {
+            logger.exit();
+        }
+    }
+
+    static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        logger.entry(globalActionState, record);
+        try {
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             return storeRecordAction;
         } finally {
             logger.exit();

@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
@@ -92,7 +91,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             logger.error("Creating sub actions successfully");
-            children.add(StoreRecordAction.newStoreAction(state, settings, record, MarcXChangeMimeType.MARCXCHANGE));
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
