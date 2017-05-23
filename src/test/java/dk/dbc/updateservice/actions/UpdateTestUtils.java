@@ -69,6 +69,8 @@ public class UpdateTestUtils {
         Properties settings = new Properties();
         settings.put(JNDIResources.RAWREPO_PROVIDER_ID_DBC, "RAWREPO_PROVIDER_ID_DBC");
         settings.put(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "RAWREPO_PROVIDER_ID_FBS");
+        settings.put(JNDIResources.RAWREPO_PROVIDER_ID_PH, "RAWREPO_PROVIDER_ID_PH");
+        settings.put(JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS, "RAWREPO_PROVIDER_ID_PH_HOLDINGS");
         settings.put(JNDIResources.UPDATE_PROD_STATE_KEY, "true");
         return settings;
     }

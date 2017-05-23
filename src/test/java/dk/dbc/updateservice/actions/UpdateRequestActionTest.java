@@ -366,7 +366,7 @@ public class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         Properties expectedSettings = (Properties) settings.clone();
-        expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC, bibliographicRecordExtraData.getProviderName());
+        expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
 
         child = children.get(1);
         assertTrue(child.getClass() == UpdateOperationAction.class);
