@@ -19,7 +19,7 @@ function collect_logs () {
 function removeImages() {
   echo "systest ---> Removing old images"
   docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.5-snapshot:'${COMPOSE_PROJECT_NAME}
-  docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.0-snapshot:'${COMPOSE_PROJECT_NAME}
+  docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
   docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
   docker rmi 'docker-i.dbc.dk/update-payara-deployer:candidate'
@@ -39,8 +39,8 @@ function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
   docker tag docker-os.dbc.dk/rawrepo-postgres-1.5-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.5-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/rawrepo-postgres-1.5-snapshot:latest
-  docker tag docker-os.dbc.dk/holdings-items-postgres-1.0-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-1.0-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/holdings-items-postgres-1.0-snapshot:latest
+  docker tag docker-os.dbc.dk/holdings-items-postgres-1.1-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-1.1-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1-snapshot:latest
 }
 
 function setupLogAndLogdir () {
