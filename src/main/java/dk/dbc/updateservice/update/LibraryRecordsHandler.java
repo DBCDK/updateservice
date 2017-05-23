@@ -623,21 +623,20 @@ public class LibraryRecordsHandler {
         if (RawRepo.DBC_ENRICHMENT.toString().equals(agency) || RawRepo.COMMON_AGENCY.toString().equals(agency)) {
             return record;
         }
+
+        // Special case for PH libraries: record with only 001 and 004 is allowed if 004 contains *n
+        if (reader.hasSubfield("004", "n")) {
+            return record;
+        }
+
         // If record contains other fields than 001, 004 and 996, return the record, otherwise an empty record
         List<MarcField> fieldList = record.getFields();
         for (MarcField wFieldList : fieldList) {
             if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
                 return record;
             }
-
-            // Special case for PH libraries: record with only 001 and 004 is allowed if 004 contains *n f
-            if ("004".equals(wFieldList.getName())) {
-                MarcFieldReader fieldReader = new MarcFieldReader(wFieldList);
-                if ("f".equals(fieldReader.getValue("n"))) {
-                    return record;
-                }
-            }
         }
+
         return new MarcRecord();
     }
 
