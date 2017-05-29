@@ -95,7 +95,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
-            addDatefieldTo001d(reader);
+            create001dForFBSRecords(reader);
             children.add(new AuthenticateRecordAction(state));
             MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.recordId();
@@ -173,10 +173,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void addDatefieldTo001d(MarcRecordReader reader) throws UpdateException {
-        String valOf001 = reader.getValue("001", "d");
-        if (StringUtils.isEmpty(valOf001)) {
-            if (state.getLibraryGroup().isFBS()) {
+    private void create001dForFBSRecords(MarcRecordReader reader) throws UpdateException {
+        if (state.getLibraryGroup().isFBS()) {
+            String valOf001 = reader.getValue("001", "d");
+            if (StringUtils.isEmpty(valOf001)) {
                 MarcRecordWriter writer = new MarcRecordWriter(record);
                 writer.setCreationTimestamp();
                 logger.info("Adding new date to field 001 , subfield d : " + record);
@@ -267,8 +267,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param reader MarcRecordReader of the record to be checked
      * @return validation error message or null if no error was found
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
+     * @throws UpdateException when something goes wrong
+     * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
