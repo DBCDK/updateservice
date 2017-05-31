@@ -11,6 +11,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
@@ -104,37 +105,19 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         return false;
     }
 
-    /**
-     * Factory method to create a StoreRecordAction.
-     */
-    /*
-    static StoreRecordAction newStoreAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, String mimetype) {
-        logger.entry(globalActionState, record, mimetype);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
-            storeRecordAction.setMimetype(mimetype);
-            return storeRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }*/
-
     static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         logger.entry(globalActionState, record);
         try {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-            return storeRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }
 
-    static StoreRecordAction newStoreArticleAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        logger.entry(globalActionState, record);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
+            } else {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+            }
+
             return storeRecordAction;
         } finally {
             logger.exit();

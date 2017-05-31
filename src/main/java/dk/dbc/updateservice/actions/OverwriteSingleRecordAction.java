@@ -62,7 +62,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException {
         ServiceResult result = ServiceResult.newOkResult();
 
-        children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
+        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
         return result;

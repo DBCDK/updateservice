@@ -74,12 +74,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             }
             logger.info("Creating sub actions successfully");
 
-            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
-                children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
-            } else {
-                children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
-            }
-
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             return ServiceResult.newOkResult();
         } finally {
