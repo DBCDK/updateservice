@@ -110,7 +110,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             addDoubleRecordFrontendActionIfNecessary();
 
-            logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().isFBS() ? "FBS" : "DBC");
+            logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
 
             List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO(), state.getLibraryGroup());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());

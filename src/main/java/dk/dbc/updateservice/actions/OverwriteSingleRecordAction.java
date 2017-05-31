@@ -43,25 +43,45 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-        ServiceResult result = ServiceResult.newOkResult();
+        ServiceResult result = null;
         try {
             logger.info("Handling record:\n{}", record);
-            MarcRecord currentRecord = loadCurrentRecord();
             MarcRecordReader reader = new MarcRecordReader(record);
             if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
-                children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
+                return result = performActionArticle();
             } else {
-                children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+                return result = performActionDefault();
             }
-            children.add(new RemoveLinksAction(state, record));
-            children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
-            if (!RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
-                result = performActionsFor002Links();
-            }
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+        } catch (ScripterException | UnsupportedEncodingException ex) {
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+        } finally {
+            logger.exit(result);
+        }
+    }
 
-            Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-            Set<String> phLibraries = state.getPHLibraries();
+    private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException {
+        ServiceResult result = ServiceResult.newOkResult();
+
+        children.add(StoreRecordAction.newStoreArticleAction(state, settings, record));
+        children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+
+        return result;
+    }
+
+    private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
+        ServiceResult result;
+        MarcRecord currentRecord = loadCurrentRecord();
+
+        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+        children.add(new RemoveLinksAction(state, record));
+        children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
+
+        result = performActionsFor002Links();
+
+        children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+
+        Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
+        Set<String> phLibraries = state.getPHLibraries();
 
             /*
                 Special handling of PH libraries with holdings
@@ -72,21 +92,16 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                  but that isn't important as rawrepo won't be modified. This only serves as a marker for dataIO to do
                  something.
              */
-            for (Integer id : holdingsLibraries) {
-                if (phLibraries.contains(id.toString())) {
-                    logger.info("Found PH library with holding! {}", id);
-                    RecordId recordId = new RecordId(new MarcRecordReader(record).recordId(), id);
-                    EnqueuePHHoldingsRecordAction enqueuePHHoldingsRecordAction = new EnqueuePHHoldingsRecordAction(state, settings, record, recordId);
-                    children.add(enqueuePHHoldingsRecordAction);
-                }
+        for (Integer id : holdingsLibraries) {
+            if (phLibraries.contains(id.toString())) {
+                logger.info("Found PH library with holding! {}", id);
+                RecordId recordId = new RecordId(new MarcRecordReader(record).recordId(), id);
+                EnqueuePHHoldingsRecordAction enqueuePHHoldingsRecordAction = new EnqueuePHHoldingsRecordAction(state, settings, record, recordId);
+                children.add(enqueuePHHoldingsRecordAction);
             }
-
-            return result;
-        } catch (ScripterException | UnsupportedEncodingException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
-        } finally {
-            logger.exit(result);
         }
+
+        return result;
     }
 
     MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
@@ -97,15 +112,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
 
-            Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = new RawRepoDecoder().decodeRecord(record.getContent());
+            return result = loadRecord(recordId, agencyId);
         } finally {
             logger.exit(result);
         }
     }
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
-        logger.entry();
+        logger.entry(recordId, agencyId);
         MarcRecord result = null;
         try {
             Record record = rawRepo.fetchRecord(recordId, agencyId);
