@@ -23,6 +23,7 @@ import org.w3c.dom.Node;
 
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.WebServiceContext;
+import java.util.Date;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -52,6 +53,7 @@ public class GlobalActionState {
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
     private Boolean recordExists = null;
+    private Date createOverwriteDate = null;
     private Set<String> phLibraries = null;
     private Set<String> ffuLibraries = null;
 
@@ -199,6 +201,14 @@ public class GlobalActionState {
 
     public void setTemplateGroup(String templateGroup) {
         this.templateGroup = templateGroup;
+    }
+
+    public Date getCreateOverwriteDate() {
+        return createOverwriteDate;
+    }
+
+    public void setCreateOverwriteDate(Date createOverwriteDate) {
+        this.createOverwriteDate = createOverwriteDate;
     }
 
     public MarcRecordReader getMarcRecordReader() {

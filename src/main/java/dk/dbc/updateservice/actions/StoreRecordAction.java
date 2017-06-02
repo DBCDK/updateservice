@@ -70,6 +70,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
             rawRepoRecord.setMimeType(mimetype);
             rawRepoRecord.setDeleted(deletionMarkToStore());
+            if (state.getCreateOverwriteDate() != null) {
+                rawRepoRecord.setCreated(state.getCreateOverwriteDate());
+            }
             rawRepoRecord.setTrackingId(MDC.get(UpdateService.MDC_TRACKING_ID_LOG_CONTEXT));
             rawRepo.saveRecord(rawRepoRecord);
             logger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());

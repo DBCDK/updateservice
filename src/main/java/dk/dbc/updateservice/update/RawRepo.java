@@ -342,7 +342,7 @@ public class RawRepo {
             try {
                 RawRepoDAO dao = createDAO(conn);
 
-                result = dao.recordExistsMabyDeleted(recordId, agencyId);
+                result = dao.recordExistsMaybeDeleted(recordId, agencyId);
                 return result;
             } catch (RawRepoException ex) {
                 conn.rollback();

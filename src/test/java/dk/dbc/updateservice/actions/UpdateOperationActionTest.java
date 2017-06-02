@@ -16,8 +16,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -84,6 +86,39 @@ public class UpdateOperationActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
+    }
+
+    @Test
+    public void testPerformAction_LocalRecordWithn55() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(record);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addOrReplaceSubfield("n55", "a", "20170602");
+
+        state.setLibraryGroup(libraryGroupFBS);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO()), eq(libraryGroupFBS))).thenReturn(rawRepoRecords);
+
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        List<ServiceAction> children = updateOperationAction.children();
+        assertThat(children.size(), is(2));
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
+        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+        Date expectedOverwriteDate = sdf.parse("02/06/2017");
+        assertThat(state.getCreateOverwriteDate(), equalTo(expectedOverwriteDate));
+
+        MarcRecordReader reader = new MarcRecordReader(updateOperationAction.getRecord());
+        assertFalse(reader.hasSubfield("n55", "a"));
     }
 
     /**

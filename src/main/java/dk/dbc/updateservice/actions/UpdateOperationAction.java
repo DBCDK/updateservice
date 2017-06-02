@@ -22,10 +22,10 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -97,6 +97,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             create001dForFBSRecords(reader);
             children.add(new AuthenticateRecordAction(state));
+            handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.recordId();
             Integer updAgencyId = updReader.agencyIdAsInteger();
@@ -267,7 +268,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param reader MarcRecordReader of the record to be checked
      * @return validation error message or null if no error was found
-     * @throws UpdateException when something goes wrong
+     * @throws UpdateException              when something goes wrong
      * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
@@ -356,6 +357,36 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             return SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bValue, "002c", cValue, "001a", recordId);
         } else {
             return SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bValue, "002c", cValue);
+        }
+    }
+
+    /**
+     * In some cases the input record will have a n55*a field containing a date.
+     * If thats the case the value of that field should be used as value for created date on the rawrepo row
+     * <p>
+     * As the n55 field is a temporary field that shouldn't be saved in rawrepo it is removed from the record before saving.
+     */
+    private void handleSetCreateOverwriteDate() throws UpdateException {
+        logger.debug("Checking for n55 field");
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+
+        String dateString = reader.getValue("n55", "a");
+        if (dateString != null && !dateString.isEmpty()) {
+            DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+            try {
+                Date date = formatter.parse(dateString);
+                boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
+                // We only want to set the created date to a specific value if the record is new
+                if (!recordExists) {
+                    state.setCreateOverwriteDate(date);
+                    writer.removeField("n55");
+                    logger.info("Found overwrite create date value: {}. Field has been removed from the record", date);
+                }
+            } catch (ParseException e) {
+                logger.error("Caught ParseException trying to parse " + dateString + " as a date", e);
+                throw new UpdateException("Caught ParseException trying to parse " + dateString + " as a date");
+            }
         }
     }
 
