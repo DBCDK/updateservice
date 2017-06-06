@@ -52,7 +52,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             if (reader.markedForDeletion()) {
-                if (!RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger()) && !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty()) {
+                if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty()) {
                     AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                     logger.info("Found holdings for agency '{}'", groupAgencyNumber);
                     boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);

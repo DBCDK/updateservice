@@ -202,7 +202,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.recordId(), updReader.agencyIdAsInteger()));
         logger.info("agency id?...............: " + updReader.agencyIdAsInteger());
         logger.info("RR common library?.......: " + updReader.agencyIdAsInteger().equals(RawRepo.COMMON_AGENCY));
-        logger.info("DBC internal agency?.....: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.agencyId()));
+        logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.agencyId()));
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
 

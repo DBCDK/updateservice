@@ -47,7 +47,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+            if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.agencyId())) {
                 return result = performActionArticle();
             } else {
                 return result = performActionDefault();
