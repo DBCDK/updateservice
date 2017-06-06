@@ -43,6 +43,7 @@ public class RawRepo {
     public static final Integer COMMON_AGENCY = 870970;
     public static final Integer ARTICLE_AGENCY = 870971;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
+    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
     public static final Integer DBC_ENRICHMENT = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
