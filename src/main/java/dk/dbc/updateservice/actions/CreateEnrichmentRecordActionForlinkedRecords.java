@@ -123,9 +123,9 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         logger.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
-            MarcRecordWriter enrichmentRecordWiter = new MarcRecordWriter(enrichmentRecord);
-            enrichmentRecordWiter.copyFieldsFromRecord(Arrays.asList("001", "004"), updatingCommonRecord);
-            enrichmentRecordWiter.addOrReplaceSubfield("001", "b", agencyId.toString());
+            MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
+            enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), updatingCommonRecord);
+            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", agencyId.toString());
             listOfRecordsToFetchClassificationDataFrom.forEach((rec) -> {
                 enrichmentRecord.getFields().add(getFormatted004Field(rec));
             });
