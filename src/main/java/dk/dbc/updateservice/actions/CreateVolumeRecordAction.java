@@ -46,8 +46,10 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            String parentId = reader.parentId();
             Integer agencyId = reader.agencyIdAsInteger();
+            String parentId = reader.parentRecordId();
+            Integer parentAgencyId = reader.parentAgencyIdAsInteger();
+
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
@@ -55,8 +57,8 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
-            if (!rawRepo.recordExists(parentId, agencyId)) {
-                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
+            if (!rawRepo.recordExists(parentId, parentAgencyId)) {
+                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
 
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);

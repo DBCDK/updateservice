@@ -53,7 +53,7 @@ public class LinkRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
-        String parentId = reader.parentId();
+        String parentId = reader.parentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
 
@@ -100,7 +100,7 @@ public class LinkRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
         Integer agencyId = reader.agencyIdAsInteger();
-        String parentId = reader.parentId();
+        String parentId = reader.parentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
 

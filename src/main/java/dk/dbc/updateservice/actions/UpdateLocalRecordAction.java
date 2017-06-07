@@ -56,7 +56,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String parentId = reader.parentId();
+            String parentId = reader.parentRecordId();
             if (reader.markedForDeletion()) {
                 if (parentId == null) {
                     return res = performSingleDeleteAction();
@@ -211,13 +211,13 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return result;
             }
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String parentId = reader.parentId();
-            Integer agencyId = reader.agencyIdAsInteger();
-            Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentId, agencyId));
+            String parentId = reader.parentRecordId();
+            Integer parentAgencyId = reader.parentAgencyIdAsInteger();
+            Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentId, parentAgencyId));
             if (recordIdChildrenList.size() != 1) {
                 return result = ServiceResult.newOkResult();
             }
-            MarcRecord mainRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(parentId, agencyId).getContent());
+            MarcRecord mainRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(parentId, parentAgencyId).getContent());
             MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
             writer.markForDeletion();
             UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);

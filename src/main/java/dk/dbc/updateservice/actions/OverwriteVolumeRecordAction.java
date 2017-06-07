@@ -70,8 +70,9 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         ServiceResult result;
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        String parentId = reader.parentId();
+        String parentId = reader.parentRecordId();
         Integer agencyId = reader.agencyIdAsInteger();
+        Integer parentAgencyId = reader.parentAgencyIdAsInteger();
 
         if (recordId.equals(parentId)) {
             Integer errorAgencyId = agencyId;
@@ -83,8 +84,8 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         }
 
-        if (!rawRepo.recordExists(parentId, agencyId)) {
-            String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
+        if (!rawRepo.recordExists(parentId, parentAgencyId)) {
+            String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
             logger.error("Unable to create sub actions due to an error: {}", message);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         }
