@@ -83,7 +83,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             }
 
             String recordId = reader.recordId();
-            String parentId = reader.parentId();
+            String parentId = reader.parentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 String agencyId = reader.agencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), recordId, agencyId);
