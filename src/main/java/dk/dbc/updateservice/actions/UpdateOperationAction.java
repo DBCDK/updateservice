@@ -371,22 +371,26 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
 
-        String dateString = reader.getValue("n55", "a");
-        if (dateString != null && !dateString.isEmpty()) {
-            DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
-            try {
-                Date date = formatter.parse(dateString);
-                boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
-                // We only want to set the created date to a specific value if the record is new
-                if (!recordExists) {
-                    state.setCreateOverwriteDate(date);
-                    writer.removeField("n55");
-                    logger.info("Found overwrite create date value: {}. Field has been removed from the record", date);
+        if (reader.hasSubfield("n55", "a")) {
+            String dateString = reader.getValue("n55", "a");
+            if (dateString != null && !dateString.isEmpty()) {
+                DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+                try {
+                    Date date = formatter.parse(dateString);
+                    boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
+                    // We only want to set the created date to a specific value if the record is new
+                    if (!recordExists) {
+                        state.setCreateOverwriteDate(date);
+                        logger.info("Found overwrite create date value: {}. Field has been removed from the record", date);
+                    }
+                } catch (ParseException e) {
+                    logger.error("Caught ParseException trying to parse " + dateString + " as a date", e);
+                    throw new UpdateException("Caught ParseException trying to parse " + dateString + " as a date");
                 }
-            } catch (ParseException e) {
-                logger.error("Caught ParseException trying to parse " + dateString + " as a date", e);
-                throw new UpdateException("Caught ParseException trying to parse " + dateString + " as a date");
             }
+
+            // Always remove n55 *a as we don't ever want that field in rawrepo.
+            writer.removeField("n55");
         }
     }
 
