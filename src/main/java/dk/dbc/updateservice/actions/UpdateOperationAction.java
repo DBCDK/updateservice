@@ -377,7 +377,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
                 try {
                     Date date = formatter.parse(dateString);
-                    boolean recordExists = rawRepo.recordExists(reader.recordId(), reader.agencyIdAsInteger());
+                    boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.recordId(), reader.agencyIdAsInteger());
                     // We only want to set the created date to a specific value if the record is new
                     if (!recordExists) {
                         state.setCreateOverwriteDate(date);
