@@ -133,6 +133,7 @@ public class RawRepo {
                     RawRepoDAO dao = createDAO(conn);
                     result = dao.allAgenciesForBibliographicRecordId(recordId);
                     result.remove(COMMON_AGENCY);
+                    result.remove(ARTICLE_AGENCY);
                     result.remove(DBC_ENRICHMENT);
                     return result;
                 } catch (RawRepoException ex) {
