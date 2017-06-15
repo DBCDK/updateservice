@@ -8,7 +8,9 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -54,7 +56,6 @@ public class DeleteRecordAction extends StoreRecordAction {
             result = loadCurrentRecord();
             MarcRecordWriter currentWriter = new MarcRecordWriter(result);
             MarcRecordReader currentReader = new MarcRecordReader(result);
-
             if (currentReader.getField("004") == null) {
                 // This is done because the database by historical reasons are pestered with
                 // a large number of records without field 004
@@ -72,11 +73,21 @@ public class DeleteRecordAction extends StoreRecordAction {
     /**
      * Factory method to create a DeleteRecordAction.
      */
-    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, String mimetype) {
-        logger.entry(globalActionState, record, mimetype);
+    public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+        logger.entry(globalActionState, record);
         try {
+            String mimeType;
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
-            deleteRecordAction.setMimetype(mimetype);
+
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
+                mimeType = MarcXChangeMimeType.ARTICLE;
+            } else {
+                mimeType = MarcXChangeMimeType.MARCXCHANGE;
+            }
+
+            deleteRecordAction.setMimetype(mimeType);
             return deleteRecordAction;
         } finally {
             logger.exit();
