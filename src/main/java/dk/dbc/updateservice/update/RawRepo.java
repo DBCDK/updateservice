@@ -108,6 +108,22 @@ public class RawRepo {
         }
     }
 
+    public Set<Integer> agenciesForRecordAll(MarcRecord record) throws UpdateException {
+        logger.entry(record);
+        StopWatch watch = new Log4JStopWatch();
+        Set<Integer> result = null;
+        try {
+            if (record == null) {
+                throw new IllegalArgumentException("record can not be null");
+            }
+            result = agenciesForRecordAll(getRecordId(record));
+            return result;
+        } finally {
+            watch.stop("rawrepo.agenciesForRecord.MarcRecord");
+            logger.exit(result);
+        }
+    }
+
     /**
      * Returns a Set of local agencies for an record id.
      * <p/>
@@ -122,6 +138,22 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = null;
         try {
+            result = agenciesForRecordAll(recordId);
+            result.remove(COMMON_AGENCY);
+            result.remove(ARTICLE_AGENCY);
+
+            return result;
+        } finally {
+            watch.stop("rawrepo.agenciesForRecord.String");
+            logger.exit(result);
+        }
+    }
+
+    public Set<Integer> agenciesForRecordAll(String recordId) throws UpdateException {
+        logger.entry(recordId);
+        StopWatch watch = new Log4JStopWatch();
+        Set<Integer> result = null;
+        try {
             if (recordId == null) {
                 throw new IllegalArgumentException("recordId can not be null");
             }
@@ -132,8 +164,6 @@ public class RawRepo {
                 try {
                     RawRepoDAO dao = createDAO(conn);
                     result = dao.allAgenciesForBibliographicRecordId(recordId);
-                    result.remove(COMMON_AGENCY);
-                    result.remove(ARTICLE_AGENCY);
                     result.remove(DBC_ENRICHMENT);
                     return result;
                 } catch (RawRepoException ex) {

@@ -136,7 +136,7 @@ public class CreateSingleRecordActionTest {
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
 
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
 
@@ -173,7 +173,24 @@ public class CreateSingleRecordActionTest {
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+
+        CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
+        String message = state.getMessages().getString("create.record.with.locals");
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createSingleRecordAction.children().isEmpty(), is(true));
+    }
+
+    @Test
+    public void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Set<String> ffuLibraries = new HashSet<>();
+        ffuLibraries.add("700300");
+
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
 
