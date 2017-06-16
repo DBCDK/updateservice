@@ -46,8 +46,14 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
             // The rule is: FBS and DBC libraries cannot have overlapping records.
             // However, FFU libraries are allowed to have overlapping posts as they never use enrichment posts
-            Set<Integer> agenciesForRecord = rawRepo.agenciesForRecord(record);
+            Set<Integer> agenciesForRecord = rawRepo.agenciesForRecordAll(record);
             if (!agenciesForRecord.isEmpty()) {
+                // If the existing record is from the same agency then everything is fine.
+                // However, if the existing record is in another base then we need to fail
+                if (RawRepo.DBC_AGENCY_LIST.contains(reader.agencyId())) {
+                    agenciesForRecord.remove(reader.agencyIdAsInteger());
+                }
+
                 logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", agenciesForRecord, reader.recordId());
                 Set<String> ffuAgencyIds = state.getFFULibraries();
                 boolean allAgenciesAreFFU = true;
