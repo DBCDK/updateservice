@@ -108,6 +108,42 @@ public class RawRepo {
         }
     }
 
+    /**
+     * Returns a Set of local agencies for a record.
+     * <p/>
+     * The agency for common records is not returned in the set nor is deleted records
+     *
+     * @param record The record to lookup local agencies for.
+     * @return A Set of agency ids for the local agencies.
+     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
+     */
+    public Set<Integer> agenciesForRecordNotDeleted(MarcRecord record) throws UpdateException {
+        logger.entry(record);
+        StopWatch watch = new Log4JStopWatch();
+        Set<Integer> activeAgencies = new HashSet<>();
+        Set<Integer> allAgencies;
+        try {
+            if (record == null) {
+                throw new IllegalArgumentException("record can not be null");
+            }
+            allAgencies = agenciesForRecord(getRecordId(record));
+
+            if (allAgencies != null) {
+                MarcRecordReader reader = new MarcRecordReader(record);
+                for (Integer agencyId : allAgencies) {
+                    if (recordExists(reader.recordId(), agencyId)) {
+                        activeAgencies.add(agencyId);
+                    }
+                }
+            }
+
+            return activeAgencies;
+        } finally {
+            watch.stop("rawrepo.agenciesForRecord.MarcRecord");
+            logger.exit(activeAgencies);
+        }
+    }
+
     public Set<Integer> agenciesForRecordAll(MarcRecord record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
