@@ -371,9 +371,9 @@ public class UpdateEnrichmentRecordActionTest {
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
 
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.ENRICHMENT);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -489,9 +489,9 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.ENRICHMENT);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         assertFalse(iterator.hasNext());
     }
 
@@ -529,9 +529,9 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.ENRICHMENT);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
         assertFalse(iterator.hasNext());
     }
 

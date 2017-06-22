@@ -179,16 +179,17 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             logger.info("Creating sub actions to delete enrichment record successfully");
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             children.add(new RemoveLinksAction(state, record));
-
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+
             return ServiceResult.newOkResult();
-        } finally {
+        } finally{
             logger.exit();
         }
+
     }
 
     protected Integer getParentAgencyId() {
