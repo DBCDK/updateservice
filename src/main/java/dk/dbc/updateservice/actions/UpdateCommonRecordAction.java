@@ -5,8 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.iscrum.records.*;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
@@ -58,6 +57,10 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
+            if ((RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()))) {
+                logger.info("Rewriting indictators");
+                rewriteIndicators();
+            }
             String parentId = reader.parentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 logger.info("Update vol: {}", parentId);
@@ -70,5 +73,33 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         } finally {
             logger.exit();
         }
+    }
+
+    private void rewriteIndicators() {
+        logger.entry();
+        try {
+            MarcRecordWriter writer = new MarcRecordWriter(record);
+            for (MarcField field : writer.getRecord().getFields()) {
+                if (field.getName().equals("700")) {
+                    boolean write02 = false;
+                    for (MarcSubField sf : field.getSubfields()) {
+                        if (sf.getName().equals("g") && sf.getValue().equals("1")) {
+                            field.setIndicator("01");
+                            write02 = false;
+                            break;
+                        }
+                        if (sf.getName().equals("4") && sf.getValue().equals("led")) {
+                            write02 = true;
+                        }
+                    }
+                    if (write02) {
+                        field.setIndicator("02");
+                    }
+                }
+            }
+        } finally {
+            logger.exit();
+        }
+
     }
 }
