@@ -87,8 +87,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                             field.setIndicator("01");
                             write02 = false;
                             break;
-                        }
-                        if (sf.getName().equals("4") && sf.getValue().equals("led")) {
+                        } else if (sf.getName().equals("4") && sf.getValue().equals("led")) {
                             write02 = true;
                         }
                     }
