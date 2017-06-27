@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
@@ -47,6 +48,7 @@ import java.util.*;
  */
 class UpdateOperationAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
+    private static final String NO_CLASSIFICATION = "uden klassemærke";
 
     Properties settings;
 
@@ -120,10 +122,20 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.recordId();
                 Integer agencyId = reader.agencyIdAsInteger();
+
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
+                logger.info("Checking for altered classifications for disputas type material");
+                if (state.getLibraryGroup().isFBS() && reader.hasValue("008", "d", "m")
+                        && state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+                    ServiceResult res = checkForAlteredClassificationForDisputas(reader);
+                    if (res.hasErrors()) {
+                        return res;
+                    }
+                }
+
                 if (RawRepo.DBC_AGENCY_LIST.contains(agencyId.toString())) {
                     if (!updReader.markedForDeletion() &&
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
@@ -206,6 +218,48 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
 
+    protected ServiceResult checkForAlteredClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
+        logger.entry();
+        ServiceResult result = null;
+        try {
+            String recordId = reader.recordId();
+            if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
+                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+                MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
+
+                String new652 = reader.getValue("652", "m");
+                String current652 = currentRecordReader.getValue("652", "m");
+
+                if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
+                    if (current652.toLowerCase().equals(NO_CLASSIFICATION) &&
+                            currentRecordReader.isDBCRecord() &&
+                            currentRecordReader.hasValue("008", "d", "m")) {
+
+                        MarcRecordWriter currentRecWriter = new MarcRecordWriter(currentRecord);
+                        currentRecWriter.removeField("652");
+                        currentRecWriter.copyFieldsFromRecord(Collections.singletonList("652"), record);
+
+                        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, currentRecord);
+                        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+
+                        children.add(storeRecordAction);
+                        children.add(EnqueueRecordAction.newEnqueueAction(state, currentRecord, settings));
+                        return result = ServiceResult.newOkResult();
+                    } else {
+                        String message = state.getMessages().getString("update.dbc.record.652");
+                        logger.error("Unable to create sub actions due to an error: {}", message);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    }
+                }
+            }
+            return result = ServiceResult.newOkResult();
+        } catch (UnsupportedEncodingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            logger.exit(result);
+        }
+    }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
         return commonRecordExists(records, rec, RawRepo.COMMON_AGENCY);

@@ -7,13 +7,17 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.*;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -61,6 +65,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 logger.info("Rewriting indictators");
                 rewriteIndicators();
             }
+
             String parentId = reader.parentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 logger.info("Update vol: {}", parentId);
@@ -74,6 +79,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             logger.exit();
         }
     }
+
+
 
     private void rewriteIndicators() {
         logger.entry();

@@ -40,6 +40,7 @@ public class UpdateTestUtils {
         return getGlobalActionStateMockObject(null);
     }
 
+
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
         GlobalActionState globalActionState = new GlobalActionState();
         UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
@@ -62,6 +63,8 @@ public class UpdateTestUtils {
         if (marcRecordName != null) {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
         }
+        // You have to change this is in the actual test if anything other than fbs is needed
+        globalActionState.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
         return globalActionState;
     }
 
