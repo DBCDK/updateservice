@@ -139,6 +139,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
                 if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
+
                     logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
                     Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
                     Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecordNotDeleted(record);
