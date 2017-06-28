@@ -14,6 +14,8 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,6 +79,30 @@ public class UpdateLocalRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_CreateSingleRecordDeletedCommonRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecord recordDeleted = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(recordDeleted).markForDeletion();
+
+        RawRepoRecordMock rrDeleted = new RawRepoRecordMock(reader.recordId(), reader.agencyIdAsInteger());
+        rrDeleted.setDeleted(true);
+        rrDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+        RawRepoRecordMock commonDeleted = new RawRepoRecordMock(reader.recordId(), RawRepo.COMMON_AGENCY);
+        commonDeleted.setDeleted(true);
+        commonDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+
+
+        when(state.getRawRepo().recordExistsMaybeDeleted(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(rrDeleted);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(commonDeleted);
+
+        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
+        String message = String.format(state.getMessages().getString("create.record.with.deleted.common"));
+        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**
