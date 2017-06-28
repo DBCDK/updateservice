@@ -7,8 +7,10 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Assert;
 import org.junit.Before;
@@ -136,9 +138,16 @@ public class CreateSingleRecordActionTest {
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        Record rr1 = new RawRepoRecordMock(recordId, 700300);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+        Record rr2 = new RawRepoRecordMock(recordId, 123456);
+        rr2.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 123456)).thenReturn(rr2);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
@@ -153,9 +162,13 @@ public class CreateSingleRecordActionTest {
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        Record rr1 = new RawRepoRecordMock(recordId, 700300);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -163,7 +176,6 @@ public class CreateSingleRecordActionTest {
         Assert.assertThat(children.size(), is(2));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
-
     }
 
     @Test
@@ -173,9 +185,16 @@ public class CreateSingleRecordActionTest {
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
+        Record rr1 = new RawRepoRecordMock(recordId, 700300);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+        Record rr2 = new RawRepoRecordMock(recordId, 800500);
+        rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 800500)).thenReturn(rr2);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
@@ -190,13 +209,47 @@ public class CreateSingleRecordActionTest {
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
+        Record rr = new RawRepoRecordMock(recordId, 870971);
+        rr.setMimeType(MarcXChangeMimeType.ARTICLE);
+
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getRawRepo().fetchRecord(recordId, 870971)).thenReturn(rr);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
+
+    @Test
+    public void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getRecordId(record);
+        Set<String> ffuLibraries = new HashSet<>();
+        ffuLibraries.add("700300");
+
+        Record rr1 = new RawRepoRecordMock(recordId, 870970);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+        Record rr2 = new RawRepoRecordMock(recordId, 830010);
+        rr2.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+        Record rr3 = new RawRepoRecordMock(recordId, 830020);
+        rr3.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
+        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getRawRepo().fetchRecord(recordId, 870970)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 830010)).thenReturn(rr2);
+        when(state.getRawRepo().fetchRecord(recordId, 830020)).thenReturn(rr3);
+
+        CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        List<ServiceAction> children = createSingleRecordAction.children();
+        Assert.assertThat(children.size(), is(2));
+        AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+    }
+
 }
