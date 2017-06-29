@@ -83,11 +83,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -135,11 +136,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -189,11 +191,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -247,12 +250,13 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        Assert.assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
         AssertActionsUtil.assertCreateEnrichmentAction(children.get(2), state.getRawRepo(), record, "700100", null);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -306,11 +310,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -364,11 +369,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -426,12 +432,13 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        Assert.assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(children.get(2), state.getRawRepo(), record, enrichmentRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -489,11 +496,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        Assert.assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), record);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -566,13 +574,14 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        Assert.assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, enrichmentRecord);
         AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), record, newEnrichmentAgencyId.toString(), null);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
@@ -641,11 +650,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
@@ -720,12 +730,13 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        Assert.assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, enrichmentRecord);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
@@ -798,11 +809,12 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        Assert.assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
@@ -882,6 +894,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertMoveEnrichmentRecordAction(iterator.next(), state.getRawRepo(), e1, record, settings);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -961,6 +974,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1032,6 +1046,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1106,6 +1121,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), c2, localAgencyId.toString(), c1RecordId);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1180,6 +1196,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1251,6 +1268,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1324,6 +1342,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1402,6 +1421,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertMoveEnrichmentRecordAction(iterator.next(), state.getRawRepo(), e1, record, settings);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1481,6 +1501,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }
@@ -1532,6 +1553,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
     }

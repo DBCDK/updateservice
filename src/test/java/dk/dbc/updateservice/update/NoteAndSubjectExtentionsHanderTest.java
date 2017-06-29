@@ -18,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
@@ -41,7 +43,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     private RawRepo rawRepo;
 
     @Test
-    public void testIsFieldNationalCommonField_wrongField() throws Exception{
+    public void testIsFieldNationalCommonField_wrongField() throws Exception {
         MarcField field = new MarcField("001", "00");
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
@@ -51,7 +53,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void testIsFieldNationalCommonField_wrongSubfieldValue() throws Exception{
+    public void testIsFieldNationalCommonField_wrongSubfieldValue() throws Exception {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("a", "ABC"));
 
@@ -60,7 +62,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void testIsFieldNationalCommonField() throws Exception{
+    public void testIsFieldNationalCommonField() throws Exception {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("a", "BKM"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
@@ -70,7 +72,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void testisNationalCommonRecord_wrong032() throws Exception{
+    public void testisNationalCommonRecord_wrong032() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
@@ -78,7 +80,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void testisNationalCommonRecord() throws Exception{
+    public void testisNationalCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "NET");
@@ -226,6 +228,65 @@ public class NoteAndSubjectExtentionsHanderTest {
         //new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expected));
+    }
+
+    @Test
+    public void testCollapseSameRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+
+        String groupId = "830010";
+
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId)), equalTo(sortRecord(expected)));
+    }
+
+    @Test
+    public void testCollapseWithAUT() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.removeField("504");
+        recordWriter.addOrReplaceSubfield("504", "&", "1");
+        recordWriter.addOrReplaceSubfield("504", "a", "Julemandens Nisseslagteri");
+
+        MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter currentWriter = new MarcRecordWriter(currentRecord);
+        currentWriter.removeField("100");
+        currentWriter.addOrReplaceSubfield("100", "5", "12345678");
+        currentWriter.addOrReplaceSubfield("100", "6", "876543");
+
+        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter expectedWriter = new MarcRecordWriter(expected);
+        expectedWriter.removeField("100");
+        expectedWriter.addOrReplaceSubfield("100", "5", "12345678");
+        expectedWriter.addOrReplaceSubfield("100", "6", "876543");
+        expectedWriter.removeField("504");
+        expectedWriter.addOrReplaceSubfield("504", "&", "1");
+        expectedWriter.addOrReplaceSubfield("504", "a", "Julemandens Nisseslagteri");
+
+        String groupId = "830010";
+
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId)), equalTo(sortRecord(expected)));
+    }
+
+    private MarcRecord sortRecord(MarcRecord record) {
+        Collections.sort(record.getFields(), new Comparator<MarcField>() {
+            public int compare(MarcField o1, MarcField o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+
+        return record;
     }
 
 }

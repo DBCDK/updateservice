@@ -74,7 +74,7 @@ public class StoreRecordActionTest {
 
         when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(record), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-        when(storeRecordAction.sortRecord(record)).thenReturn(record);
+        when(state.getRecordSorter().sortRecord(record, settings)).thenReturn(record);
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -123,7 +123,7 @@ public class StoreRecordActionTest {
         when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
-        when(storeRecordAction.sortRecord(record)).thenReturn(record);
+        when(state.getRecordSorter().sortRecord(record, settings)).thenReturn(record);
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
@@ -167,7 +167,7 @@ public class StoreRecordActionTest {
         when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
-        when(storeRecordAction.sortRecord(record)).thenReturn(record);
+        when(state.getRecordSorter().sortRecord(record, settings)).thenReturn(record);
 
         ServiceResult serviceResult = storeRecordAction.performAction();
         assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));

@@ -56,7 +56,8 @@ public class GlobalActionState {
     private Date createOverwriteDate = null;
     private Set<String> phLibraries = null;
     private Set<String> ffuLibraries = null;
-
+    private RecordSorter recordSorter = null;
+    private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
 
     public GlobalActionState() {
     }
@@ -209,6 +210,14 @@ public class GlobalActionState {
 
     public void setCreateOverwriteDate(Date createOverwriteDate) {
         this.createOverwriteDate = createOverwriteDate;
+    }
+
+    public void setRecordSorter(RecordSorter recordSorter) {
+        this.recordSorter = recordSorter;
+    }
+
+    public void setNoteAndSubjectExtensionsHandler(NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler) {
+        this.noteAndSubjectExtensionsHandler = noteAndSubjectExtensionsHandler;
     }
 
     public MarcRecordReader getMarcRecordReader() {
@@ -381,6 +390,22 @@ public class GlobalActionState {
         } finally {
             logger.exit(bibliographicRecordExtraData);
         }
+    }
+
+    public RecordSorter getRecordSorter() {
+        if (this.recordSorter == null) {
+            this.recordSorter = new RecordSorter(getScripter(), getSchemaName());
+        }
+
+        return this.recordSorter;
+    }
+
+    public NoteAndSubjectExtensionsHandler getNoteAndSubjectExtensionsHandler() {
+        if (this.noteAndSubjectExtensionsHandler == null) {
+            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getOpenAgencyService(), getRawRepo());
+        }
+
+        return this.noteAndSubjectExtensionsHandler;
     }
 
     @Override

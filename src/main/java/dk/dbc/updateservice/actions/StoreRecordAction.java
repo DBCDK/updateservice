@@ -10,18 +10,16 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
+import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
@@ -65,7 +63,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             String recId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
             MarcRecord recordToStore = recordToStore();
-            recordToStore = sortRecord(recordToStore);
+            recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
             rawRepoRecord.setMimeType(mimetype);
@@ -133,26 +131,6 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
             storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             return storeRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public MarcRecord sortRecord(MarcRecord record) throws UpdateException {
-        logger.entry();
-        MarcRecord result = record;
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonRecord;
-        try {
-            jsonRecord = mapper.writeValueAsString(record);
-            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), jsonRecord, properties);
-            if (jsResult instanceof String) {
-                result = mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-            return result;
-        } catch (IOException | ScripterException ex) {
-            logger.error("Error when trying to sort the record. ", ex);
-            return record;
         } finally {
             logger.exit();
         }

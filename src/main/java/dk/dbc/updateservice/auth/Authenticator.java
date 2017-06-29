@@ -8,11 +8,7 @@ package dk.dbc.updateservice.auth;
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.dto.MessageEntryDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.ws.JNDIResources;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -23,10 +19,7 @@ import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -72,28 +65,6 @@ public class Authenticator {
         } catch (ForsRightsException ex) {
             logger.error("Caught exception:", ex);
             throw new AuthenticatorException(ex.getMessage(), ex);
-        } finally {
-            logger.exit(result);
-        }
-    }
-
-    public List<MessageEntryDTO> authenticateRecord(GlobalActionState state) throws ScripterException {
-        logger.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-        List<MessageEntryDTO> result = new ArrayList<>();
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = state.getScripter().callMethod("authenticateRecord", mapper.writeValueAsString(state.readRecord()), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), settings);
-            logger.debug("Result from authenticateRecord JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof String) {
-                // TODO: HUST RET JAVASCRIPT OGSÅ
-                List<MessageEntryDTO> validationErrors = mapper.readValue(jsResult.toString(), TypeFactory.defaultInstance().constructCollectionType(List.class, MessageEntryDTO.class));
-                result.addAll(validationErrors);
-                logger.trace("Number of errors: {}", result.size());
-                return result;
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "authenticateRecord"));
-        } catch (IOException ex) {
-            throw new ScripterException(ex.getMessage(), ex);
         } finally {
             logger.exit(result);
         }

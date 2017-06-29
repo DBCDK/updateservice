@@ -60,6 +60,8 @@ public class UpdateTestUtils {
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
+        globalActionState.setRecordSorter(mock(RecordSorter.class));
+        globalActionState.setNoteAndSubjectExtensionsHandler(mock(NoteAndSubjectExtensionsHandler.class));
         if (marcRecordName != null) {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
         }
