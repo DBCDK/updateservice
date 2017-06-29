@@ -98,7 +98,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             MarcRecordReader reader = new MarcRecordReader(record);
             create001dForFBSRecords(reader);
-            children.add(new AuthenticateRecordAction(state));
+            children.add(new AuthenticateRecordAction(state, settings, record));
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.recordId();
@@ -127,15 +127,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
-//TODO pending rule in VIP
-                //                logger.info("Checking for altered classifications for disputas type material");
-//                if (state.getLibraryGroup().isFBS() && reader.hasValue("008", "d", "m")
-//                        && state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
-//                    ServiceResult res = checkForAlteredClassificationForDisputas(reader);
-//                    if (res.hasErrors()) {
-//                        return res;
-//                    }
-//                }
 
                 if (RawRepo.DBC_AGENCY_LIST.contains(agencyId.toString())) {
                     if (!updReader.markedForDeletion() &&

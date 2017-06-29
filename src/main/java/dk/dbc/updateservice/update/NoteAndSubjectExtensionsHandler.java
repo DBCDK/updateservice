@@ -6,12 +6,16 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.*;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
@@ -134,7 +138,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @param record Record.
      * @return {Boolean} True / False.
      */
-    Boolean isNationalCommonRecord(MarcRecord record) {
+    public Boolean isNationalCommonRecord(MarcRecord record) {
         logger.entry(record);
 
         try {
@@ -170,6 +174,101 @@ public class NoteAndSubjectExtensionsHandler {
         } finally {
             logger.exit();
         }
+    }
+
+    /**
+     * Validate whether the record is legal in regards to note and subject fields and the permissions of the group
+     *
+     * @param record
+     * @param groupId
+     * @return
+     * @throws UpdateException
+     */
+    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException {
+        logger.entry(record, groupId);
+        List<MessageEntryDTO> result = new ArrayList<>();
+        try {
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+
+            String recId = reader.recordId();
+            if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
+                return result;
+            }
+            MarcRecord curRecord;
+            try {
+                Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
+                curRecord = ExpandCommonRecord.expand(curRecordCollection);
+                logger.info("curRecord:\n{}", curRecord);
+            } catch (UnsupportedEncodingException e) {
+                throw new UpdateException("Exception while loading current record", e);
+            }
+            MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);
+            MarcRecordReader curReader = new MarcRecordReader(curRecord);
+
+            curWriter.addOrReplaceSubfield("001", "b", reader.agencyId());
+            if (!isNationalCommonRecord(curRecord)) {
+                return result;
+            }
+
+            String extendableFieldsRx = "";
+            try {
+                extendableFieldsRx = createExtendableFieldsRx(groupId);
+            } catch (OpenAgencyException e) {
+                throw new UpdateException("Caught OpenAgencyException", e);
+            }
+
+            for (MarcField field : record.getFields()) {
+                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
+                    if (isFieldChangedInOtherRecord(field, curRecord)) {
+                        String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                        result.add(createMessageDTO(message));
+                    }
+                }
+            }
+            for (MarcField field : curRecord.getFields()) {
+                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
+                    if (isFieldChangedInOtherRecord(field, record)) {
+                        String fieldName = field.getName();
+                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                            String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                            result.add(createMessageDTO(message));
+                        }
+                    }
+                }
+            }
+            return result;
+        } finally {
+            logger.trace("Exit - NoteAndSubjectExtentionsHandler.authenticateExtensions(): ", result);
+        }
+    }
+
+    private MessageEntryDTO createMessageDTO(String message) {
+        MessageEntryDTO result = new MessageEntryDTO();
+
+        result.setMessage(message);
+        result.setType(TypeEnumDTO.ERROR);
+
+        return result;
+    }
+
+    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId) throws OpenAgencyException {
+        MarcRecord collapsedRecord = new MarcRecord(currentRecord);
+        List<String> extendableFieldsRx = Arrays.asList(createExtendableFieldsRx(groupId).split("\\|"));
+        // We need to copy 996 from the incoming record as well, as that field could have been modified in an earlier action
+        // But because the Arrays.asList returns an immutable list we need to copy the content to another list.
+        List<String> fieldsToCopy = new ArrayList<>();
+        fieldsToCopy.addAll(extendableFieldsRx);
+        fieldsToCopy.add("245");
+        fieldsToCopy.add("521");
+        fieldsToCopy.add("652");
+        fieldsToCopy.add("996");
+        MarcRecordWriter curWriter = new MarcRecordWriter(collapsedRecord);
+        curWriter.removeFields(fieldsToCopy);
+        curWriter.copyFieldsFromRecord(fieldsToCopy, record);
+
+        return collapsedRecord;
     }
 
 }

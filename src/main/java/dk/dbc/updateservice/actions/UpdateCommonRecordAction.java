@@ -6,8 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.records.*;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.rawrepo.Record;
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoDecoder;
@@ -17,7 +16,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Collections;
 import java.util.Properties;
 
 /**
@@ -30,7 +28,6 @@ import java.util.Properties;
  */
 public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
-    static final String MIMETYPE = MarcXChangeMimeType.MARCXCHANGE;
 
     private Properties settings;
 
@@ -61,26 +58,46 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
+            MarcRecord recordToStore;
+
+            // At this point we know the following:
+            // - The record is a common record
+            // - The record has been authenticated and validated
+            // - Common records can contain authority fields
+            // We also know that:
+            // - Cicero client doesn't understand authority fields
+            //
+            // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
+            String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+            if (state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
+                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger()).getContent());
+                MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId);
+                recordToStore = state.getRecordSorter().sortRecord(collapsedRecord, settings);
+            } else {
+                recordToStore = record;
+            }
+
             if ((RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()))) {
                 logger.info("Rewriting indictators");
                 rewriteIndicators();
             }
-
             String parentId = reader.parentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 logger.info("Update vol: {}", parentId);
-                children.add(new UpdateVolumeRecord(state, settings, record));
+                children.add(new UpdateVolumeRecord(state, settings, recordToStore));
             } else {
                 logger.info("Update single");
-                children.add(new UpdateSingleRecord(state, settings, record));
+                children.add(new UpdateSingleRecord(state, settings, recordToStore));
             }
             return ServiceResult.newOkResult();
+        } catch (OpenAgencyException | UnsupportedEncodingException e) {
+            logger.catching(e);
+            throw new UpdateException("Exception while collapsing record", e);
         } finally {
             logger.exit();
         }
     }
-
-
 
     private void rewriteIndicators() {
         logger.entry();

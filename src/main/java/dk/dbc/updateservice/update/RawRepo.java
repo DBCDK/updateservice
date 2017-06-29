@@ -10,6 +10,8 @@ import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcXchangeFactory;
 import dk.dbc.iscrum.records.marcxchange.CollectionType;
 import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.marcxmerge.MarcXMerger;
+import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
@@ -42,18 +44,20 @@ public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     public static final Integer COMMON_AGENCY = 870970;
     public static final Integer ARTICLE_AGENCY = 870971;
-    public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
-    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870979", "870978", "000002", "000004", "000007", "000008");
+    public static final Integer AUTHORITY_AGENCY = 870979;
+    public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
+    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
     public static final Integer DBC_ENRICHMENT = 191919;
     public static final Integer SCHOOL_COMMON_AGENCY = 300000;
     public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
+    public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
 
     @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     @EJB
-    OpenAgencyService openAgency;
+    private OpenAgencyService openAgency;
 
     /**
      * Injected DataSource to read from the rawrepo database.
@@ -350,6 +354,46 @@ public class RawRepo {
         }
     }
 
+    public Map<String, MarcRecord> fetchRecordCollection(String recId, Integer agencyId) throws UpdateException {
+        logger.entry(recId, agencyId);
+        StopWatch watch = new Log4JStopWatch();
+        Map<String, MarcRecord> result = null;
+        Map<String, Record> recordMap;
+        try (Connection conn = dataSourceWriter.getConnection()) {
+            if (recId == null) {
+                throw new IllegalArgumentException("recId can not be null");
+            }
+            if (agencyId == null) {
+                throw new IllegalArgumentException("agencyId can not be null");
+            }
+            try {
+                RawRepoDAO dao = createDAO(conn);
+                MarcXMerger merger = new MarcXMerger();
+                recordMap = dao.fetchRecordCollection(recId, agencyId, merger);
+                if (recordMap.size() > 0) {
+                    result = new HashMap<>();
+                    Iterator it = recordMap.entrySet().iterator();
+                    while (it.hasNext()) {
+                        Map.Entry pair = (Map.Entry) it.next();
+                        Record record = (Record) pair.getValue();
+                        result.put(pair.getKey().toString(), new RawRepoDecoder().decodeRecord(record.getContent()));
+                    }
+                }
+                return result;
+            } catch (RawRepoException | MarcXMergerException | UnsupportedEncodingException ex) {
+                conn.rollback();
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            watch.stop("rawrepo.fetchRecordCollection");
+            logger.exit();
+        }
+    }
+
     /**
      * Checks if a record exists in RawRepo.
      *
@@ -486,7 +530,38 @@ public class RawRepo {
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-                final HashSet<RecordId> references = new HashSet<>();
+                Set<RecordId> references = new HashSet<>();
+                references.add(refer_id);
+                dao.setRelationsFrom(id, references);
+            } catch (RawRepoException e) {
+                conn.rollback();
+                logger.error(e.getMessage(), e);
+                throw new UpdateException(e.getMessage(), e);
+            }
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            watch.stop("rawrepo.linkRecord");
+            logger.exit();
+        }
+    }
+
+    /**
+     * Loads the existing links from the id record and adds refer_id to that list
+     *
+     * @param id       Id of the record to link from.
+     * @param refer_id Id of the record to link to.
+     * @throws UpdateException In case of SQLException or RawRepoException, that exception
+     *                         encapsulated in an UpdateException.
+     */
+    public void linkRecordAppend(RecordId id, RecordId refer_id) throws UpdateException {
+        logger.entry(id, refer_id);
+        StopWatch watch = new Log4JStopWatch();
+        try (Connection conn = dataSourceWriter.getConnection()) {
+            try {
+                RawRepoDAO dao = createDAO(conn);
+                Set<RecordId> references = dao.getRelationsFrom(id);
                 references.add(refer_id);
                 dao.setRelationsFrom(id, references);
             } catch (RawRepoException e) {
