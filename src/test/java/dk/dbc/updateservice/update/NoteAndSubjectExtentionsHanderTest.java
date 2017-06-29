@@ -243,7 +243,7 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
 
-        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId)), equalTo(sortRecord(expected)));
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }
 
     @Test
@@ -276,7 +276,7 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
 
-        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId)), equalTo(sortRecord(expected)));
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }
 
     private MarcRecord sortRecord(MarcRecord record) {
