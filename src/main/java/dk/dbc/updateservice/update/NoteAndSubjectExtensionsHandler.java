@@ -253,13 +253,19 @@ public class NoteAndSubjectExtensionsHandler {
         return result;
     }
 
-    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId) throws OpenAgencyException {
+    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId, boolean isNationalCommonRecord) throws OpenAgencyException {
         MarcRecord collapsedRecord = new MarcRecord(currentRecord);
-        List<String> extendableFieldsRx = Arrays.asList(createExtendableFieldsRx(groupId).split("\\|"));
+        List<String> fieldsToCopy = new ArrayList<>();
+
+        if (isNationalCommonRecord) {
+            fieldsToCopy.addAll(Arrays.asList(createExtendableFieldsRx(groupId).split("\\|")));
+        } else {
+            fieldsToCopy.addAll(Arrays.asList(EXTENDABLE_NOTE_FIELDS.split("\\|")));
+            fieldsToCopy.addAll(Arrays.asList(EXTENDABLE_SUBJECT_FIELDS.split("\\|")));
+        }
+
         // We need to copy 996 from the incoming record as well, as that field could have been modified in an earlier action
         // But because the Arrays.asList returns an immutable list we need to copy the content to another list.
-        List<String> fieldsToCopy = new ArrayList<>();
-        fieldsToCopy.addAll(extendableFieldsRx);
         fieldsToCopy.add("245");
         fieldsToCopy.add("521");
         fieldsToCopy.add("652");
