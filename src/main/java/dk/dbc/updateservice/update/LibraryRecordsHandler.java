@@ -8,7 +8,7 @@ package dk.dbc.updateservice.update;
 import dk.dbc.iscrum.records.*;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -21,10 +21,7 @@ import javax.ejb.Stateless;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -41,6 +38,7 @@ public class LibraryRecordsHandler {
     private static final List<String> IGNORABLE_CONTROL_SUBFIELDS = Arrays.asList("&", "0", "1", "4");
     private static final String DIACRITICAL_MARKS = "[\\p{InCombiningDiacriticalMarks}]";
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
+
 
     @EJB
     private Scripter scripter;
@@ -807,16 +805,15 @@ public class LibraryRecordsHandler {
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, AuthenticationDTO authenticationDTO, OpenAgencyService.LibraryGroup libraryGroup) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
-        logger.entry(record, authenticationDTO, libraryGroup);
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, UpdateServiceRequestDTO updateServiceRequestDTO, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+        logger.entry(record, updateServiceRequestDTO, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
-
         try {
             if (libraryGroup.isFBS()) {
-                result = recordDataForRawRepoFBS(record, authenticationDTO.getGroupId());
+                result = recordDataForRawRepoFBS(record, updateServiceRequestDTO, messages);
             } else { // Assuming DataIO mode
-                result = recordDataForRawRepoDataIO(record, authenticationDTO.getGroupId());
+                result = recordDataForRawRepoDataIO(record, updateServiceRequestDTO.getAuthenticationDTO().getGroupId());
             }
 
             return result;
@@ -825,13 +822,12 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
-        logger.entry(record, groupId);
-
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, UpdateServiceRequestDTO updateServiceRequestDTO, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+        logger.entry(record, updateServiceRequestDTO, messages);
+        String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
         List<MarcRecord> result = new ArrayList<>();
-
         try {
-            result = splitRecordFBS(record, groupId);
+            result = splitRecordFBS(record, groupId, messages);
 
             for (MarcRecord r : result) {
                 MarcRecordWriter writer = new MarcRecordWriter(r);
@@ -872,27 +868,28 @@ public class LibraryRecordsHandler {
      * If the FBS record is an existing common (870970) record then split it into updated common record and
      * DBC enrichment record
      *
-     * @param record  The record to be updated
-     * @param groupId The groupId from the ws request
+     * @param record            The record to be updated
+     * @param groupId           The groupId from the ws request
+     * @param libraryGroup
+     * @param openAgencyService
      * @return List containing common and DBC record
      * @throws OpenAgencyException          in case of an error
      * @throws UpdateException              in case of an error
      * @throws UnsupportedEncodingException in case of an error
      */
-    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId,  ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
         logger.entry(record, groupId);
 
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
+
             if (!reader.agencyIdAsInteger().equals(RawRepo.COMMON_AGENCY)) {
                 logger.info("Agency id of record is not 870970 - returning same record");
                 return Arrays.asList(record);
             }
-
-            NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+            NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService,  rawRepo, messages);
 
             MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
-
             MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
             MarcRecord dbcEnrichmentRecord;
 
@@ -943,6 +940,7 @@ public class LibraryRecordsHandler {
                 new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "a", recordType);
             }
 
+
             logger.info("correctedRecord\n{}", correctedRecord);
             logger.info("dbcEnrichmentRecord\n{}", dbcEnrichmentRecord);
 
@@ -951,6 +949,7 @@ public class LibraryRecordsHandler {
             logger.exit();
         }
     }
+
 
     /**
      * Split the input record into two record:

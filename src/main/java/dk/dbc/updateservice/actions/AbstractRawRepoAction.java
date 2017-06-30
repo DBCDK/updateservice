@@ -9,6 +9,7 @@ import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.MDCUtil;
 
+
 /**
  * Abstract class to contain common members for actions that works with records
  * in the rawrepo.
