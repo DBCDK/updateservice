@@ -29,6 +29,123 @@ public class RawRepoRecordMock implements Record {
     public RawRepoRecordMock(String id, int library) {
         this.id = new RecordId(id, library);
     }
+    /*
+      protected class TestSet {
+        private MarcRecord inputRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_RECORD_CLASSIFICATION);
+        private MarcRecord commonRec = new MarcRecord(inputRecord);
+        private MarcRecordWriter inputWriter = new MarcRecordWriter(inputRecord);
+        private MarcRecordReader inputReader = new MarcRecordReader(inputRecord);
+        private MarcRecordWriter commonRecWriter = new MarcRecordWriter(commonRec);
+        private MarcRecordReader reader = new MarcRecordReader(inputRecord);
+        private ResourceBundle messages = ResourceBundles.getBundle("actions");
+
+        TestSet() throws IOException {
+        }
+    }
+
+    // These tests are not perfect , and the actual testing of output is being done via ocb-tools, as we cannot test output here.
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_correct_record() throws Exception {
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            assertNull(ue);
+        }
+    }
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke2");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "med klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+
+        } catch (UpdateException ue) {
+            assertEquals(ue.getMessage(), "Postens klassemærke kan ikke ændres");
+        }
+    }
+
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+
+        } catch (UpdateException ue) {
+            assertEquals(ue.getMessage(), "Postens klassemærke kan ikke ændres");
+        }
+    }
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
+        testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            assertNull(ue);
+        }
+    }
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            assertNull(ue);
+        }
+    }
+
+
+
+     */
 
     @Override
     public RecordId getId() {

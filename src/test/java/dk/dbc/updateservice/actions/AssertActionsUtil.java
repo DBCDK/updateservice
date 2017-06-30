@@ -45,6 +45,7 @@ public class AssertActionsUtil {
     public static final String COMMON_SCHOOL_RECORD_RESOURCE = "common_school_enrichment.marc";
     public static final String SCHOOL_RECORD_RESOURCE = "school_enrichment.marc";
     public static final String VOLUME_RECORD_RESOURCE = "volume.marc";
+    public static final String COMMON_RECORD_CLASSIFICATION= "common_classification.marc";
 
     public static final String AUT_RAW_52846943 = "authority/raw-52846943.marc";
     public static final String AUT_RAW_53025757 = "authority/raw-53025757.marc";

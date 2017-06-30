@@ -7,11 +7,13 @@ package dk.dbc.updateservice.update;
 
 
 import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.UpdateTestUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -20,6 +22,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.ResourceBundle;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
@@ -48,7 +51,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
     }
 
@@ -57,7 +60,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("a", "ABC"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(true));
     }
 
@@ -67,15 +70,128 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "BKM"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
+    }
+
+    protected class TestSet {
+        private MarcRecord inputRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_RECORD_CLASSIFICATION);
+        private MarcRecord commonRec = new MarcRecord(inputRecord);
+        private MarcRecordWriter inputWriter = new MarcRecordWriter(inputRecord);
+        private MarcRecordReader inputReader = new MarcRecordReader(inputRecord);
+        private MarcRecordWriter commonRecWriter = new MarcRecordWriter(commonRec);
+        private MarcRecordReader reader = new MarcRecordReader(inputRecord);
+        private ResourceBundle messages = ResourceBundles.getBundle("actions");
+
+        TestSet() throws IOException {
+        }
+    }
+
+    // These tests are not perfect , and the actual testing of output is being done via ocb-tools, as we cannot test output here.
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_correct_record() throws Exception {
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            Assert.assertNull(ue);
+        }
+    }
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke2");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "med klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+
+        } catch (UpdateException ue) {
+            Assert.assertEquals(ue.getMessage(), "Postens klassemærke kan ikke ændres");
+        }
+    }
+
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
+        testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+
+        } catch (UpdateException ue) {
+            Assert.assertEquals(ue.getMessage(), "Postens klassemærke kan ikke ændres");
+        }
+    }
+
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
+        testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            Assert.assertNull(ue);
+        }
+    }
+    @Test
+    public void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
+
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        TestSet testSet = new TestSet();
+
+        testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
+        testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
+
+        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+
+        try {
+            instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
+        } catch (UpdateException ue) {
+            Assert.assertNull(ue);
+        }
     }
 
     @Test
     public void testisNationalCommonRecord_wrong032() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(true));
     }
 
@@ -85,7 +201,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "NET");
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(false));
     }
 
@@ -96,7 +212,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(""));
     }
 
@@ -107,7 +223,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS));
     }
 
@@ -118,7 +234,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
@@ -129,7 +245,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS + "|" + NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
@@ -143,7 +259,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
@@ -159,7 +275,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
@@ -178,7 +294,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
@@ -190,7 +306,7 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
     }
@@ -204,7 +320,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
     }
@@ -223,7 +339,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
         MarcRecord expected = new MarcRecord(record);
         //new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
 
@@ -241,7 +357,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
 
         assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }
@@ -274,7 +390,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo,null);
 
         assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }

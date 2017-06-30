@@ -9,6 +9,7 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import org.slf4j.ext.XLogger;
@@ -21,13 +22,17 @@ public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
     private OpenAgencyService openAgencyService;
     private RawRepo rawRepo;
+    private ResourceBundle messages;
 
     static final String EXTENDABLE_NOTE_FIELDS = "504|530|534";
     static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
+    static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMBERSAND = "652";
+    private static final String NO_CLASSIFICATION = "uden klassemærke";
 
-    public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo) {
+    public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo, ResourceBundle messages) {
         this.openAgencyService = openAgencyService;
         this.rawRepo = rawRepo;
+        this.messages = messages;
     }
 
     MarcRecord recordDataForRawRepo(MarcRecord record, String groupId) throws UpdateException, OpenAgencyException, UnsupportedEncodingException {
@@ -47,6 +52,12 @@ public class NoteAndSubjectExtensionsHandler {
             if (!isNationalCommonRecord(curRecord)) {
                 logger.info("Record is not national common record - returning same record");
                 return record;
+            }
+
+            logger.info("Checking for altered classifications for disputas type material");
+            if (reader.hasValue("008", "d", "m")
+                    && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+                checkForAlteredClassificationForDisputas( record,reader, messages);
             }
 
             logger.info("Record exists and is common national record - setting extension fields");
@@ -69,6 +80,37 @@ public class NoteAndSubjectExtensionsHandler {
             return record;
         } finally {
             logger.exit(record);
+        }
+    }
+
+    protected void checkForAlteredClassificationForDisputas(MarcRecord record, MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
+        logger.entry();
+        ServiceResult result = null;
+        try {
+            String recordId = reader.recordId();
+            if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
+                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+                MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
+
+                String new652 = reader.getValue("652", "m");
+                String current652 = currentRecordReader.getValue("652", "m");
+
+                if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
+                    if (current652.toLowerCase().equals(NO_CLASSIFICATION) &&
+                            currentRecordReader.isDBCRecord() &&
+                            currentRecordReader.hasValue("008", "d", "m")) {
+                    } else {
+                        String msg = messages.getString("update.dbc.record.652");
+                        logger.error("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+                    }
+                }
+            }
+        } catch (UnsupportedEncodingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            logger.exit(result);
         }
     }
 
@@ -218,7 +260,10 @@ public class NoteAndSubjectExtensionsHandler {
             } catch (OpenAgencyException e) {
                 throw new UpdateException("Caught OpenAgencyException", e);
             }
-
+            if (!extendableFieldsRx.isEmpty()) {
+                extendableFieldsRx += "|";
+            }
+            extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMBERSAND;
             for (MarcField field : record.getFields()) {
                 if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
                     if (isFieldChangedInOtherRecord(field, curRecord)) {

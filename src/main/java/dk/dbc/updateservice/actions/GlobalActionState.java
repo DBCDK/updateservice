@@ -402,7 +402,7 @@ public class GlobalActionState {
 
     public NoteAndSubjectExtensionsHandler getNoteAndSubjectExtensionsHandler() {
         if (this.noteAndSubjectExtensionsHandler == null) {
-            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getOpenAgencyService(), getRawRepo());
+            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getOpenAgencyService(), getRawRepo(), messages);
         }
 
         return this.noteAndSubjectExtensionsHandler;
