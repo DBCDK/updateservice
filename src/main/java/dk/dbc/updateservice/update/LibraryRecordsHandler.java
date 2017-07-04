@@ -805,15 +805,15 @@ public class LibraryRecordsHandler {
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, UpdateServiceRequestDTO updateServiceRequestDTO, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
-        logger.entry(record, updateServiceRequestDTO, libraryGroup, messages);
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+        logger.entry(record, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
         try {
             if (libraryGroup.isFBS()) {
-                result = recordDataForRawRepoFBS(record, updateServiceRequestDTO, messages);
+                result = recordDataForRawRepoFBS(record, groupId, messages);
             } else { // Assuming DataIO mode
-                result = recordDataForRawRepoDataIO(record, updateServiceRequestDTO.getAuthenticationDTO().getGroupId());
+                result = recordDataForRawRepoDataIO(record, groupId);
             }
 
             return result;
@@ -822,9 +822,8 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, UpdateServiceRequestDTO updateServiceRequestDTO, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
-        logger.entry(record, updateServiceRequestDTO, messages);
-        String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+        logger.entry(record, groupId, messages);
         List<MarcRecord> result = new ArrayList<>();
         try {
             result = splitRecordFBS(record, groupId, messages);

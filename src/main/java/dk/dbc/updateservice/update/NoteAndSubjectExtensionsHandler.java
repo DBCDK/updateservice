@@ -26,7 +26,7 @@ public class NoteAndSubjectExtensionsHandler {
 
     static final String EXTENDABLE_NOTE_FIELDS = "504|530|534";
     static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
-    static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMBERSAND = "652";
+    static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
 
     public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo, ResourceBundle messages) {
@@ -57,7 +57,7 @@ public class NoteAndSubjectExtensionsHandler {
             logger.info("Checking for altered classifications for disputas type material");
             if (reader.hasValue("008", "d", "m")
                     && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
-                checkForAlteredClassificationForDisputas( record,reader, messages);
+                checkForAlteredClassificationForDisputas(reader, messages);
             }
 
             logger.info("Record exists and is common national record - setting extension fields");
@@ -83,7 +83,7 @@ public class NoteAndSubjectExtensionsHandler {
         }
     }
 
-    protected void checkForAlteredClassificationForDisputas(MarcRecord record, MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
+    protected void checkForAlteredClassificationForDisputas(MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
         logger.entry();
         ServiceResult result = null;
         try {
@@ -96,16 +96,17 @@ public class NoteAndSubjectExtensionsHandler {
                 String current652 = currentRecordReader.getValue("652", "m");
 
                 if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
-                    if (current652.toLowerCase().equals(NO_CLASSIFICATION) &&
-                            currentRecordReader.isDBCRecord() &&
-                            currentRecordReader.hasValue("008", "d", "m")) {
-                    } else {
+                    if (!(current652.toLowerCase().equals(NO_CLASSIFICATION) ||
+                            currentRecordReader.isDBCRecord() ||
+                            currentRecordReader.hasValue("008", "d", "m"))) {
                         String msg = messages.getString("update.dbc.record.652");
                         logger.error("Unable to create sub actions due to an error: {}", msg);
                         throw new UpdateException(msg);
                     }
+                    logger.info("Common record met disputas criteria and is being updated");
                 }
             }
+
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
@@ -263,7 +264,7 @@ public class NoteAndSubjectExtensionsHandler {
             if (!extendableFieldsRx.isEmpty()) {
                 extendableFieldsRx += "|";
             }
-            extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMBERSAND;
+            extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
             for (MarcField field : record.getFields()) {
                 if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
                     if (isFieldChangedInOtherRecord(field, curRecord)) {
