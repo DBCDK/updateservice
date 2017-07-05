@@ -96,15 +96,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
         Set<String> phLibraries = state.getPHLibraries();
 
-            /*
-                Special handling of PH libraries with holdings
-                In order to update records in danbib for PH libraries it is necessary to inform dataIO when an
-                common record which a PH library has holding on is updated.
+        /*
+            Special handling of PH libraries with holdings
+            In order to update records in danbib for PH libraries it is necessary to inform dataIO when an
+            common record which a PH library has holding on is updated.
 
-                Note that the record with recordId = record.recordId and agency = phLibrary.agencyId probably doesn't exist
-                 but that isn't important as rawrepo won't be modified. This only serves as a marker for dataIO to do
-                 something.
-             */
+            Note that the record with recordId = record.recordId and agency = phLibrary.agencyId probably doesn't exist
+            but that isn't important as rawrepo won't be modified. This only serves as a marker for dataIO to do something.
+         */
         for (Integer id : holdingsLibraries) {
             if (phLibraries.contains(id.toString())) {
                 logger.info("Found PH library with holding! {}", id);
@@ -174,13 +173,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = decoder.decodeRecord(extRecord.getContent());
                             logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, currentRecord, id.toString()));
+                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, id.toString()));
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(id.toString())) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
                                 logger.info("Create new extended library record: [{}:{}].", recordId, id);
-                                result.add(getActionDataForEnrichmentWithClassification(currentRecord, id.toString()));
+                                result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, id.toString()));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                             }
@@ -196,7 +195,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord currentRecord, String id) {
+    private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord record, MarcRecord currentRecord, String id) {
         logger.entry(extRecordData, currentRecord, id);
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = null;
         try {
@@ -224,8 +223,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord currentRecord, String holdingAgencyId) {
-        logger.entry(holdingAgencyId, currentRecord);
+    private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord record, MarcRecord currentRecord, String holdingAgencyId) {
+        logger.entry(record, holdingAgencyId, currentRecord);
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = null;
         try {
             createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
@@ -237,8 +236,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(MarcRecord enrichmentRecordData, boolean classificationsChanged, boolean oneOrBothInProduction) {
-        logger.entry(enrichmentRecordData);
+    private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(MarcRecord record, MarcRecord enrichmentRecordData, boolean classificationsChanged, boolean oneOrBothInProduction) {
+        logger.entry(record, enrichmentRecordData);
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = null;
         try {
             moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData, classificationsChanged, oneOrBothInProduction);
@@ -249,22 +248,21 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordActionForlinkedRecords getActionDataForEnrichmentRecord(MarcRecord currentRecord, Integer holdingAgencyId, List<MarcRecord> arrayOfRecordsWithHoldings) {
-        logger.entry(holdingAgencyId, currentRecord);
+    private CreateEnrichmentRecordActionForlinkedRecords getActionDataForEnrichmentRecord(MarcRecord record, Integer holdingAgencyId, List<MarcRecord> arrayOfRecordsWithHoldings) {
+        logger.entry(holdingAgencyId, record);
         CreateEnrichmentRecordActionForlinkedRecords createEnrichmentRecordActionForlinkedRecords = null;
         try {
             createEnrichmentRecordActionForlinkedRecords = new CreateEnrichmentRecordActionForlinkedRecords(state, settings);
             createEnrichmentRecordActionForlinkedRecords.setAgencyId(holdingAgencyId);
             createEnrichmentRecordActionForlinkedRecords.setListOfRecordsToFetchClassificationDataFrom(arrayOfRecordsWithHoldings);
-            createEnrichmentRecordActionForlinkedRecords.setCurrentCommonRecord(currentRecord);
-            createEnrichmentRecordActionForlinkedRecords.setUpdatingCommonRecord(record);
+            createEnrichmentRecordActionForlinkedRecords.setRecord(record);
             return createEnrichmentRecordActionForlinkedRecords;
         } finally {
             logger.exit(createEnrichmentRecordActionForlinkedRecords);
         }
     }
 
-    private List<CreateEnrichmentRecordActionForlinkedRecords> linkForMultipleRecordsIn002(HashMap<String, List<MarcRecord>> enrichmentCandidate) {
+    private List<CreateEnrichmentRecordActionForlinkedRecords> linkForMultipleRecordsIn002(MarcRecord record, HashMap<String, List<MarcRecord>> enrichmentCandidate) {
         logger.entry();
         List<CreateEnrichmentRecordActionForlinkedRecords> createEnrichmentRecordActionForlinkedRecordsList = new ArrayList<>();
         try {
@@ -374,10 +372,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     }
                     Record enrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
                     MarcRecord enrichmentRecordData = new RawRepoDecoder().decodeRecord(enrichmentRecord.getContent());
-                    children.add(getMoveEnrichmentRecordAction(enrichmentRecordData, classificationsChanged, isOneOrBothInProduction));
+                    children.add(getMoveEnrichmentRecordAction(record, enrichmentRecordData, classificationsChanged, isOneOrBothInProduction));
                 }
             }
-            children.addAll(linkForMultipleRecordsIn002(enrichmentCandidate));
+            children.addAll(linkForMultipleRecordsIn002(record, enrichmentCandidate));
             return result;
         } catch (OpenAgencyException ex) {
             throw new UpdateException(ex.getMessage(), ex);

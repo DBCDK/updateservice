@@ -39,12 +39,11 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
     private final static String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
     private final static String ERRORNOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
     private final static String RECATEGORIZATION_STRING_OBSOLETE = " Postens opstilling ændret på grund af omkatalogisering";
-    static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
+    private static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
     private List<MarcRecord> listOfRecordsToFetchClassificationDataFrom;
     private Integer agencyId;
-    protected MarcRecord currentCommonRecord;
-    protected MarcRecord updatingCommonRecord;
+    private MarcRecord record;
     private Properties settings;
 
     public CreateEnrichmentRecordActionForlinkedRecords(GlobalActionState globalActionState, Properties properties) {
@@ -64,12 +63,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         this.agencyId = agencyId;
     }
 
-    public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
-        this.currentCommonRecord = currentCommonRecord;
-    }
-
-    public void setUpdatingCommonRecord(MarcRecord updatingCommonRecord) {
-        this.updatingCommonRecord = updatingCommonRecord;
+    public void setRecord(MarcRecord record) {
+        this.record = record;
     }
 
     /**
@@ -82,8 +77,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            logger.info("Current common record:\n{}", currentCommonRecord);
-            logger.info("Updating common record:\n{}", updatingCommonRecord);
+            logger.info("Record:\n{}", record);
 
             MarcRecord enrichmentRecord = createEnrichmentRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
@@ -116,7 +110,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForEnrichmentRecord(updatingCommonRecord, agencyId.toString());
+        MDCUtil.setupContextForEnrichmentRecord(record, agencyId.toString());
     }
 
     private MarcRecord createEnrichmentRecord() throws ScripterException {
@@ -124,7 +118,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
             MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
-            enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), updatingCommonRecord);
+            enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
             enrichmentRecordWriter.addOrReplaceSubfield("001", "b", agencyId.toString());
             listOfRecordsToFetchClassificationDataFrom.forEach((rec) -> {
                 enrichmentRecord.getFields().add(getFormatted004Field(rec));
