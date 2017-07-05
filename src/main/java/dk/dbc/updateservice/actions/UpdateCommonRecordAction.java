@@ -79,7 +79,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             }
 
             if ((RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()))) {
-                logger.info("Rewriting indictators");
+                logger.info("Rewriting indicators");
                 rewriteIndicators();
             }
             String parentId = reader.parentRecordId();

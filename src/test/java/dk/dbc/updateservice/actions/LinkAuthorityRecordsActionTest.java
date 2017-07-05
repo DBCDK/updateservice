@@ -31,7 +31,7 @@ public class LinkAuthorityRecordsActionTest {
     public void recordWithoutAuthFields() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
-        LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, settings, record);
+        LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         verify(state.getRawRepo(), never()).linkRecordAppend(any(RecordId.class), any(RecordId.class));
@@ -44,7 +44,7 @@ public class LinkAuthorityRecordsActionTest {
         record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
         record.getFields().add(new MarcField("700", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "33333333"))));
 
-        LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, settings, record);
+        LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);

@@ -2,7 +2,6 @@ package dk.dbc.updateservice.update;
 
 
 import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -13,7 +12,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class RecordSorter {
-    private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(RecordSorter.class);
     private static final String ENTRY_POINT = "sortRecord";
 
     private Scripter scripter;
