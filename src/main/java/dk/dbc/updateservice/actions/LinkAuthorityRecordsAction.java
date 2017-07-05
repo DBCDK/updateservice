@@ -12,7 +12,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
 
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(LinkAuthorityRecordsAction.class);
 
     public LinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord record) {
         super(LinkAuthorityRecordsAction.class.getSimpleName(), globalActionState, record);
