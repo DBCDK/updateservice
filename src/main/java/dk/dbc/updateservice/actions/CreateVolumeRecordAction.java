@@ -105,6 +105,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
+            children.add(new LinkAuthorityRecordsAction(state, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             return ServiceResult.newOkResult();
         } finally {

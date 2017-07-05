@@ -90,6 +90,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+            children.add(new LinkAuthorityRecordsAction(state, record));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();
