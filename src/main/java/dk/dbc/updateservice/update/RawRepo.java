@@ -53,9 +53,6 @@ public class RawRepo {
     public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
     public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
-
     @EJB
     private OpenAgencyService openAgency;
 
@@ -70,12 +67,6 @@ public class RawRepo {
      */
     @Resource(lookup = JNDIResources.JDBC_RAW_REPO_WRITABLE_NAME)
     private DataSource dataSourceWriter;
-
-    public enum RecordType {
-        COMMON_TYPE,
-        ENRICHMENT_TYPE,
-        LOCAL_TYPE
-    }
 
     public RawRepo() {
         this.dataSourceReader = null;
@@ -372,11 +363,9 @@ public class RawRepo {
                 recordMap = dao.fetchRecordCollection(recId, agencyId, merger);
                 if (recordMap.size() > 0) {
                     result = new HashMap<>();
-                    Iterator it = recordMap.entrySet().iterator();
-                    while (it.hasNext()) {
-                        Map.Entry pair = (Map.Entry) it.next();
-                        Record record = (Record) pair.getValue();
-                        result.put(pair.getKey().toString(), new RawRepoDecoder().decodeRecord(record.getContent()));
+                    for (Map.Entry<String, Record> entry : recordMap.entrySet()) {
+                        Record record = entry.getValue();
+                        result.put(entry.getKey(), new RawRepoDecoder().decodeRecord(record.getContent()));
                     }
                 }
                 return result;

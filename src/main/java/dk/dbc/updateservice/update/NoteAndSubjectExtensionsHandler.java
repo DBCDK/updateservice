@@ -9,7 +9,6 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import org.slf4j.ext.XLogger;
@@ -26,7 +25,7 @@ public class NoteAndSubjectExtensionsHandler {
 
     static final String EXTENDABLE_NOTE_FIELDS = "504|530|534";
     static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
-    static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
+    private static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
 
     public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo, ResourceBundle messages) {
@@ -83,9 +82,9 @@ public class NoteAndSubjectExtensionsHandler {
         }
     }
 
-    protected void checkForAlteredClassificationForDisputas(MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
+    void checkForAlteredClassificationForDisputas(MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
         logger.entry();
-        ServiceResult result = null;
+
         try {
             String recordId = reader.recordId();
             if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
@@ -106,12 +105,11 @@ public class NoteAndSubjectExtensionsHandler {
                     logger.info("Common record met disputas criteria and is being updated");
                 }
             }
-
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit(result);
+            logger.exit();
         }
     }
 
@@ -222,10 +220,10 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * Validate whether the record is legal in regards to note and subject fields and the permissions of the group
      *
-     * @param record
-     * @param groupId
-     * @return
-     * @throws UpdateException
+     * @param record  The incoming record
+     * @param groupId GroupId of the requester
+     * @return List of validation errors (ok returns empty list)
+     * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
     public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException {
         logger.entry(record, groupId);
@@ -255,7 +253,7 @@ public class NoteAndSubjectExtensionsHandler {
                 return result;
             }
 
-            String extendableFieldsRx = "";
+            String extendableFieldsRx;
             try {
                 extendableFieldsRx = createExtendableFieldsRx(groupId);
             } catch (OpenAgencyException e) {

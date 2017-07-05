@@ -94,7 +94,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
         children.add(LinkRecordAction.newLinkParentAction(state, record));
-        children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
+        children.addAll(createActionsForCreateOrUpdateEnrichments(record,  currentRecord));
 
         result = performActionsFor002Links();
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));

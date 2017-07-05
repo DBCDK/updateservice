@@ -14,10 +14,7 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -59,10 +56,25 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException {
+    private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException, ScripterException {
         ServiceResult result = ServiceResult.newOkResult();
+        MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+
+        // If this is an authority record being updated, then we need to see if any depending common records needs updating
+        if (RawRepo.AUTHORITY_AGENCY.equals(reader.agencyIdAsInteger())) {
+            Set<RecordId> ids = state.getRawRepo().children(record);
+            for (RecordId id : ids) {
+                logger.info("Found child record for {}:{} - {}:{}", reader.recordId(), reader.agencyId(), id.getBibliographicRecordId(), id.getAgencyId());
+                Map<String, MarcRecord> records = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+                MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
+                records.put(reader.recordId(), record);
+                MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
+                children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentRecord));
+            }
+        }
+
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
         return result;
@@ -74,11 +86,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
-        children.addAll(createActionsForCreateOrUpdateEnrichments(currentRecord));
+        children.addAll(createActionsForCreateOrUpdateEnrichments(record, currentRecord));
 
         result = performActionsFor002Links();
 
-        children.add(new LinkAuthorityRecordsAction(state, settings, record));
+        children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
         Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
@@ -130,7 +142,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
+    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord record, MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
         logger.entry(currentRecord);
         List<ServiceAction> result = new ArrayList<>();
         try {

@@ -8,7 +8,6 @@ package dk.dbc.updateservice.update;
 import dk.dbc.iscrum.records.*;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -290,8 +289,8 @@ public class LibraryRecordsHandler {
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
 
-        logger.debug("Old record {}", oldRecord);
-        logger.debug("New record {}", newRecord);
+        logger.debug("Old record\n{}", oldRecord);
+        logger.debug("New record\n{}", newRecord);
 
         return check008(oldReader, newReader) ||
                 check009(oldReader, newReader) ||
@@ -798,7 +797,6 @@ public class LibraryRecordsHandler {
      * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
      * @param record            The record to be updated
-     * @param authenticationDTO Auth DTO from the ws request
      * @param libraryGroup      Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws OpenAgencyException          in case of an error
@@ -869,14 +867,12 @@ public class LibraryRecordsHandler {
      *
      * @param record            The record to be updated
      * @param groupId           The groupId from the ws request
-     * @param libraryGroup
-     * @param openAgencyService
      * @return List containing common and DBC record
      * @throws OpenAgencyException          in case of an error
      * @throws UpdateException              in case of an error
      * @throws UnsupportedEncodingException in case of an error
      */
-    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId,  ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
         logger.entry(record, groupId);
 
         try {
@@ -886,7 +882,7 @@ public class LibraryRecordsHandler {
                 logger.info("Agency id of record is not 870970 - returning same record");
                 return Arrays.asList(record);
             }
-            NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService,  rawRepo, messages);
+            NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService, rawRepo, messages);
 
             MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
             MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
