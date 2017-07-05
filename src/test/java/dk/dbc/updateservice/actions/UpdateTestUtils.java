@@ -7,10 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.dto.AuthenticationDTO;
-import dk.dbc.updateservice.dto.MessageEntryDTO;
-import dk.dbc.updateservice.dto.TypeEnumDTO;
-import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
+import dk.dbc.updateservice.dto.*;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.update.*;
 import dk.dbc.updateservice.validate.Validator;
@@ -34,6 +31,23 @@ public class UpdateTestUtils {
         messageEntryDTO.setType(typeEnumDTO);
         messageEntryDTO.setMessage(message);
         return messageEntryDTOS;
+    }
+
+    public static ServiceResult createFailedServiceResult(String message) {
+        ServiceResult expected = new ServiceResult();
+        expected.setStatus(UpdateStatusEnumDTO.FAILED);
+
+        List<MessageEntryDTO> messageEntryDTOList = new ArrayList<>();
+
+        MessageEntryDTO MessageEntryDTO = new MessageEntryDTO();
+        MessageEntryDTO.setMessage(message);
+        MessageEntryDTO.setType(TypeEnumDTO.ERROR);
+
+        messageEntryDTOList.add(MessageEntryDTO);
+
+        expected.addMessageEntryDtos(messageEntryDTOList);
+
+        return expected;
     }
 
     public GlobalActionState getGlobalActionStateMockObject() throws IOException {

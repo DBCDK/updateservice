@@ -84,12 +84,13 @@ public class CreateVolumeRecordActionTest {
         assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        Assert.assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), volumeRecord);
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, mainRecord);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), volumeRecord);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 

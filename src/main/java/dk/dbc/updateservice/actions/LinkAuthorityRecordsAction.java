@@ -5,6 +5,7 @@ import dk.dbc.iscrum.records.MarcFieldReader;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -30,6 +31,13 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                     String authRecordId = fieldReader.getValue("6");
                     Integer authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+
+                    if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
+                        String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
+                        logger.error("Unable to create sub actions due to an error: {}", message);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    }
+
                     RecordId authRecordIdObj = new RecordId(authRecordId, authAgencyId);
                     logger.info("Linking {} to {}", recordIdObj, authRecordIdObj);
                     state.getRawRepo().linkRecordAppend(recordIdObj, authRecordIdObj);

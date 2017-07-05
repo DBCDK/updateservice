@@ -4,6 +4,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcField;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcSubField;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +12,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Properties;
+import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -20,7 +21,6 @@ import static org.mockito.Mockito.*;
 
 public class LinkAuthorityRecordsActionTest {
     private GlobalActionState state;
-    private Properties settings = new UpdateTestUtils().getSettings();
 
     @Before
     public void before() throws IOException {
@@ -44,6 +44,10 @@ public class LinkAuthorityRecordsActionTest {
         record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
         record.getFields().add(new MarcField("700", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "33333333"))));
 
+        when(state.getRawRepo().recordExists("11111111", 870979)).thenReturn(true);
+        when(state.getRawRepo().recordExists("22222222", 870979)).thenReturn(true);
+        when(state.getRawRepo().recordExists("33333333", 870979)).thenReturn(true);
+
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
@@ -57,7 +61,19 @@ public class LinkAuthorityRecordsActionTest {
 
         assertThat(toProvider.getValue().getAgencyId(), equalTo(870979));
         assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("33333333"));
-
     }
 
+    @Test
+    public void recordWithAuthFields_NotFound() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
+
+        when(state.getRawRepo().recordExists("22222222", 870979)).thenReturn(false);
+
+        ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
+        String message = String.format(resourceBundle.getString("auth.record.doesnt.exist"), "22222222", "870979");
+
+        LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
+        assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));
+    }
 }
