@@ -45,7 +45,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.agencyId())) {
-                return result = performActionArticle();
+                return result = performActionDBCRecord();
             } else {
                 return result = performActionDefault();
             }
@@ -56,7 +56,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException, ScripterException {
+    ServiceResult performActionDBCRecord() throws UnsupportedEncodingException, UpdateException, ScripterException {
         ServiceResult result = ServiceResult.newOkResult();
         MarcRecordReader reader = new MarcRecordReader(record);
 
@@ -93,8 +93,15 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
+        children.addAll(getEnqueuePHHoldingsRecordActions(state, record));
+
+        return result;
+    }
+
+    List<EnqueuePHHoldingsRecordAction> getEnqueuePHHoldingsRecordActions(GlobalActionState state, MarcRecord record) throws UpdateException{
         Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
         Set<String> phLibraries = state.getPHLibraries();
+        List<EnqueuePHHoldingsRecordAction> result = new ArrayList<>();
 
         /*
             Special handling of PH libraries with holdings
@@ -109,7 +116,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 logger.info("Found PH library with holding! {}", id);
                 RecordId recordId = new RecordId(new MarcRecordReader(record).recordId(), id);
                 EnqueuePHHoldingsRecordAction enqueuePHHoldingsRecordAction = new EnqueuePHHoldingsRecordAction(state, settings, record, recordId);
-                children.add(enqueuePHHoldingsRecordAction);
+                result.add(enqueuePHHoldingsRecordAction);
             }
         }
 

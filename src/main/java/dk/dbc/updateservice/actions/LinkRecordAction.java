@@ -53,14 +53,15 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.recordId();
+            String recordId = reader.recordId();
             Integer agencyId = reader.agencyIdAsInteger();
+            RecordId recordIdObj = new RecordId(recordId, agencyId);
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
-                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
-            logger.info("Set relation from [{}:{}] -> [{}:{}]", recId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-            rawRepo.linkRecord(new RecordId(recId, agencyId), linkToRecordId);
+            logger.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+            rawRepo.linkRecord(recordIdObj, linkToRecordId);
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
@@ -68,7 +69,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
     }
 
     /**
-     * Factory method to create a StoreRecordAction.
+     * Factory method to create a LinkRecordAction.
      */
     public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord record) {
         logger.entry();

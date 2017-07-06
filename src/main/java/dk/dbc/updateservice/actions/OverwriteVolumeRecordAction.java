@@ -45,7 +45,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.agencyId())) {
-                return result = performActionArticle();
+                return result = performActionDBCRecord();
             } else {
                 return result = performActionDefault();
             }
@@ -55,15 +55,6 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         } finally {
             logger.exit(result);
         }
-    }
-
-    private ServiceResult performActionArticle() throws UnsupportedEncodingException, UpdateException {
-        ServiceResult result = ServiceResult.newOkResult();
-
-        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
-        children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
-
-        return result;
     }
 
     private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
@@ -94,10 +85,12 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
         children.add(LinkRecordAction.newLinkParentAction(state, record));
-        children.addAll(createActionsForCreateOrUpdateEnrichments(record,  currentRecord));
+        children.addAll(createActionsForCreateOrUpdateEnrichments(record, currentRecord));
 
         result = performActionsFor002Links();
+        children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+        children.addAll(getEnqueuePHHoldingsRecordActions(state, record));
 
         return result;
     }
