@@ -22,29 +22,38 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
+        ServiceResult result = null;
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            RecordId recordIdObj = new RecordId(reader.recordId(), reader.agencyIdAsInteger());
+            String recordId = reader.recordId();
+            Integer agencyId = reader.agencyIdAsInteger();
+            RecordId recordIdObj = new RecordId(recordId, agencyId);
 
             for (MarcField field : record.getFields()) {
                 MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                     String authRecordId = fieldReader.getValue("6");
                     Integer authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
-
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
-                        logger.error("Unable to create sub actions due to an error: {}", message);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                     }
-
                     RecordId authRecordIdObj = new RecordId(authRecordId, authAgencyId);
-                    logger.info("Linking {} to {}", recordIdObj, authRecordIdObj);
+                    logger.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, authRecordId, authAgencyId);
                     state.getRawRepo().linkRecordAppend(recordIdObj, authRecordIdObj);
                 }
             }
 
-            return ServiceResult.newOkResult();
+            return result = ServiceResult.newOkResult();
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    public static LinkAuthorityRecordsAction newLinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord record) {
+        logger.entry();
+        try {
+            return new LinkAuthorityRecordsAction(globalActionState, record);
         } finally {
             logger.exit();
         }

@@ -8,14 +8,12 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
-import java.util.Set;
 
 /**
  * Action to creates a new volume record.
@@ -65,35 +63,10 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
-            // We need to make sure that there doesn't exist a deleted record with the same faust
-            Set<Integer> agenciesForRecord = rawRepo.agenciesForRecordAll(record);
-
-            // The rule is: FBS and DBC libraries cannot have overlapping records.
-            // However, FFU libraries are allowed to have overlapping posts as they never use enrichment posts
-            if (!agenciesForRecord.isEmpty()) {
-                // If the existing record is from the same agency then everything is fine.
-                // However, if the existing record is in another base then we need to fail
-                if (RawRepo.DBC_AGENCY_LIST.contains(reader.agencyId())) {
-                    agenciesForRecord.remove(reader.agencyIdAsInteger());
-                }
-
-                logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", agenciesForRecord, recordId);
-                Set<String> ffuAgencyIds = state.getFFULibraries();
-                boolean allAgenciesAreFFU = true;
-                for (Integer agencyForRecord : agenciesForRecord) {
-                    if (!ffuAgencyIds.contains(agencyForRecord.toString())) {
-                        logger.info("The library {} is not a FFU library.", agencyForRecord);
-                        allAgenciesAreFFU = false;
-                        break;
-                    }
-                }
-
-                if (!allAgenciesAreFFU) {
-                    String message = state.getMessages().getString("create.record.with.locals");
-
-                    logger.error("Unable to create sub actions due to an error: {}", message);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
-                }
+            if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record)) {
+                String message = state.getMessages().getString("create.record.with.locals");
+                logger.error("Unable to create sub actions due to an error: {}", message);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
             if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
