@@ -93,17 +93,18 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
         } catch (SolrException e) {
+            LOGGER.catching(e);
             serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             MessageContext ctx = wsContext.getMessageContext();
             HttpServletResponse response = (HttpServletResponse)
                     ctx.get(MessageContext.SERVLET_RESPONSE);
-            // TODO fix this
             try {
                 response.sendError(500, "Solr connection failed");
             } catch (IOException e1) {
-                e1.printStackTrace();
+                LOGGER.error("Send error encountered an exception : ");
+                LOGGER.catching(e1);
             }
             return updateResponseWriter.getResponse();
         } finally {
