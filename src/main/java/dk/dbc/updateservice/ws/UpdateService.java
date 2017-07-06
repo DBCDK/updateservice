@@ -126,7 +126,7 @@ public class UpdateService {
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public ServiceResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
+    public ServiceResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) throws SolrException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
@@ -150,8 +150,12 @@ public class UpdateService {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
                 logger.error("Updateservice blev kaldt med tom record DTO");
             }
-
             return serviceResult;
+        } catch (SolrException ex) {
+            // have to catch and rethrow here, due to every throwable being caught below
+            logger.error ("catching and rethrowing SolrException");
+            logger.catching(ex);
+            throw new SolrException(ex.getMessage());
         } catch (Throwable ex) {
             logger.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex, state);

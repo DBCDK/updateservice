@@ -12,6 +12,7 @@ import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.*;
+import dk.dbc.updateservice.update.SolrException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -22,11 +23,13 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.ws.WebServiceContext;
+import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -53,6 +56,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     @EJB
     UpdateService updateService;
 
+
     @PostConstruct
     protected void init() {
         globalActionState = new GlobalActionState();
@@ -73,7 +77,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
                 return null;
             }
             UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
-            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword ));
+            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
             UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
             serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDTO(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();
@@ -87,6 +91,20 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
+            return updateResponseWriter.getResponse();
+        } catch (SolrException e) {
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
+            updateResponseWriter = new UpdateResponseWriter();
+            updateResponseWriter.setServiceResult(serviceResult);
+            MessageContext ctx = wsContext.getMessageContext();
+            HttpServletResponse response = (HttpServletResponse)
+                    ctx.get(MessageContext.SERVLET_RESPONSE);
+            // TODO fix this
+            try {
+                response.sendError(500, "Solr connection failed");
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
             return updateResponseWriter.getResponse();
         } finally {
             watch.stop(UPDATERECORD_STOPWATCH);
