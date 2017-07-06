@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,13 +27,13 @@ public class ServiceEngineTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionIsNull() throws UpdateException {
+    public void testExecuteAction_ActionIsNull() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         instance.executeAction(null);
     }
 
     @Test(expected = UpdateException.class)
-    public void testExecuteAction_ActionThrows() throws UpdateException {
+    public void testExecuteAction_ActionThrows() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenThrow(new UpdateException("error"));
@@ -40,7 +41,7 @@ public class ServiceEngineTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionReturnsNull() throws UpdateException {
+    public void testExecuteAction_ActionReturnsNull() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(null);
@@ -48,7 +49,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ActionReturnsErrors() throws UpdateException {
+    public void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state));
@@ -56,7 +57,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException {
+    public void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -88,7 +89,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException {
+    public void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -121,7 +122,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException {
+    public void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -152,7 +153,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException {
+    public void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -185,7 +186,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException {
+    public void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 

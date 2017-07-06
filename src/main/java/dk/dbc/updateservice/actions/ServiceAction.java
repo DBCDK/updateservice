@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
 
 import java.util.List;
@@ -62,7 +63,7 @@ public interface ServiceAction {
      *
      * @throws UpdateException In case of an error.
      */
-    ServiceResult performAction() throws UpdateException;
+    ServiceResult performAction() throws UpdateException, SolrException;
 
     ServiceResult getServiceResult();
     void setServiceResult( ServiceResult serviceResult );

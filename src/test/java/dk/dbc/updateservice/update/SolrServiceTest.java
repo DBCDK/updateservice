@@ -46,7 +46,7 @@ public class SolrServiceTest {
         assertThat(instance.hasDocuments("marc.002a:76605141"), is(false));
     }
 
-    @Test(expected = UpdateException.class)
+    @Test(expected = SolrException.class)
     public void testHits() throws Exception {
 
         Properties settings = new Properties();
@@ -59,7 +59,7 @@ public class SolrServiceTest {
         instance.hits("marc.xxxsdas:*");
     }
 
-    @Test(expected = UpdateException.class)
+    @Test(expected = SolrException.class)
     public void testHits_UnknownHost() throws Exception {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:19090/solr/raw-repo-index");

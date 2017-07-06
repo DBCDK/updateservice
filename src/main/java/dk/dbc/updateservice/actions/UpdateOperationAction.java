@@ -14,10 +14,7 @@ import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
-import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -86,7 +83,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UpdateException Never thrown.
      */
     @Override
-    public ServiceResult performAction() throws UpdateException {
+    public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         ServiceResult result = null;
         try {
@@ -210,49 +207,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
 
-    protected ServiceResult checkForAlteredClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
-        logger.entry();
-        ServiceResult result = null;
-        try {
-            String recordId = reader.recordId();
-            if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
-                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
-                MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
-
-                String new652 = reader.getValue("652", "m");
-                String current652 = currentRecordReader.getValue("652", "m");
-
-                if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
-                    if (current652.toLowerCase().equals(NO_CLASSIFICATION) &&
-                            currentRecordReader.isDBCRecord() &&
-                            currentRecordReader.hasValue("008", "d", "m")) {
-
-                        MarcRecordWriter currentRecWriter = new MarcRecordWriter(currentRecord);
-                        currentRecWriter.removeField("652");
-                        currentRecWriter.copyFieldsFromRecord(Collections.singletonList("652"), record);
-
-                        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, currentRecord);
-                        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-
-                        children.add(storeRecordAction);
-                        children.add(EnqueueRecordAction.newEnqueueAction(state, currentRecord, settings));
-                        return result = ServiceResult.newOkResult();
-                    } else {
-                        String message = state.getMessages().getString("update.dbc.record.652");
-                        logger.error("Unable to create sub actions due to an error: {}", message);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
-                    }
-                }
-            }
-            return result = ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            logger.exit(result);
-        }
-    }
-
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
         return commonRecordExists(records, rec, RawRepo.COMMON_AGENCY);
     }
@@ -317,7 +271,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UpdateException              when something goes wrong
      * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
-    private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+    private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, SolrException {
         logger.entry();
         try {
             if (reader.markedForDeletion()) {

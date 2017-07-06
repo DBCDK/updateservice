@@ -8,10 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.*;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
-import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -43,7 +40,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of an error.
      */
     @Override
-    public ServiceResult performAction() throws UpdateException {
+    public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
             logger.info("Handling record:\n{}", record);

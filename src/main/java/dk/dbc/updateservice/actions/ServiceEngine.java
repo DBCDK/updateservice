@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.apache.commons.lang3.StringUtils;
 import org.perf4j.StopWatch;
@@ -49,7 +50,7 @@ public class ServiceEngine {
      * actions.
      * @throws UpdateException Throwed in case of an error.
      */
-    public ServiceResult executeAction(ServiceAction action) throws UpdateException {
+    public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
         logger.entry();
         try {
             if (action == null) {

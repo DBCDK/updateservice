@@ -48,7 +48,7 @@ public class SolrService {
         messages = ResourceBundles.getBundle("messages");
     }
 
-    public boolean hasDocuments(String q) throws UpdateException {
+    public boolean hasDocuments(String q) throws UpdateException, SolrException {
         logger.entry(q);
         StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
 
@@ -61,7 +61,7 @@ public class SolrService {
         }
     }
 
-    public long hits(String q) throws UpdateException {
+    public long hits(String q) throws UpdateException, SolrException  {
         logger.entry();
         StopWatch watch = new Log4JStopWatch("service.solr.hits");
 
@@ -109,11 +109,11 @@ public class SolrService {
 
             throw new UpdateException("The key 'solr.url' does not exist in settings");
         } catch (IOException ex) {
+            //TODO , kan ikke se hvordan den kan blive null , medmindre settings.getProperty smider en IOException
             if (solrUrl == null) {
                 throw new UpdateException(ex.getMessage(), ex);
             }
-
-            throw new UpdateException("Unable to connect to url " + solrUrl.toString() + ": " + ex.getMessage(), ex);
+            throw new SolrException("Unable to connect to url " + solrUrl.toString() + ": " + ex.getMessage(), ex);
         } finally {
             watch.stop();
             logger.exit();

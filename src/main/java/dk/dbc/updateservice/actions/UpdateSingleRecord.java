@@ -12,6 +12,7 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -39,7 +40,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * @throws UpdateException In case of an error.
      */
     @Override
-    public ServiceResult performAction() throws UpdateException {
+    public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
             logger.info("Handling record:\n{}", record);
