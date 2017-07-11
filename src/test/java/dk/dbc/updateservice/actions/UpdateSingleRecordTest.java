@@ -243,11 +243,11 @@ public class UpdateSingleRecordTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-        when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature("710100", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        String message = state.getMessages().getString("delete.common.with.holdings.error");
+        String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, "710100");
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         assertTrue(updateSingleRecord.children().isEmpty());
     }

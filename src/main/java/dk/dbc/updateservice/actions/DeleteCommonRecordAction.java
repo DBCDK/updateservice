@@ -8,7 +8,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.iscrum.records.MarcRecordWriter;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -71,9 +70,10 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             }
             logger.error("Creating sub actions successfully");
 
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             children.add(new RemoveLinksAction(state, record));
             children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, record));
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
