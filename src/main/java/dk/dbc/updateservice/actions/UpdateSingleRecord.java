@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.AgencyNumber;
 import dk.dbc.iscrum.records.MarcRecord;
 import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -19,6 +18,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Action to create, overwrite or delete a single record.
@@ -53,21 +53,26 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             if (reader.markedForDeletion()) {
-                if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && !state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record).isEmpty()) {
-                    AgencyNumber groupAgencyNumber = new AgencyNumber(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-                    logger.info("Found holdings for agency '{}'", groupAgencyNumber);
-                    boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(groupAgencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
-                    if (hasAuthExportHoldings) {
-                        logger.info("Agency '{}' has feature '{}'", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
-                        String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
-                        boolean has002Links = state.getSolrService().hasDocuments(solrQuery);
-                        if (!has002Links) {
-                            String message = state.getMessages().getString("delete.common.with.holdings.error");
-                            logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
-                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                // If it is deletion and a 870970 record then the group is always 010100
+                // Which means we are only interested in the other libraries with holdings
+                Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
+                if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && !agenciesWithHoldings.isEmpty()) {
+                    for (Integer agencyWithHoldings : agenciesWithHoldings) {
+                        logger.info("Found holdings for agency '{}'", agencyWithHoldings);
+                        boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(agencyWithHoldings.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                        if (hasAuthExportHoldings) {
+                            logger.info("Agency '{}' has feature '{}'", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                            String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
+                            boolean has002Links = state.getSolrService().hasDocuments(solrQuery);
+                            if (!has002Links) {
+                                String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, agencyWithHoldings);
+
+                                logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
+                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                            }
+                        } else {
+                            logger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                         }
-                    } else {
-                        logger.info("Agency '{}' does not has feature '{}'. Accepting deletion.", groupAgencyNumber, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                     }
                 }
                 children.add(createDeleteRecordAction());
