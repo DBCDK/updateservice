@@ -5,10 +5,13 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+
+import java.util.ResourceBundle;
 
 /**
  * Action to authenticate the user from the request.
@@ -37,27 +40,25 @@ public class AuthenticateUserAction extends AbstractAction {
         try {
             validateNullableData();
             String msg;
+            ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
-                // TODO: MOVE TO RESOURCEBUNDLE
-                msg = "Authentication arguments is missing in the request.";
+                msg = resourceBundle.getString("auth.user.missing.arguments");
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
-                // TODO: MOVE TO RESOURCEBUNDLE
-                msg = "User name is missing in authentication arguments in the request";
+                msg = resourceBundle.getString("auth.user.missing.username");
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
-                // TODO: MOVE TO RESOURCEBUNDLE
-                msg = "Group name is missing in authentication arguments in the request";
+                msg = resourceBundle.getString("auth.user.missing.groupname");
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
-                // TODO: MOVE TO RESOURCEBUNDLE
-                msg = "Password is missing in authentication arguments in the request";
+                msg = resourceBundle.getString("auth.user.missing.password");
                 logger.error(msg);
                 return result = ServiceResult.newAuthErrorResult(state, msg);
             }
@@ -65,7 +66,9 @@ public class AuthenticateUserAction extends AbstractAction {
                 logger.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 return result = ServiceResult.newOkResult();
             }
+
             logger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
+
             return result = ServiceResult.newAuthErrorResult(state);
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
