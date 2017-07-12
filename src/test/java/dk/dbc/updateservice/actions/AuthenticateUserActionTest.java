@@ -43,7 +43,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setPassword("passwd");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "User name is missing in authentication arguments in the request")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Brugernavn mangler i autentificeringsparameterne")));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setPassword("passwd");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Group name is missing in authentication arguments in the request")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Gruppenavn mangler i autentificeringsparameterne")));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setGroupId("group");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Password is missing in authentication arguments in the request")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Kodeord mangler i autentificeringsparameterne")));
     }
 
     @Test
