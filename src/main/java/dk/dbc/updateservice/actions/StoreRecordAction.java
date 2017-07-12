@@ -12,7 +12,6 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoEncoder;
-import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
 import org.slf4j.MDC;
@@ -115,6 +114,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             if (RawRepo.ARTICLE_AGENCY.equals(reader.agencyIdAsInteger())) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
+            } else if (RawRepo.AUTHORITY_AGENCY.equals(reader.agencyIdAsInteger())) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
             } else {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             }
