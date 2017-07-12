@@ -75,6 +75,20 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 recordToStore = record;
             }
 
+            // At this point we have the collapsed record with authority fields, so perform validation on those now
+            for (MarcField field : recordToStore.getFields()) {
+                MarcFieldReader fieldReader = new MarcFieldReader(field);
+                if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
+                    String authRecordId = fieldReader.getValue("6");
+                    Integer authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+                    if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
+                        String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
+                        logger.error(message);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    }
+                }
+            }
+
             if ((RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()))) {
                 logger.info("Rewriting indicators");
                 rewriteIndicators();

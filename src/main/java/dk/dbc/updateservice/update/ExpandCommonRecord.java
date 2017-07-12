@@ -2,18 +2,17 @@ package dk.dbc.updateservice.update;
 
 
 import dk.dbc.iscrum.records.*;
+import dk.dbc.iscrum.utils.ResourceBundles;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ExpandCommonRecord {
     private static final XLogger logger = XLoggerFactory.getXLogger(ExpandCommonRecord.class);
     private static final List<String> AUTHORITY_FIELD_LIST = Arrays.asList("100", "600", "700");
+    private static final ResourceBundle bundle = ResourceBundles.getBundle("messages");
 
     /**
      * The function takes a set of  records and return a common marc record expanded with authority fields (if any)
@@ -97,7 +96,9 @@ public class ExpandCommonRecord {
                 MarcRecord authRecord = authorityRecords.get(authRecordId);
 
                 if (authRecord == null) {
-                    throw new UpdateException("Could not find " + authRecordId + " record in the authority list");
+                    String message = String.format(bundle.getString("update.common.record.expand.missing.aut"), authRecordId);
+                    logger.error(message);
+                    throw new UpdateException(message);
                 }
 
                 MarcField expandedField = new MarcField(field);
@@ -131,7 +132,9 @@ public class ExpandCommonRecord {
                 MarcRecord authRecord = authorityRecords.get(authRecordId);
 
                 if (authRecord == null) {
-                    throw new UpdateException("Could not find " + authRecordId + " record in the authority list");
+                    String message = String.format(bundle.getString("update.common.record.expand.missing.aut"), authRecordId);
+                    logger.error(message);
+                    throw new UpdateException(message);
                 }
 
                 MarcField expandedField = new MarcField(field);
