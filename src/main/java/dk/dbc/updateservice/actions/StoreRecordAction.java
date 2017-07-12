@@ -27,7 +27,6 @@ import java.util.Properties;
  */
 public class StoreRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(StoreRecordAction.class);
-    private static final String ENTRY_POINT = "sortRecord";
 
     RawRepoEncoder encoder = new RawRepoEncoder();
     private String mimetype;
@@ -57,6 +56,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
+            if (mimetype == null || mimetype.isEmpty()) {
+                throw new UpdateException("MimeType must be set");
+            }
+
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
