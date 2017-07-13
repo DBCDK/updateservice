@@ -5,6 +5,8 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.iscrum.records.MarcRecordReader;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
@@ -78,6 +80,10 @@ public class UpdateRequestAction extends AbstractAction {
         if (!state.isRecordPackingValid()) {
             logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
             return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
+        }
+        if (!sanityCheckRecord()) {
+            String message = state.getMessages().getString("sanity.check.failed");
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         }
         return null;
     }
@@ -177,5 +183,25 @@ public class UpdateRequestAction extends AbstractAction {
         } finally {
             logger.exit(res);
         }
+    }
+
+    private boolean sanityCheckRecord() {
+        try {
+            MarcRecord record = state.readRecord();
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            if (!(reader.hasSubfield("001", "a") && !reader.recordId().isEmpty())) {
+                return false;
+            }
+
+            if (!(reader.hasSubfield("001", "b") && !reader.agencyId().isEmpty() && reader.agencyIdAsInteger() > 0)) {
+                return false;
+            }
+        } catch (Exception ex) {
+            logger.error("Caught exception during sanity check", ex);
+            return false;
+        }
+
+        return true;
     }
 }
