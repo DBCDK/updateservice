@@ -238,6 +238,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createErrorReply(resourceBundle.getString("update.common.record.error"));
             }
 
+            if ("700300".equals(curOwner)) {
+                if (!("700300".equals(groupId) && "700300".equals(owner))) {
+                    return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
+                }
+            }
+
              /*
                 AUTH_PUBLIC_LIB_COMMON_RECORD er i vip : Ret fællespost - Har ret til at rette og overtage en folkebiblioteksejet fællesskabspost
                 Hvis ejer af eksisterende post har sat AUTH_PUBLIC_LIB_COMMON_RECORD så :
