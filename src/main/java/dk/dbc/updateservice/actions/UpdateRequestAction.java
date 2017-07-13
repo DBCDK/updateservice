@@ -190,12 +190,14 @@ public class UpdateRequestAction extends AbstractAction {
             MarcRecord record = state.readRecord();
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!(reader.hasSubfield("001", "a") && !reader.recordId().isEmpty())) {
-                return false;
-            }
+            if (reader.hasField("001")) { // If 001 is completely missing it will be caught in a later validation
+                if (!(reader.hasSubfield("001", "a") && !reader.recordId().isEmpty())) {
+                    return false;
+                }
 
-            if (!(reader.hasSubfield("001", "b") && !reader.agencyId().isEmpty() && reader.agencyIdAsInteger() > 0)) {
-                return false;
+                if (!(reader.hasSubfield("001", "b") && !reader.agencyId().isEmpty() && reader.agencyIdAsInteger() > 0)) {
+                    return false;
+                }
             }
         } catch (Exception ex) {
             logger.error("Caught exception during sanity check", ex);
