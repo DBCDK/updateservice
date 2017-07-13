@@ -443,6 +443,122 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
+    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        String groupId = "830020";
+
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+
+        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId(groupId);
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        ServiceResult actual = instance.performAction();
+        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+    }
+
+    @Test
+    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "700300");
+        String groupId = "830020";
+
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+
+        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId(groupId);
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        ServiceResult actual = instance.performAction();
+        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+    }
+
+    @Test
+    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        String groupId = "700300";
+
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+
+        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId(groupId);
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        ServiceResult actual = instance.performAction();
+        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+    }
+
+    @Test
+    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "700300");
+        String groupId = "700300";
+
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+
+        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId(groupId);
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        ServiceResult actual = instance.performAction();
+        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+    }
+
+    @Test
     public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
