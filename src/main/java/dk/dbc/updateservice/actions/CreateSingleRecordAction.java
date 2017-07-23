@@ -75,13 +75,13 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
         // The only records we are interested in are MarcXchange and Articles with different recordId
         Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
+        agenciesForRecord.remove(reader.agencyIdAsInteger() );
+
         Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {
-            if (!agencyId.equals(reader.agencyIdAsInteger())) {
-                Record r = state.getRawRepo().fetchRecord(reader.recordId(), agencyId);
-                if (!MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
-                    listToCheck.add(agencyId);
-                }
+            Record r = state.getRawRepo().fetchRecord(reader.recordId(), agencyId);
+            if( !r.isDeleted() && !MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
+                listToCheck.add(agencyId);
             }
         }
 
