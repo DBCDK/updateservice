@@ -67,7 +67,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-            if (state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
+            if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
                 MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger()).getContent());
                 MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord, settings);

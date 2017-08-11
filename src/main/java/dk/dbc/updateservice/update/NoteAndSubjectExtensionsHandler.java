@@ -284,7 +284,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
             return result;
         } finally {
-            logger.trace("Exit - NoteAndSubjectExtentionsHandler.authenticateExtensions(): ", result);
+            logger.trace("Exit - NoteAndSubjectExtensionsHandler.authenticateExtensions(): ", result);
         }
     }
 
