@@ -48,7 +48,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             if (!reader.markedForDeletion()) {
                 logger.info("Update single");
-                if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
+                if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
                     logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -67,8 +67,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-            if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.recordId(), reader.agencyIdAsInteger())) {
-                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger()).getContent());
+            if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())) {
+                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger()).getContent());
                 MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord, settings);
             } else {
@@ -89,11 +89,12 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            if ((RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()))) {
+            if ((RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()))) {
                 logger.info("Rewriting indicators");
                 rewriteIndicators();
             }
-            String parentId = reader.parentRecordId();
+            // It is here we decide whether it's a single record or a volume/section record
+            String parentId = reader.getParentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 logger.info("Update vol: {}", parentId);
                 children.add(new UpdateVolumeRecord(state, settings, recordToStore));

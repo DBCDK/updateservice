@@ -46,7 +46,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {
                 children.add(createCreateRecordAction());
@@ -56,7 +56,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
                 Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && !agenciesWithHoldings.isEmpty()) {
+                if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         logger.info("Found holdings for agency '{}'", agencyWithHoldings);
                         boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(agencyWithHoldings.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
@@ -67,7 +67,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                             if (!has002Links) {
                                 String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, agencyWithHoldings);
 
-                                logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.agencyId(), message);
+                                logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.getAgencyId(), message);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                             }
                         } else {

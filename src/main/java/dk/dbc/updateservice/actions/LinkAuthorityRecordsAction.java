@@ -26,7 +26,7 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
 
             for (MarcField field : record.getFields()) {

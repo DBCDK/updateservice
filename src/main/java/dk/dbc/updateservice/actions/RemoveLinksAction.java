@@ -44,7 +44,7 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
 
             rawRepo.removeLinks(new RecordId(recId, agencyId));
             logger.info("Removed all links for record {{}:{}} successfully", recId, agencyId);

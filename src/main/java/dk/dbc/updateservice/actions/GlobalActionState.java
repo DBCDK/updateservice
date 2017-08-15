@@ -233,7 +233,7 @@ public class GlobalActionState {
             /*
              If the record lacks 001a and 001b it is not a valid record and will be rejected at a later stage.
              However since we want to perform the double record possible check as soon as possible we have to
-             handle empty records - therefor this check/hack.
+             handle empty records - therefore this check/hack.
 
              False is returned as a record without 001a and 001b can't possibly exist already.
             */
@@ -243,8 +243,8 @@ public class GlobalActionState {
                 Boolean markedForDeletion = marcRecordReader.markedForDeletion();
                 Boolean isDBCMode = getLibraryGroup().isDBC();
                 Boolean recordExists = recordExists();
-                Integer agencyIdAsInteger = marcRecordReader.agencyIdAsInteger();
-                Boolean agencyIdEqualsRawRepoCommonLibrary = agencyIdAsInteger.equals(RawRepo.COMMON_AGENCY);
+                Integer getAgencyIdAsInteger = marcRecordReader.getAgencyIdAsInteger();
+                Boolean agencyIdEqualsRawRepoCommonLibrary = getAgencyIdAsInteger.equals(RawRepo.COMMON_AGENCY);
                 doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
@@ -313,7 +313,7 @@ public class GlobalActionState {
     /**
      * Checks if the request contains a valid record scheme.
      * <p>
-     * The valid record scheme is defined by the contant
+     * The valid record scheme is defined by the content
      * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}
      *
      * @return Returns <code>true</code> if the record scheme is equal to
@@ -337,7 +337,7 @@ public class GlobalActionState {
     /**
      * Checks if the request contains a valid record packing.
      * <p>
-     * The valid record packing is defined by the contant
+     * The valid record packing is defined by the content
      * {@link #RECORD_PACKING_XML}
      *
      * @return Returns <code>true</code> if the record packing is equal to
@@ -483,7 +483,7 @@ public class GlobalActionState {
 
     public boolean recordExists() throws UpdateException {
         if (this.recordExists == null) {
-            this.recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.agencyIdAsInteger());
+            this.recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.getAgencyIdAsInteger());
         }
 
         return this.recordExists;

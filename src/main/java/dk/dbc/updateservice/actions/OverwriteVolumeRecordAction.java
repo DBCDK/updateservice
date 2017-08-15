@@ -44,7 +44,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.agencyId())) {
+            if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 return result = performActionDBCRecord();
             } else {
                 return result = performActionDefault();
@@ -61,9 +61,9 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         ServiceResult result;
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        String parentId = reader.parentRecordId();
-        Integer agencyId = reader.agencyIdAsInteger();
-        Integer parentAgencyId = reader.parentAgencyIdAsInteger();
+        String parentId = reader.getParentRecordId();
+        Integer agencyId = reader.getAgencyIdAsInteger();
+        Integer parentAgencyId = reader.getParentAgencyIdAsInteger();
 
         if (recordId.equals(parentId)) {
             Integer errorAgencyId = agencyId;

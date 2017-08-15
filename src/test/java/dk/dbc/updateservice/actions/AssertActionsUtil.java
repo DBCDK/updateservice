@@ -160,11 +160,11 @@ public class AssertActionsUtil {
     }
 
     public static String getAgencyId(MarcRecord record) {
-        return new MarcRecordReader(record).agencyId();
+        return new MarcRecordReader(record).getAgencyId();
     }
 
     public static Integer getAgencyIdAsInteger(MarcRecord record) {
-        return new MarcRecordReader(record).agencyIdAsInteger();
+        return new MarcRecordReader(record).getAgencyIdAsInteger();
     }
 
     public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) throws UpdateException {

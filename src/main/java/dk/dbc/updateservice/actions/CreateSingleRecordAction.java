@@ -54,7 +54,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
-            if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
+            if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -75,7 +75,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
         // The only records we are interested in are MarcXchange and Articles with different recordId
         Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
-        agenciesForRecord.remove(reader.agencyIdAsInteger() );
+        agenciesForRecord.remove(reader.getAgencyIdAsInteger() );
 
         Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {

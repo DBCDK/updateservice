@@ -44,7 +44,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.agencyId())) {
+            if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 return result = performActionDBCRecord();
             } else {
                 return result = performActionDefault();
@@ -63,10 +63,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
 
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
-        if (RawRepo.AUTHORITY_AGENCY.equals(reader.agencyIdAsInteger())) {
+        if (RawRepo.AUTHORITY_AGENCY.equals(reader.getAgencyIdAsInteger())) {
             Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
-                logger.info("Found child record for {}:{} - {}:{}", reader.recordId(), reader.agencyId(), id.getBibliographicRecordId(), id.getAgencyId());
+                logger.info("Found child record for {}:{} - {}:{}", reader.recordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 Map<String, MarcRecord> records = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
                 MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
                 records.put(reader.recordId(), record);
@@ -129,7 +129,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
 
             return result = loadRecord(recordId, agencyId);
         } finally {
@@ -154,7 +154,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
 
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
                 if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
@@ -326,9 +326,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(linkRecord);
                 // The real boolean wanted is :
                 // (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
-                // Fortunatedly it can be reduced to :
+                // Fortunately it can be reduced to :
                 boolean isOneOrBothInProduction = !(isTargetRecordInProduction && isLinkRecInProduction);
-                logger.info("Is linkrec InProduction {}", isLinkRecInProduction);
+                logger.info("Is linkRec InProduction {}", isLinkRecInProduction);
                 logger.info("IsOneOrBothInProduction {}", isOneOrBothInProduction);
                 logger.info("Will classifications change from {{}:{}} to record '{{}:{}}': {}", recordId, agencyId, destinationCommonRecordId, agencyId, classificationsChanged);
 

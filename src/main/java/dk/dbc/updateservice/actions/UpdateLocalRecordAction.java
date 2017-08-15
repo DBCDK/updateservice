@@ -58,7 +58,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
 
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String parentId = reader.parentRecordId();
+            String parentId = reader.getParentRecordId();
             if (reader.markedForDeletion()) {
                 if (parentId == null) {
                     return res = performSingleDeleteAction();
@@ -70,8 +70,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             // If the record exists already then no problem
             // However if the record doesn't already exist we need to check if the record has existed before but is deleted
             // And if so, is the common record alive?
-            if (state.getRawRepo().recordExistsMaybeDeleted(reader.recordId(), reader.agencyIdAsInteger())) {
-                Record r = state.getRawRepo().fetchRecord(reader.recordId(), reader.agencyIdAsInteger());
+            if (state.getRawRepo().recordExistsMaybeDeleted(reader.recordId(), reader.getAgencyIdAsInteger())) {
+                Record r = state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger());
                 if (r.isDeleted() && MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                     Record commonRecord = state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY);
                     if (commonRecord.isDeleted()) {
@@ -149,7 +149,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -199,7 +199,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
-                AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).agencyId());
+                AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).getAgencyId());
                 if (state.getOpenAgencyService().hasFeature(agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)) {
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -231,8 +231,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return result;
             }
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String parentId = reader.parentRecordId();
-            Integer parentAgencyId = reader.parentAgencyIdAsInteger();
+            String parentId = reader.getParentRecordId();
+            Integer parentAgencyId = reader.getParentAgencyIdAsInteger();
             Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentId, parentAgencyId));
             if (recordIdChildrenList.size() != 1) {
                 return result = ServiceResult.newOkResult();

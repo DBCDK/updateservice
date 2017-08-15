@@ -105,10 +105,7 @@ public class UpdateRequestAction extends AbstractAction {
         logger.entry();
         try {
             OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
-            if (optionsDTO != null && optionsDTO.getOption() != null) {
-                return optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
-            }
-            return false;
+            return (optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY));
         } finally {
             logger.exit();
         }
@@ -195,7 +192,7 @@ public class UpdateRequestAction extends AbstractAction {
                     return false;
                 }
 
-                if (!(reader.hasSubfield("001", "b") && !reader.agencyId().isEmpty() && reader.agencyIdAsInteger() > 0)) {
+                if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInteger() > 0)) {
                     return false;
                 }
             }
