@@ -204,7 +204,7 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -227,7 +227,7 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -250,7 +250,7 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -273,8 +273,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -298,8 +298,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -323,8 +323,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -349,8 +349,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -375,8 +375,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -404,8 +404,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -433,8 +433,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -462,8 +462,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -491,8 +491,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -520,8 +520,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -549,8 +549,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -578,8 +578,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("830010", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
         when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
@@ -608,8 +608,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature("830010", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
         when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
@@ -638,8 +638,8 @@ public class AuthenticateRecordActionTest {
 
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
-        when(state.getRawRepo().recordExists(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);

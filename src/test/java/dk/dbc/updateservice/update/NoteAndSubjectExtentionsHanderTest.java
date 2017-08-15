@@ -96,8 +96,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputReader, testSet.messages);
@@ -116,8 +116,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke2");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "med klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputReader, testSet.messages);
@@ -138,8 +138,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         testSet.commonRecWriter.addOrReplaceSubfield("008", "d", "l");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputReader, testSet.messages);
@@ -159,8 +159,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         testSet.commonRecWriter.addOrReplaceSubfield("008", "d", "l");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputReader, testSet.messages);
@@ -178,8 +178,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputReader, testSet.messages);
@@ -305,7 +305,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
 
@@ -318,8 +318,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
 
@@ -335,8 +335,8 @@ public class NoteAndSubjectExtentionsHanderTest {
         writer.addOrReplaceSubfield("032", "a", "NET");
         String groupId = "870970";
 
-        when(rawRepo.recordExists(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 

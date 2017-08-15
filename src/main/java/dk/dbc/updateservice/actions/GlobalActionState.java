@@ -483,7 +483,7 @@ public class GlobalActionState {
 
     public boolean recordExists() throws UpdateException {
         if (this.recordExists == null) {
-            this.recordExists = rawRepo.recordExists(marcRecordReader.recordId(), marcRecordReader.getAgencyIdAsInteger());
+            this.recordExists = rawRepo.recordExists(marcRecordReader.getRecordId(), marcRecordReader.getAgencyIdAsInteger());
         }
 
         return this.recordExists;

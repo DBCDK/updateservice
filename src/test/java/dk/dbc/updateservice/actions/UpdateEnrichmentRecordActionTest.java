@@ -89,7 +89,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_CreateRecord_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
@@ -151,7 +151,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_CreateRecord_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
@@ -197,7 +197,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_UpdateRecord_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
@@ -259,7 +259,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_UpdateRecord_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
@@ -517,7 +517,7 @@ public class UpdateEnrichmentRecordActionTest {
     public void testPerformAction_DeleteRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         new MarcRecordWriter(record).markForDeletion();
 
@@ -537,7 +537,7 @@ public class UpdateEnrichmentRecordActionTest {
 
     private Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock(recordId, agencyId);
         rawRepoRecord.setDeleted(false);

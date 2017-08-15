@@ -79,7 +79,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 return performDeletionAction();
             }
 
-            String wrkRecordId = reader.recordId();
+            String wrkRecordId = reader.getRecordId();
             String wrkParentId = reader.getParentRecordId();
             if (wrkParentId != null && !wrkParentId.isEmpty()) {
                 String agencyId = reader.getAgencyId();
@@ -136,7 +136,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) throws UpdateException {
         logger.entry();
         try {
-            String recordId = new MarcRecordReader(record).recordId();
+            String recordId = new MarcRecordReader(record).getRecordId();
 
             children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
@@ -168,7 +168,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {

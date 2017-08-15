@@ -60,7 +60,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
         ServiceResult result;
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         String parentId = reader.getParentRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         Integer parentAgencyId = reader.getParentAgencyIdAsInteger();

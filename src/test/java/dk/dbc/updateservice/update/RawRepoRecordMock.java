@@ -52,8 +52,8 @@ public class RawRepoRecordMock implements Record {
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
@@ -72,8 +72,8 @@ public class RawRepoRecordMock implements Record {
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke2");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "med klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
@@ -94,8 +94,8 @@ public class RawRepoRecordMock implements Record {
         testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
@@ -115,8 +115,8 @@ public class RawRepoRecordMock implements Record {
         testSet.commonRecWriter.addOrReplaceSubfield("008" ,"d" , "l");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);
@@ -133,8 +133,8 @@ public class RawRepoRecordMock implements Record {
         testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "uden klassemærke");
 
-        when(rawRepo.recordExists(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecord(eq(testSet.reader.recordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
+        when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
         try {
             instance.checkForAlteredClassificationForDisputas(testSet.inputRecord, testSet.inputReader, testSet.messages);

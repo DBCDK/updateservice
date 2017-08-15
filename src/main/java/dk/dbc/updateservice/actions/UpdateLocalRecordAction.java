@@ -70,10 +70,10 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             // If the record exists already then no problem
             // However if the record doesn't already exist we need to check if the record has existed before but is deleted
             // And if so, is the common record alive?
-            if (state.getRawRepo().recordExistsMaybeDeleted(reader.recordId(), reader.getAgencyIdAsInteger())) {
-                Record r = state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger());
+            if (state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
+                Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
                 if (r.isDeleted() && MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
-                    Record commonRecord = state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY);
+                    Record commonRecord = state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY);
                     if (commonRecord.isDeleted()) {
                         String message = state.getMessages().getString("create.record.with.deleted.common");
 
@@ -148,7 +148,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
         try {
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
@@ -194,7 +194,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         try {
             if (!rawRepo.children(record).isEmpty()) {
                 MarcRecordReader reader = new MarcRecordReader(this.record);
-                String recordId = reader.recordId();
+                String recordId = reader.getRecordId();
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }

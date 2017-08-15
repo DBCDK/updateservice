@@ -89,7 +89,7 @@ public class ValidateRecordAction extends AbstractAction {
 
             //TODO: VERSION2: det her ligner spildt arbejde
             MarcRecordReader reader = new MarcRecordReader(state.readRecord());
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {

@@ -68,7 +68,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 return;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             for (Integer agencyId : agencies) {
                 if (!RawRepo.isSchoolEnrichment(agencyId)) {
                     continue;

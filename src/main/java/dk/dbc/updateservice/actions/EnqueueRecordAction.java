@@ -58,7 +58,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         try {
             String providerId;
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.recordId();
+            String recId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             if (agencyId.equals(RawRepo.ARTICLE_AGENCY)) {

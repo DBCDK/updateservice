@@ -90,7 +90,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             result.addMessageEntryDtos(errors);
 
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             if (result.hasErrors()) {
                 logger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
@@ -165,7 +165,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
-            String message = String.format(resourceBundle.getString("edit.record.other.library.error"), reader.recordId());
+            String message = String.format(resourceBundle.getString("edit.record.other.library.error"), reader.getRecordId());
             MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
             messageEntryDTO.setMessage(message);
             result.add(messageEntryDTO);
@@ -183,7 +183,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
             String owner = reader.getValue("996", "a");

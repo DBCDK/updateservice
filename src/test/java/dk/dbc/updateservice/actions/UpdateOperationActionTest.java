@@ -646,7 +646,7 @@ public class UpdateOperationActionTest {
         fields.add(field002);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -658,7 +658,7 @@ public class UpdateOperationActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
@@ -676,9 +676,9 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", "12345678", "001a", reader.recordId()))).thenReturn(true);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", "12345678", "001a", reader.getRecordId()))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -698,7 +698,7 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", "12345678"))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -720,9 +720,9 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", "12345678", "002c", "12345678", "001a", reader.recordId()))).thenReturn(true);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", "12345678", "002c", "12345678", "001a", reader.getRecordId()))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -743,7 +743,7 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", "12345678", "002c", "12345678"))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -765,7 +765,7 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -790,8 +790,8 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -810,8 +810,8 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -837,10 +837,10 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
-        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.recordId()))).thenReturn(false);
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.getRecordId()))).thenReturn(false);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
@@ -867,9 +867,9 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().recordExists(reader.recordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.recordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.recordId())).thenReturn(holdingList001);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.getRecordId())).thenReturn(holdingList001);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList002);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);

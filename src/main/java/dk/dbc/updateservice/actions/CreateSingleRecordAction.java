@@ -54,7 +54,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
 
-            if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.recordId()))) {
+            if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -79,7 +79,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
 
         Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {
-            Record r = state.getRawRepo().fetchRecord(reader.recordId(), agencyId);
+            Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), agencyId);
             if( !r.isDeleted() && !MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                 listToCheck.add(agencyId);
             }
@@ -88,7 +88,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         // The rule is: FBS and DBC libraries cannot have overlapping records.
         // However, FFU libraries are allowed to have overlapping posts as they never use enrichment posts
         if (!listToCheck.isEmpty()) {
-            logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", listToCheck, reader.recordId());
+            logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", listToCheck, reader.getRecordId());
             Set<String> ffuAgencyIds = state.getFFULibraries();
             boolean allAgenciesAreFFU = true;
             for (Integer agencyForRecord : listToCheck) {

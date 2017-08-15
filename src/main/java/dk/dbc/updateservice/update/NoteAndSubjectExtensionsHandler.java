@@ -39,7 +39,7 @@ public class NoteAndSubjectExtensionsHandler {
 
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.recordId();
+            String recId = reader.getRecordId();
 
             if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 logger.info("No existing record - returning same record");
@@ -86,7 +86,7 @@ public class NoteAndSubjectExtensionsHandler {
         logger.entry();
 
         try {
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
                 MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
                 MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
@@ -233,7 +233,7 @@ public class NoteAndSubjectExtensionsHandler {
 
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-            String recId = reader.recordId();
+            String recId = reader.getRecordId();
             if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 return result;
             }

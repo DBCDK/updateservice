@@ -126,7 +126,7 @@ public class RawRepo {
             if (allAgencies != null) {
                 MarcRecordReader reader = new MarcRecordReader(record);
                 for (Integer agencyId : allAgencies) {
-                    if (recordExists(reader.recordId(), agencyId)) {
+                    if (recordExists(reader.getRecordId(), agencyId)) {
                         activeAgencies.add(agencyId);
                     }
                 }

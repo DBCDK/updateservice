@@ -51,7 +51,7 @@ public class LinkRecordActionTest {
     public void testPerformAction_LinkedRecordExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         String parentId = reader.getParentRecordId();
 
@@ -98,7 +98,7 @@ public class LinkRecordActionTest {
     public void testPerformAction_LinkedRecordNotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         String parentId = reader.getParentRecordId();
 

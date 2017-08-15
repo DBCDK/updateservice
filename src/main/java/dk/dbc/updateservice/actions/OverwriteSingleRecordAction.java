@@ -66,10 +66,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         if (RawRepo.AUTHORITY_AGENCY.equals(reader.getAgencyIdAsInteger())) {
             Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
-                logger.info("Found child record for {}:{} - {}:{}", reader.recordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
+                logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 Map<String, MarcRecord> records = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
                 MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
-                records.put(reader.recordId(), record);
+                records.put(reader.getRecordId(), record);
                 MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
                 children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentRecord));
             }
@@ -114,7 +114,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         for (Integer id : holdingsLibraries) {
             if (phLibraries.contains(id.toString())) {
                 logger.info("Found PH library with holding! {}", id);
-                RecordId recordId = new RecordId(new MarcRecordReader(record).recordId(), id);
+                RecordId recordId = new RecordId(new MarcRecordReader(record).getRecordId(), id);
                 EnqueuePHHoldingsRecordAction enqueuePHHoldingsRecordAction = new EnqueuePHHoldingsRecordAction(state, settings, record, recordId);
                 result.add(enqueuePHHoldingsRecordAction);
             }
@@ -128,7 +128,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         MarcRecord result = null;
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             return result = loadRecord(recordId, agencyId);
@@ -153,7 +153,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         List<ServiceAction> result = new ArrayList<>();
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
