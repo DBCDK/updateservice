@@ -62,7 +62,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.recordId();
+            String recId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
             MarcRecord recordToStore = recordToStore();
             recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);

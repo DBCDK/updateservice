@@ -66,7 +66,7 @@ public class StoreRecordActionTest {
     public void testPerformAction_StoreRecordOk() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
@@ -113,7 +113,7 @@ public class StoreRecordActionTest {
     public void testPerformAction_UnsupportedEncoding() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
@@ -156,7 +156,7 @@ public class StoreRecordActionTest {
     public void testPerformAction_JAXBException() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
         RawRepoEncoder encoder = mock(RawRepoEncoder.class);
         state.setLibraryGroup(libraryGroup);

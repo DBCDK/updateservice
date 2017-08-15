@@ -156,7 +156,7 @@ public class AssertActionsUtil {
     }
 
     public static String getRecordId(MarcRecord record) {
-        return new MarcRecordReader(record).recordId();
+        return new MarcRecordReader(record).getRecordId();
     }
 
     public static String getAgencyId(MarcRecord record) {

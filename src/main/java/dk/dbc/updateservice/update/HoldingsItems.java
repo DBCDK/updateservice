@@ -50,9 +50,9 @@ public class HoldingsItems {
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = new HashSet<>();
         try {
-            result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(record).recordId()));
+            result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(record).getRecordId()));
             MarcRecordReader mm = new MarcRecordReader(record);
-            List<String> aliasIds = mm.centralAliasIds();
+            List<String> aliasIds = mm.getCentralAliasIds();
             for (String s : aliasIds) {
                 result.addAll(getAgenciesThatHasHoldingsForId(s));
             }

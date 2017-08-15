@@ -53,7 +53,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         try {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {

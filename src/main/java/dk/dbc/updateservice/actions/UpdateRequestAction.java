@@ -188,7 +188,7 @@ public class UpdateRequestAction extends AbstractAction {
             MarcRecordReader reader = new MarcRecordReader(record);
 
             if (reader.hasField("001")) { // If 001 is completely missing it will be caught in a later validation
-                if (!(reader.hasSubfield("001", "a") && !reader.recordId().isEmpty())) {
+                if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {
                     return false;
                 }
 

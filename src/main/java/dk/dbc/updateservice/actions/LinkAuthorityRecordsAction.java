@@ -25,7 +25,7 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
 

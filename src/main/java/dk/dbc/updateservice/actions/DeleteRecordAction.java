@@ -99,7 +99,7 @@ public class DeleteRecordAction extends StoreRecordAction {
         MarcRecord result = null;
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             Record record = rawRepo.fetchRecord(recordId, agencyId);

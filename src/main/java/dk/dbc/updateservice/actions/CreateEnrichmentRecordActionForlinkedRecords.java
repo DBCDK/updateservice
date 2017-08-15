@@ -87,7 +87,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
             logger.info("Creating sub actions to store new enrichment record.");
             logger.info("Enrichment record:\n{}", enrichmentRecord);
 
-            String recordId = new MarcRecordReader(enrichmentRecord).recordId();
+            String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
             StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
             storeRecordAction.setMimetype(MIMETYPE);
 

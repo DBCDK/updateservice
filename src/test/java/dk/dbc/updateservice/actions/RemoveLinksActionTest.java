@@ -39,7 +39,7 @@ public class RemoveLinksActionTest {
         GlobalActionState state = new UpdateTestUtils().getGlobalActionStateMockObject();
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.recordId();
+        String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
 
         RemoveLinksAction instance = new RemoveLinksAction(state, record);

@@ -653,7 +653,7 @@ public class LibraryRecordsHandler {
         MarcRecordWriter writer = new MarcRecordWriter(result);
         MarcRecordReader reader = new MarcRecordReader(updatingCommonRecord);
 
-        writer.addOrReplaceSubfield("001", "a", reader.recordId());
+        writer.addOrReplaceSubfield("001", "a", reader.getRecordId());
         writer.addOrReplaceSubfield("001", "b", agencyId);
         writer.setChangedTimestamp();
         writer.setCreationTimestamp();
@@ -888,7 +888,7 @@ public class LibraryRecordsHandler {
             MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
             MarcRecord dbcEnrichmentRecord;
 
-            String recId = correctedRecordReader.recordId();
+            String recId = correctedRecordReader.getRecordId();
             Integer agencyId = RawRepo.COMMON_AGENCY;
 
             MarcRecord curRecord;

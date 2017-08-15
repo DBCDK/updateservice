@@ -83,7 +83,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecord deleteRecord = new MarcRecord(record);
             MarcRecordReader reader = new MarcRecordReader(deleteRecord);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             logger.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
@@ -102,13 +102,13 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
         logger.entry();
         try {
-            String commonRecordId = new MarcRecordReader(dyingCommonRecord).recordId();
+            String commonRecordId = new MarcRecordReader(dyingCommonRecord).getRecordId();
             MarcRecord newEnrichmentRecord = new MarcRecord(record);
             MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", commonRecordId);
 
             MarcRecordReader reader = new MarcRecordReader(record);
-            String recordId = reader.recordId();
+            String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId);
 
