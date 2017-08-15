@@ -68,7 +68,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String recordId = reader.recordId();
-        String agencyId = reader.agencyId();
+        String agencyId = reader.getAgencyId();
 
         when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
 
@@ -135,7 +135,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, commonRecordId);
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String recordId = reader.recordId();
-        String agencyId = reader.agencyId();
+        String agencyId = reader.getAgencyId();
 
         when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
 
@@ -202,7 +202,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
 
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
-        String agencyId = reader.agencyId();
+        String agencyId = reader.getAgencyId();
 
         when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenThrow(new ScripterException("Script error"));
 

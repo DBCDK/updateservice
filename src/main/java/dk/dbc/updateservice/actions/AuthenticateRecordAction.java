@@ -91,7 +91,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            String agencyId = reader.agencyId();
+            String agencyId = reader.getAgencyId();
             if (result.hasErrors()) {
                 logger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 result.setStatus(UpdateStatusEnumDTO.FAILED);
@@ -129,12 +129,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             // If the group is identical to the agency of the record then authenticate OK
-            if (groupId.equals(reader.agencyId())) {
+            if (groupId.equals(reader.getAgencyId())) {
                 logger.info("Group is identical with agencyId -> exit OK");
                 return result;
             }
 
-            if (RawRepo.COMMON_AGENCY.equals(reader.agencyIdAsInteger())) {
+            if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger())) {
                 logger.info("Record belongs to 870970");
                 NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
@@ -158,7 +158,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             Integer groupIdAsInteger = Integer.parseInt(groupId);
             if (300000 <= groupIdAsInteger && groupIdAsInteger <= 399999) {
-                if (reader.agencyIdAsInteger().equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
+                if (reader.getAgencyIdAsInteger().equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
                     logger.info("Group is school agency and record is owner by 300000 -> exit OK");
                     return result;
                 }
@@ -184,7 +184,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
             String owner = reader.getValue("996", "a");
 

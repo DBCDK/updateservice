@@ -54,7 +54,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record:\n{}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            Integer agencyId = reader.agencyIdAsInteger();
+            Integer agencyId = reader.getAgencyIdAsInteger();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
@@ -76,8 +76,8 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         try {
             LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
             MarcRecordReader reader = new MarcRecordReader(record);
-            String parentId = reader.parentRecordId();
-            Integer agencyId = reader.parentAgencyIdAsInteger();
+            String parentId = reader.getParentRecordId();
+            Integer agencyId = reader.getParentAgencyIdAsInteger();
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
             return linkRecordAction;
         } finally {

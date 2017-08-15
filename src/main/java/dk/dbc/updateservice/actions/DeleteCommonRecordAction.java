@@ -26,7 +26,7 @@ import java.util.Properties;
  * </p>
  */
 public class DeleteCommonRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteSingleRecordAction.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(DeleteCommonRecordAction.class);
 
     Properties settings;
 

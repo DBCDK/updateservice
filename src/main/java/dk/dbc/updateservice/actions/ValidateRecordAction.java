@@ -90,7 +90,7 @@ public class ValidateRecordAction extends AbstractAction {
             //TODO: VERSION2: det her ligner spildt arbejde
             MarcRecordReader reader = new MarcRecordReader(state.readRecord());
             String recordId = reader.recordId();
-            String agencyId = reader.agencyId();
+            String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {
                 logger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);

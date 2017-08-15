@@ -616,7 +616,7 @@ public class LibraryRecordsHandler {
 
     private MarcRecord correctRecordIfEmpty(MarcRecord record) {
         MarcRecordReader reader = new MarcRecordReader(record);
-        String agency = reader.agencyId();
+        String agency = reader.getAgencyId();
         if (RawRepo.DBC_ENRICHMENT.toString().equals(agency) || RawRepo.COMMON_AGENCY.toString().equals(agency)) {
             return record;
         }
@@ -844,12 +844,12 @@ public class LibraryRecordsHandler {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         try {
-            if (RawRepo.DBC_AGENCY_LIST.contains(reader.agencyId()) && (
+            if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
                     openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
                             openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
 
                 logger.info("Record is 870970 and has either USE_ENRICHMENT or AUTH_ROOT so calling splitRecordDataIO");
-                result = splitRecordDataIO(record, reader.agencyId());
+                result = splitRecordDataIO(record, reader.getAgencyId());
             } else {
                 logger.info("Record is not 870970 or has neither USE_ENRICHMENT nor AUTH_ROOT so returning same record");
                 result = Arrays.asList(record);
@@ -878,7 +878,7 @@ public class LibraryRecordsHandler {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!reader.agencyIdAsInteger().equals(RawRepo.COMMON_AGENCY)) {
+            if (!reader.getAgencyIdAsInteger().equals(RawRepo.COMMON_AGENCY)) {
                 logger.info("Agency id of record is not 870970 - returning same record");
                 return Arrays.asList(record);
             }

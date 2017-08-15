@@ -67,7 +67,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -114,7 +114,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -157,7 +157,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         RawRepoEncoder encoder = mock(RawRepoEncoder.class);
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);

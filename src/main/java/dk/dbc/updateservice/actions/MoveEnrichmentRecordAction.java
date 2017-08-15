@@ -20,7 +20,7 @@ import java.util.Properties;
 /**
  * Action to move an existing enrichment to another common record.
  * <p>
- * The only change that is maked to the enrichment record is in 001a.
+ * The only change that is made to the enrichment record is in 001a.
  * The rest of the record is unchanged.
  * </p>
  * <p>
@@ -80,18 +80,17 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     private ServiceAction createDeleteEnrichmentAction() {
         logger.entry();
-        ServiceAction result = null;
         try {
             MarcRecord deleteRecord = new MarcRecord(record);
             MarcRecordReader reader = new MarcRecordReader(deleteRecord);
             String recordId = reader.recordId();
-            String agencyId = reader.agencyId();
+            String agencyId = reader.getAgencyId();
             logger.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
             MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
             writer.markForDeletion();
             return createUpdateRecordAction(deleteRecord);
         } finally {
-            logger.exit(result);
+            logger.exit(null);
         }
     }
 
@@ -102,7 +101,6 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
         logger.entry();
-        ServiceAction result = null;
         try {
             String commonRecordId = new MarcRecordReader(dyingCommonRecord).recordId();
             MarcRecord newEnrichmentRecord = new MarcRecord(record);
@@ -111,7 +109,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.recordId();
-            String agencyId = reader.agencyId();
+            String agencyId = reader.getAgencyId();
             logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId);
 
             if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
@@ -138,7 +136,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit(result);
+            logger.exit(null);
         }
     }
 
@@ -173,7 +171,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = null;
         try {
             MarcRecordReader reader = new MarcRecordReader(updateRecord);
-            updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, reader.agencyId());
+            updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, reader.getAgencyId());
             updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(commonRecord);
             updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
             updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(updateRecord);

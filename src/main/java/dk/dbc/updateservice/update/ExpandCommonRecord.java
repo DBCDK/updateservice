@@ -32,7 +32,7 @@ public class ExpandCommonRecord {
         for (Map.Entry<String, MarcRecord> entry : records.entrySet()) {
             MarcRecordReader reader = new MarcRecordReader(entry.getValue());
             String recordId = entry.getKey();
-            String agencyId = reader.agencyId();
+            String agencyId = reader.getAgencyId();
             logger.info("{}:{}", recordId, agencyId);
             if ("870970".equals(agencyId)) {
                 commonRecord = new MarcRecord(entry.getValue());

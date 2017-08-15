@@ -90,7 +90,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
@@ -152,7 +152,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
@@ -198,7 +198,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
@@ -260,7 +260,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
@@ -518,7 +518,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         new MarcRecordWriter(record).markForDeletion();
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -538,7 +538,7 @@ public class UpdateEnrichmentRecordActionTest {
     private Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.recordId();
-        Integer agencyId = reader.agencyIdAsInteger();
+        Integer agencyId = reader.getAgencyIdAsInteger();
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock(recordId, agencyId);
         rawRepoRecord.setDeleted(false);
         rawRepoRecord.setMimeType(mimetype);

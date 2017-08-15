@@ -248,7 +248,7 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);
             MarcRecordReader curReader = new MarcRecordReader(curRecord);
 
-            curWriter.addOrReplaceSubfield("001", "b", reader.agencyId());
+            curWriter.addOrReplaceSubfield("001", "b", reader.getAgencyId());
             if (!isNationalCommonRecord(curRecord)) {
                 return result;
             }
