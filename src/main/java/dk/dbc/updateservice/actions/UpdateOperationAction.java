@@ -319,7 +319,30 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
 
+                // If record exists then see
                 if (recordExists) {
+                    Record currentRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
+                    MarcRecord currentMarc = new RawRepoDecoder().decodeRecord(currentRecord.getContent());
+                    MarcRecordReader currentReader = new MarcRecordReader(currentMarc);
+                    List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
+                    List<String> previousFaustList = reader.getCentralAliasIds();
+
+                    List<String> missingPreviousFaust = new ArrayList<>();
+                    for (String f : currentPreviousFaustList) {
+                        if (!previousFaustList.contains(f)) {
+                            missingPreviousFaust.add(f);
+                        }
+                    }
+
+                    for (String m : missingPreviousFaust) {
+                        Record previousRecord = state.getRawRepo().fetchRecord(m, RawRepo.COMMON_AGENCY);
+
+                        if (previousRecord.isDeleted() && state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
+                            return state.getMessages().getString("update.record.holdings.on.002a");
+                        }
+                    }
+
+                    /*
                     Record existingRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
                     MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
@@ -332,7 +355,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                                 return state.getMessages().getString("update.record.holdings.on.002a");
                             }
                         }
-                    }
+                    }*/
                 }
             }
 
