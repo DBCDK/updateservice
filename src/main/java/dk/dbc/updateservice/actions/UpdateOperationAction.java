@@ -319,7 +319,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
 
-                // If record exists then see
+                // Removal of 002a reference is allowed if either the referenced post still exists (no matter if there is holding or not)
+                // or if the referenced record is deleted/non-existent and does NOT have holdings
                 if (recordExists) {
                     Record currentRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
                     MarcRecord currentMarc = new RawRepoDecoder().decodeRecord(currentRecord.getContent());
@@ -327,35 +328,29 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
                     List<String> previousFaustList = reader.getCentralAliasIds();
 
-                    List<String> missingPreviousFaust = new ArrayList<>();
+                    // The 002 field is repeatable but *a is not
+                    // So we need to compare the list of 002a fields between new and current
+                    List<String> removedPreviousFaust = new ArrayList<>();
                     for (String f : currentPreviousFaustList) {
                         if (!previousFaustList.contains(f)) {
-                            missingPreviousFaust.add(f);
+                            removedPreviousFaust.add(f);
                         }
                     }
 
-                    for (String m : missingPreviousFaust) {
-                        Record previousRecord = state.getRawRepo().fetchRecord(m, RawRepo.COMMON_AGENCY);
+                    for (String m : removedPreviousFaust) {
+                        boolean deletedOrMissing;
+                        if (state.getRawRepo().recordExists(m, RawRepo.COMMON_AGENCY)) {
+                            Record previousRecord = state.getRawRepo().fetchRecord(m, RawRepo.COMMON_AGENCY);
+                            deletedOrMissing = previousRecord.isDeleted();
+                        } else {
+                            // The record will probably always exist, this is just to be safe
+                            deletedOrMissing = true;
+                        }
 
-                        if (previousRecord.isDeleted() && state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
+                        if (deletedOrMissing && state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
                             return state.getMessages().getString("update.record.holdings.on.002a");
                         }
                     }
-
-                    /*
-                    Record existingRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
-                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
-                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
-
-                    // The input record has no 002a field so check if an existing record does
-                    if (reader.getCentralAliasIds().size() == 0 && existingRecordReader.hasSubfield("002", "a")) {
-                        for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
-                            Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
-                            if (holdingAgencies.size() > 0) {
-                                return state.getMessages().getString("update.record.holdings.on.002a");
-                            }
-                        }
-                    }*/
                 }
             }
 
