@@ -9,7 +9,9 @@ import dk.dbc.iscrum.records.*;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -787,12 +789,7 @@ public class UpdateOperationActionTest {
         MarcRecordWriter previousWriter = new MarcRecordWriter(previousMarcRecord);
         previousWriter.addFieldSubfield("001", "a", "12345678");
         previousWriter.markForDeletion();
-        // AssertActionsUtil.createRawRepoRecord always return a Record with deleted = false
-        // So in order to mock a deleted record we have to construct the object by ourselves
-        RawRepoRecordMock previousRecord = new RawRepoRecordMock("12345678", RawRepo.COMMON_AGENCY);
-        previousRecord.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
-        previousRecord.setDeleted(true);
-        previousRecord.setContent(new RawRepoEncoder().encodeRecord(record));
+
 
         Set<Integer> holdingList = new HashSet<>();
         holdingList.add(123);
@@ -802,7 +799,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord("12345678", RawRepo.COMMON_AGENCY)).thenReturn(previousRecord);
+        when(state.getRawRepo().recordExistsIsDeleted("12345678", RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
