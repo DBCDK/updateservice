@@ -110,7 +110,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() ,state.getLibraryGroup(), state.getMessages());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
@@ -338,16 +338,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
 
                     for (String m : removedPreviousFaust) {
-                        boolean deletedOrMissing;
-                        if (state.getRawRepo().recordExists(m, RawRepo.COMMON_AGENCY)) {
-                            Record previousRecord = state.getRawRepo().fetchRecord(m, RawRepo.COMMON_AGENCY);
-                            deletedOrMissing = previousRecord.isDeleted();
-                        } else {
-                            // The record will probably always exist, this is just to be safe
-                            deletedOrMissing = true;
-                        }
-
-                        if (deletedOrMissing && state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
+                        if (state.getRawRepo().recordExistsIsDeleted(m, RawRepo.COMMON_AGENCY) &&
+                                state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
                             return state.getMessages().getString("update.record.holdings.on.002a");
                         }
                     }

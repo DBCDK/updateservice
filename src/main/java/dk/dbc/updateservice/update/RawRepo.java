@@ -459,6 +459,44 @@ public class RawRepo {
         }
     }
 
+    /**
+     * Checks if a record exists but is deleted in RawRepo.
+     *
+     * @param recordId The record id for the record to check for.
+     * @param agencyId The agency id for the record to check for.
+     * @return <code>true</code> if the record exists, <code>false</code> otherwise.
+     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
+     */
+    public boolean recordExistsIsDeleted(String recordId, Integer agencyId) throws UpdateException {
+        logger.entry(recordId, agencyId);
+        StopWatch watch = new Log4JStopWatch();
+
+        boolean result = false;
+        try (Connection conn = dataSourceReader.getConnection()) {
+            try {
+                RawRepoDAO dao = createDAO(conn);
+
+                if (dao.recordExistsMaybeDeleted(recordId, agencyId)) {
+                    Record record = dao.fetchRecord(recordId, agencyId);
+
+                    return record.isDeleted();
+                } else {
+                    throw new UpdateException("Record doesn't exist");
+                }
+            } catch (RawRepoException ex) {
+                conn.rollback();
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            watch.stop("rawrepo.recordExistsMaybeDeleted");
+            logger.exit(result);
+        }
+    }
+
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
