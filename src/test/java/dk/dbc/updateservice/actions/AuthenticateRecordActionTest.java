@@ -337,7 +337,7 @@ public class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "42");
+        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "4");
         new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
         String groupId = "830010";
 
@@ -356,6 +356,35 @@ public class AuthenticateRecordActionTest {
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
         assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
+    }
+
+    @Test
+    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "5");
+        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
+        String groupId = "830010";
+
+        MarcRecord currentRecord = new MarcRecord(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "4");
+
+        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId(groupId);
+        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        ServiceResult actual = instance.performAction();
+        assertThat(actual, equalTo(ServiceResult.newOkResult()));
     }
 
     @Test

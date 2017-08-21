@@ -23,10 +23,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJBException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
 
 /**
  * Action to authenticate a record.
@@ -225,10 +222,13 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 if (!state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.error"));
                 }
-                logger.info("Value of 008 *v is {}", curReader.getValue("008", "v"));
-                // IS-2214 Update: Katalogiseringsniveaucheck
-                if (!("4".equals(curReader.getValue("008", "v")) || "0".equals(curReader.getValue("008", "v")))) {
-                    return createErrorReply(resourceBundle.getString("update.common.record.katalogiseringsniveau.error"));
+                logger.info("New value of 008 *v is {}", reader.getValue("008", "v"));
+                logger.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
+                if ("4".equals(curReader.getValue("008", "v"))) {
+                    final List<String> allowedKatValues = Arrays.asList("0", "1", "5");
+                    if (!allowedKatValues.contains(reader.getValue("008", "v"))) {
+                        return createErrorReply(resourceBundle.getString("update.common.record.katalogiseringsniveau.error"));
+                    }
                 }
                 return createOkReply();
             }
