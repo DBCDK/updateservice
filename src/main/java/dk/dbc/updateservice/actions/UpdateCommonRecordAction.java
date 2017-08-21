@@ -94,6 +94,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 rewriteIndicators();
             }
             // It is here we decide whether it's a single record or a volume/section record
+            // If there is a field 014 either without a subfield x or if the content of subfield x is ANM
+            // then the record is part of a volume/section/head structure.
             String parentId = reader.getParentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 logger.info("Update vol: {}", parentId);
