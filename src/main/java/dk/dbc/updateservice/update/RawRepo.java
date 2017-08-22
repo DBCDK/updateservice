@@ -5,11 +5,12 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
-import dk.dbc.iscrum.records.MarcXchangeFactory;
-import dk.dbc.iscrum.records.marcxchange.CollectionType;
-import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcXchangeFactory;
+import dk.dbc.common.records.marcxchange.CollectionType;
+import dk.dbc.common.records.marcxchange.ObjectFactory;
+import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.RawRepoDAO;
@@ -642,10 +643,10 @@ public class RawRepo {
             if (record.getFields().isEmpty()) {
                 return null;
             }
-            dk.dbc.iscrum.records.marcxchange.RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
+            RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
 
             ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<dk.dbc.iscrum.records.marcxchange.RecordType> jAXBElement = objectFactory.createRecord(marcXchangeType);
+            JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXchangeType);
 
             JAXBContext jc = JAXBContext.newInstance(CollectionType.class);
             Marshaller marshaller = jc.createMarshaller();

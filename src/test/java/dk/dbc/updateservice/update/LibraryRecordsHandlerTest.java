@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.common.records.*;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.javascript.Scripter;
 import org.junit.Before;

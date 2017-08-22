@@ -5,8 +5,8 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import org.junit.Before;
 import org.junit.Test;
 

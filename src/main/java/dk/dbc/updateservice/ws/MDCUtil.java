@@ -5,8 +5,8 @@
 
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
 import org.slf4j.MDC;
 
 public class MDCUtil {

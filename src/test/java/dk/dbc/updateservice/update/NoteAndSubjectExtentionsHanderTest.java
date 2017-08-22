@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.update;
 
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.common.records.*;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;

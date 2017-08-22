@@ -6,11 +6,11 @@
 package dk.dbc.updateservice.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcXchangeFactory;
-import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
-import dk.dbc.iscrum.records.marcxchange.RecordType;
+import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcXchangeFactory;
+import dk.dbc.common.records.marcxchange.ObjectFactory;
+import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oss.ns.catalogingbuild.*;
 import dk.dbc.updateservice.javascript.Scripter;

@@ -5,11 +5,11 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcXchangeFactory;
-import dk.dbc.iscrum.records.marcxchange.CollectionType;
-import dk.dbc.iscrum.records.marcxchange.ObjectFactory;
-import dk.dbc.iscrum.records.marcxchange.RecordType;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcXchangeFactory;
+import dk.dbc.common.records.marcxchange.CollectionType;
+import dk.dbc.common.records.marcxchange.ObjectFactory;
+import dk.dbc.common.records.marcxchange.RecordType;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -48,7 +48,7 @@ public class RawRepoEncoder {
                 return null;
             }
 
-            dk.dbc.iscrum.records.marcxchange.RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
+            RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(record);
 
             ObjectFactory objectFactory = new ObjectFactory();
             JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXchangeType);

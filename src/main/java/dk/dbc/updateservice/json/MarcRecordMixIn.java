@@ -7,7 +7,7 @@ package dk.dbc.updateservice.json;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.iscrum.records.MarcField;
+import dk.dbc.common.records.MarcField;
 
 import java.util.List;
 
