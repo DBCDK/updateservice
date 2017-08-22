@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Before;
 import org.junit.Test;

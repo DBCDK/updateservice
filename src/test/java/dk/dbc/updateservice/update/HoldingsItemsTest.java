@@ -5,11 +5,11 @@
 
 package dk.dbc.updateservice.update;
 
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import dk.dbc.iscrum.records.MarcField;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcSubField;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

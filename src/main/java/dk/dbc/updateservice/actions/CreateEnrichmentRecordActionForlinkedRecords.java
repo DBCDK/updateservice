@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.common.records.*;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;

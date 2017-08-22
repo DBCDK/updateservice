@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.javascript;
 
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.common.records.MarcRecord;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;

@@ -5,8 +5,8 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcRecord;
 
 import java.io.UnsupportedEncodingException;
 

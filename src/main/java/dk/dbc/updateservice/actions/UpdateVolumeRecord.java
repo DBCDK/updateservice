@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.common.records.MarcRecord;
 
 import java.util.Properties;
 

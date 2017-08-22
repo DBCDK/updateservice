@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.records.*;
+import dk.dbc.common.records.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;

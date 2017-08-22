@@ -5,9 +5,9 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.records.MarcConverter;
-import dk.dbc.iscrum.records.MarcRecord;
-import dk.dbc.iscrum.records.MarcRecordReader;
+import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;

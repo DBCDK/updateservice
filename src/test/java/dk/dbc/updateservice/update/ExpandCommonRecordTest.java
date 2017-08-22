@@ -1,8 +1,8 @@
 package dk.dbc.updateservice.update;
 
 
-import dk.dbc.iscrum.records.MarcField;
-import dk.dbc.iscrum.records.MarcRecord;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import org.junit.Before;
 import org.junit.Test;
