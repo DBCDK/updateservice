@@ -8,10 +8,10 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -103,7 +103,7 @@ public class DeleteRecordAction extends StoreRecordAction {
             Integer agencyId = reader.getAgencyIdAsInteger();
 
             Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = new RawRepoDecoder().decodeRecord(record.getContent());
+            return result = RecordContentTransformer.decodeRecord(record.getContent());
         } finally {
             logger.exit(result);
         }

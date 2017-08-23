@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -401,7 +402,7 @@ public class UpdateEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        RawRepoDecoder decoder = mock(RawRepoDecoder.class);
+        UpdateEnrichmentRecordAction.Decoder decoder = mock(UpdateEnrichmentRecordAction.Decoder.class);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
         when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
@@ -542,7 +543,7 @@ public class UpdateEnrichmentRecordActionTest {
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock(recordId, agencyId);
         rawRepoRecord.setDeleted(false);
         rawRepoRecord.setMimeType(mimetype);
-        rawRepoRecord.setContent(new RawRepoEncoder().encodeRecord(record));
+        rawRepoRecord.setContent(RecordContentTransformer.encodeRecord(record));
         return rawRepoRecord;
     }
 }

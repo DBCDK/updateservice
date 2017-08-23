@@ -14,7 +14,6 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +39,6 @@ public class StoreRecordActionTest {
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
-        //libraryGroup = new LibraryGroup(LibraryGroup.Group.FBS);
     }
 
     /**
@@ -118,7 +116,7 @@ public class StoreRecordActionTest {
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        storeRecordAction.encoder = mock(RawRepoEncoder.class);
+        storeRecordAction.encoder = mock(StoreRecordAction.Encoder.class);
 
         when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
@@ -158,7 +156,7 @@ public class StoreRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         Integer agencyId = reader.getAgencyIdAsInteger();
-        RawRepoEncoder encoder = mock(RawRepoEncoder.class);
+        StoreRecordAction.Encoder encoder = mock(StoreRecordAction.Encoder.class);
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);

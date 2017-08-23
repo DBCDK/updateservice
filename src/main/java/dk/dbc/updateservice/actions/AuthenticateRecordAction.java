@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -15,7 +16,6 @@ import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -203,7 +203,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             logger.debug("Checking authentication for updating existing common record.");
-            MarcRecord curRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
             MarcRecordReader curReader = new MarcRecordReader(curRecord);
             String curOwner = curReader.getValue("996", "a");
 

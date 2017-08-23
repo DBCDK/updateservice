@@ -7,11 +7,11 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoEncoder;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.UpdateService;
 import org.slf4j.MDC;
@@ -28,7 +28,7 @@ import java.util.Properties;
 public class StoreRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(StoreRecordAction.class);
 
-    RawRepoEncoder encoder = new RawRepoEncoder();
+    Encoder encoder = new Encoder();
     private String mimetype;
     Properties properties;
 
@@ -43,6 +43,19 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
     public void setMimetype(String mimetype) {
         this.mimetype = mimetype;
+    }
+
+    /**
+     * Class used for mocking during unit test
+     */
+    class Encoder {
+        byte[] encodeRecord(MarcRecord record) throws JAXBException, UnsupportedEncodingException {
+            return RecordContentTransformer.encodeRecord(record);
+        }
+
+        MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
+            return RecordContentTransformer.decodeRecord(bytes);
+        }
     }
 
     /**

@@ -6,11 +6,11 @@
 package dk.dbc.updateservice.javascript;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -58,7 +58,7 @@ public class UpdaterRawRepo {
             if (record.getContent() == null) {
                 result = new MarcRecord();
             } else {
-                result = new RawRepoDecoder().decodeRecord(record.getContent());
+                result = RecordContentTransformer.decodeRecord(record.getContent());
             }
             return result;
         } finally {

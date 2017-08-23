@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -48,7 +49,7 @@ public class NoteAndSubjectExtensionsHandler {
                 return record;
             }
 
-            MarcRecord curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
+            MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
 
             if (!isNationalCommonRecord(curRecord)) {
                 logger.info("Record is not national common record - returning same record");
@@ -90,7 +91,7 @@ public class NoteAndSubjectExtensionsHandler {
         try {
             String recordId = reader.getRecordId();
             if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
-                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+                MarcRecord currentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
                 MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
 
                 String new652 = reader.getValue("652", "m");
@@ -242,9 +243,9 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecord curRecord;
             try {
                 Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
-                curRecord = ExpandCommonMarcRecord.expand(curRecordCollection);
+                curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection);
                 logger.info("curRecord:\n{}", curRecord);
-            } catch (UnsupportedEncodingException|RawRepoException e) {
+            } catch (UnsupportedEncodingException | RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }
             MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);

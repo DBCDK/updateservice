@@ -8,12 +8,16 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrException;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -276,7 +280,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 // Handle deletion of existing record
                 if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
                     Record existingRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
-                    MarcRecord existingMarc = new RawRepoDecoder().decodeRecord(existingRecord.getContent());
+                    MarcRecord existingMarc = RecordContentTransformer.decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
                     // Deletion of 002a - check for holding on 001a
@@ -323,7 +327,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 // or if the referenced record is deleted/non-existent and does NOT have holdings
                 if (recordExists) {
                     Record currentRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
-                    MarcRecord currentMarc = new RawRepoDecoder().decodeRecord(currentRecord.getContent());
+                    MarcRecord currentMarc = RecordContentTransformer.decodeRecord(currentRecord.getContent());
                     MarcRecordReader currentReader = new MarcRecordReader(currentMarc);
                     List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
                     List<String> previousFaustList = reader.getCentralAliasIds();

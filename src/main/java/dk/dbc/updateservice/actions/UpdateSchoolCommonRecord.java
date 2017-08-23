@@ -7,10 +7,10 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -74,7 +74,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                     continue;
                 }
                 Record rawRepoRecord = rawRepo.fetchRecord(recordId, agencyId);
-                MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepoRecord.getContent());
+                MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
                 LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
                 linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));

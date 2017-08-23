@@ -9,6 +9,7 @@ import dk.dbc.common.records.AgencyNumber;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -16,7 +17,6 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -237,7 +237,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             if (recordIdChildrenList.size() != 1) {
                 return result = ServiceResult.newOkResult();
             }
-            MarcRecord mainRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(parentId, parentAgencyId).getContent());
+            MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, parentAgencyId).getContent());
             MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
             writer.markForDeletion();
             UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);
