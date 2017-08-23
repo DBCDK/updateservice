@@ -6,9 +6,13 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrException;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -68,7 +72,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
             if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
-                MarcRecord currentRecord = new RawRepoDecoder().decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger()).getContent());
+                MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger()).getContent());
                 MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord, settings);
             } else {

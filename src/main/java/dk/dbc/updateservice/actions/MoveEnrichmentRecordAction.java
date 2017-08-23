@@ -8,8 +8,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -116,7 +116,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
                 logger.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-            MarcRecord currentCommonRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
             logger.info("ClassificationChangedInCommonRecs {} ", classificationChangedInCommonRecs);
             logger.info("IsOneOrBothInProduction {} ", isOneOrBothInProduction);

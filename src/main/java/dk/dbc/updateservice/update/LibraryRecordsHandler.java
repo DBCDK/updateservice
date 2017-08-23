@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.javascript.Scripter;
@@ -796,8 +797,8 @@ public class LibraryRecordsHandler {
     /**
      * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
-     * @param record            The record to be updated
-     * @param libraryGroup      Whether it is a FBS or DataIO template
+     * @param record       The record to be updated
+     * @param libraryGroup Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws OpenAgencyException          in case of an error
      * @throws UnsupportedEncodingException in case of an error
@@ -865,8 +866,8 @@ public class LibraryRecordsHandler {
      * If the FBS record is an existing common (870970) record then split it into updated common record and
      * DBC enrichment record
      *
-     * @param record            The record to be updated
-     * @param groupId           The groupId from the ws request
+     * @param record  The record to be updated
+     * @param groupId The groupId from the ws request
      * @return List containing common and DBC record
      * @throws OpenAgencyException          in case of an error
      * @throws UpdateException              in case of an error
@@ -894,7 +895,7 @@ public class LibraryRecordsHandler {
             MarcRecord curRecord;
 
             if (rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
-                curRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, agencyId).getContent());
+                curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, agencyId).getContent());
                 correctedRecord = UpdateOwnership.mergeRecord(correctedRecord, curRecord);
                 logger.info("correctedRecord after mergeRecord\n{}", correctedRecord);
             } else {
@@ -920,7 +921,7 @@ public class LibraryRecordsHandler {
                 new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
             } else {
                 logger.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.DBC_ENRICHMENT);
-                dbcEnrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
+                dbcEnrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
             }
 
             String recordStatus = correctedRecordReader.getValue("004", "r");

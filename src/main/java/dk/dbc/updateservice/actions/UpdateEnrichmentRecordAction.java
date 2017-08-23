@@ -7,12 +7,16 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrException;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -30,7 +34,7 @@ import java.util.Properties;
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
 
-    RawRepoDecoder decoder = new RawRepoDecoder();
+    Decoder decoder = new Decoder();
     Properties settings;
     private Integer parentAgencyId;
 
@@ -42,6 +46,15 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         super(UpdateEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
         this.parentAgencyId = parentAgencyId;
+    }
+
+    /**
+     * Class used for mocking during unit test
+     */
+    class Decoder {
+        MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
+            return RecordContentTransformer.decodeRecord(bytes);
+        }
     }
 
     /**
@@ -183,7 +196,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             children.add(deleteRecordAction);
 
             return ServiceResult.newOkResult();
-        } finally{
+        } finally {
             logger.exit();
         }
 

@@ -11,6 +11,7 @@ import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.CollectionType;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.RawRepoDAO;
@@ -366,7 +367,7 @@ public class RawRepo {
                     result = new HashMap<>();
                     for (Map.Entry<String, Record> entry : recordMap.entrySet()) {
                         Record record = entry.getValue();
-                        result.put(entry.getKey(), new RawRepoDecoder().decodeRecord(record.getContent()));
+                        result.put(entry.getKey(), RecordContentTransformer.decodeRecord(record.getContent()));
                     }
                 }
                 return result;

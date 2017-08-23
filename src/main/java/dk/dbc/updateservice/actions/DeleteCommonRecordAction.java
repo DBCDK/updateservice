@@ -8,10 +8,10 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepoDecoder;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -59,7 +59,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
             for (RecordId enrichmentId : rawRepo.enrichments(record)) {
                 Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
-                MarcRecord enrichmentRecord = new RawRepoDecoder().decodeRecord(rawRepoEnrichmentRecord.getContent());
+                MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
 
                 MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                 writer.markForDeletion();
