@@ -7,8 +7,10 @@ package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.*;
 import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import org.slf4j.ext.XLogger;
@@ -240,9 +242,9 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecord curRecord;
             try {
                 Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
-                curRecord = ExpandCommonRecord.expand(curRecordCollection);
+                curRecord = ExpandCommonMarcRecord.expand(curRecordCollection);
                 logger.info("curRecord:\n{}", curRecord);
-            } catch (UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException|RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }
             MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);

@@ -8,13 +8,18 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoDecoder;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -68,10 +73,15 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 Map<String, MarcRecord> records = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
-                MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
-                records.put(reader.getRecordId(), record);
-                MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(ExpandCommonRecord.expand(records), settings);
-                children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentRecord));
+                try {
+                    MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expand(records), settings);
+                    records.put(reader.getRecordId(), record);
+                    MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expand(records), settings);
+                    children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentRecord));
+                } catch (RawRepoException e) {
+                    throw new UpdateException("Exception while expanding the records",e);
+                }
+
             }
         }
 
