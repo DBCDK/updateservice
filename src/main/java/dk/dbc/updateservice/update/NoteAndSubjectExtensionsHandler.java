@@ -58,7 +58,7 @@ public class NoteAndSubjectExtensionsHandler {
 
             logger.info("Checking for altered classifications for disputas type material");
             if (reader.hasValue("008", "d", "m")
-                    && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+                    && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
                 checkForAlteredClassificationForDisputas(reader, messages);
             }
 

@@ -37,6 +37,7 @@
         <postgres.jdbc.version>9.4-1204-jdbc41</postgres.jdbc.version>
         <buildnumber.maven.plugin.version>1.4</buildnumber.maven.plugin.version>
         <maven.jackson.databind.version>2.2.3</maven.jackson.databind.version>
+        <openagency.ws.client.version>2.32</openagency.ws.client.version>
     </properties>
 
     <repositories>
@@ -104,7 +105,7 @@
             <dependency>
                 <groupId>dk.dbc</groupId>
                 <artifactId>openagency-ws-client</artifactId>
-                <version>2.30-SNAPSHOT</version>
+                <version>${openagency.ws.client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
