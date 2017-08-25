@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -61,9 +60,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             String recId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
 
-            if (agencyId.equals(RawRepo.ARTICLE_AGENCY)) {
-                providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;
-            } else if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
+            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
                 providerId = JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE;
             } else if (state.getLibraryGroup().isDBC()) {
                 providerId = JNDIResources.RAWREPO_PROVIDER_ID_DBC;

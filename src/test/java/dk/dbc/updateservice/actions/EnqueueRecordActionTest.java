@@ -137,14 +137,17 @@ public class EnqueueRecordActionTest {
 
         MarcRecord record = prepareRecord(faust, agencyId);
 
-        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+        Properties clonedSettings = (Properties) settings.clone();
+        clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-bulk");
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
+        assertThat(argProvider.getValue(), equalTo("dataio-bulk"));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
     }
 
