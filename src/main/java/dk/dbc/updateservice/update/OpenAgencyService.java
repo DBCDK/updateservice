@@ -123,7 +123,7 @@ public class OpenAgencyService {
         }
     }
 
-    public LibraryGroup getLibraryGroup(String agencyId) throws OpenAgencyException {
+    public LibraryGroup getLibraryGroup(String agencyId) throws OpenAgencyException, UpdateException {
         logger.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.openagency.getCatalogingTemplate");
 
@@ -131,12 +131,25 @@ public class OpenAgencyService {
         try {
             String reply = service.libraryRules().getCatalogingTemplate(agencyId);
 
-            if ("dbc".equals(reply) || "ffu".equals(reply)) {
-                result = LibraryGroup.DBC;
-            } else if ("ph".equals(reply)) {
-                result = LibraryGroup.PH;
-            } else {
-                result = LibraryGroup.FBS;
+            if (reply == null || reply.isEmpty()) {
+                throw new UpdateException("Couldn't find cataloging template group for agency " + agencyId);
+            }
+
+            switch (reply) {
+                case "dbc":
+                case "ffu":
+                    result = LibraryGroup.DBC;
+                    break;
+                case "ph":
+                    result = LibraryGroup.PH;
+                    break;
+                case "fbs":
+                case "skole":
+                case "lokbib":
+                    result = LibraryGroup.FBS;
+                    break;
+                default:
+                    throw new UpdateException("Unknown library group: " + reply);
             }
 
             logger.info("Agency '{}' has LibraryGroup {}", agencyId, result.toString());
@@ -191,42 +204,47 @@ public class OpenAgencyService {
         }
     }
 
-    public Set<String> getPHLibraries() throws OpenAgencyException {
+    public Set<String> getLokbibLibraries() throws OpenAgencyException {
         logger.entry();
-        StopWatch watch = new Log4JStopWatch("service.openagency.getPHLibraries");
-
         Set<String> result = null;
         try {
-            result = service.libraryRules().getLibrariesByCatalogingTemplateSet("ph");
-
+            result = getLibrariesByCatalogingTemplateSet("lokbib");
             return result;
-        } catch (OpenAgencyException ex) {
-            logger.error("Failed to read PH Libraries: {}", ex.getMessage());
-            try {
-                if (ex.getRequest() != null) {
-                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
-                }
-                if (ex.getResponse() != null) {
-                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
-                }
-            } catch (IOException ioError) {
-                logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
-            }
-
-            throw ex;
         } finally {
-            watch.stop();
+            logger.exit(result);
+        }
+    }
+
+    public Set<String> getPHLibraries() throws OpenAgencyException {
+        logger.entry();
+        Set<String> result = null;
+        try {
+            result = getLibrariesByCatalogingTemplateSet("ph");
+            return result;
+        } finally {
             logger.exit(result);
         }
     }
 
     public Set<String> getFFULibraries() throws OpenAgencyException {
         logger.entry();
-        StopWatch watch = new Log4JStopWatch("service.openagency.getFFULibraries");
+        Set<String> result = null;
+        try {
+            result = getLibrariesByCatalogingTemplateSet("ffu");
+            return result;
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    private Set<String> getLibrariesByCatalogingTemplateSet(String catalogingTemplateSet) throws OpenAgencyException {
+        logger.entry(catalogingTemplateSet);
+
+        StopWatch watch = new Log4JStopWatch("service.openagency.getLibrariesByCatalogingTemplateSet");
 
         Set<String> result = null;
         try {
-            result = service.libraryRules().getLibrariesByCatalogingTemplateSet("ffu");
+            result = service.libraryRules().getLibrariesByCatalogingTemplateSet(catalogingTemplateSet);
 
             return result;
         } catch (OpenAgencyException ex) {
