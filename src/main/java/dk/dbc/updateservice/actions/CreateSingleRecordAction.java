@@ -59,7 +59,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
-            logger.info("Creating sub actions successfully");
+            logger.debug("Creating sub actions successfully");
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
@@ -86,14 +86,15 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         }
 
         // The rule is: FBS and DBC libraries cannot have overlapping records.
-        // However, FFU libraries are allowed to have overlapping posts as they never use enrichment posts
+        // However, FFU and LokBib libraries are allowed to have overlapping posts as they never use enrichment posts
         if (!listToCheck.isEmpty()) {
-            logger.info("The agencies {} was found for {}. Checking if all agencies are FFU - otherwise this action will fail", listToCheck, reader.getRecordId());
-            Set<String> ffuAgencyIds = state.getFFULibraries();
+            logger.info("The agencies {} was found for {}. Checking if all agencies are FFU or lokbib - otherwise this action will fail", listToCheck, reader.getRecordId());
+            Set<String> allowedOverlappingAgencies = state.getFFULibraries();
+            allowedOverlappingAgencies.addAll(state.getLokbibLibraries());
             boolean allAgenciesAreFFU = true;
             for (Integer agencyForRecord : listToCheck) {
-                if (!ffuAgencyIds.contains(agencyForRecord.toString())) {
-                    logger.info("The library {} is not a FFU library.", agencyForRecord);
+                if (!allowedOverlappingAgencies.contains(agencyForRecord.toString())) {
+                    logger.info("The library {} is not a FFU or lokbib library.", agencyForRecord);
                     allAgenciesAreFFU = false;
                     break;
                 }

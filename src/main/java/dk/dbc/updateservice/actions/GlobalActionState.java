@@ -56,6 +56,7 @@ public class GlobalActionState {
     private Date createOverwriteDate = null;
     private Set<String> phLibraries = null;
     private Set<String> ffuLibraries = null;
+    private Set<String> lokbikLibraries = null;
     private RecordSorter recordSorter = null;
     private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
 
@@ -495,7 +496,7 @@ public class GlobalActionState {
 
             try {
                 libraryGroup = openAgencyService.getLibraryGroup(groupId);
-            } catch (OpenAgencyException ex) {
+            } catch (OpenAgencyException | UpdateException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
@@ -503,7 +504,7 @@ public class GlobalActionState {
             // Make sure that we didn't get nul
             if (libraryGroup == null) {
                 String err = "LibraryGroup not found for groupId " + groupId;
-                logger.info(err);
+                logger.error(err);
                 throw new UpdateException(err);
             }
 
@@ -526,7 +527,7 @@ public class GlobalActionState {
             // Make sure that we didn't get nul
             if (templateGroup == null) {
                 String err = "TemplateGroup not found for groupId " + groupId;
-                logger.info(err);
+                logger.error(err);
                 throw new UpdateException(err);
             }
         }
@@ -558,6 +559,19 @@ public class GlobalActionState {
         }
 
         return ffuLibraries;
+    }
+
+    public Set<String> getLokbibLibraries() throws UpdateException {
+        if (lokbikLibraries == null) {
+            try {
+                lokbikLibraries = openAgencyService.getLokbibLibraries();
+            } catch (OpenAgencyException ex) {
+                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        }
+
+        return lokbikLibraries;
     }
 
     public String getRawRepoProviderId() throws UpdateException {
