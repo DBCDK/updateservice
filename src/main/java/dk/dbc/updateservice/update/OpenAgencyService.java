@@ -57,11 +57,11 @@ public class OpenAgencyService {
             return this.getValue();
         }
 
-        // PH is also a FBS library
         public boolean isDBC() {
             return DBC.getValue().equals(this.getValue());
         }
 
+        // PH is also a FBS library
         public boolean isFBS() {
             return FBS.getValue().equals(this.getValue()) || PH.getValue().equals(this.getValue());
         }
@@ -138,6 +138,7 @@ public class OpenAgencyService {
             switch (reply) {
                 case "dbc":
                 case "ffu":
+                case "lokbib":
                     result = LibraryGroup.DBC;
                     break;
                 case "ph":
@@ -145,7 +146,6 @@ public class OpenAgencyService {
                     break;
                 case "fbs":
                 case "skole":
-                case "lokbib":
                     result = LibraryGroup.FBS;
                     break;
                 default:
@@ -248,7 +248,7 @@ public class OpenAgencyService {
 
             return result;
         } catch (OpenAgencyException ex) {
-            logger.error("Failed to read FFU Libraries: {}", ex.getMessage());
+            logger.error("Failed to read catalogingTemplateSet: {}", ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
                     logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
