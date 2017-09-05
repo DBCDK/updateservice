@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -45,7 +46,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             if (!rawRepo.children(record).isEmpty()) {
                 MarcRecordReader reader = new MarcRecordReader(record);
                 String recordId = reader.getRecordId();

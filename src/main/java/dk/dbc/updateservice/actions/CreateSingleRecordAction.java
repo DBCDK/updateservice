@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -45,7 +46,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
 
             if (!checkIfRecordCanBeRestored(state, record)) {
@@ -70,17 +71,17 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    static boolean checkIfRecordCanBeRestored(GlobalActionState state, MarcRecord record) throws UpdateException{
+    static boolean checkIfRecordCanBeRestored(GlobalActionState state, MarcRecord record) throws UpdateException {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         // The only records we are interested in are MarcXchange and Articles with different recordId
         Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
-        agenciesForRecord.remove(reader.getAgencyIdAsInteger() );
+        agenciesForRecord.remove(reader.getAgencyIdAsInteger());
 
         Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {
             Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), agencyId);
-            if( !r.isDeleted() && !MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
+            if (!r.isDeleted() && !MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                 listToCheck.add(agencyId);
             }
         }

@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
@@ -86,7 +87,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record:\n" + record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();

@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -47,7 +48,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
 
             MarcRecordReader reader = new MarcRecordReader(record);
             if (!reader.markedForDeletion()) {

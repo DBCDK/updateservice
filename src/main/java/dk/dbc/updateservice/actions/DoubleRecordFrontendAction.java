@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
@@ -43,7 +44,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record:\n{}", state.readRecord());
+            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             Object jsResult = state.getScripter().callMethod(ENTRY_POINT, Json.encode(state.readRecord()), settings);
             logger.debug("Result from " + ENTRY_POINT + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
             result = parseJavascript(jsResult);

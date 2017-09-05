@@ -9,6 +9,7 @@ import dk.dbc.common.records.AgencyNumber;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -55,7 +56,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult res = null;
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
 
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String parentId = reader.getParentRecordId();

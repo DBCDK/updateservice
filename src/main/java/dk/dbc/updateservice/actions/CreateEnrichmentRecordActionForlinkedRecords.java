@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -77,7 +78,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            logger.info("Record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
 
             MarcRecord enrichmentRecord = createEnrichmentRecord();
             if (enrichmentRecord.getFields().isEmpty()) {

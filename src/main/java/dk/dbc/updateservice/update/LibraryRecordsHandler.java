@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -781,15 +782,15 @@ public class LibraryRecordsHandler {
             result = new MarcRecord(enrichmentRecord);
         }
 
-        logger.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP \n{}", result);
+        logger.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP {}", LogUtils.base64Encode(result));
 
         result = cleanupEnrichmentRecord(result, commonRecord);
 
-        logger.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP \n{}", result);
+        logger.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP {}", LogUtils.base64Encode(result));
 
         result = correctRecordIfEmpty(result);
 
-        logger.info("Final result of correctLibraryExtendedRecord \n{}", result);
+        logger.info("Final result of correctLibraryExtendedRecord {}", LogUtils.base64Encode(result));
 
         return result;
     }

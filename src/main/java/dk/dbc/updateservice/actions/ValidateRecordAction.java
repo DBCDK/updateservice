@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -78,7 +79,7 @@ public class ValidateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record:\n{}", state.readRecord());
+            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             logger.info("state.getLibraryGroup().toString()");
             Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);

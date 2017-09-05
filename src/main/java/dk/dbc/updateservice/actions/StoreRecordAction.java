@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
@@ -73,7 +74,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 throw new UpdateException("MimeType must be set");
             }
 
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();

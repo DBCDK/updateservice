@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.*;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
@@ -244,7 +245,7 @@ public class NoteAndSubjectExtensionsHandler {
             try {
                 Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
                 curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection);
-                logger.info("curRecord:\n{}", curRecord);
+                logger.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
             } catch (UnsupportedEncodingException | RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }

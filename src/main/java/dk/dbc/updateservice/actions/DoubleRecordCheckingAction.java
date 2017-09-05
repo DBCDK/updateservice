@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
@@ -43,7 +44,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             state.getScripter().callMethod(ENTRY_POINT, Json.encode(record), settings);
             return result = ServiceResult.newOkResult();
         } catch (IOException | ScripterException ex) {
