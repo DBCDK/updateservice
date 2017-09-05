@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -80,7 +81,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             logger.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-            logger.info("Handling record:\n{}", state.readRecord());
+            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
 
             List<MessageEntryDTO> errors = authenticateRecord();
             result = new ServiceResult();

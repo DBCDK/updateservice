@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -47,7 +48,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 return result = performActionDBCRecord();

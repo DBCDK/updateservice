@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -82,8 +83,8 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         logger.entry();
         try {
             logger.info("AgencyId..............: " + agencyId);
-            logger.info("Current common record.:\n{}", currentCommonRecord);
-            logger.info("Updating common record:\n{}", updatingCommonRecord);
+            logger.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
+            logger.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
 
             MarcRecord enrichmentRecord = createRecord();
             if (enrichmentRecord.getFields().isEmpty()) {

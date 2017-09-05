@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
@@ -75,7 +76,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             }
 
             logger.info("Using provider id: '{}'", settings.getProperty(providerId));
-            logger.info("Handling record:\n{}", record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(record));
 
             rawRepo.changedRecord(settings.getProperty(providerId), new RecordId(recId, agencyId));
             logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
