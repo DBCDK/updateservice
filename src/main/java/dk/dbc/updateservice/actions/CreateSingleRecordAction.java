@@ -81,7 +81,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {
             Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), agencyId);
-            if (!r.isDeleted() && !MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
+            if (!MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                 listToCheck.add(agencyId);
             }
         }
