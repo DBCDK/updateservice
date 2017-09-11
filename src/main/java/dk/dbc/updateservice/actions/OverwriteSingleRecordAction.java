@@ -68,6 +68,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
 
+        if (reader.getParentRecordId() != null) {
+            children.add(new RemoveLinksAction(state, record));
+            children.add(LinkRecordAction.newLinkParentAction(state, record));
+        }
+
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
         if (RawRepo.AUTHORITY_AGENCY.equals(reader.getAgencyIdAsInteger())) {
             Set<RecordId> ids = state.getRawRepo().children(record);
