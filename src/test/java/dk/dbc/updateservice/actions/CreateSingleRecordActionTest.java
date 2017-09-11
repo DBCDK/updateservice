@@ -166,7 +166,7 @@ public class CreateSingleRecordActionTest {
         Record rr1 = new RawRepoRecordMock(recordId, 700300);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300,800500));
+        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
