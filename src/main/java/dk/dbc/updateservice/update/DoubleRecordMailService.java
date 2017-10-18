@@ -33,6 +33,8 @@ public class DoubleRecordMailService {
     private final String MAIL_USER_PROPERTY = "mail.user";
     private final String MAIL_PASSWORD_PROPERTY = "mail.password";
 
+    private final String INSTANCE_NAME = "INSTANCE_NAME";
+
     /**
      * Resource to lookup the product name for authentication.
      */
@@ -75,6 +77,14 @@ public class DoubleRecordMailService {
         logger.entry(subject, body);
         StopWatch watch = new Log4JStopWatch("service.mail");
         try {
+            String adjustedSubject;
+
+            if (System.getenv().containsKey(INSTANCE_NAME)) {
+                adjustedSubject = System.getenv().get(INSTANCE_NAME) + ": " + subject;
+            } else {
+                adjustedSubject = subject;
+            }
+
             // Setup Mail server properties
             Properties properties = System.getProperties();
             properties.setProperty(MAIL_HOST_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_HOST_KEY));
@@ -94,13 +104,13 @@ public class DoubleRecordMailService {
                 for (String addr : receipientAddresses.split(";")) {
                     message.addRecipient(Message.RecipientType.TO, new InternetAddress(addr));
                 }
-                message.setSubject(subject);
+                message.setSubject(adjustedSubject);
                 message.setText(body);
                 Transport.send(message);
-                logger.info("Double Record Checker: Sent message with subject '{}' successfully.", subject);
+                logger.info("Double Record Checker: Sent message with subject '{}' successfully.", adjustedSubject);
             } catch (MessagingException ex) {
                 logger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY), ex.getMessage());
-                logger.warn("Mail message: {}\n{}", subject, body);
+                logger.warn("Mail message: {}\n{}", adjustedSubject, body);
                 logger.error("Mail service error");
                 logger.catching(XLogger.Level.ERROR, ex);
             }
