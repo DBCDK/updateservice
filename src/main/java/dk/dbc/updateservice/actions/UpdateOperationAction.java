@@ -277,15 +277,17 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, SolrException {
         logger.entry();
         try {
+            String readerRecordId = reader.getRecordId();
+            int readerAgencyId = reader.getAgencyIdAsInteger();
             if (reader.markedForDeletion()) {
                 // Handle deletion of existing record
-                if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
-                    Record existingRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
+                if (rawRepo.recordExists(readerRecordId, readerAgencyId)) {
+                    Record existingRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
                     MarcRecord existingMarc = RecordContentTransformer.decodeRecord(existingRecord.getContent());
                     MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
                     // Deletion of 002a - check for holding on 001a
-                    Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.getRecordId());
+                    Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
                     if (holdingAgencies001.size() > 0) {
                         for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                             if (!state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
@@ -294,21 +296,23 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         }
                     }
 
-                    // Deletion of 002a - check for holding on 002a
+                    // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
                     for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                         Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
                         if (holdingAgencies002.size() > 0) {
-                            return state.getMessages().getString("delete.record.holdings.on.002a");
+                            if (!rawRepo.recordExists(previousFaust, readerAgencyId)) {
+                                return state.getMessages().getString("delete.record.holdings.on.002a");
+                            }
                         }
                     }
                 }
             } else {
                 // Handle either new record or update of existing record
-                Boolean recordExists = rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger());
+                Boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
                 // Compare new 002a with existing 002a
                 for (String aValue : reader.getCentralAliasIds()) {
-                    String solrQuery = getSolrQuery002a(recordExists, aValue, reader.getRecordId());
+                    String solrQuery = getSolrQuery002a(recordExists, aValue, readerRecordId);
 
                     if (state.getSolrService().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
@@ -317,7 +321,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 // Compare new 002b & c with existing 002b & c
                 for (HashMap<String, String> bcValues : reader.getDecentralAliasIds()) {
-                    String solrQuery = getSolrQuery002bc(recordExists, bcValues.get("b"), bcValues.get("c"), reader.getRecordId());
+                    String solrQuery = getSolrQuery002bc(recordExists, bcValues.get("b"), bcValues.get("c"), readerRecordId);
 
                     if (state.getSolrService().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
@@ -327,7 +331,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 // Removal of 002a reference is allowed if either the referenced post still exists (no matter if there is holding or not)
                 // or if the referenced record is deleted/non-existent and does NOT have holdings
                 if (recordExists) {
-                    Record currentRecord = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
+                    Record currentRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
                     MarcRecord currentMarc = RecordContentTransformer.decodeRecord(currentRecord.getContent());
                     MarcRecordReader currentReader = new MarcRecordReader(currentMarc);
                     List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
