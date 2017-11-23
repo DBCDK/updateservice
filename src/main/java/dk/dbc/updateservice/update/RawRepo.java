@@ -14,10 +14,7 @@ import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
-import dk.dbc.rawrepo.Record;
-import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.*;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -615,6 +612,28 @@ public class RawRepo {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 dao.changedRecord(provider, recId);
+            } catch (RawRepoException ex) {
+                conn.rollback();
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            watch.stop("rawrepo.changedRecord");
+            logger.exit();
+        }
+    }
+
+    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf) throws UpdateException {
+        logger.entry(provider, recId);
+        StopWatch watch = new Log4JStopWatch();
+
+        try (Connection conn = dataSourceWriter.getConnection()) {
+            try {
+                RawRepoDAO dao = createDAO(conn);
+                dao.enqueue(recId, provider, changed, leaf);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);

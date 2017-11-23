@@ -46,6 +46,7 @@ public class JNDIResources {
     public static final String DOUBLE_RECORD_MAIL_RECIPIENT_KEY = "double.record.mail.recipients";
 
     public static final String RAWREPO_PROVIDER_ID_DBC = "rawrepo.provider.id.dbc";
+    public static final String RAWREPO_PROVIDER_ID_DBC_SOLR = "rawrepo.provider.id.dbc.solr";
     public static final String RAWREPO_PROVIDER_ID_FBS = "rawrepo.provider.id.fbs";
     public static final String RAWREPO_PROVIDER_ID_PH = "rawrepo.provider.id.ph";
     public static final String RAWREPO_PROVIDER_ID_PH_HOLDINGS = "rawrepo.provider.id.ph.holdings";
