@@ -68,7 +68,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.getRecordId();
             Integer agencyId = reader.getAgencyIdAsInteger();
-            logger.info("Enqueuing record: {}:{}", recId, agencyId);
 
             // Enqueuing should be done differently for authority record, so first we have to determine whether
             // this is a authority record
@@ -98,16 +97,18 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // NOTE: We know that a authority record doesn't have any siblings (other than enrichment, which will be
             // enqueued by another action) so only queuing children is fine
             if (isAuthorityRecord) {
+                logger.info("Enqueuing authority record: {}:{} using provider '{}'", recId, agencyId, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR));
                 rawRepo.enqueue(new RecordId(recId, agencyId), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), true, false);
 
                 for (RecordId childId : rawRepo.children(record)) {
+                    logger.info("Enqueuing child record {}:{} using provider '{}'", childId.getBibliographicRecordId(), childId.getAgencyId(), providerId);
                     rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC), childId);
                 }
             } else {
+                logger.info("Enqueuing record: {}:{} using provider '{}'", recId, agencyId, providerId);
                 rawRepo.changedRecord(providerId, new RecordId(recId, agencyId));
             }
 
-            logger.info("The record {{}:{}} successfully enqueued", recId, agencyId);
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
