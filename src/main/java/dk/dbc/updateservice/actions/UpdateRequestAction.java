@@ -192,7 +192,7 @@ public class UpdateRequestAction extends AbstractAction {
                     return false;
                 }
 
-                if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInteger() > 0)) {
+                if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
                     return false;
                 }
             }

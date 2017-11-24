@@ -64,7 +64,7 @@ public class UpdateCommonRecordActionTest {
     public void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -109,7 +109,7 @@ public class UpdateCommonRecordActionTest {
     public void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -147,7 +147,7 @@ public class UpdateCommonRecordActionTest {
     public void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
@@ -198,7 +198,7 @@ public class UpdateCommonRecordActionTest {
     public void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
@@ -228,7 +228,7 @@ public class UpdateCommonRecordActionTest {
     public void testPerformAction_CreateSingleRecordFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);

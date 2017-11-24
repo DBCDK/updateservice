@@ -43,7 +43,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
     private static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
     private List<MarcRecord> listOfRecordsToFetchClassificationDataFrom;
-    private Integer agencyId;
+    private int agencyId;
     private MarcRecord record;
     private Properties settings;
 
@@ -56,11 +56,11 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         this.listOfRecordsToFetchClassificationDataFrom = listOfRecordsToFetchClassificationDataFrom;
     }
 
-    public Integer getAgencyId() {
+    public int getAgencyId() {
         return agencyId;
     }
 
-    public void setAgencyId(Integer agencyId) {
+    public void setAgencyId(int agencyId) {
         this.agencyId = agencyId;
     }
 
@@ -111,7 +111,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForEnrichmentRecord(record, agencyId.toString());
+        MDCUtil.setupContextForEnrichmentRecord(record, Integer.toString(agencyId));
     }
 
     private MarcRecord createEnrichmentRecord() throws ScripterException {
@@ -120,7 +120,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         try {
             MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
             enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
-            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", agencyId.toString());
+            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
             listOfRecordsToFetchClassificationDataFrom.forEach((rec) -> {
                 enrichmentRecord.getFields().add(getFormatted004Field(rec));
             });

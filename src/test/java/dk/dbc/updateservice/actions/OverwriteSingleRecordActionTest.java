@@ -70,13 +70,13 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_NoClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
@@ -122,13 +122,13 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_SameClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(false);
 
@@ -177,13 +177,13 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -236,7 +236,7 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -296,7 +296,7 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -355,13 +355,13 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -414,9 +414,9 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -424,7 +424,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -477,10 +477,10 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -488,7 +488,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -553,20 +553,20 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
+        int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -580,7 +580,7 @@ public class OverwriteSingleRecordActionTest {
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, enrichmentRecord);
-        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), record, newEnrichmentAgencyId.toString(), null);
+        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), record, Integer.toString(newEnrichmentAgencyId), null);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
@@ -629,20 +629,20 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
+        int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -709,20 +709,20 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
+        int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -788,20 +788,20 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        Integer newEnrichmentAgencyId = enrichmentAgencyId + 100;
+        int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(newEnrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
@@ -872,7 +872,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -882,7 +882,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(e1AgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
@@ -953,7 +953,7 @@ public class OverwriteSingleRecordActionTest {
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
 
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -963,7 +963,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
@@ -1027,7 +1027,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -1035,7 +1035,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(e1AgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(e1AgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
@@ -1096,8 +1096,8 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1108,7 +1108,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
@@ -1120,7 +1120,7 @@ public class OverwriteSingleRecordActionTest {
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
-        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), c2, localAgencyId.toString(), c1RecordId);
+        AssertActionsUtil.assertCreateEnrichmentAction(iterator.next(), state.getRawRepo(), c2, Integer.toString(localAgencyId), c1RecordId);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
@@ -1171,8 +1171,8 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1184,7 +1184,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
@@ -1245,8 +1245,8 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1257,7 +1257,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(localAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
@@ -1319,8 +1319,8 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_LocalAgencyNoEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
@@ -1331,7 +1331,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(localAgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(localAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
@@ -1391,15 +1391,15 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_MoveEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -1409,7 +1409,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
@@ -1472,15 +1472,15 @@ public class OverwriteSingleRecordActionTest {
     public void testPerformAction_ChangedClassifications_002Links_LocalAgencyEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
-        final Integer localAgencyId = 700400;
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(localAgencyId.toString());
+        final int localAgencyId = 700400;
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(localAgencyId));
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -1490,7 +1490,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(e1AgencyId.toString()), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);

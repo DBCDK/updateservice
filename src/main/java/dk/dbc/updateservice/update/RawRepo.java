@@ -41,15 +41,15 @@ import java.util.*;
 @Stateless
 public class RawRepo {
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
-    public static final Integer COMMON_AGENCY = 870970;
-    public static final Integer ARTICLE_AGENCY = 870971;
-    public static final Integer AUTHORITY_AGENCY = 870979;
+    public static final int COMMON_AGENCY = 870970;
+    public static final int ARTICLE_AGENCY = 870971;
+    public static final int AUTHORITY_AGENCY = 870979;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
     public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
-    public static final Integer DBC_ENRICHMENT = 191919;
-    public static final Integer SCHOOL_COMMON_AGENCY = 300000;
-    public static final Integer MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
-    public static final Integer MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
+    public static final int DBC_ENRICHMENT = 191919;
+    public static final int SCHOOL_COMMON_AGENCY = 300000;
+    public static final int MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
+    public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
     public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
 
     @EJB
@@ -308,20 +308,17 @@ public class RawRepo {
      * If the record does not exist in the RawRepo then it will be created.
      *
      * @param recId    String
-     * @param agencyId Integer
+     * @param agencyId int
      * @return The RawRepo record.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public Record fetchRecord(String recId, Integer agencyId) throws UpdateException {
+    public Record fetchRecord(String recId, int agencyId) throws UpdateException {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
         Record result = null;
         try {
             if (recId == null) {
                 throw new IllegalArgumentException("recId can not be null");
-            }
-            if (agencyId == null) {
-                throw new IllegalArgumentException("agencyId can not be null");
             }
             try (Connection conn = dataSourceReader.getConnection()) {
                 try {
@@ -344,7 +341,7 @@ public class RawRepo {
         }
     }
 
-    public Map<String, MarcRecord> fetchRecordCollection(String recId, Integer agencyId) throws UpdateException {
+    public Map<String, MarcRecord> fetchRecordCollection(String recId, int agencyId) throws UpdateException {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
         Map<String, MarcRecord> result = null;
@@ -352,9 +349,6 @@ public class RawRepo {
         try (Connection conn = dataSourceWriter.getConnection()) {
             if (recId == null) {
                 throw new IllegalArgumentException("recId can not be null");
-            }
-            if (agencyId == null) {
-                throw new IllegalArgumentException("agencyId can not be null");
             }
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -390,7 +384,7 @@ public class RawRepo {
      * @return <code>true</code> if the record exists, <code>false</code> otherwise.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public boolean recordExists(String recordId, Integer agencyId) throws UpdateException {
+    public boolean recordExists(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
@@ -433,7 +427,7 @@ public class RawRepo {
      * @return <code>true</code> if the record exists, <code>false</code> otherwise.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public boolean recordExistsMaybeDeleted(String recordId, Integer agencyId) throws UpdateException {
+    public boolean recordExistsMaybeDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
 
@@ -466,7 +460,7 @@ public class RawRepo {
      * @return <code>true</code> if the record exists, <code>false</code> otherwise.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public boolean recordExistsIsDeleted(String recordId, Integer agencyId) throws UpdateException {
+    public boolean recordExistsIsDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
 
@@ -712,7 +706,7 @@ public class RawRepo {
         return mm.getValue("001", "b");
     }
 
-    public static boolean isSchoolEnrichment(Integer agencyId) {
+    public static boolean isSchoolEnrichment(int agencyId) {
         return MIN_SCHOOL_AGENCY <= agencyId && agencyId <= RawRepo.MAX_SCHOOL_AGENCY;
     }
 

@@ -74,7 +74,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
 
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
-        if (RawRepo.AUTHORITY_AGENCY.equals(reader.getAgencyIdAsInteger())) {
+        if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
             Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
@@ -145,7 +145,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
 
             return result = loadRecord(recordId, agencyId);
         } finally {
@@ -153,7 +153,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
+    protected MarcRecord loadRecord(String recordId, int agencyId) throws UpdateException, UnsupportedEncodingException {
         logger.entry(recordId, agencyId);
         MarcRecord result = null;
         try {
@@ -170,7 +170,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
 
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
                 if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
@@ -185,23 +185,23 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                     logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
 
-                    for (Integer id : librariesWithPosts) {
+                    for (int id : librariesWithPosts) {
                         logger.info("Local library for record: {}", id);
 
-                        if (!state.getOpenAgencyService().hasFeature(id.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+                        if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
                             continue;
                         }
                         if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = RecordContentTransformer.decodeRecord(extRecord.getContent());
                             logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, id.toString()));
-                        } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(id.toString())) {
+                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, Integer.toString(id)));
+                        } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
                                 logger.info("Create new extended library record: [{}:{}].", recordId, id);
-                                result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, id.toString()));
+                                result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, Integer.toString(id)));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                             }
@@ -270,7 +270,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordActionForlinkedRecords getActionDataForEnrichmentRecord(MarcRecord record, Integer holdingAgencyId, List<MarcRecord> arrayOfRecordsWithHoldings) {
+    private CreateEnrichmentRecordActionForlinkedRecords getActionDataForEnrichmentRecord(MarcRecord record, int holdingAgencyId, List<MarcRecord> arrayOfRecordsWithHoldings) {
         logger.entry(holdingAgencyId, record);
         CreateEnrichmentRecordActionForlinkedRecords createEnrichmentRecordActionForlinkedRecords = null;
         try {
@@ -313,7 +313,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader recordReader = new MarcRecordReader(record);
             String destinationCommonRecordId = recordReader.getValue("001", "a");
-            Integer agencyId = Integer.valueOf(recordReader.getValue("001", "b"));
+            int agencyId = Integer.valueOf(recordReader.getValue("001", "b"));
 
             MarcRecord currentRecord = loadRecord(destinationCommonRecordId, agencyId);
             MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);

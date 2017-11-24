@@ -63,12 +63,12 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         String parentId = reader.getParentRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
-        Integer parentAgencyId = reader.getParentAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
+        int parentAgencyId = reader.getParentAgencyIdAsInteger();
 
         if (recordId.equals(parentId)) {
-            Integer errorAgencyId = agencyId;
-            if (errorAgencyId.equals(RawRepo.COMMON_AGENCY)) {
+            int errorAgencyId = agencyId;
+            if (errorAgencyId == RawRepo.COMMON_AGENCY) {
                 errorAgencyId = RawRepo.DBC_ENRICHMENT;
             }
             String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);

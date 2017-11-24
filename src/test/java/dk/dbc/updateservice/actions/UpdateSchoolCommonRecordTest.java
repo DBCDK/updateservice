@@ -153,7 +153,7 @@ public class UpdateSchoolCommonRecordTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
-        Integer schoolAgencyId = AssertActionsUtil.getAgencyIdAsInteger(schoolRecord);
+        int schoolAgencyId = AssertActionsUtil.getAgencyIdAsInt(schoolRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -254,7 +254,7 @@ public class UpdateSchoolCommonRecordTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
-        Integer schoolAgencyId = AssertActionsUtil.getAgencyIdAsInteger(schoolRecord);
+        int schoolAgencyId = AssertActionsUtil.getAgencyIdAsInt(schoolRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();

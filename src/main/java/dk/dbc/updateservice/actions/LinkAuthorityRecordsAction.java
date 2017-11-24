@@ -26,14 +26,14 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
 
             for (MarcField field : record.getFields()) {
                 MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                     String authRecordId = fieldReader.getValue("6");
-                    Integer authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+                    int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
                         return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);

@@ -72,7 +72,7 @@ public class MoveEnrichmentRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
         new MarcRecordWriter(c1).addOrReplaceSubfield("z98", "a", "testPerformAction_CommonRecordPublished");
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
@@ -131,7 +131,7 @@ public class MoveEnrichmentRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
-        Integer e1AgencyId = AssertActionsUtil.getAgencyIdAsInteger(e1);
+        int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);

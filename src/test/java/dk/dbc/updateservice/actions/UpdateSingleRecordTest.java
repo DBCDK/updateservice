@@ -69,7 +69,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
 
@@ -109,7 +109,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -158,7 +158,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
@@ -199,7 +199,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_NoAuthExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
@@ -239,7 +239,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
@@ -280,7 +280,7 @@ public class UpdateSingleRecordTest {
     public void testPerformAction_DeleteRecord_WithHoldings_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));

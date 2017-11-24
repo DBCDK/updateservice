@@ -88,7 +88,7 @@ public class UpdateLocalRecordActionTest {
         MarcRecord recordDeleted = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(recordDeleted).markForDeletion();
 
-        RawRepoRecordMock rrDeleted = new RawRepoRecordMock(reader.getRecordId(), reader.getAgencyIdAsInteger());
+        RawRepoRecordMock rrDeleted = new RawRepoRecordMock(reader.getRecordId(), reader.getAgencyIdAsInt());
         rrDeleted.setDeleted(true);
         rrDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
         RawRepoRecordMock commonDeleted = new RawRepoRecordMock(reader.getRecordId(), RawRepo.COMMON_AGENCY);
@@ -96,8 +96,8 @@ public class UpdateLocalRecordActionTest {
         commonDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
 
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(rrDeleted);
+        when(state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(rrDeleted);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(commonDeleted);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
@@ -134,7 +134,7 @@ public class UpdateLocalRecordActionTest {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(volumeRecord);
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
@@ -173,7 +173,7 @@ public class UpdateLocalRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
@@ -207,13 +207,13 @@ public class UpdateLocalRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         new MarcRecordWriter(record).addOrReplaceSubfield("014", "a", recordId);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
-        verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
+        verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
     /**
@@ -247,7 +247,7 @@ public class UpdateLocalRecordActionTest {
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
-        verify(state.getRawRepo(), never()).recordExists(anyString(), any(Integer.class));
+        verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
     /**
@@ -328,7 +328,7 @@ public class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -373,7 +373,7 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInteger());
+        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
 
         Set<Integer> holdings = new HashSet<>();
@@ -419,7 +419,7 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInteger());
+        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
 
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
@@ -499,7 +499,7 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInteger());
+        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
 
         Set<Integer> holdings = new HashSet<>();
@@ -544,7 +544,7 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInteger());
+        AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
 
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());

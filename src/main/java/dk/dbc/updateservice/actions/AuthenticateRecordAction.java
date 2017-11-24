@@ -132,7 +132,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return result;
             }
 
-            if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger())) {
+            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
                 logger.info("Record belongs to 870970");
                 NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
@@ -154,9 +154,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return result;
             }
 
-            Integer groupIdAsInteger = Integer.parseInt(groupId);
-            if (300000 <= groupIdAsInteger && groupIdAsInteger <= 399999) {
-                if (reader.getAgencyIdAsInteger().equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
+            int groupIdAsInt = Integer.parseInt(groupId);
+            if (300000 <= groupIdAsInt && groupIdAsInt <= 399999) {
+                if (reader.getAgencyIdAsInt() == RawRepo.SCHOOL_COMMON_AGENCY) {
                     logger.info("Group is school agency and record is owner by 300000 -> exit OK");
                     return result;
                 }
@@ -182,7 +182,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
             String owner = reader.getValue("996", "a");
 

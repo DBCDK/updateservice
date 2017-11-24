@@ -69,12 +69,12 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
 
@@ -93,14 +93,14 @@ public class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("n55", "a", "20170602");
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
 
@@ -151,16 +151,16 @@ public class UpdateOperationActionTest {
     public void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(enrichmentAgencyId.toString());
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(enrichmentAgencyId));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(enrichmentAgencyId.toString()), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -205,16 +205,16 @@ public class UpdateOperationActionTest {
     public void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
-        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(enrichmentAgencyId.toString());
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(Integer.toString(enrichmentAgencyId));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(enrichmentAgencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(enrichmentAgencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -260,20 +260,20 @@ public class UpdateOperationActionTest {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
         updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
+        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -302,20 +302,20 @@ public class UpdateOperationActionTest {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
         updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        //updWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
+        //updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -350,20 +350,20 @@ public class UpdateOperationActionTest {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
         updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
+        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -396,20 +396,20 @@ public class UpdateOperationActionTest {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
         updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", RawRepo.COMMON_AGENCY.toString());
+        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -456,20 +456,20 @@ public class UpdateOperationActionTest {
     public void testPerformAction_DeleteCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
         state.setMarcRecord(record);
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -507,7 +507,7 @@ public class UpdateOperationActionTest {
     public void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
         state.setMarcRecord(record);
@@ -515,12 +515,12 @@ public class UpdateOperationActionTest {
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
-        Integer enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInteger(enrichmentRecord);
+        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
@@ -646,7 +646,7 @@ public class UpdateOperationActionTest {
         fields.add(field002);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -658,7 +658,7 @@ public class UpdateOperationActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(null);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
     }
@@ -765,7 +765,7 @@ public class UpdateOperationActionTest {
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -819,7 +819,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -846,7 +846,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.getRecordId()))).thenReturn(false);
 
@@ -876,7 +876,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.getRecordId())).thenReturn(holdingList001);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList002);
 
