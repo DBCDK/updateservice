@@ -47,9 +47,9 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             String parentId = reader.getParentRecordId();
-            Integer parentAgencyId = reader.getParentAgencyIdAsInteger();
+            int parentAgencyId = reader.getParentAgencyIdAsInteger();
 
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);

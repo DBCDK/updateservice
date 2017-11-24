@@ -52,7 +52,7 @@ public class LinkRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
@@ -99,7 +99,7 @@ public class LinkRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);

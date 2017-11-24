@@ -62,7 +62,7 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_CreateRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
@@ -106,7 +106,7 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 
@@ -149,7 +149,7 @@ public class UpdateVolumeRecordTest {
     public void testPerformAction_DeleteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(mainRecord);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
 

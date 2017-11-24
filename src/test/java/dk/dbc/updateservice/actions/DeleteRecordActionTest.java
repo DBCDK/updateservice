@@ -27,7 +27,7 @@ public class DeleteRecordActionTest {
     private GlobalActionState state;
     private Properties properties;
     private String localSingleRecordId = "20611529";
-    private Integer localSingleAgencyId = 700400;
+    private int localSingleAgencyId = 700400;
 
     @Before
     public void before() throws IOException {

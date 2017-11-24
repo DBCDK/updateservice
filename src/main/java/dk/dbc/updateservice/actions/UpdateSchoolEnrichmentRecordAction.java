@@ -13,7 +13,7 @@ import dk.dbc.updateservice.update.UpdateException;
 import java.util.Properties;
 
 public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAction {
-    private Integer commonRecordAgencyId;
+    private int commonRecordAgencyId;
 
     public UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) throws UpdateException {
         super(globalActionState, properties, record);
@@ -25,7 +25,7 @@ public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAc
     }
 
     @Override
-    protected Integer getParentAgencyId() {
+    protected int getParentAgencyId() {
         return this.commonRecordAgencyId;
     }
 }

@@ -71,8 +71,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             // If the record exists already then no problem
             // However if the record doesn't already exist we need to check if the record has existed before but is deleted
             // And if so, is the common record alive?
-            if (state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
-                Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger());
+            if (state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt());
                 if (r.isDeleted() && MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                     Record commonRecord = state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY);
                     if (commonRecord.isDeleted()) {
@@ -150,7 +150,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -233,7 +233,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             }
             MarcRecordReader reader = new MarcRecordReader(this.record);
             String parentId = reader.getParentRecordId();
-            Integer parentAgencyId = reader.getParentAgencyIdAsInteger();
+            int parentAgencyId = reader.getParentAgencyIdAsInteger();
             Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentId, parentAgencyId));
             if (recordIdChildrenList.size() != 1) {
                 return result = ServiceResult.newOkResult();

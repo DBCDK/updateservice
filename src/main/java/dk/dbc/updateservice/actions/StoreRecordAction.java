@@ -77,7 +77,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
             recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
@@ -129,9 +129,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (RawRepo.ARTICLE_AGENCY.equals(reader.getAgencyIdAsInteger())) {
+            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
-            } else if (RawRepo.AUTHORITY_AGENCY.equals(reader.getAgencyIdAsInteger())) {
+            } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
             } else {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);

@@ -81,7 +81,7 @@ public class DeleteRecordAction extends StoreRecordAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (RawRepo.ARTICLE_AGENCY.equals(reader.getAgencyIdAsInteger())) {
+            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
                 mimeType = MarcXChangeMimeType.ARTICLE;
             } else {
                 mimeType = MarcXChangeMimeType.MARCXCHANGE;
@@ -100,7 +100,7 @@ public class DeleteRecordAction extends StoreRecordAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
 
             Record record = rawRepo.fetchRecord(recordId, agencyId);
             return result = RecordContentTransformer.decodeRecord(record.getContent());

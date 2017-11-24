@@ -244,8 +244,8 @@ public class GlobalActionState {
                 Boolean markedForDeletion = marcRecordReader.markedForDeletion();
                 Boolean isDBCMode = getLibraryGroup().isDBC();
                 Boolean recordExists = recordExists();
-                Integer getAgencyIdAsInteger = marcRecordReader.getAgencyIdAsInteger();
-                Boolean agencyIdEqualsRawRepoCommonLibrary = getAgencyIdAsInteger.equals(RawRepo.COMMON_AGENCY);
+                int getAgencyIdAsInt = marcRecordReader.getAgencyIdAsInt();
+                Boolean agencyIdEqualsRawRepoCommonLibrary = getAgencyIdAsInt == RawRepo.COMMON_AGENCY;
                 doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
@@ -484,7 +484,7 @@ public class GlobalActionState {
 
     public boolean recordExists() throws UpdateException {
         if (this.recordExists == null) {
-            this.recordExists = rawRepo.recordExists(marcRecordReader.getRecordId(), marcRecordReader.getAgencyIdAsInteger());
+            this.recordExists = rawRepo.recordExists(marcRecordReader.getRecordId(), marcRecordReader.getAgencyIdAsInt());
         }
 
         return this.recordExists;

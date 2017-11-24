@@ -37,11 +37,11 @@ public class EnqueueRecordActionTest {
         settings = new UpdateTestUtils().getSettings();
     }
 
-    private MarcRecord prepareRecord(String faust, Integer agencyId) {
+    private MarcRecord prepareRecord(String faust, int agencyId) {
         MarcRecord record = new MarcRecord();
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("001", "a", faust);
-        writer.addOrReplaceSubfield("001", "b", agencyId.toString());
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
 
         return record;
     }
@@ -96,7 +96,7 @@ public class EnqueueRecordActionTest {
     public void testActionPerform_ProviderIdFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
-        Integer agencyId = AssertActionsUtil.getAgencyIdAsInteger(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -112,7 +112,7 @@ public class EnqueueRecordActionTest {
     @Test
     public void testActionPerform_ProviderOverride() throws Exception {
         String faust = "12345678";
-        Integer agencyId = 654321;
+        int agencyId = 654321;
 
         MarcRecord record = prepareRecord(faust, agencyId);
 
@@ -133,7 +133,7 @@ public class EnqueueRecordActionTest {
     @Test
     public void testActionPerform_ProviderArticle() throws Exception {
         String faust = "12345678";
-        Integer agencyId = 870971;
+        int agencyId = 870971;
 
         MarcRecord record = prepareRecord(faust, agencyId);
 
@@ -154,7 +154,7 @@ public class EnqueueRecordActionTest {
     @Test
     public void testActionPerform_ProviderDBC() throws Exception {
         String faust = "12345678";
-        Integer agencyId = 870970;
+        int agencyId = 870970;
 
         MarcRecord record = prepareRecord(faust, agencyId);
 
@@ -174,7 +174,7 @@ public class EnqueueRecordActionTest {
     @Test
     public void testActionPerform_ProviderPH() throws Exception {
         String faust = "12345678";
-        Integer agencyId = 654321;
+        int agencyId = 654321;
 
         MarcRecord record = prepareRecord(faust, agencyId);
 

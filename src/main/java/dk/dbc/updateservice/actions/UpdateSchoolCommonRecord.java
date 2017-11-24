@@ -61,7 +61,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
         }
     }
 
-    private void moveSchoolEnrichmentsActions(Integer target) throws UpdateException, UnsupportedEncodingException {
+    private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
         try {
             Set<Integer> agencies = rawRepo.agenciesForRecord(record);

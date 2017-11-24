@@ -102,10 +102,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.getRecordId();
-            Integer updAgencyId = updReader.getAgencyIdAsInteger();
+            int updAgencyId = updReader.getAgencyIdAsInt();
 
             // Perform check of 002a and b,c - 870970 only
-            if (RawRepo.COMMON_AGENCY.equals(updAgencyId)) {
+            if (RawRepo.COMMON_AGENCY == updAgencyId) {
                 String validatePreviousFaustMessage = validatePreviousFaust(updReader);
                 if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage, state);
@@ -121,14 +121,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 logger.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.getRecordId();
-                Integer agencyId = reader.getAgencyIdAsInteger();
+                int agencyId = reader.getAgencyIdAsInt();
 
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                 }
 
-                if (RawRepo.DBC_AGENCY_LIST.contains(agencyId.toString())) {
+                if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
                     if (!updReader.markedForDeletion() &&
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
@@ -136,10 +136,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
-                } else if (agencyId.equals(RawRepo.SCHOOL_COMMON_AGENCY)) {
+                } else if (agencyId == RawRepo.SCHOOL_COMMON_AGENCY) {
                     children.add(new UpdateSchoolCommonRecord(state, settings, rec));
                 } else {
-                    if (agencyId.equals(RawRepo.DBC_ENRICHMENT) && commonRecordExists(records, rec, updAgencyId)) {
+                    if (agencyId == RawRepo.DBC_ENRICHMENT && commonRecordExists(records, rec, updAgencyId)) {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
@@ -203,9 +203,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("Delete?..................: " + updReader.markedForDeletion());
         logger.info("Library group?...........: " + state.getLibraryGroup());
         logger.info("Schema name?.............: " + state.getSchemaName());
-        logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInteger()));
-        logger.info("agency id?...............: " + updReader.getAgencyIdAsInteger());
-        logger.info("RR common library?.......: " + updReader.getAgencyIdAsInteger().equals(RawRepo.COMMON_AGENCY));
+        logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
+        logger.info("agency id?...............: " + updReader.getAgencyIdAsInt());
+        logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
         logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
     }
@@ -214,7 +214,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         return commonRecordExists(records, rec, RawRepo.COMMON_AGENCY);
     }
 
-    private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, Integer parentAgencyId) throws UpdateException {
+    private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, int parentAgencyId) throws UpdateException {
         logger.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
@@ -228,8 +228,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             for (MarcRecord record : records) {
                 MarcRecordReader recordReader = new MarcRecordReader(record);
                 String checkRecordId = recordReader.getRecordId();
-                Integer checkAgencyId = recordReader.getAgencyIdAsInteger();
-                if (recordId.equals(checkRecordId) && parentAgencyId.equals(checkAgencyId)) {
+                int checkAgencyId = recordReader.getAgencyIdAsInt();
+                if (recordId.equals(checkRecordId) && parentAgencyId == checkAgencyId) {
                     return true;
                 }
             }
@@ -247,7 +247,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             String recordId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
             int rawRepoAgencyId = agencyId;
             if (agencyId == RawRepo.DBC_ENRICHMENT) {
                 rawRepoAgencyId = RawRepo.COMMON_AGENCY;
@@ -278,7 +278,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
         try {
             String readerRecordId = reader.getRecordId();
-            int readerAgencyId = reader.getAgencyIdAsInteger();
+            int readerAgencyId = reader.getAgencyIdAsInt();
             if (reader.markedForDeletion()) {
                 // Handle deletion of existing record
                 if (rawRepo.recordExists(readerRecordId, readerAgencyId)) {
@@ -394,7 +394,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
                 try {
                     Date date = formatter.parse(dateString);
-                    boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInteger());
+                    boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
                     // We only want to set the created date to a specific value if the record is new
                     if (!recordExists) {
                         state.setCreateOverwriteDate(date);

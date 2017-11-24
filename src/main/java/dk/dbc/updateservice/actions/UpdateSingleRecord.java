@@ -47,7 +47,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {
                 children.add(createCreateRecordAction());
@@ -57,7 +57,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
                 Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && !agenciesWithHoldings.isEmpty()) {
+                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         logger.info("Found holdings for agency '{}'", agencyWithHoldings);
                         boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(agencyWithHoldings.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);

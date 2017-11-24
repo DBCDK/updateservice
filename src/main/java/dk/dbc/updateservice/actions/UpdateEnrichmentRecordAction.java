@@ -37,13 +37,13 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     Decoder decoder = new Decoder();
     Properties settings;
-    private Integer parentAgencyId;
+    private int parentAgencyId;
 
     public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         this(globalActionState, properties, marcRecord, RawRepo.COMMON_AGENCY);
     }
 
-    public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, Integer parentAgencyId) {
+    public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, int parentAgencyId) {
         super(UpdateEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
         this.parentAgencyId = parentAgencyId;
@@ -106,7 +106,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
-            if (!rawRepo.recordExists(wrkRecordId, reader.getAgencyIdAsInteger())) {
+            if (!rawRepo.recordExists(wrkRecordId, reader.getAgencyIdAsInt())) {
                 if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", wrkRecordId))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
                     logger.error("Unable to create sub actions due to an error: " + message);
@@ -183,7 +183,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
-            Integer agencyId = reader.getAgencyIdAsInteger();
+            int agencyId = reader.getAgencyIdAsInt();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {
                 logger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
@@ -203,7 +203,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     }
 
-    protected Integer getParentAgencyId() {
+    protected int getParentAgencyId() {
         return parentAgencyId;
     }
 }

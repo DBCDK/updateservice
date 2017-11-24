@@ -619,7 +619,7 @@ public class LibraryRecordsHandler {
     private MarcRecord correctRecordIfEmpty(MarcRecord record) {
         MarcRecordReader reader = new MarcRecordReader(record);
         String agency = reader.getAgencyId();
-        if (RawRepo.DBC_ENRICHMENT.toString().equals(agency) || RawRepo.COMMON_AGENCY.toString().equals(agency)) {
+        if (Integer.toString(RawRepo.DBC_ENRICHMENT).equals(agency) || Integer.toString(RawRepo.COMMON_AGENCY).equals(agency)) {
             return record;
         }
 
@@ -880,7 +880,7 @@ public class LibraryRecordsHandler {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!reader.getAgencyIdAsInteger().equals(RawRepo.COMMON_AGENCY)) {
+            if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
                 logger.info("Agency id of record is not 870970 - returning same record");
                 return Arrays.asList(record);
             }
@@ -891,7 +891,7 @@ public class LibraryRecordsHandler {
             MarcRecord dbcEnrichmentRecord;
 
             String recId = correctedRecordReader.getRecordId();
-            Integer agencyId = RawRepo.COMMON_AGENCY;
+            int agencyId = RawRepo.COMMON_AGENCY;
 
             MarcRecord curRecord;
 
@@ -919,7 +919,7 @@ public class LibraryRecordsHandler {
                 MarcField corrected001Field = new MarcField(correctedRecordReader.getField("001"));
                 dbcEnrichmentRecord.getFields().add(corrected001Field);
 
-                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", RawRepo.DBC_ENRICHMENT.toString());
+                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
             } else {
                 logger.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.DBC_ENRICHMENT);
                 dbcEnrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
@@ -976,7 +976,7 @@ public class LibraryRecordsHandler {
                     MarcField dbcField = new MarcField(field);
                     for (int d = 0; d < dbcField.getSubfields().size(); d++) {
                         if (dbcField.getSubfields().get(d).getName().equals("b")) {
-                            dbcField.getSubfields().get(d).setValue(RawRepo.DBC_ENRICHMENT.toString());
+                            dbcField.getSubfields().get(d).setValue(Integer.toString(RawRepo.DBC_ENRICHMENT));
                         }
                     }
                     dbcRecord.getFields().add(dbcField);

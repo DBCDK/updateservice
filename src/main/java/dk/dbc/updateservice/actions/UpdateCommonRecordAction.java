@@ -53,7 +53,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             MarcRecordReader reader = new MarcRecordReader(record);
             if (!reader.markedForDeletion()) {
                 logger.info("Update single");
-                if (RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()) && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
+                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
                     logger.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -72,8 +72,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-            if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInteger())) {
-                MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInteger()).getContent());
+            if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
                 MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord, settings);
             } else {
@@ -85,7 +85,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                     String authRecordId = fieldReader.getValue("6");
-                    Integer authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+                    int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
                         logger.error(message);
@@ -94,7 +94,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            if ((RawRepo.COMMON_AGENCY.equals(reader.getAgencyIdAsInteger()))) {
+            if ((RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt())) {
                 logger.info("Rewriting indicators");
                 rewriteIndicators();
             }

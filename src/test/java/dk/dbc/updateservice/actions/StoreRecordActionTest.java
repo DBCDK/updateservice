@@ -65,7 +65,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -112,7 +112,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -155,7 +155,7 @@ public class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInteger();
+        int agencyId = reader.getAgencyIdAsInt();
         StoreRecordAction.Encoder encoder = mock(StoreRecordAction.Encoder.class);
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);

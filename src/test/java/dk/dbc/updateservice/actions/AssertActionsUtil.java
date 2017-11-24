@@ -131,7 +131,7 @@ public class AssertActionsUtil {
         Set<RecordId> result = new HashSet<>();
 
         for (MarcRecord record : records) {
-            result.add(new RecordId(getRecordId(record), getAgencyIdAsInteger(record)));
+            result.add(new RecordId(getRecordId(record), getAgencyIdAsInt(record)));
         }
 
         return result;
@@ -148,7 +148,7 @@ public class AssertActionsUtil {
     }
 
     public static Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
-        RawRepoRecordMock result = new RawRepoRecordMock(getRecordId(record), getAgencyIdAsInteger(record));
+        RawRepoRecordMock result = new RawRepoRecordMock(getRecordId(record), getAgencyIdAsInt(record));
         result.setMimeType(mimetype);
         result.setDeleted(false);
         result.setContent(RecordContentTransformer.encodeRecord(record));
@@ -164,8 +164,8 @@ public class AssertActionsUtil {
         return new MarcRecordReader(record).getAgencyId();
     }
 
-    public static Integer getAgencyIdAsInteger(MarcRecord record) {
-        return new MarcRecordReader(record).getAgencyIdAsInteger();
+    public static int getAgencyIdAsInt(MarcRecord record) {
+        return new MarcRecordReader(record).getAgencyIdAsInt();
     }
 
     public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) throws UpdateException {
@@ -312,7 +312,7 @@ public class AssertActionsUtil {
         assertThat(linkRecordAction.getRecord(), is(record));
 
         String recordId = getRecordId(target);
-        Integer agencyId = getAgencyIdAsInteger(target);
+        int agencyId = getAgencyIdAsInt(target);
         assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, agencyId)));
     }
 
