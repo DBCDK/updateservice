@@ -64,7 +64,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         String recordId = reader.getRecordId();
         String parentId = reader.getParentRecordId();
         int agencyId = reader.getAgencyIdAsInt();
-        int parentAgencyId = reader.getParentAgencyIdAsInteger();
+        int parentAgencyId = reader.getParentAgencyIdAsInt();
 
         if (recordId.equals(parentId)) {
             int errorAgencyId = agencyId;

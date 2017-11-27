@@ -232,13 +232,13 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 return result;
             }
             MarcRecordReader reader = new MarcRecordReader(this.record);
-            String parentId = reader.getParentRecordId();
-            int parentAgencyId = reader.getParentAgencyIdAsInteger();
-            Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentId, parentAgencyId));
+            String parentRecordId = reader.getParentRecordId();
+            int parentAgencyId = reader.getParentAgencyIdAsInt();
+            Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));
             if (recordIdChildrenList.size() != 1) {
                 return result = ServiceResult.newOkResult();
             }
-            MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, parentAgencyId).getContent());
+            MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
             MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
             writer.markForDeletion();
             UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);

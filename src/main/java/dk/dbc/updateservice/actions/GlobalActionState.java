@@ -244,8 +244,8 @@ public class GlobalActionState {
                 Boolean markedForDeletion = marcRecordReader.markedForDeletion();
                 Boolean isDBCMode = getLibraryGroup().isDBC();
                 Boolean recordExists = recordExists();
-                int getAgencyIdAsInt = marcRecordReader.getAgencyIdAsInt();
-                Boolean agencyIdEqualsRawRepoCommonLibrary = getAgencyIdAsInt == RawRepo.COMMON_AGENCY;
+                int agencyId = marcRecordReader.getAgencyIdAsInt();
+                Boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
                 doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
