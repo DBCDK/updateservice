@@ -78,7 +78,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
             MarcRecordReader reader = new MarcRecordReader(record);
             String parentId = reader.getParentRecordId();
-            int agencyId = reader.getParentAgencyIdAsInteger();
+            int agencyId = reader.getParentAgencyIdAsInt();
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
             return linkRecordAction;
         } finally {
