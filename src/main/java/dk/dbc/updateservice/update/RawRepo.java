@@ -689,7 +689,7 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
-            rawRepoBuilder.openAgency(openAgency.getService(), null);
+            rawRepoBuilder.relationHints(new RelationHintsOpenAgency(openAgency.getService()));
             return rawRepoBuilder.build();
         } finally {
             watch.stop("rawrepo.createDAO");
