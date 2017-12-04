@@ -15,7 +15,7 @@ import java.util.Properties;
 public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAction {
     private int commonRecordAgencyId;
 
-    public UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) throws UpdateException {
+    UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) throws UpdateException {
         super(globalActionState, properties, record);
         setName("UpdateSchoolEnrichmentRecordAction");
         commonRecordAgencyId = RawRepo.COMMON_AGENCY;

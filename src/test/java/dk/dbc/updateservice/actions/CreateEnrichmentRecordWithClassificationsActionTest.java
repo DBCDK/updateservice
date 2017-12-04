@@ -141,7 +141,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
-        instance.setCommonRecordId(commonRecordId);
+        instance.setTargetRecordId(commonRecordId);
 
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 

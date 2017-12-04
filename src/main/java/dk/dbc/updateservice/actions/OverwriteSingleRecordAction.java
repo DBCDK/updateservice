@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
@@ -46,15 +45,16 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
-        ServiceResult result = null;
+        ServiceResult result = ServiceResult.newOkResult();
         try {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             MarcRecordReader reader = new MarcRecordReader(record);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
-                return result = performActionDBCRecord();
+                performActionDBCRecord();
             } else {
-                return result = performActionDefault();
+                performActionDefault();
             }
+            return result;
         } catch (ScripterException | UnsupportedEncodingException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
@@ -62,8 +62,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    ServiceResult performActionDBCRecord() throws UnsupportedEncodingException, UpdateException, ScripterException {
-        ServiceResult result = ServiceResult.newOkResult();
+    void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException, ScripterException {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
@@ -90,28 +89,21 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             }
         }
-
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
-
-        return result;
     }
 
-    private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
-        ServiceResult result;
+    private void performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
         MarcRecord currentRecord = loadCurrentRecord();
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
         children.addAll(createActionsForCreateOrUpdateEnrichments(record, currentRecord));
 
-        result = performActionsFor002Links();
 
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
         children.addAll(getEnqueuePHHoldingsRecordActions(state, record));
-
-        return result;
     }
 
     List<EnqueuePHHoldingsRecordAction> getEnqueuePHHoldingsRecordActions(GlobalActionState state, MarcRecord record) throws UpdateException {
@@ -200,7 +192,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
-                                logger.info("Create new extended library record: [{}:{}].", recordId, id);
+                                logger.info("Create new enrichment library record: [{}:{}].", recordId, id);
                                 result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, Integer.toString(id)));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
@@ -231,19 +223,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentRecord(String holdingAgencyId, String destinationCommonRecordId, MarcRecord linkRecord) {
-        logger.entry(holdingAgencyId, destinationCommonRecordId, linkRecord);
-        CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = null;
-        try {
-            createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
-            createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(linkRecord);
-            createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(linkRecord);
-            createEnrichmentRecordWithClassificationsAction.setCommonRecordId(destinationCommonRecordId);
-            return createEnrichmentRecordWithClassificationsAction;
-        } finally {
-            logger.exit(createEnrichmentRecordWithClassificationsAction);
-        }
-    }
 
     private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord record, MarcRecord currentRecord, String holdingAgencyId) {
         logger.entry(record, holdingAgencyId, currentRecord);
@@ -258,151 +237,4 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(MarcRecord record, MarcRecord enrichmentRecordData, boolean classificationsChanged, boolean oneOrBothInProduction) {
-        logger.entry(record, enrichmentRecordData);
-        MoveEnrichmentRecordAction moveEnrichmentRecordAction = null;
-        try {
-            moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData, classificationsChanged, oneOrBothInProduction);
-            moveEnrichmentRecordAction.setCommonRecord(record);
-            return moveEnrichmentRecordAction;
-        } finally {
-            logger.exit(moveEnrichmentRecordAction);
-        }
-    }
-
-    private CreateEnrichmentRecordActionForlinkedRecords getActionDataForEnrichmentRecord(MarcRecord record, int holdingAgencyId, List<MarcRecord> arrayOfRecordsWithHoldings) {
-        logger.entry(holdingAgencyId, record);
-        CreateEnrichmentRecordActionForlinkedRecords createEnrichmentRecordActionForlinkedRecords = null;
-        try {
-            createEnrichmentRecordActionForlinkedRecords = new CreateEnrichmentRecordActionForlinkedRecords(state, settings);
-            createEnrichmentRecordActionForlinkedRecords.setAgencyId(holdingAgencyId);
-            createEnrichmentRecordActionForlinkedRecords.setListOfRecordsToFetchClassificationDataFrom(arrayOfRecordsWithHoldings);
-            createEnrichmentRecordActionForlinkedRecords.setRecord(record);
-            return createEnrichmentRecordActionForlinkedRecords;
-        } finally {
-            logger.exit(createEnrichmentRecordActionForlinkedRecords);
-        }
-    }
-
-    private List<CreateEnrichmentRecordActionForlinkedRecords> linkForMultipleRecordsIn002(MarcRecord record, HashMap<String, List<MarcRecord>> enrichmentCandidate) {
-        logger.entry();
-        List<CreateEnrichmentRecordActionForlinkedRecords> createEnrichmentRecordActionForlinkedRecordsList = new ArrayList<>();
-        try {
-            enrichmentCandidate.forEach((agencyIdString, arrayOfRecordsWithHoldings) -> {
-                if (arrayOfRecordsWithHoldings.size() > 1) {
-                    createEnrichmentRecordActionForlinkedRecordsList.add(getActionDataForEnrichmentRecord(record, Integer.parseInt(agencyIdString), arrayOfRecordsWithHoldings));
-                    for (MarcRecord rec : arrayOfRecordsWithHoldings) {
-                        MarcRecordWriter curWriter = new MarcRecordWriter(rec);
-                        curWriter.markForDeletion();
-                    }
-                }
-            });
-            if (createEnrichmentRecordActionForlinkedRecordsList.size() > 0) {
-                MarcRecordWriter writer = new MarcRecordWriter(record);
-                writer.removeSubfield("002", "a");
-            }
-            return createEnrichmentRecordActionForlinkedRecordsList;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    ServiceResult performActionsFor002Links() throws ScripterException, UpdateException, UnsupportedEncodingException {
-        logger.entry();
-        ServiceResult result = ServiceResult.newOkResult();
-        try {
-            MarcRecordReader recordReader = new MarcRecordReader(record);
-            String destinationCommonRecordId = recordReader.getValue("001", "a");
-            int agencyId = Integer.valueOf(recordReader.getValue("001", "b"));
-
-            MarcRecord currentRecord = loadRecord(destinationCommonRecordId, agencyId);
-            MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
-
-            List<String> valuesFrom002 = recordReader.getValues("002", "a");
-            // Check made due to story #1802, regarding multiple links in one record
-            boolean isMultiple002Candidate = valuesFrom002.size() > 1;
-
-            HashMap<String, List<MarcRecord>> enrichmentCandidate = new HashMap<>();
-
-            boolean isTargetRecordInProduction = state.getLibraryRecordsHandler().isRecordInProduction(record);
-            logger.info("IsTargetRecordInProduction {}", isTargetRecordInProduction);
-            for (String recordId : valuesFrom002) {
-                if (currentRecordReader.hasValue("002", "a", recordId)) {
-                    logger.info("002 linked record '{}' is not changed, so it is not handled.", recordId);
-                    continue;
-                }
-
-                if (!rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
-                    logger.warn("002 linked record '{}' does not exist", recordId);
-                    continue;
-                }
-                MarcRecord linkRecord = loadRecord(recordId, agencyId);
-                boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(linkRecord, record);
-                boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(linkRecord);
-                // The real boolean wanted is :
-                // (!isLinkRecInProduction && isTargetRecordInProduction) ¦¦ (isLinkRecInProduction && !isTargetRecordInProduction) or (!isLinkRecInProduction && !isTargetRecordInProduction)
-                // Fortunately it can be reduced to :
-                boolean isOneOrBothInProduction = !(isTargetRecordInProduction && isLinkRecInProduction);
-                logger.info("Is linkRec InProduction {}", isLinkRecInProduction);
-                logger.info("IsOneOrBothInProduction {}", isOneOrBothInProduction);
-                logger.info("Will classifications change from {{}:{}} to record '{{}:{}}': {}", recordId, agencyId, destinationCommonRecordId, agencyId, classificationsChanged);
-
-                if (classificationsChanged) {
-                    Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordId);
-                    Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.COMMON_AGENCY));
-
-                    if (holdingAgencies.isEmpty()) {
-                        logger.info("No holdings found for record id '{}'", recordId);
-                    }
-
-                    for (Integer holdingAgencyId : holdingAgencies) {
-                        if (!state.getOpenAgencyService().hasFeature(holdingAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                            logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", holdingAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
-                            continue;
-                        }
-                        if (!enrichmentIds.contains(new RecordId(recordId, holdingAgencyId))) {
-                            logger.warn("No enrichments found for record '{}' for agency '{}' with holdings", recordId, holdingAgencyId);
-                            String holdingAgencyIdString = holdingAgencyId.toString();
-                            if (isMultiple002Candidate) {
-                                if (enrichmentCandidate.containsKey(holdingAgencyIdString)) {
-                                    enrichmentCandidate.get(holdingAgencyIdString).add(linkRecord);
-                                } else {
-                                    List<MarcRecord> marcRecords = new ArrayList<>();
-                                    marcRecords.add(linkRecord);
-                                    enrichmentCandidate.put(holdingAgencyIdString, marcRecords);
-                                }
-                            }
-                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), linkRecord, currentRecord)) {
-                                children.add(getActionDataForEnrichmentRecord(holdingAgencyIdString, destinationCommonRecordId, linkRecord));
-                            } else {
-                                logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, holdingAgencyId);
-                            }
-                        }
-                    }
-                } else {
-                    logger.info("Holdings for linked record '{}' was not checked, because the classifications has not changed.", recordId);
-                }
-                Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordId, RawRepo.COMMON_AGENCY));
-
-                for (RecordId enrichmentId : enrichmentIds) {
-                    if (enrichmentId.getAgencyId() == RawRepo.DBC_ENRICHMENT) {
-                        continue;
-                    }
-                    if (!state.getOpenAgencyService().hasFeature(String.valueOf(enrichmentId.getAgencyId()), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                        logger.info("Ignoring enrichment record for agency '{}', because they do not have the feature '{}'", enrichmentId.getAgencyId(), LibraryRuleHandler.Rule.USE_ENRICHMENTS);
-                        continue;
-                    }
-                    Record enrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
-                    MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
-                    children.add(getMoveEnrichmentRecordAction(record, enrichmentRecordData, classificationsChanged, isOneOrBothInProduction));
-                }
-            }
-            children.addAll(linkForMultipleRecordsIn002(record, enrichmentCandidate));
-            return result;
-        } catch (OpenAgencyException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            logger.exit(result);
-        }
-    }
 }

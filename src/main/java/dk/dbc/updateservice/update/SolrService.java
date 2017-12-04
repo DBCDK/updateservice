@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.iscrum.utils.ResourceBundles;
-import dk.dbc.iscrum.utils.json.Json;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -15,14 +14,14 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.Stateless;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Map;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -32,7 +31,6 @@ import java.util.ResourceBundle;
 @Stateless
 public class SolrService {
     private static XLogger logger = XLoggerFactory.getXLogger(SolrService.class);
-    private static String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
 
     @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
@@ -48,83 +46,29 @@ public class SolrService {
         messages = ResourceBundles.getBundle("messages");
     }
 
-    public boolean hasDocuments(String q) throws UpdateException, SolrException {
-        logger.entry(q);
-        StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
-
-        Boolean result = null;
-        try {
-            return result = hits(q) != 0L;
-        } finally {
-            watch.stop();
-            logger.exit(result);
-        }
-    }
-
-    public long hits(String q) throws UpdateException, SolrException  {
+    private URL setUrl(String query) throws UpdateException {
+        String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
         logger.entry();
-        StopWatch watch = new Log4JStopWatch("service.solr.hits");
-
-        URL solrUrl = null;
         try {
             if (settings.containsKey("solr.url")) {
                 String url = settings.getProperty("solr.url");
-
-                solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(q, "UTF-8")));
-                logger.warn("Solr call query: {} -> {}", q, solrUrl);
-                Map<String, Object> response = callSolr(solrUrl);
-
-                if (response == null) {
-                    logger.warn("Solr return a null response for query: {} -> {}", q, solrUrl);
-                    return 0;
-                }
-
-                if (response.containsKey("response")) {
-                    Map<String, Object> solrResponseMap = (Map<String, Object>) response.get("response");
-                    if (solrResponseMap.containsKey("numFound")) {
-                        String solrResponseNumFound = solrResponseMap.get("numFound").toString();
-                        return Long.valueOf(solrResponseNumFound, 10);
-                    }
-                } else if (response.containsKey("error")) {
-                    Map<String, Object> errorMap = (Map<String, Object>) response.get("error");
-
-                    String code = null;
-                    String message = null;
-
-                    if (errorMap.containsKey("code")) {
-                        code = errorMap.get("code").toString();
-                    }
-                    if (errorMap.containsKey("msg")) {
-                        message = errorMap.get("msg").toString();
-                    }
-
-                    String s = String.format("Solr at %s returned response code %s: %s", solrUrl, code, message);
-                    logger.warn(s);
-
-                    throw new UpdateException(s);
-                }
-
-                throw new UpdateException(String.format("Unable to locate 'numFound' in Solr response %s", response));
+                URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")));
+                logger.info("Solr call query: {} -> {}", query, solrUrl);
+                return solrUrl;
+            } else {
+                throw new UpdateException("The key 'solr.url' does not exist in settings");
             }
 
-            throw new UpdateException("The key 'solr.url' does not exist in settings");
         } catch (IOException ex) {
-            //TODO , kan ikke se hvordan den kan blive null , medmindre settings.getProperty smider en IOException
-            if (solrUrl == null) {
-                throw new UpdateException(ex.getMessage(), ex);
-            }
-            throw new SolrException("Unable to connect to url " + solrUrl.toString() + ": " + ex.getMessage(), ex);
-        } finally {
-            watch.stop();
-            logger.exit();
+            // IOException covers several exceptions thrown by URL and URLEncoder
+            throw new UpdateException("Bad encoding or malformed URL : " + ex.getMessage(), ex);
         }
     }
 
-    public Map<String, Object> callSolr(URL url) throws IOException {
+    private JsonObject callSolr(URL url) throws SolrException, UpdateException {
         logger.entry();
 
         int responseCode;
-        Map<String, Object> result = null;
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
@@ -138,32 +82,104 @@ public class SolrService {
             } else {
                 is = conn.getErrorStream();
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
-            String response = "";
-            String line;
-            while ((line = br.readLine()) != null) {
-                response += line;
-            }
-
+            JsonReader jReader = Json.createReader(is);
+            JsonObject jObj = jReader.readObject();
             conn.disconnect();
+
             if (responseCode == 200) {
-                logger.debug("Solr response {} ==> {}", url.toString(), response);
+                logger.info("Solr response {} ==> {}", url.toString(), jObj.toString());
             } else {
-                logger.warn("Solr response {} ==> {}", url.toString(), response);
+                String s = String.format("Solr response {%s} ==> {%s}", url.toString(), jObj.toString());
+                logger.warn(s);
+                if (jObj.containsKey("error")) {
+                    s = String.format("Solr returned error code %s: %s", jObj.getJsonObject("error").getInt("code"), jObj.getJsonObject("error").getString("msg"));
+                    logger.warn(s);
+                }
+                throw new SolrException(messages.getString("solr.error.responsecode"));
             }
-
-            if (responseCode != 200) {
-                throw new IOException(messages.getString("solr.error.responsecode"));
+            if (jObj.containsKey("response")) {
+                return jObj.getJsonObject("response");
+            } else {
+                String s = String.format("Solr response {%s} ==> {%s}", url.toString(), jObj.toString());
+                logger.warn(s);
+                if (jObj.containsKey("error")) {
+                    s = String.format("Solr returned error code %s: %s", jObj.getJsonObject("error").getInt("code"), jObj.getJsonObject("error").getString("msg"));
+                    logger.warn(s);
+                } else {
+                    s = String.format("Very strange - could not locate neither response nor error section in Solr response %s", jObj.toString());
+                }
+                throw new UpdateException(s);
             }
-
-            result = Json.decode(response, Map.class);
-            return result;
         } catch (IOException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw ex;
+            String s = "Unable to connect to url " + url.toString() + ": " + ex.getMessage();
+            logger.warn(s);
+            throw new SolrException(s, ex);
         } finally {
+            logger.exit();
+        }
+    }
+
+    long hits(String query) throws UpdateException, SolrException  {
+        logger.entry(query);
+        StopWatch watch = new Log4JStopWatch("service.solr.hits");
+        URL solrUrl;
+
+        try {
+            solrUrl = setUrl(query);
+            JsonObject response = callSolr(solrUrl);
+            if (response.containsKey("numFound")) {
+                return response.getInt("numFound");
+            }
+            String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
+            logger.warn(s);
+            throw new UpdateException(s);
+
+        } finally {
+            watch.stop();
+            logger.exit();
+        }
+    }
+
+    public String getOwnerOf002(String query) throws UpdateException, SolrException {
+        logger.entry(query);
+        StopWatch watch = new Log4JStopWatch("service.solr.getownerof002");
+        URL solrUrl;
+
+        String result = "";
+        try {
+            solrUrl = setUrl(query);
+            JsonObject response = callSolr(solrUrl);
+            if (response.containsKey("docs")) {
+                JsonArray docsArray = response.getJsonArray("docs");
+                for (JsonObject jObj : docsArray.getValuesAs(JsonObject.class)) {
+                    JsonArray marc001aArray = jObj.getJsonArray("marc.001a");
+                    if (marc001aArray != null) {
+                        result = marc001aArray.getString(0);
+                        break;
+                    }
+
+                }
+            }
+            return result;
+
+        } finally {
+            watch.stop();
             logger.exit(result);
         }
     }
+
+    public boolean hasDocuments(String query) throws UpdateException, SolrException {
+        logger.entry(query);
+        StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
+
+        Boolean result = null;
+        try {
+            return result = hits(query) != 0L;
+        } finally {
+            watch.stop();
+            logger.exit(result);
+        }
+    }
+
 }

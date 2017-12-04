@@ -239,7 +239,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private ServiceResult checkRecordForUpdatability() throws UpdateException {
+    private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException  {
         logger.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
@@ -247,6 +247,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             String recordId = reader.getRecordId();
+            String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId));
+            if (!motherRecordId.equals("")) {
+                return ServiceResult.newOkResult();
+            }
             int agencyId = reader.getAgencyIdAsInt();
             int rawRepoAgencyId = agencyId;
             if (agencyId == RawRepo.DBC_ENRICHMENT) {
@@ -363,6 +367,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
     private String getSolrQuery002a(Boolean recordExists, String aValue, String recordId) {
         if (recordExists) {
+            // this is belt and braces - can only be relevant if there are a 002a=<aValue> in both current and another record.
+            // Though this would be an error that this exact check is supposed to prevent.
             return SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", aValue, "001a", recordId);
         } else {
             return SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue);
@@ -371,6 +377,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
     private String getSolrQuery002bc(Boolean recordExists, String bValue, String cValue, String recordId) {
         if (recordExists) {
+            // this is belt and braces - can only be relevant if there are a 002bc=<aValue> in both current and another record.
+            // Though this would be an error that this exact check is supposed to prevent.
             return SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bValue, "002c", cValue, "001a", recordId);
         } else {
             return SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bValue, "002c", cValue);

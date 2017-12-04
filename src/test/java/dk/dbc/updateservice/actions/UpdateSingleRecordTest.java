@@ -6,9 +6,13 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -161,8 +165,10 @@ public class UpdateSingleRecordTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -202,9 +208,11 @@ public class UpdateSingleRecordTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -283,9 +291,11 @@ public class UpdateSingleRecordTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -294,4 +304,5 @@ public class UpdateSingleRecordTest {
         AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
+
 }

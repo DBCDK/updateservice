@@ -34,24 +34,24 @@ import java.util.Properties;
 public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(MoveEnrichmentRecordAction.class);
 
-    private boolean classificationChangedInCommonRecs = false;
-    private boolean isOneOrBothInProduction = false;
-    private MarcRecord dyingCommonRecord = null;
+    private boolean isClassificationChangedInCommonRecs = false;
+    private boolean isLinkRecInProduction = false;
+    private String targetRecordId = null;
     Properties settings;
 
-    public MoveEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, boolean classificationChanged, boolean oneOrBothInProduction) {
-        super(MoveEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
+    public MoveEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord enrichmentToMove, boolean classificationChanged, boolean linkRecInProduction) {
+        super(MoveEnrichmentRecordAction.class.getSimpleName(), globalActionState, enrichmentToMove);
         settings = properties;
-        this.classificationChangedInCommonRecs = classificationChanged;
-        this.isOneOrBothInProduction = oneOrBothInProduction;
+        isClassificationChangedInCommonRecs = classificationChanged;
+        isLinkRecInProduction = linkRecInProduction;
     }
 
-    public MarcRecord getCommonRecord() {
-        return dyingCommonRecord;
+    String getTargetRecordId() {
+        return targetRecordId;
     }
 
-    public void setCommonRecord(MarcRecord commonRecord) {
-        this.dyingCommonRecord = commonRecord;
+    void setTargetRecordId(String commonRecord) {
+        targetRecordId = commonRecord;
     }
 
     /**
@@ -77,7 +77,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     /**
      * Constructs an action to delete the enrichment record in this action.
      *
-     * @return An instance of UpdateEnrichmentRecordAction
+     * @return An instance of UpdateRecordAction
      */
     private ServiceAction createDeleteEnrichmentAction() {
         logger.entry();
@@ -98,20 +98,19 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     /**
      * Constructs an action to delete the enrichment record in this action.
      *
-     * @return An instance of UpdateEnrichmentRecordAction
+     * @return An instance of UpdateRecordAction or UpdateRecordAndClassificationsAction
      */
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
         logger.entry();
         try {
-            String commonRecordId = new MarcRecordReader(dyingCommonRecord).getRecordId();
             MarcRecord newEnrichmentRecord = new MarcRecord(record);
             MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
-            writer.addOrReplaceSubfield("001", "a", commonRecordId);
+            writer.addOrReplaceSubfield("001", "a", targetRecordId);
 
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
-            logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, commonRecordId);
+            logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
 
             if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
                 logger.info("Enrichment record has classifications. Creating sub action to update it.");
@@ -119,16 +118,16 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             }
             MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
-            logger.info("ClassificationChangedInCommonRecs {} ", classificationChangedInCommonRecs);
-            logger.info("IsOneOrBothInProduction {} ", isOneOrBothInProduction);
+            logger.info("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
+            logger.info("isLinkRecInProduction {} ", isLinkRecInProduction);
 
-            if (classificationChangedInCommonRecs) {
-                if (isOneOrBothInProduction) {
-                    logger.info("Creating enrichment record with classifications, because one or both records are published.");
-                    return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
-                } else {
-                    logger.info("Creating enrichment record without classifications, because both records are in production.");
+            if (isClassificationChangedInCommonRecs) {
+                if (isLinkRecInProduction) {
+                    logger.info("Creating enrichment record without classifications, because the linkrecord is in production.");
                     return createUpdateRecordAction(newEnrichmentRecord);
+                } else {
+                    logger.info("Creating enrichment record with classifications, because the linkrecord is published.");
+                    return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
                 }
             } else {
                 logger.info("Creating enrichment record without classifications, because there are no change in die/live records.");
@@ -165,7 +164,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      *
      * @param updateRecord The record to update.
      * @param commonRecord The common record to copy classifications data from.
-     * @return An instance of UpdateEnrichmentRecordAction
+     * @return An instance of updateClassificationsInEnrichmentRecordAction
      */
     private ServiceAction createUpdateRecordAndClassificationsAction(MarcRecord updateRecord, MarcRecord commonRecord) {
         logger.entry();

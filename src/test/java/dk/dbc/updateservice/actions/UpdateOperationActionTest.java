@@ -473,6 +473,7 @@ public class UpdateOperationActionTest {
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -524,6 +525,7 @@ public class UpdateOperationActionTest {
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("operation.delete.non.existing.record");
@@ -821,6 +823,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -849,6 +852,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
         when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.getRecordId()))).thenReturn(false);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
@@ -879,6 +883,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.getRecordId())).thenReturn(holdingList001);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList002);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
