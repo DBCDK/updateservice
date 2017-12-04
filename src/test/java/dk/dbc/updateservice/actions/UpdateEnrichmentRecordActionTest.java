@@ -124,52 +124,6 @@ public class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Create enrichment record with 002 links
-     * from other records.
-     * <p>
-     * <dl>
-     * <dt>Given</dt>
-     * <dd>
-     * A rawrepo with a common record.
-     * </dd>
-     * <dt>When</dt>
-     * <dd>
-     * Update an enrichment record.
-     * </dd>
-     * <dt>Then</dt>
-     * <dd>
-     * Create child actions:
-     * <ol>
-     * <li>StoreRecordAction: Store the record</li>
-     * <li>LinkRecordAction: Link the record to the common record</li>
-     * <li>EnqueueRecordAction: Put the record in queue</li>
-     * </ol>
-     * Return status: OK
-     * </dd>
-     * </dl>
-     */
-    @Test
-    public void testPerformAction_CreateRecord_With002Links() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.getRecordId();
-        int agencyId = reader.getAgencyIdAsInt();
-        MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
-        Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(record);
-        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
-
-        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
-        String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
-        assertThat(updateEnrichmentRecordAction.children().isEmpty(), is(true));
-    }
-
-    /**
      * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record with no 002 links
      * from other records.
      * <p>

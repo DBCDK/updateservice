@@ -16,7 +16,6 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
-import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -64,7 +63,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * An enrichment record is updated as follows:
      * <ol>
      * <li>
-     * If it is marked for deletion when creates actions for
+     * If it is marked for deletion then creates actions for
      * deletion and return.
      * </li>
      * <li>
@@ -105,13 +104,6 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
                 logger.warn("Unable to update enrichment record due to an error: " + message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
-            }
-            if (!rawRepo.recordExists(wrkRecordId, reader.getAgencyIdAsInt())) {
-                if (state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", wrkRecordId))) {
-                    String message = state.getMessages().getString("update.record.with.002.links");
-                    logger.error("Unable to create sub actions due to an error: " + message);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
-                }
             }
             Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
             MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
@@ -203,6 +195,9 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     }
 
+    /*
+    Do not try to clean the code by replacing this with the variable, there is an override in UpdateSchoolEnrichmentRecordAction.java
+     */
     protected int getParentAgencyId() {
         return parentAgencyId;
     }

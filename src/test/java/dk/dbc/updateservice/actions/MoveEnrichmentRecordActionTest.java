@@ -80,10 +80,9 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c1))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().isRecordInProduction(eq(c2))).thenReturn(true);
 
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, e1, true, true);
-        moveEnrichmentRecordAction.setCommonRecord(c2);
+        moveEnrichmentRecordAction.setTargetRecordId(c2RecordId);
         assertThat(moveEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = moveEnrichmentRecordAction.children.listIterator();
 
@@ -91,7 +90,7 @@ public class MoveEnrichmentRecordActionTest {
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), e1Deleted, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
 
         MarcRecord e1Moved = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
-        AssertActionsUtil.assertUpdateClassificationsInEnrichmentRecordAction(iterator.next(), state.getRawRepo(), c1, e1Moved);
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), e1Moved, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         Assert.assertThat(iterator.hasNext(), is(false));
     }
 
@@ -139,7 +138,7 @@ public class MoveEnrichmentRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1, false, false);
-        instance.setCommonRecord(c2);
+        instance.setTargetRecordId(c2RecordId);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = instance.children.listIterator();
 

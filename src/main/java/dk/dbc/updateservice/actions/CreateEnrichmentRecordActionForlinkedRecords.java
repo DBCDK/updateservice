@@ -7,7 +7,9 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.*;
 import dk.dbc.common.records.utils.LogUtils;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
@@ -16,18 +18,18 @@ import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
 /**
- * Action to create a new enrichment record from a common record.
+ * Action to create or update an enrichment record from a common record.
  * <p>
- * This action handles to case where we need to create a new enrichment
+ * This action handles to case where we need to create or update an enrichment
  * triggered when the classification data is updated in a common record and
- * there is no enrichment record for a agency that has holdings for the
- * common record.
+ * there is an agency that has holdings for the common record.
  * </p>
  * <p>
  * The creation of the enrichment record is done by calling the JavaScript
@@ -35,14 +37,14 @@ import java.util.Properties;
  * record.
  * </p>
  */
-public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction {
+public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
     private final static String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
-    private final static String ERRORNOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
+    private final static String ERRONEOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
     private final static String RECATEGORIZATION_STRING_OBSOLETE = " Postens opstilling ændret på grund af omkatalogisering";
     private static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
-    private List<MarcRecord> listOfRecordsToFetchClassificationDataFrom;
+    private MarcRecord recordWithHoldings;
     private int agencyId;
     private MarcRecord record;
     private Properties settings;
@@ -52,8 +54,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         settings = properties;
     }
 
-    public void setListOfRecordsToFetchClassificationDataFrom(List<MarcRecord> listOfRecordsToFetchClassificationDataFrom) {
-        this.listOfRecordsToFetchClassificationDataFrom = listOfRecordsToFetchClassificationDataFrom;
+    void setRecordWithHoldings(MarcRecord recordWithHoldings) {
+        this.recordWithHoldings = recordWithHoldings;
     }
 
     public int getAgencyId() {
@@ -114,23 +116,40 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
         MDCUtil.setupContextForEnrichmentRecord(record, Integer.toString(agencyId));
     }
 
-    private MarcRecord createEnrichmentRecord() throws ScripterException {
+    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
+        logger.entry(recordId, agencyId);
+        MarcRecord result = null;
+        try {
+            Record record = rawRepo.fetchRecord(recordId, agencyId);
+            return result = RecordContentTransformer.decodeRecord(record.getContent());
+        } catch (UnsupportedEncodingException e) {
+            throw new UpdateException(e.getMessage(), e);
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    private MarcRecord createEnrichmentRecord() throws ScripterException, UpdateException {
         logger.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
+            MarcRecordReader recordReader = new MarcRecordReader(record);
+            String recordId = recordReader.getRecordId();
             MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
-            enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
-            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
-            listOfRecordsToFetchClassificationDataFrom.forEach((rec) -> {
-                enrichmentRecord.getFields().add(getFormatted004Field(rec));
-            });
+            if (rawRepo.recordExists(recordId, agencyId)) {
+                enrichmentRecord = loadRecord(recordId, agencyId);
+            } else {
+                enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
+                enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
+            }
+            enrichmentRecord.getFields().add(getFormattedY08Field(recordWithHoldings));
             return enrichmentRecord;
         } finally {
             logger.exit(enrichmentRecord);
         }
     }
 
-    private MarcField getFormatted004Field(MarcRecord rec) {
+    private MarcField getFormattedY08Field(MarcRecord rec) {
         logger.entry(rec);
         MarcField yNoteField = new MarcField("y08", "00");
         try {
@@ -141,7 +160,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
                 MarcField noteField = state.getLibraryRecordsHandler().fetchNoteField(rec);
                 String yNoteFieldString = getNoteFieldString(noteField);
                 if (yNoteFieldString == null) {
-                    faustWithIntro = String.format(ERRORNOUS_RECATEGORIZATION_STRING, faust);
+                    faustWithIntro = String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust);
                 } else {
                     faustWithIntro = (String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString));
                     faustWithIntro = faustWithIntro.replace(RECATEGORIZATION_STRING_OBSOLETE, "");
@@ -149,8 +168,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractAction
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
                 return yNoteField;
             } catch (ScripterException e) {
-                logger.error("Error : Scripter exception , probally due to malformed record \n", e);
-                yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRORNOUS_RECATEGORIZATION_STRING, faust)));
+                logger.error("Error : Scripter exception , probably due to malformed record \n", e);
+                yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
                 return yNoteField;
             }
         } finally {

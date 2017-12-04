@@ -48,44 +48,6 @@ public class AssertActionsUtil {
     public static final String VOLUME_RECORD_RESOURCE = "volume.marc";
     public static final String COMMON_RECORD_CLASSIFICATION = "common_classification.marc";
 
-    public static final String AUT_RAW_52846943 = "authority/raw-52846943.marc";
-    public static final String AUT_RAW_53025757 = "authority/raw-53025757.marc";
-    public static final String AUT_RAW_53161510 = "authority/raw-53161510.marc";
-    public static final String AUT_RAW_53180485 = "authority/raw-53180485.marc";
-    public static final String AUT_RAW_53213642 = "authority/raw-53213642.marc";
-    public static final String AUT_RAW_53214592 = "authority/raw-53214592.marc";
-    public static final String AUT_RAW_53214827 = "authority/raw-53214827.marc";
-    public static final String AUT_RAW_90004158 = "authority/raw-90004158.marc";
-
-    public static final String AUT_EXPANDED_52846943 = "authority/expanded-52846943.marc";
-    public static final String AUT_EXPANDED_53025757 = "authority/expanded-53025757.marc";
-    public static final String AUT_EXPANDED_53161510 = "authority/expanded-53161510.marc";
-    public static final String AUT_EXPANDED_53180485 = "authority/expanded-53180485.marc";
-    public static final String AUT_EXPANDED_53213642 = "authority/expanded-53213642.marc";
-    public static final String AUT_EXPANDED_53214592 = "authority/expanded-53214592.marc";
-    public static final String AUT_EXPANDED_53214827 = "authority/expanded-53214827.marc";
-    public static final String AUT_EXPANDED_90004158 = "authority/expanded-90004158.marc";
-
-    public static final String AUTHORITY_19024687 = "authority/authority-19024687.marc";
-    public static final String AUTHORITY_19024709 = "authority/authority-19024709.marc";
-    public static final String AUTHORITY_19043800 = "authority/authority-19043800.marc";
-    public static final String AUTHORITY_19064689 = "authority/authority-19064689.marc";
-    public static final String AUTHORITY_19130452 = "authority/authority-19130452.marc";
-    public static final String AUTHORITY_68098203 = "authority/authority-68098203.marc";
-    public static final String AUTHORITY_68354153 = "authority/authority-68354153.marc";
-    public static final String AUTHORITY_68432359 = "authority/authority-68432359.marc";
-    public static final String AUTHORITY_68472806 = "authority/authority-68472806.marc";
-    public static final String AUTHORITY_68560985 = "authority/authority-68560985.marc";
-    public static final String AUTHORITY_68570492 = "authority/authority-68570492.marc";
-    public static final String AUTHORITY_68584566 = "authority/authority-68584566.marc";
-    public static final String AUTHORITY_68585627 = "authority/authority-68585627.marc";
-    public static final String AUTHORITY_68712742 = "authority/authority-68712742.marc";
-    public static final String AUTHORITY_68839734 = "authority/authority-68839734.marc";
-    public static final String AUTHORITY_68895650 = "authority/authority-68895650.marc";
-    public static final String AUTHORITY_68900719 = "authority/authority-68900719.marc";
-    public static final String AUTHORITY_69094139 = "authority/authority-69094139.marc";
-    public static final String AUTHORITY_69294685 = "authority/authority-69294685.marc";
-    public static final String AUTHORITY_69328776 = "authority/authority-69328776.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
         InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/actions/" + filename);
@@ -342,7 +304,7 @@ public class AssertActionsUtil {
         assertThat(createEnrichmentRecordWithClassificationsAction.state.getRawRepo(), is(rawRepo));
         assertThat(createEnrichmentRecordWithClassificationsAction.getUpdatingCommonRecord(), equalTo(commonRecord));
         assertThat(createEnrichmentRecordWithClassificationsAction.agencyId, equalTo(agencyId));
-        assertThat(createEnrichmentRecordWithClassificationsAction.getCommonRecordId(), equalTo(commonRecordId));
+        assertThat(createEnrichmentRecordWithClassificationsAction.getTargetRecordId(), equalTo(commonRecordId));
     }
 
     public static void assertUpdateEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId) throws UpdateException {
@@ -395,14 +357,14 @@ public class AssertActionsUtil {
         assertThat(enqueueRecordAction.settings.getProperty(enqueueRecordAction.state.getRawRepoProviderId()), is(providerId));
     }
 
-    public static void assertMoveEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord commonRecord, Properties settings) throws UpdateException {
+    public static void assertMoveEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String targetRecordId, Properties settings) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(MoveEnrichmentRecordAction.class.getName()));
 
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = (MoveEnrichmentRecordAction) action;
         assertThat(moveEnrichmentRecordAction.getRawRepo(), is(rawRepo));
         assertThat(moveEnrichmentRecordAction.getRecord(), is(record));
-        assertThat(moveEnrichmentRecordAction.getCommonRecord(), is(commonRecord));
+        assertThat(moveEnrichmentRecordAction.getTargetRecordId(), is(targetRecordId));
         assertThat(moveEnrichmentRecordAction.settings, equalTo(settings));
     }
 

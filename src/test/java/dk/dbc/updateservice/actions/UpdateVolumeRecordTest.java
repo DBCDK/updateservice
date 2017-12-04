@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Before;
@@ -155,8 +156,10 @@ public class UpdateVolumeRecordTest {
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<>());
         when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));

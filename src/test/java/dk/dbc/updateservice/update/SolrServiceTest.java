@@ -37,13 +37,22 @@ public class SolrServiceTest {
     }
 
     @Test
+    public void getOwnerOf002() throws Exception {
+        Properties settings = new Properties();
+        settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
+
+        SolrService instance = new SolrService(settings);
+        assertThat(instance.getOwnerOf002("marc.002a:06605141"), is("2 041 237 2"));
+    }
+
+    @Test
     public void hasDocuments() throws Exception {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
         SolrService instance = new SolrService(settings);
-        assertThat(instance.hasDocuments("marc.002a:06605141"), is(true));
         assertThat(instance.hasDocuments("marc.002a:76605141"), is(false));
+        assertThat(instance.hasDocuments("marc.002a:06605141"), is(true));
     }
 
     @Test(expected = SolrException.class)

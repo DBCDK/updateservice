@@ -23,16 +23,18 @@ import java.util.Properties;
 /**
  * Action to create a new enrichment record from a common record.
  * <p>
- * This action handles to case where we need to create a new enrichment
- * of copy classification data into it from a common record. This case is
- * triggered when the classification data is updated in a common record and
- * there is no enrichment record for a agency that has holdings for the
- * common record.
+ * This action handles the case where we need to create a new enrichment
+ * record.
+ * This case is triggered when there is a classification difference in current
+ * and updating records.
+ * </p>
+ * <p>
+ * If the target common record differs from the calling updating record, this
+ * can be set via setTargetRecordId.
  * </p>
  * <p>
  * The creation of the enrichment record is done by calling the JavaScript
- * engine (thought LibraryRecordsHandler) to produce the actual enrichment
- * record.
+ * engine to produce the actual enrichment record.
  * </p>
  */
 public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAction {
@@ -42,9 +44,9 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
     String agencyId;
     private Properties settings;
-    protected MarcRecord currentCommonRecord = null;
-    protected MarcRecord updatingCommonRecord = null;
-    protected String commonRecordId = null;
+    MarcRecord currentCommonRecord = null;
+    MarcRecord updatingCommonRecord = null;
+    private String targetRecordId = null;
 
     public CreateEnrichmentRecordWithClassificationsAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
         super(CreateEnrichmentRecordWithClassificationsAction.class.getSimpleName(), globalActionState);
@@ -52,24 +54,24 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         agencyId = agencyIdInput;
     }
 
-    public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
+    void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
         this.currentCommonRecord = currentCommonRecord;
     }
 
-    public MarcRecord getUpdatingCommonRecord() {
+    MarcRecord getUpdatingCommonRecord() {
         return updatingCommonRecord;
     }
 
-    public void setUpdatingCommonRecord(MarcRecord updatingCommonRecord) {
+    void setUpdatingCommonRecord(MarcRecord updatingCommonRecord) {
         this.updatingCommonRecord = updatingCommonRecord;
     }
 
-    public String getCommonRecordId() {
-        return commonRecordId;
+    String getTargetRecordId() {
+        return targetRecordId;
     }
 
-    public void setCommonRecordId(String commonRecordId) {
-        this.commonRecordId = commonRecordId;
+    void setTargetRecordId(String targetRecordId) {
+        this.targetRecordId = targetRecordId;
     }
 
     /**
@@ -135,8 +137,9 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
                 writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
             }
 
-            if (commonRecordId != null) {
-                writer.addOrReplaceSubfield("001", "a", commonRecordId);
+            // While tempting, this cannot be done by changing the agency in the createLibraryExtendedRecord call - it will give a null result
+            if (targetRecordId != null) {
+                writer.addOrReplaceSubfield("001", "a", targetRecordId);
             }
             return result;
         } finally {
