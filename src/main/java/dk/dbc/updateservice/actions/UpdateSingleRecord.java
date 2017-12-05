@@ -203,33 +203,33 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
       logger.entry("performActionsFor002Links");
       try {
           MarcRecordReader recordReader = new MarcRecordReader(record);
-          String recordToDeleteId = recordReader.getValue("001", "a");
-          Integer deleteAgencyId = Integer.valueOf(recordReader.getValue("001", "b"));
+          String recordIdForRecordToDelete = recordReader.getValue("001", "a");
+          Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
 
-          String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordToDeleteId));
+          String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
           if (motherRecordId.equals("")) {
               return;
           }
-          logger.info("Record : {} has {} as 002 field", motherRecordId, recordToDeleteId);
+          logger.info("Record : {} has {} as 002 field", motherRecordId, recordIdForRecordToDelete);
           MarcRecord motherRecord;
 
-          if (rawRepo.recordExists(motherRecordId, deleteAgencyId)) {
-              motherRecord = loadRecord(motherRecordId, deleteAgencyId);
+          if (rawRepo.recordExists(motherRecordId, agencyIdForRecordToDelete)) {
+              motherRecord = loadRecord(motherRecordId, agencyIdForRecordToDelete);
           } else {
-              logger.warn("Solr index 002a points to a nonexisting record : {}:{}", deleteAgencyId, motherRecordId);
+              logger.warn("Solr index 002a points to a nonexisting record : {}:{}", agencyIdForRecordToDelete, motherRecordId);
               return;
           }
-          MarcRecord originalDeleteRecord = loadRecord(recordToDeleteId, deleteAgencyId);
-          logger.info("Holdings for " + recordToDeleteId);
-          Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordToDeleteId);
+          MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
+          logger.info("Holdings for " + recordIdForRecordToDelete);
+          Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordIdForRecordToDelete);
           logger.info("is " + holdingAgencies.toString());
           // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
-          boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, originalDeleteRecord);
+          boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);
           logger.info("classificationsChanged : {}", classificationsChanged);
-          logger.info("Enrichments for {}", recordToDeleteId);
+          logger.info("Enrichments for {}", recordIdForRecordToDelete);
 
-          Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordToDeleteId, RawRepo.COMMON_AGENCY));
-          enrichmentIds.remove(new RecordId(recordToDeleteId, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
+          Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
+          enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
           logger.info("is " + enrichmentIds.toString());
           Set<Integer> totalAgencies = new HashSet<>();
           totalAgencies.addAll(holdingAgencies);
@@ -238,7 +238,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
           }
 
           boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(motherRecord);
-          logger.info("Record in production {}-{} : {} ", motherRecordId, motherRecordId, isLinkRecInProduction);
+          logger.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
 
           for (Integer workAgencyId : totalAgencies) {
               if (!state.getOpenAgencyService().hasFeature(workAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
@@ -246,16 +246,16 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                   logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
                   continue;
               }
-              boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordToDeleteId, workAgencyId));
+              boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));
               logger.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
               if (hasEnrichment) {
-                  Record enrichmentRecord = rawRepo.fetchRecord(recordToDeleteId, workAgencyId);
+                  Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
                   MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
                   children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
               } else {
                   if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {
-                      children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, originalDeleteRecord));
-                      children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, originalDeleteRecord));
+                      children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, rrVersionOfRecordToDelete));
+                      children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, rrVersionOfRecordToDelete));
                   }
               }
           }
