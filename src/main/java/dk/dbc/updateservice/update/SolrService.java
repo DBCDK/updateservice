@@ -46,13 +46,13 @@ public class SolrService {
         messages = ResourceBundles.getBundle("messages");
     }
 
-    private URL setUrl(String query) throws UpdateException {
+    private URL setUrl(String query, String queryParam) throws UpdateException {
         String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
         logger.entry();
         try {
             if (settings.containsKey("solr.url")) {
                 String url = settings.getProperty("solr.url");
-                URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")));
+                URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
                 logger.info("Solr call query: {} -> {}", query, solrUrl);
                 return solrUrl;
             } else {
@@ -126,7 +126,7 @@ public class SolrService {
         URL solrUrl;
 
         try {
-            solrUrl = setUrl(query);
+            solrUrl = setUrl(query, "");
             JsonObject response = callSolr(solrUrl);
             if (response.containsKey("numFound")) {
                 return response.getInt("numFound");
@@ -148,7 +148,7 @@ public class SolrService {
 
         String result = "";
         try {
-            solrUrl = setUrl(query);
+            solrUrl = setUrl(query, "&fl=marc.001a");
             JsonObject response = callSolr(solrUrl);
             if (response.containsKey("docs")) {
                 JsonArray docsArray = response.getJsonArray("docs");
