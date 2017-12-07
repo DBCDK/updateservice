@@ -10,7 +10,7 @@ package dk.dbc.updateservice.update;
  * lookup with the SolrService EJB.
  */
 public class SolrServiceIndexer {
-    private static String GET_OWNER_OF_002_QUERY = "marc.%s:\"%s\" AND marc.001b:870970&fl=marc.001a";
+    private static String GET_OWNER_OF_002_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
 
     private static String SUBFIELD_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
     private static String SUBFIELD_QUERY_WITH_EXCLUDE = "marc.%s:\"%s\" AND -marc.%s:\"%s\" AND marc.001b:870970";

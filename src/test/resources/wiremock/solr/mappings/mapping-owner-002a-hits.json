@@ -1,6 +1,6 @@
 {
   "request" : {
-    "url" : "/solr/raw-repo-index/select?q=marc.002a%3A06605141%26fl%3Dmarc.001a&wt=json",
+    "url" : "/solr/raw-repo-index/select?q=marc.002a%3A06605141&wt=json&fl=marc.001a",
     "method" : "GET"
   },
   "response" : {
