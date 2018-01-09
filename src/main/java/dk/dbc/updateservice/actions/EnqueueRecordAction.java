@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
@@ -69,6 +68,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
+            int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
+
             // Enqueuing should be done differently for authority record, so first we have to determine whether
             // this is a authority record
             boolean isAuthorityRecord = RawRepo.AUTHORITY_AGENCY == agencyId ||
@@ -82,6 +83,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
             } else {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
+                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             }
 
             if (providerId == null) {
@@ -106,7 +108,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 }
             } else {
                 logger.info("Enqueuing record: {}:{} using provider '{}'", recId, agencyId, providerId);
-                rawRepo.changedRecord(providerId, new RecordId(recId, agencyId));
+                rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
             }
 
             return result = ServiceResult.newOkResult();

@@ -103,10 +103,12 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+        ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
         assertThat(argId.getValue(), equalTo(new RecordId(recordId, agencyId)));
+        assertThat(priority.getValue(), equalTo(500));
     }
 
     @Test
@@ -124,10 +126,12 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+        ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE)));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+        assertThat(priority.getValue(), equalTo(1000));
     }
 
     @Test
@@ -145,10 +149,12 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+        ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo("dataio-bulk"));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+        assertThat(priority.getValue(), equalTo(1000));
     }
 
     @Test
@@ -165,10 +171,12 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+        ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+        assertThat(priority.getValue(), equalTo(1000));
     }
 
     @Test
@@ -185,9 +193,11 @@ public class EnqueueRecordActionTest {
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
+        ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
-        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture());
+        verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH)));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
+        assertThat(priority.getValue(), equalTo(1000));
     }
 }
