@@ -5,7 +5,12 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcFieldReader;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.ResourceBundles;
@@ -19,7 +24,11 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
@@ -244,9 +253,9 @@ public class NoteAndSubjectExtensionsHandler {
             MarcRecord curRecord;
             try {
                 Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
-                curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection);
+                curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
                 logger.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
-            } catch (UnsupportedEncodingException | RawRepoException e) {
+            } catch (RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }
             MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);

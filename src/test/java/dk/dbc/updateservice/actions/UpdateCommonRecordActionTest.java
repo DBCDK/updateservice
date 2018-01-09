@@ -237,7 +237,6 @@ public class UpdateCommonRecordActionTest {
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(new MarcRecord(record), MarcXChangeMimeType.MARCXCHANGE));
         when(state.getNoteAndSubjectExtensionsHandler().collapse(record, new MarcRecord(record), groupId, true)).thenReturn(record);
-        when(state.getRecordSorter().sortRecord(record, settings)).thenReturn(record);
 
         state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
 

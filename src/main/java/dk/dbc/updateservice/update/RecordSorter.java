@@ -18,6 +18,10 @@ public class RecordSorter {
     private Scripter scripter;
     private String schemaName;
 
+    // Default constructor used for mocking
+    protected RecordSorter() {
+    }
+
     public RecordSorter(Scripter scripter, String schemaName) {
         this.scripter = scripter;
         this.schemaName = schemaName;
