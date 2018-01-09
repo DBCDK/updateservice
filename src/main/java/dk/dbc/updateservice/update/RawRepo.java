@@ -14,7 +14,11 @@ import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.*;
+import dk.dbc.rawrepo.RawRepoDAO;
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -33,7 +37,12 @@ import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * EJB to provide access to the RawRepo database.
@@ -51,6 +60,9 @@ public class RawRepo {
     public static final int MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
     public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
+
+    public static final int ENQUEUE_PRIORITY_DEFAULT = 1000;
+    public static final int ENQUEUE_PRIORITY_HIGH = 500;
 
     @EJB
     private OpenAgencyService openAgency;
@@ -599,13 +611,17 @@ public class RawRepo {
     }
 
     public void changedRecord(String provider, RecordId recId) throws UpdateException {
+        changedRecord(provider, recId, 1000);
+    }
+
+    public void changedRecord(String provider, RecordId recId, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-                dao.changedRecord(provider, recId);
+                dao.changedRecord(provider, recId, priority);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
