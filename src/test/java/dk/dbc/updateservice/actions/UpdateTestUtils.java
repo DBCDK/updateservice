@@ -5,16 +5,32 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
 import dk.dbc.iscrum.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
-import dk.dbc.updateservice.dto.*;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RecordSorter;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 
@@ -74,7 +90,7 @@ public class UpdateTestUtils {
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
-        globalActionState.setRecordSorter(mock(RecordSorter.class));
+        globalActionState.setRecordSorter(new RecordSorterMock());
         globalActionState.setNoteAndSubjectExtensionsHandler(mock(NoteAndSubjectExtensionsHandler.class));
         if (marcRecordName != null) {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
@@ -94,5 +110,21 @@ public class UpdateTestUtils {
         return settings;
     }
 
+    // This record sorter is only able to sort the fields by field name, and not also sort subfields
+    // The sorting is needed because expand function might change the order of the fields
+    private class RecordSorterMock extends RecordSorter {
+        @Override
+        public MarcRecord sortRecord(MarcRecord record, Properties properties) throws UpdateException {
+
+            Collections.sort(record.getFields(), new Comparator<MarcField>() {
+                @Override
+                public int compare(MarcField f1, MarcField f2) {
+                    return Integer.parseInt(f1.getName()) - Integer.parseInt(f2.getName());
+                }
+            });
+
+            return record;
+        }
+    }
 
 }
