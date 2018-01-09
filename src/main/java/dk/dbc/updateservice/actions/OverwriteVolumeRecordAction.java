@@ -8,8 +8,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -52,14 +52,14 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             }
             return result;
 
-        } catch (ScripterException | UnsupportedEncodingException ex) {
+        } catch (RawRepoException | UnsupportedEncodingException ex) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
     }
 
-    private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
+    private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         String parentId = reader.getParentRecordId();
@@ -82,12 +82,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
         }
 
-        MarcRecord currentRecord = loadCurrentRecord();
+        MarcRecord currentExpandedRecord = loadCurrentRecord();
+        MarcRecord newExpandedRecord = expandRecord();
+
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
         children.add(LinkRecordAction.newLinkParentAction(state, record));
-        children.addAll(createActionsForCreateOrUpdateEnrichments(record, currentRecord));
-
+        children.addAll(createActionsForCreateOrUpdateEnrichments(newExpandedRecord, currentExpandedRecord));
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
         children.addAll(getEnqueuePHHoldingsRecordActions(state, record));

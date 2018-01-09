@@ -18,7 +18,6 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -63,14 +62,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 performActionDefault();
             }
             return result;
-        } catch (ScripterException | UnsupportedEncodingException ex) {
+        } catch (UnsupportedEncodingException | RawRepoException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } finally {
             logger.exit(result);
         }
     }
 
-    void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException, ScripterException {
+    void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
@@ -85,12 +84,15 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
-                Map<String, MarcRecord> records = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+                Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+                Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
+                updatedRecordCollection.put(reader.getRecordId(), record);
                 try {
-                    MarcRecord currentRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(records, id.getBibliographicRecordId()), settings);
-                    records.put(reader.getRecordId(), record);
-                    MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(records, id.getBibliographicRecordId()), settings);
-                    children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentRecord));
+                    MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
+                            ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, id.getBibliographicRecordId()), settings);
+                    MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
+                            ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()), settings);
+                    children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentCommonRecord));
                 } catch (RawRepoException e) {
                     throw new UpdateException("Exception while expanding the records", e);
                 }
@@ -100,12 +102,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
     }
 
-    private void performActionDefault() throws UnsupportedEncodingException, UpdateException, ScripterException {
-        MarcRecord currentRecord = loadCurrentRecord();
-
+    private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
-        children.addAll(createActionsForCreateOrUpdateEnrichments(record, currentRecord));
+
+        MarcRecord currentExpandedRecord = loadCurrentRecord();
+        MarcRecord newExpandedRecord = expandRecord();
+
+        children.addAll(createActionsForCreateOrUpdateEnrichments(newExpandedRecord, currentExpandedRecord));
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
         children.addAll(getEnqueuePHHoldingsRecordActions(state, record));
@@ -136,7 +140,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return result;
     }
 
-    MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
+    MarcRecord loadCurrentRecord() throws UpdateException, RawRepoException {
         logger.entry();
         MarcRecord result = null;
         try {
@@ -144,7 +148,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
-            return result = loadRecord(recordId, agencyId);
+            final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
+
+            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId), settings);
+
+            return result;
         } finally {
             logger.exit(result);
         }
@@ -161,28 +169,47 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord record, MarcRecord currentRecord) throws ScripterException, UpdateException, UnsupportedEncodingException {
-        logger.entry(currentRecord);
+    MarcRecord expandRecord() throws UpdateException, UnsupportedEncodingException, RawRepoException {
+        logger.entry();
+        MarcRecord result = null;
+        try {
+            final MarcRecordReader reader = new MarcRecordReader(record);
+            final String recordId = reader.getRecordId();
+
+            final Map<String, MarcRecord> newRecordCollection = new HashMap<>();
+            newRecordCollection.put(recordId, record);
+
+            for (MarcField field : record.getFields()) {
+                final MarcFieldReader fieldReader = new MarcFieldReader(field);
+
+                if (fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
+                    final String autRecordId = fieldReader.getValue("6");
+
+                    final Record extRecord = rawRepo.fetchRecord(autRecordId, RawRepo.AUTHORITY_AGENCY);
+                    final MarcRecord autRecord = RecordContentTransformer.decodeRecord(extRecord.getContent());
+                    newRecordCollection.put(autRecordId, autRecord);
+                }
+            }
+
+            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId), settings);
+
+            return result;
+        } finally {
+            logger.exit(result);
+        }
+
+    }
+
+    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord record, MarcRecord currentRecord) throws UpdateException, UnsupportedEncodingException {
+        logger.entry(record);
         List<ServiceAction> result = new ArrayList<>();
         try {
             final MarcRecordReader reader = new MarcRecordReader(record);
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
 
-            // When fetching the record collection for the existing record we can be sure all authority records are included
-            final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
-
-            // However the new record might have new authority links, which is not included in the above fetchRecordCollection
-            // Therefor we have to load each parenting authority record
-            final Map<String, MarcRecord> newRecordCollection = new HashMap<>();
-            newRecordCollection.put(recordId, record);
-            newRecordCollection.putAll(getAutRecordsForCommonRecord(record));
-
-            final MarcRecord newExpandedRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId), settings);
-            final MarcRecord currentExpandedRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId), settings);
-
-            if (state.getLibraryRecordsHandler().hasClassificationData(currentExpandedRecord) && state.getLibraryRecordsHandler().hasClassificationData(newExpandedRecord)) {
-                if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentExpandedRecord, newExpandedRecord)) {
+            if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
+                if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
 
                     logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
                     final Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
@@ -202,13 +229,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = RecordContentTransformer.decodeRecord(extRecord.getContent());
                             logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, newExpandedRecord, currentExpandedRecord, Integer.toString(id)));
+                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, Integer.toString(id)));
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
                             logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
-                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), newExpandedRecord, currentExpandedRecord)) {
+                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
                                 logger.info("Create new enrichment library record: [{}:{}].", recordId, id);
-                                result.add(getActionDataForEnrichmentWithClassification(newExpandedRecord, currentExpandedRecord, Integer.toString(id)));
+                                result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, Integer.toString(id)));
                             } else {
                                 logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                             }
@@ -217,7 +244,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 }
             }
             return result;
-        } catch (OpenAgencyException | RawRepoException ex) {
+        } catch (OpenAgencyException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit(result);
@@ -249,25 +276,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         } finally {
             logger.exit(createEnrichmentRecordWithClassificationsAction);
         }
-    }
-
-    private Map<String, MarcRecord> getAutRecordsForCommonRecord(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
-        final Map<String, MarcRecord> result = new HashMap<>();
-
-        for (MarcField field : record.getFields()) {
-            final MarcFieldReader fieldReader = new MarcFieldReader(field);
-
-            if (fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
-                final String recordId = fieldReader.getValue("6");
-                final int agencyId = Integer.parseInt(fieldReader.getValue("5"));
-
-                final Record extRecord = rawRepo.fetchRecord(recordId, agencyId);
-                final MarcRecord autRecord = RecordContentTransformer.decodeRecord(extRecord.getContent());
-                result.put(recordId, autRecord);
-            }
-        }
-
-        return result;
     }
 
 }
