@@ -228,59 +228,50 @@ public class LibraryRecordsHandlerTest {
                 "245 00*n3. Band*aKupferzeit");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
 
-        String field001DBC = "001 00 *b 870970 \n";
-        String field001FBS = "001 00 *b 763000 \n";
 
         // felt 245
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 2");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 4");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 2");
+        newRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 4");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 2");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 2");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 2");
+        newRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 2");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 123456789");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *g[Bind] 1234567890");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 123456789");
+        newRecord = MarcRecordFactory.readRecord("245 00 *g[Bind] 1234567890");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
 
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *mDiskette");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *mPapirform");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *mDiskette");
+        newRecord = MarcRecordFactory.readRecord("245 00 *mPapirform");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *mDiskette");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *mDiskette");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *mDiskette");
+        newRecord = MarcRecordFactory.readRecord("245 00 *mDiskette");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
 
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *nBand 1");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *nBand 2");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *nBand 1");
+        newRecord = MarcRecordFactory.readRecord("245 00 *nBand 2");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *nBand 1");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *nBand 1");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *nBand 1");
+        newRecord = MarcRecordFactory.readRecord("245 00 *nBand 1");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
 
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonetter");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *oRobinsonader");
+        newRecord = MarcRecordFactory.readRecord("245 00 *oRobinsonetter");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsõnader");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *oRobinsonader");
+        newRecord = MarcRecordFactory.readRecord("245 00 *oRobinsõnader");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonaderne");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *oRobinsonader");
+        newRecord = MarcRecordFactory.readRecord("245 00 *oRobinsonaderne");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
 
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySüpplement");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySupplement");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *ySüpplement");
+        newRecord = MarcRecordFactory.readRecord("245 00 *ySupplement");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySupplement");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySupplement");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *ySupplement");
+        newRecord = MarcRecordFactory.readRecord("245 00 *ySupplement");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySupplement");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *ySupplementerne");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
-
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonetter");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
-        oldRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(field001DBC + "245 00 *oRobinsõnader");
+        oldRecord = MarcRecordFactory.readRecord("245 00 *ySupplement");
+        newRecord = MarcRecordFactory.readRecord("245 00 *ySupplementerne");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
 
     }
