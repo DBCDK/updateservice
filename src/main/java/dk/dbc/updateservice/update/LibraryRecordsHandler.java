@@ -5,7 +5,14 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.CatalogExtractionCode;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcFieldReader;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
+import dk.dbc.common.records.UpdateOwnership;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -22,7 +29,11 @@ import javax.ejb.Stateless;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -512,13 +523,21 @@ public class LibraryRecordsHandler {
     }
 
     private boolean check245(MarcRecordReader oldReader, MarcRecordReader newReader) {
+        int compareLength = 10;
+
+        // If the library is a FBS library then we need to compare the full subfield values and not just the first 10 chars
+        if (RawRepo.COMMON_AGENCY != oldReader.getAgencyIdAsInt()) {
+            compareLength = 0; // 0 = ignore compare length
+            logger.debug("Library {} is not DBC, so field 245 is compared with full compare", oldReader.getAgencyId());
+        }
+
         MarcField oldField = oldReader.getField("245");
         MarcField newField = newReader.getField("245");
         List<MarcSubField> oldSubfieldList = oldField == null ? null : oldField.getSubfields();
         List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
 
         //  if 245g stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, compareLength)) {
             logger.info("Classification has changed - reason 245g difference");
             return true;
         }
@@ -533,22 +552,22 @@ public class LibraryRecordsHandler {
             return true;
         }
         //  if 245o stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "o", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "o", true, compareLength)) {
             logger.info("Classification has changed - reason 245o difference");
             return true;
         }
         //  if 245y stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "y", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "y", true, compareLength)) {
             logger.info("Classification has changed - reason 245y difference");
             return true;
         }
         //  if 245æ stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00E6", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00E6", true, compareLength)) {
             logger.info("Classification has changed - reason 245æ difference");
             return true;
         }
         //  if 245ø stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00F8", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00F8", true, compareLength)) {
             logger.info("Classification has changed - reason 245ø difference");
             return true;
         }
@@ -589,7 +608,6 @@ public class LibraryRecordsHandler {
                 logger.info("Classification has changed - reason 652m|o : subfield h difference");
                 return true;
             }
-
         }
 
         //  if 652m stripped changed return true
