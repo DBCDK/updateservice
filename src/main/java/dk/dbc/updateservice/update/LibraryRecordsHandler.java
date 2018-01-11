@@ -51,7 +51,6 @@ public class LibraryRecordsHandler {
     private static final String DIACRITICAL_MARKS = "[\\p{InCombiningDiacriticalMarks}]";
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
 
-
     @EJB
     private Scripter scripter;
 
@@ -302,6 +301,13 @@ public class LibraryRecordsHandler {
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
 
+        int compareLength = 10;
+
+        // If the library is a FBS library then we need to compare the full subfield values and not just the first 10 chars
+        if (RawRepo.COMMON_AGENCY != newReader.getAgencyIdAsInt()) {
+            compareLength = 0; // 0 = compare whole string
+        }
+
         logger.debug("Old record\n{}", oldRecord);
         logger.debug("New record\n{}", newRecord);
 
@@ -311,10 +317,9 @@ public class LibraryRecordsHandler {
                 check039(oldReader, newReader) ||
                 check100(oldReader, newReader) ||
                 check110(oldReader, newReader) ||
-                check239And245(oldReader, newReader) ||
-                check245(oldReader, newReader) ||
-                check652(oldReader, newReader);
-
+                check239And245(oldReader, newReader, compareLength) ||
+                check245(oldReader, newReader, compareLength) ||
+                check652(oldReader, newReader, compareLength);
     }
 
     private boolean check008(MarcRecordReader oldReader, MarcRecordReader newReader) {
@@ -418,7 +423,7 @@ public class LibraryRecordsHandler {
     }
 
 
-    private boolean check239And245(MarcRecordReader oldReader, MarcRecordReader newReader) {
+    private boolean check239And245(MarcRecordReader oldReader, MarcRecordReader newReader, int cut) {
         List<MarcSubField> oldSubfieldList;
         List<MarcSubField> newSubfieldList;
         MarcField oldField;
@@ -444,9 +449,9 @@ public class LibraryRecordsHandler {
             if (newField != null) {
                 MarcField Field245 = oldReader.getField("245");
                 if (Field245 != null) {
-                    f245a = getCompareString(Field245.getSubfields(), "a", true, 10);
+                    f245a = getCompareString(Field245.getSubfields(), "a", true, cut);
                 }
-                String f239t = getCompareString(newReader.getField("239").getSubfields(), "t", true, 10);
+                String f239t = getCompareString(newReader.getField("239").getSubfields(), "t", true, cut);
                 checkField239 = !f245a.equals(f239t);
                 if (checkField239 && !f239t.equals("")) {
                     logger.info("Classification has changed - reason 239t difference");
@@ -458,9 +463,9 @@ public class LibraryRecordsHandler {
             if (newField == null) {
                 MarcField Field245 = newReader.getField("245");
                 if (Field245 != null) {
-                    f245a = getCompareString(Field245.getSubfields(), "a", true, 10);
+                    f245a = getCompareString(Field245.getSubfields(), "a", true, cut);
                 }
-                String f239t = getCompareString(oldReader.getField("239").getSubfields(), "t", true, 10);
+                String f239t = getCompareString(oldReader.getField("239").getSubfields(), "t", true, cut);
                 checkField239 = !f245a.equals(f239t);
                 if (checkField239 && !f239t.equals("")) {
                     logger.info("Classification has changed - reason 239t difference ");
@@ -479,7 +484,7 @@ public class LibraryRecordsHandler {
         if (checkField239) {
             oldSubfieldList = oldField == null ? null : oldField.getSubfields();
             newSubfieldList = newField == null ? null : newField.getSubfields();
-            if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkeft\u00F8", true, 10)) {
+            if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkeft\u00F8", true, cut)) {
                 logger.info("Classification has changed - reason 239ahkeft\u00F8 difference");
                 return true;
             }
@@ -499,7 +504,7 @@ public class LibraryRecordsHandler {
         newField = newReader.getField("245");
         oldSubfieldList = oldField == null ? null : oldField.getSubfields();
         newSubfieldList = newField == null ? null : newField.getSubfields();
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "a", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "a", true, cut)) {
             newValue = newReader.getValue("004", "a");
             newValue = newValue == null ? "" : newValue;
             if (newValue.equals("s")) {
@@ -522,44 +527,43 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private boolean check245(MarcRecordReader oldReader, MarcRecordReader newReader) {
+    private boolean check245(MarcRecordReader oldReader, MarcRecordReader newReader, int cut) {
         MarcField oldField = oldReader.getField("245");
         MarcField newField = newReader.getField("245");
         List<MarcSubField> oldSubfieldList = oldField == null ? null : oldField.getSubfields();
         List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
 
-        //  if 245g stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 10)) {
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, cut)) {
             logger.info("Classification has changed - reason 245g difference");
             return true;
         }
-        //  if 245m changed return true
+
         if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "m", false, 0)) {
             logger.info("Classification has changed - reason 245m difference");
             return true;
         }
-        //  if 245n stripped changed return true
+
         if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "n", true, 0)) {
             logger.info("Classification has changed - reason 245n difference");
             return true;
         }
-        //  if 245o stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "o", true, 10)) {
+
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "o", true, cut)) {
             logger.info("Classification has changed - reason 245o difference");
             return true;
         }
-        //  if 245y stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "y", true, 10)) {
+
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "y", true, cut)) {
             logger.info("Classification has changed - reason 245y difference");
             return true;
         }
-        //  if 245æ stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00E6", true, 10)) {
+
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00E6", true, cut)) {
             logger.info("Classification has changed - reason 245æ difference");
             return true;
         }
-        //  if 245ø stripped 10 changed return true
-        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00F8", true, 10)) {
+
+        if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "\u00F8", true, cut)) {
             logger.info("Classification has changed - reason 245ø difference");
             return true;
         }
@@ -567,16 +571,14 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader) {
+    private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader, int cut) {
         // 652 section
-        //  if 652a stripped 10 changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "a", true, 10)) {
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
             logger.info("Classification has changed - reason 652a difference");
             return true;
         }
 
-        //  if 652b stripped 10 changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "b", true, 10)) {
+        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
             logger.info("Classification has changed - reason 652b difference");
             return true;
         }
@@ -600,7 +602,6 @@ public class LibraryRecordsHandler {
                 logger.info("Classification has changed - reason 652m|o : subfield h difference");
                 return true;
             }
-
         }
 
         //  if 652m stripped changed return true
@@ -974,7 +975,6 @@ public class LibraryRecordsHandler {
             MarcRecord commonRecord = new MarcRecord();
 
             for (MarcField field : record.getFields()) {
-                //MarcField field = record.getFields().get(i);
                 if (field.getName().equals("001")) {
                     MarcField commonField = new MarcField(field);
                     for (int c = 0; c < commonField.getSubfields().size(); c++) {
