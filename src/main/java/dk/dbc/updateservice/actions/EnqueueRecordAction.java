@@ -107,7 +107,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                     rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC), childId);
                 }
             } else {
-                logger.info("Enqueuing record: {}:{} using provider '{}'", recId, agencyId, providerId);
+                logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
                 rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
             }
 
