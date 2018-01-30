@@ -12,7 +12,14 @@ import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.log.DBCTrackedLogContext;
-import dk.dbc.oss.ns.catalogingbuild.*;
+import dk.dbc.oss.ns.catalogingbuild.BibliographicRecord;
+import dk.dbc.oss.ns.catalogingbuild.Build;
+import dk.dbc.oss.ns.catalogingbuild.BuildPortType;
+import dk.dbc.oss.ns.catalogingbuild.BuildRequest;
+import dk.dbc.oss.ns.catalogingbuild.BuildResponse;
+import dk.dbc.oss.ns.catalogingbuild.BuildResult;
+import dk.dbc.oss.ns.catalogingbuild.BuildStatusEnum;
+import dk.dbc.oss.ns.catalogingbuild.RecordData;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
@@ -41,7 +48,11 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.WebServiceContext;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 
 /**
  * Web service entry point for Open Build SOAP service.
@@ -288,7 +299,9 @@ public class OpenBuild implements BuildPortType {
         logger.entry(properties);
         try {
             List<String> requiredProperties = new ArrayList<>();
-            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL);
+            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_URL);
+            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST_8);
+            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST);
             requiredProperties.add(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
             for (String s : requiredProperties) {
                 if (!properties.containsKey(s)) {
