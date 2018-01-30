@@ -69,9 +69,9 @@ public class JNDIResources {
      */
     public static final String MARCXCHANGE_1_1_SCHEMA_LOCATION = "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd";
 
-
-
-    public static final String PROP_OPENNUMBERROLL = "opennumberroll";
+    public static final String PROP_OPENNUMBERROLL_URL = "opennumberroll.url";
+    public static final String PROP_OPENNUMBERROLL_NAME_FAUST_8 = "opennumberroll.name.faust8";
+    public static final String PROP_OPENNUMBERROLL_NAME_FAUST = "opennumberroll.name.faust";
 
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {
