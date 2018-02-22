@@ -472,7 +472,7 @@ public class RawRepo {
      * @return <code>true</code> if the record exists, <code>false</code> otherwise.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public boolean recordExistsIsDeleted(String recordId, int agencyId) throws UpdateException {
+    public boolean recordDoesNotExistOrIsDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
 
@@ -486,7 +486,7 @@ public class RawRepo {
 
                     return record.isDeleted();
                 } else {
-                    throw new UpdateException("Record doesn't exist");
+                    return true;
                 }
             } catch (RawRepoException ex) {
                 conn.rollback();

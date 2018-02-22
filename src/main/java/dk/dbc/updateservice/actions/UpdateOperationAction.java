@@ -27,7 +27,12 @@ import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -351,7 +356,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
 
                     for (String m : removedPreviousFaust) {
-                        if (state.getRawRepo().recordExistsIsDeleted(m, RawRepo.COMMON_AGENCY) &&
+                        if (state.getRawRepo().recordDoesNotExistOrIsDeleted(m, RawRepo.COMMON_AGENCY) &&
                                 state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
                             return state.getMessages().getString("update.record.holdings.on.002a");
                         }

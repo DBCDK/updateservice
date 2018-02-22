@@ -5,7 +5,11 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -17,7 +21,15 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Properties;
+import java.util.Set;
 
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -801,7 +813,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().recordExistsIsDeleted("12345678", RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordDoesNotExistOrIsDeleted("12345678", RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
