@@ -198,6 +198,6 @@ public class EnqueueRecordActionTest {
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
         assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH)));
         assertThat(argId.getValue(), equalTo(new RecordId(faust, agencyId)));
-        assertThat(priority.getValue(), equalTo(1000));
+        assertThat(priority.getValue(), equalTo(500));
     }
 }

@@ -81,6 +81,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
             } else if (state.getLibraryGroup().isPH()) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
+                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             } else {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
                 priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
