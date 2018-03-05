@@ -150,11 +150,22 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         } else {
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (commonRecordExists(records, rec) && state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)) {
-                        if (RawRepo.isSchoolEnrichment(agencyId)) {
-                            children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
+                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)) {
+                        if (commonRecordExists(records, rec)) {
+                            if (RawRepo.isSchoolEnrichment(agencyId)) {
+                                children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
+                            } else {
+                                children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
+                            }
                         } else {
-                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
+                            // We know the common record isn't active so if recordExistsMaybeDeleted is true
+                            // it must mean it is deleted
+                            if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
+                                String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), recordId);
+                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                            } else {
+                                children.add(new UpdateLocalRecordAction(state, settings, rec));
+                            }
                         }
                     } else {
                         children.add(new UpdateLocalRecordAction(state, settings, rec));

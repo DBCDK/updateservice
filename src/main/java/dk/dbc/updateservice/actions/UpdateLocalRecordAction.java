@@ -14,10 +14,8 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -65,24 +63,6 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                     return res = performSingleDeleteAction();
                 }
                 return res = performVolumeDeleteAction();
-            }
-
-            // At this point we know that the record is not a common record, and it is not a delete record
-            // If the record exists already then no problem
-            // However if the record doesn't already exist we need to check if the record has existed before but is deleted
-            // And if so, is the common record alive?
-            if (state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt());
-                if (r.isDeleted() && MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
-                    Record commonRecord = state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY);
-                    if (commonRecord.isDeleted()) {
-                        String message = state.getMessages().getString("create.record.with.deleted.common");
-
-                        logger.error("Unable to create sub actions due to an error: {}", message);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
-                    }
-                }
-
             }
 
             if (parentId == null) {

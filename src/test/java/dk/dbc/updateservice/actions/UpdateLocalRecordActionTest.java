@@ -14,8 +14,6 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +28,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class UpdateLocalRecordActionTest {
     private GlobalActionState state;
@@ -79,30 +81,6 @@ public class UpdateLocalRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
         assertThat(iterator.hasNext(), is(false));
-    }
-
-    @Test
-    public void testPerformAction_CreateSingleRecordDeletedCommonRecord() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        MarcRecord recordDeleted = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(recordDeleted).markForDeletion();
-
-        RawRepoRecordMock rrDeleted = new RawRepoRecordMock(reader.getRecordId(), reader.getAgencyIdAsInt());
-        rrDeleted.setDeleted(true);
-        rrDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
-        RawRepoRecordMock commonDeleted = new RawRepoRecordMock(reader.getRecordId(), RawRepo.COMMON_AGENCY);
-        commonDeleted.setDeleted(true);
-        commonDeleted.setMimeType(MarcXChangeMimeType.ENRICHMENT);
-
-
-        when(state.getRawRepo().recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(rrDeleted);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(commonDeleted);
-
-        UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        String message = state.getMessages().getString("create.record.with.deleted.common");
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     /**
