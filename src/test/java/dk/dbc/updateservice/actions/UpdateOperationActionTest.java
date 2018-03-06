@@ -646,6 +646,57 @@ public class UpdateOperationActionTest {
     }
 
     @Test
+    public void testPerformAction_FBSLocalRecordAllowed() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String recordId = reader.getRecordId();
+        String agencyId = reader.getAgencyId();
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(agencyId);
+        state.setMarcRecord(record);
+        state.setLibraryGroup(libraryGroupFBS);
+
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        List<ServiceAction> children = instance.children();
+        assertThat(children.size(), is(2));
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
+        AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
+
+    }
+
+    @Test
+    public void testPerformAction_FBSLocalRecordNotAllowed() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String recordId = reader.getRecordId();
+        String agencyId = reader.getAgencyId();
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(agencyId);
+        state.setMarcRecord(record);
+        state.setLibraryGroup(libraryGroupFBS);
+
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+
+        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), agencyId, recordId);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+    }
+
+    @Test
     public void testPreviousFaust_NewRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
