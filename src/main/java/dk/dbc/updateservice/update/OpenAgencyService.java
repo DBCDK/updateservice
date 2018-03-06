@@ -145,6 +145,7 @@ public class OpenAgencyService {
                     result = LibraryGroup.PH;
                     break;
                 case "fbs":
+                case "fbslokal":
                 case "skole":
                     result = LibraryGroup.FBS;
                     break;
