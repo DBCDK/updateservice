@@ -158,9 +158,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                                 children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
                             }
                         } else {
-                            // We know the common record isn't active so if recordExistsMaybeDeleted is true
-                            // it must mean it is deleted
-                            if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
+                            if (checkForDeletedCommonRecord(recordId)) {
                                 String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), recordId);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                             } else {
@@ -193,6 +191,24 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.exit(result);
         }
     }
+
+    /**
+     * Checks if the record id exists as a common record and if not checks if there is a 002a link to the id
+     *
+     * @param recordId The recordId to check for
+     * @return true if the recordId exists as common record
+     * @throws UpdateException
+     * @throws SolrException
+     */
+    private boolean checkForDeletedCommonRecord(String recordId) throws UpdateException, SolrException {
+        if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
+            return true;
+        }
+
+        String solrQuery = getSolrQuery002a(false, recordId, recordId);
+        return state.getSolrService().hasDocuments(solrQuery);
+    }
+
 
     private void create001dForFBSRecords(MarcRecordReader reader) throws UpdateException {
         if (state.getLibraryGroup().isFBS()) {
@@ -255,7 +271,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException  {
+    private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException {
         logger.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
