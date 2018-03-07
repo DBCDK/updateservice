@@ -158,7 +158,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                                 children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
                             }
                         } else {
-                            if (checkForDeletedCommonRecord(recordId)) {
+                            if (checkForExistingCommonFaust(recordId)) {
                                 String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), recordId);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                             } else {
@@ -200,7 +200,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UpdateException
      * @throws SolrException
      */
-    private boolean checkForDeletedCommonRecord(String recordId) throws UpdateException, SolrException {
+    private boolean checkForExistingCommonFaust(String recordId) throws UpdateException, SolrException {
         if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
             return true;
         }
