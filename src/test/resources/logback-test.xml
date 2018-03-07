@@ -26,8 +26,4 @@
     <root level="debug">
         <appender-ref ref="FILE" />
     </root>
-
-    <root level="trace">
-        <appender-ref ref="FILE" />
-    </root>
 </configuration>
