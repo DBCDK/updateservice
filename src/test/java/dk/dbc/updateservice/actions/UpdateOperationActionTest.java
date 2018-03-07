@@ -12,6 +12,7 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
@@ -36,6 +37,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 // TODO : Pt indeholder testposterne i de fleste test ikke noget der hænger sammen - det bør rettes op
@@ -646,7 +648,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordAllowed() throws Exception {
+    public void testPerformAction_FBSLocalRecordNoCommonRecordNo002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -674,7 +676,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordNotAllowed() throws Exception {
+    public void testPerformAction_FBSLocalRecordNoCommonRecordHas002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -685,10 +687,40 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
+        List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+
+        String solrRequest = "marc.002a:\"20611529\" AND marc.001b:870970";
+        when(state.getSolrService().hasDocuments(solrRequest)).thenReturn(true);
+
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+
+        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), agencyId, recordId);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+    }
+
+    @Test
+    public void testPerformAction_FBSLocalRecordDeletedCommonRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String recordId = reader.getRecordId();
+        String agencyId = reader.getAgencyId();
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(agencyId);
+        state.setMarcRecord(record);
+        state.setLibraryGroup(libraryGroupFBS);
+
+        Record commonRecord = mock(Record.class);
+        when(commonRecord.isDeleted()).thenReturn(true);
+
+        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()))).thenReturn(rawRepoRecords);
         when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(commonRecord);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
