@@ -159,7 +159,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             }
                         } else {
                             if (checkForExistingCommonFaust(recordId)) {
-                                String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), recordId);
+                                String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
                             } else {
                                 children.add(new UpdateLocalRecordAction(state, settings, rec));

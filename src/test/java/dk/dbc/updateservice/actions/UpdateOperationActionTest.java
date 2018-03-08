@@ -697,7 +697,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
-        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), agencyId, recordId);
+        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
@@ -724,7 +724,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
-        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), agencyId, recordId);
+        String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
