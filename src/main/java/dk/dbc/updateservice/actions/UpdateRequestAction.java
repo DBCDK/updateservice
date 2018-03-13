@@ -55,6 +55,7 @@ public class UpdateRequestAction extends AbstractAction {
             if (message != null) {
                 return message;
             }
+            children.add(new PreProcessingAction(state));
             children.add(new ValidateOperationAction(state, settings));
             if (!hasValidateOnlyOption()) {
                 children.add(createUpdateOperation());

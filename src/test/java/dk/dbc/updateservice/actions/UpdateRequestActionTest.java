@@ -171,9 +171,9 @@ public class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(1));
+        assertThat(children.size(), is(2));
 
-        ServiceAction child = children.get(0);
+        ServiceAction child = children.get(1);
         assertTrue(child.getClass() == ValidateOperationAction.class);
 
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
@@ -209,14 +209,17 @@ public class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
+        assertTrue(child.getClass() == PreProcessingAction.class);
+
+        child = children.get(1);
         assertTrue(child.getClass() == ValidateOperationAction.class);
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
-        child = children.get(1);
+        child = children.get(2);
         assertTrue(child.getClass() == UpdateOperationAction.class);
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -259,14 +262,17 @@ public class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
+        assertTrue(child.getClass() == PreProcessingAction.class);
+
+        child = children.get(1);
         assertTrue(child.getClass() == ValidateOperationAction.class);
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
-        child = children.get(1);
+        child = children.get(2);
         assertTrue(child.getClass() == UpdateOperationAction.class);
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -308,14 +314,17 @@ public class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
+        assertTrue(child.getClass() == PreProcessingAction.class);
+
+        child = children.get(1);
         assertTrue(child.getClass() == ValidateOperationAction.class);
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
-        child = children.get(1);
+        child = children.get(2);
         assertTrue(child.getClass() == UpdateOperationAction.class);
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -358,9 +367,12 @@ public class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
+        assertTrue(child.getClass() == PreProcessingAction.class);
+
+        child = children.get(1);
         assertTrue(child.getClass() == ValidateOperationAction.class);
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
@@ -368,7 +380,7 @@ public class UpdateRequestActionTest {
         Properties expectedSettings = (Properties) settings.clone();
         expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
 
-        child = children.get(1);
+        child = children.get(2);
         assertTrue(child.getClass() == UpdateOperationAction.class);
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, expectedSettings);
