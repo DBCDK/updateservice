@@ -5,7 +5,12 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordFactory;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.iscrum.utils.IOUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -14,7 +19,13 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RawRepoRecordMock;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Assert;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -23,7 +34,11 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -35,22 +50,21 @@ import static org.hamcrest.core.IsEqual.equalTo;
  */
 public class AssertActionsUtil {
     private static final XLogger logger = XLoggerFactory.getXLogger(AssertActionsUtil.class);
-    public static final String COMMON_SINGLE_RECORD_RESOURCE = "common_enrichment.marc";
-    public static final String COMMON_MAIN_RECORD_RESOURCE = "rawrepo-main.marc";
-    public static final String COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE = "rawrepo-main-enrichment.marc";
-    public static final String COMMON_VOLUME_RECORD_RESOURCE = "rawrepo-volume.marc";
-    public static final String LOCAL_MAIN_RECORD_RESOURCE = "rawrepo-local-main.marc";
-    public static final String LOCAL_VOLUME_RECORD_RESOURCE = "rawrepo-local-volume.marc";
-    public static final String ENRICHMENT_SINGLE_RECORD_RESOURCE = "enrichment.marc";
-    public static final String LOCAL_SINGLE_RECORD_RESOURCE = "book.marc";
-    public static final String COMMON_SCHOOL_RECORD_RESOURCE = "common_school_enrichment.marc";
-    public static final String SCHOOL_RECORD_RESOURCE = "school_enrichment.marc";
-    public static final String VOLUME_RECORD_RESOURCE = "volume.marc";
-    public static final String COMMON_RECORD_CLASSIFICATION = "common_classification.marc";
-
+    public static final String COMMON_SINGLE_RECORD_RESOURCE = "actions/common_enrichment.marc";
+    public static final String COMMON_MAIN_RECORD_RESOURCE = "actions/rawrepo-main.marc";
+    public static final String COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE = "actions/rawrepo-main-enrichment.marc";
+    public static final String COMMON_VOLUME_RECORD_RESOURCE = "actions/rawrepo-volume.marc";
+    public static final String LOCAL_MAIN_RECORD_RESOURCE = "actions/rawrepo-local-main.marc";
+    public static final String LOCAL_VOLUME_RECORD_RESOURCE = "actions/rawrepo-local-volume.marc";
+    public static final String ENRICHMENT_SINGLE_RECORD_RESOURCE = "actions/enrichment.marc";
+    public static final String LOCAL_SINGLE_RECORD_RESOURCE = "actions/book.marc";
+    public static final String COMMON_SCHOOL_RECORD_RESOURCE = "actions/common_school_enrichment.marc";
+    public static final String SCHOOL_RECORD_RESOURCE = "actions/school_enrichment.marc";
+    public static final String VOLUME_RECORD_RESOURCE = "actions/volume.marc";
+    public static final String COMMON_RECORD_CLASSIFICATION = "actions/common_classification.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
-        InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/actions/" + filename);
+        InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
         return MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
     }
 
