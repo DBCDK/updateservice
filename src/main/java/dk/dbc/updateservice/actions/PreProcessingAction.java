@@ -1,7 +1,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
@@ -44,8 +43,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * <p>
      * Rule:
      * If there is a 666 *u subfield that matches 'For x-y år' then
-     * remove the 666 *u field
-     * add new '666 00 *0 *u For z år' subfield for each year between x and y (including both)
+     * 1) Remove all 666 *u subfields
+     * 2)add new '666 00 *0 *u For z år' subfield for each year between x and y (including both)
      * <p>
      * If there is no matching subfield then nothing is done to the record
      *
@@ -55,42 +54,48 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     private void processAgeInterval(MarcRecord record) throws UpdateException {
         MarcRecordReader reader = new MarcRecordReader(record);
 
-        // It would be easier to use reader.getValues but we need a reference to the field object
-        for (MarcField field : reader.getFieldAll("666")) {
-            MarcFieldReader fieldReader = new MarcFieldReader(field);
+        String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
+        Pattern p = Pattern.compile(pattern);
+        List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
 
-            if (fieldReader.hasSubfield("u")) {
-                String fieldValue = fieldReader.getValue("u");
+        if (matchers.size() > 0) {
+            // First remove all existing 666 *u subfields
+            remove666UFields(record);
+        }
 
-                String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
-                Pattern p = Pattern.compile(pattern);
-                Matcher m = p.matcher(fieldValue);
+        for (Matcher m : matchers) {
+            String forString = m.group(1);
+            int year = Integer.parseInt(m.group(2));
+            int endYear = Integer.parseInt(m.group(3));
+            String yearString = m.group(4);
 
-                if (m.find()) {
-                    String forString = m.group(1);
-                    int year = Integer.parseInt(m.group(2));
-                    int endYear = Integer.parseInt(m.group(3));
-                    String yearString = m.group(4);
+            while (year <= endYear) {
+                // The message could have been 'For %s år' instead of '%s %s %s' however the capitalization of
+                // 'for' in the age subfield must be the same as in the original 666 *u subfield
+                // so we reuse text from the input instead
+                record.getFields().add(getNewMarcField666(String.format("%s %s %s", forString, year, yearString)));
+                year++;
+            }
 
-                    while (year <= endYear) {
-                        // The message could have been 'For %s år' instead of '%s %s %s' however the capitalization of
-                        // 'for' in the age subfield must be the same as in the original 666 *u subfield
-                        // so we reuse text from the input instead
-                        String value = String.format("%s %s %s", forString, year, yearString);
-                        if (!reader.hasValue("666", "u", value)) {
-                            record.getFields().add(getNewMarcField666(value));
-                        }
-                        year++;
+            // The new fields are added to the bottom of the field list, so we have to do a simple sort on field name
+            new MarcRecordWriter(record).sort();
+        }
+    }
+
+    private void remove666UFields(MarcRecord record) {
+        List<MarcField> fieldsToRemove = new ArrayList<>();
+
+        for (MarcField field : record.getFields()) {
+            if ("666".equals(field.getName())) {
+                for (MarcSubField subfield : field.getSubfields()) {
+                    if ("u".equals(subfield.getName())) {
+                        fieldsToRemove.add(field);
                     }
-
-                    // According to the preprocessing rules the original interval field must be removed
-                    record.getFields().remove(field);
-
-                    // The new fields are added to the bottom of the field list, so we have to do a simple sort on field name
-                    new MarcRecordWriter(record).sort();
                 }
             }
         }
+
+        record.getFields().removeAll(fieldsToRemove);
     }
 
     private MarcField getNewMarcField666(String value) {
