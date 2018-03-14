@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
+    private static final Pattern p = Pattern.compile(pattern);
 
     public PreProcessingAction(GlobalActionState globalActionState) {
         super(UpdateRequestAction.class.getSimpleName(), globalActionState);
@@ -28,7 +30,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            MarcRecord record = state.getMarcRecord();
+            final MarcRecord record = state.getMarcRecord();
 
             processAgeInterval(record);
 
@@ -49,14 +51,11 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * If there is no matching subfield then nothing is done to the record
      *
      * @param record The record to be processed
-     * @throws UpdateException If anything goes wrong
      */
-    private void processAgeInterval(MarcRecord record) throws UpdateException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+    private void processAgeInterval(MarcRecord record) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
 
-        String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
-        Pattern p = Pattern.compile(pattern);
-        List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
+        final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
 
         if (matchers.size() > 0) {
             // First remove all existing 666 *u subfields
@@ -64,10 +63,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         }
 
         for (Matcher m : matchers) {
-            String forString = m.group(1);
+            final String forString = m.group(1);
             int year = Integer.parseInt(m.group(2));
-            int endYear = Integer.parseInt(m.group(3));
-            String yearString = m.group(4);
+            final int endYear = Integer.parseInt(m.group(3));
+            final String yearString = m.group(4);
 
             while (year <= endYear) {
                 // The message could have been 'For %s år' instead of '%s %s %s' however the capitalization of
@@ -83,7 +82,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     private void remove666UFields(MarcRecord record) {
-        List<MarcField> fieldsToRemove = new ArrayList<>();
+        final List<MarcField> fieldsToRemove = new ArrayList<>();
 
         for (MarcField field : record.getFields()) {
             if ("666".equals(field.getName())) {
@@ -99,10 +98,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     private MarcField getNewMarcField666(String value) {
-        MarcSubField subfield0 = new MarcSubField("0", "");
-        MarcSubField subfieldU = new MarcSubField("u", value);
+        final MarcSubField subfield0 = new MarcSubField("0", "");
+        final MarcSubField subfieldU = new MarcSubField("u", value);
 
-        List<MarcSubField> subfields = new ArrayList<>();
+        final List<MarcSubField> subfields = new ArrayList<>();
         subfields.add(subfield0);
         subfields.add(subfieldU);
 
