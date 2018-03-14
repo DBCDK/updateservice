@@ -66,6 +66,11 @@ public class PreProcessingActionTest {
         testExample(INPUT_54018207, EXPECTED_54018207);
     }
 
+    @Test
+    public void testMatchInterval_54018207_ExistingAgeFields() throws Exception {
+        testExample(EXPECTED_54018207, EXPECTED_54018207);
+    }
+
     private void testExample(String inputFileName, String expectedFileName) throws Exception {
         final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
         final MarcRecord expected = AssertActionsUtil.loadRecord(expectedFileName);
