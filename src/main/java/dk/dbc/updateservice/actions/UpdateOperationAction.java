@@ -29,7 +29,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -205,7 +204,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             return true;
         }
 
-        String solrQuery = getSolrQuery002a(false, recordId, recordId);
+        String solrQuery = createSolrQuery(false, recordId, "002a", recordId);
         return state.getSolrService().hasDocuments(solrQuery);
     }
 
@@ -346,18 +345,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 // Handle either new record or update of existing record
                 Boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
-                // Compare new 002a with existing 002a
-                for (String aValue : reader.getCentralAliasIds()) {
-                    String solrQuery = getSolrQuery002a(recordExists, aValue, readerRecordId);
+                for (String aValue : reader.getValues("002", "a")) {
+                    String solrQuery = createSolrQuery(recordExists, readerRecordId, "002a", aValue);
 
                     if (state.getSolrService().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
                     }
                 }
 
-                // Compare new 002b & c with existing 002b & c
-                for (HashMap<String, String> bcValues : reader.getDecentralAliasIds()) {
-                    String solrQuery = getSolrQuery002bc(recordExists, bcValues.get("b"), bcValues.get("c"), readerRecordId);
+                for (String xValue : reader.getValues("002", "x")) {
+                    String solrQuery = createSolrQuery(recordExists, readerRecordId, "002x", xValue);
 
                     if (state.getSolrService().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
@@ -397,23 +394,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private String getSolrQuery002a(Boolean recordExists, String aValue, String recordId) {
+    private String createSolrQuery(Boolean recordExists, String recordId, String subfieldName, String subfieldValue) {
         if (recordExists) {
-            // this is belt and braces - can only be relevant if there are a 002a=<aValue> in both current and another record.
-            // Though this would be an error that this exact check is supposed to prevent.
-            return SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002a", aValue, "001a", recordId);
+            return SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly(subfieldName, subfieldValue, "001a", recordId);
         } else {
-            return SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", aValue);
-        }
-    }
-
-    private String getSolrQuery002bc(Boolean recordExists, String bValue, String cValue, String recordId) {
-        if (recordExists) {
-            // this is belt and braces - can only be relevant if there are a 002bc=<aValue> in both current and another record.
-            // Though this would be an error that this exact check is supposed to prevent.
-            return SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", bValue, "002c", cValue, "001a", recordId);
-        } else {
-            return SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", bValue, "002c", cValue);
+            return SolrServiceIndexer.createSubfieldQueryDBCOnly(subfieldName, subfieldValue);
         }
     }
 
