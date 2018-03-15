@@ -804,14 +804,15 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002bc() throws Exception {
+    public void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("b", "12345678"));
-        subfields.add(new MarcSubField("c", "12345678"));
+        subfields.add(new MarcSubField("b", "766100"));
+        subfields.add(new MarcSubField("c", "90014110"));
+        subfields.add(new MarcSubField("x", "76610090014110"));
         field002.setSubfields(subfields);
         fields.add(field002);
         state.setMarcRecord(record);
@@ -819,7 +820,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualWithExcludeDBCOnly("002b", "12345678", "002c", "12345678", "001a", reader.getRecordId()))).thenReturn(true);
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly("002x", "76610090014110", "001a", reader.getRecordId()))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -827,21 +828,22 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002bc_NoExisting() throws Exception {
+    public void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
         MarcField field002 = new MarcField("002", "00");
         List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("b", "12345678"));
-        subfields.add(new MarcSubField("c", "12345678"));
+        subfields.add(new MarcSubField("b", "766100"));
+        subfields.add(new MarcSubField("c", "90014110"));
+        subfields.add(new MarcSubField("x", "76610090014110"));
         field002.setSubfields(subfields);
         fields.add(field002);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
-        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDualDBCOnly("002b", "12345678", "002c", "12345678"))).thenReturn(true);
+        when(state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002x", "76610090014110"))).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
