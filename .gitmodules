@@ -1,0 +1,3 @@
+[submodule "docker"]
+	path = docker
+	url = https://git-platform.dbc.dk/metascrum/updateservice-docker.git
