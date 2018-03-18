@@ -49,12 +49,10 @@
         </repository>
     </repositories>
 
-
     <scm>
-        <connection>scm:svn:https://svn.dbc.dk/repos/updateservice/trunk/</connection>
-        <developerConnection>scm:svn:https://svn.dbc.dk/repos/updateservice/trunk/</developerConnection>
-        <tag>HEAD</tag>
-        <url>https://svn.dbc.dk/repos/updateservice/trunk/</url>
+        <connection>scm:git:https://github.com/DBCDK/updateservice.git</connection>
+        <developerConnection>scm:git:https://github.com/DBCDK/updateservice.git</developerConnection>
+        <url>https://github.com/DBCDK/updateservice/</url>
     </scm>
 
     <profiles>
