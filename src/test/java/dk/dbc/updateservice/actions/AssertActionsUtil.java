@@ -12,7 +12,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.iscrum.utils.IOUtils;
+import dk.dbc.updateservice.utils.IOUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;

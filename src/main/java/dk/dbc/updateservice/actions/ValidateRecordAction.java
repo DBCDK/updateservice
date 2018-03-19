@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
@@ -81,10 +81,10 @@ public class ValidateRecordAction extends AbstractAction {
         try {
             logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             logger.info("state.getLibraryGroup().toString()");
-            Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), Json.encode(state.readRecord()), settings);
+            Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings);
             logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
 
-            List<MessageEntryDTO> errors = Json.decodeArray(jsResult.toString(), MessageEntryDTO.class);
+            List<MessageEntryDTO> errors = JsonMapper.decodeArray(jsResult.toString(), MessageEntryDTO.class);
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
