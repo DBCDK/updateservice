@@ -5,8 +5,8 @@
 
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.iscrum.utils.ResourceBundles;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.utils.ResourceBundles;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
@@ -236,7 +236,7 @@ public class UpdateService {
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             logger.entry(schemasRequestDTO);
-            logger.info(Json.encodePretty(schemasRequestDTO));
+            logger.info(JsonMapper.encodePretty(schemasRequestDTO));
             String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
             String templateGroup = openAgencyService.getTemplateGroup(groupId);
             List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);

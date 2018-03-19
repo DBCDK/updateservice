@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -71,7 +71,7 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_Ok() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn("[]");
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn("[]");
         assertThat(validateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -99,7 +99,7 @@ public class ValidateRecordActionTest {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
-        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
 
         ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
@@ -130,7 +130,7 @@ public class ValidateRecordActionTest {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
-        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(Json.encode(jsReturnList));
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
 
         ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
@@ -161,7 +161,7 @@ public class ValidateRecordActionTest {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         ScripterException ex = new ScripterException("error");
-        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenThrow(ex);
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenThrow(ex);
 
         String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -191,7 +191,7 @@ public class ValidateRecordActionTest {
     public void testPerformAction_JavaScriptWrongReturnType() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, Json.encode(record), settings)).thenReturn(27);
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(27);
 
         ServiceResult serviceResult = validateRecordAction.performAction();
         assertThat(serviceResult.getStatus(), equalTo(UpdateStatusEnumDTO.FAILED));
