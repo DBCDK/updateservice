@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
@@ -107,10 +107,10 @@ public class OpenAgencyService {
             logger.error("Failed to read feature from OpenAgency for ['{}':'{}']: {}", agencyId, feature, ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
-                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                    logger.error("Request to OpenAgency:\n{}", JsonMapper.encodePretty(ex.getRequest()));
                 }
                 if (ex.getResponse() != null) {
-                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                    logger.error("Response from OpenAgency:\n{}", JsonMapper.encodePretty(ex.getResponse()));
                 }
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
@@ -159,10 +159,10 @@ public class OpenAgencyService {
             logger.error("Failed to read CatalogingTemplate for ['{}']: {}", agencyId, ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
-                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                    logger.error("Request to OpenAgency:\n{}", JsonMapper.encodePretty(ex.getRequest()));
                 }
                 if (ex.getResponse() != null) {
-                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                    logger.error("Response from OpenAgency:\n{}", JsonMapper.encodePretty(ex.getResponse()));
                 }
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
@@ -189,10 +189,10 @@ public class OpenAgencyService {
             logger.error("Failed to read CatalogingTemplate for ['{}']: {}", agencyId, ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
-                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                    logger.error("Request to OpenAgency:\n{}", JsonMapper.encodePretty(ex.getRequest()));
                 }
                 if (ex.getResponse() != null) {
-                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                    logger.error("Response from OpenAgency:\n{}", JsonMapper.encodePretty(ex.getResponse()));
                 }
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
@@ -252,10 +252,10 @@ public class OpenAgencyService {
             logger.error("Failed to read catalogingTemplateSet: {}", ex.getMessage());
             try {
                 if (ex.getRequest() != null) {
-                    logger.error("Request to OpenAgency:\n{}", Json.encodePretty(ex.getRequest()));
+                    logger.error("Request to OpenAgency:\n{}", JsonMapper.encodePretty(ex.getRequest()));
                 }
                 if (ex.getResponse() != null) {
-                    logger.error("Response from OpenAgency:\n{}", Json.encodePretty(ex.getResponse()));
+                    logger.error("Response from OpenAgency:\n{}", JsonMapper.encodePretty(ex.getResponse()));
                 }
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);

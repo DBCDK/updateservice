@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;

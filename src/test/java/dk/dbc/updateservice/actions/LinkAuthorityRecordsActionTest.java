@@ -4,7 +4,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.Test;

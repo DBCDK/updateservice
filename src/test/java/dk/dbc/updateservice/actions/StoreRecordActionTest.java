@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -74,7 +74,7 @@ public class StoreRecordActionTest {
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(record), settings)).thenReturn(Json.encode(record));
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -121,7 +121,7 @@ public class StoreRecordActionTest {
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = mock(StoreRecordAction.Encoder.class);
 
-        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
@@ -164,7 +164,7 @@ public class StoreRecordActionTest {
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = encoder;
 
-        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), Json.encode(state.readRecord()), settings)).thenReturn(Json.encode(record));
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
