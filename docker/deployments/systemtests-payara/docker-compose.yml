@@ -1,0 +1,106 @@
+version: '2'
+networks:
+  default:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.1.0/28
+
+services:
+  update-systemtests-rawrepo-db:
+    image: docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest
+    environment:
+      - POSTGRES_DB=rawrepo
+      - POSTGRES_USER=rawrepo
+      - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
+    ports:
+      - "13132:5432"
+
+  update-systemtests-holdingsitems-db:
+    image: docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
+    environment:
+      - POSTGRES_DB=holdingsitems
+      - POSTGRES_USER=holdingsitems
+      - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
+    ports:
+      - "13232:5432"
+
+  update-systemtests-fake-smtp:
+    image: docker-i.dbc.dk/fakesmtp:latest
+    volumes:
+      - "./logs/fakesmtp:/output"
+
+  update-systemtests-update-db:
+    image: docker-i.dbc.dk/update-postgres:candidate
+    environment:
+      - POSTGRES_DB=updateservice
+      - POSTGRES_USER=updateservice
+      - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
+    ports:
+      - "14332:5432"
+
+  update-systemtests-updateservice:
+    image: docker-i.dbc.dk/update-payara-deployer:candidate
+    env_file:
+      - ./settings.env
+      - ./db.env
+      - ./ocb-tools.env
+    environment:
+      - LOGBACK_FILE=file:///data/update-logback-include.xml
+      - UPDATE_BUILD_NO=lastSuccessfulBuild
+      - SETTINGS_JAVASCRIPT_POOL_SIZE=1
+      - RAWREPO_PORT_5432_TCP_ADDR=update-systemtests-rawrepo-db
+      - SETTINGS_RAWREPO_PROVIDER_ID_DBC=dataio-update
+      - SETTINGS_RAWREPO_PROVIDER_ID_DBC_SOLR=update-rawrepo-solr-sync
+      - SETTINGS_RAWREPO_PROVIDER_ID_FBS=opencataloging-update
+      - SETTINGS_RAWREPO_PROVIDER_ID_PH=fbs-ph-update
+      - SETTINGS_RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update
+      - HOLDINGSITEMS_PORT_5432_TCP_ADDR=update-systemtests-holdingsitems-db
+      - SOLR_PORT_8080_TCP_ADDR=ocb-tools-systemtests
+      - SOLR_PORT_8080_TCP_PORT=8080
+      - UPDATE_DB_PORT_5432_TCP_ADDR=update-systemtests-update-db
+      - UPDATE_DB_PORT_5432_TCP_PORT=5432
+      - MAX_HEAP_IN_GB=4
+      - SETTINGS_OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      - SETTINGS_OPENAGENCY_CACHE_AGE=8
+      - INSTANCE_NAME=${USER}_systemtest
+    links:
+      - update-systemtests-update-db:update-systemtests-update-db
+    volumes:
+      - "./logs/update:/data/logs"
+    extra_hosts:
+      - "solrserver:127.0.0.1"
+    expose:
+      - "8080"
+      - "4848"
+    ports:
+      - "18180:8080"
+      - "18148:4848"
+
+  ocb-tools-systemtests:
+    image: docker-i.dbc.dk/ocb-tools-deployer:latest
+    env_file:
+      - ./db.env
+    environment:
+      - UPDATE_SERVICE_PORT_8080_TCP_ADDR=update-systemtests-updateservice
+      - UPDATE_SERVICE_PORT_8080_TCP_PORT=8080
+      - RAWREPO_PORT_5432_TCP_ADDR=update-systemtests-rawrepo-db
+      - RAWREPO_PORT_5432_TCP_PORT=5432
+      - HOLDINGSITEMS_PORT_5432_TCP_ADDR=update-systemtests-holdingsitems-db
+      - HOLDINGSITEMS_PORT_5432_TCP_PORT=5432
+      - REQUEST_IP_ADDR=$HOST_IP
+    volumes:
+      - "./logs/ocb-tools:/home/ocbtools/results"
+    expose:
+      - "8080"
+    ports:
+      - "18082:8080"
+    entrypoint: run-update-tests.sh
+
