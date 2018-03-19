@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;

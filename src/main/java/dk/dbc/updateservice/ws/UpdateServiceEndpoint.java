@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.ws;
 
 import com.sun.xml.ws.developer.SchemaValidation;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
@@ -83,7 +83,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             updateRecordResult = updateResponseWriter.getResponse();
-            LOGGER.info("UpdateService returning updateRecordResult:\n" + Json.encodePretty(updateRecordResult));
+            LOGGER.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
             LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             return updateRecordResult;
         } catch (IOException e) {

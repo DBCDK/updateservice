@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.utils.LogUtils;
-import dk.dbc.iscrum.utils.json.Json;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -45,7 +45,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         ServiceResult result = null;
         try {
             logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, Json.encode(state.readRecord()), settings);
+            Object jsResult = state.getScripter().callMethod(ENTRY_POINT, JsonMapper.encode(state.readRecord()), settings);
             logger.debug("Result from " + ENTRY_POINT + " JS (" + jsResult.getClass().getName() + "): " + jsResult);
             result = parseJavascript(jsResult);
             return result;
@@ -60,7 +60,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
 
     private ServiceResult parseJavascript(Object o) throws IOException {
         ServiceResult result;
-        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = Json.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
+        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = JsonMapper.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
         if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = ServiceResult.newOkResult();
         } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {

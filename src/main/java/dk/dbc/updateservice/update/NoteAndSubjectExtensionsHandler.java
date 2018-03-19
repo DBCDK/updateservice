@@ -13,7 +13,7 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;

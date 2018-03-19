@@ -9,7 +9,7 @@ package dk.dbc.updateservice.update;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.iscrum.utils.ResourceBundles;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.Test;
 
 import java.util.ArrayList;
