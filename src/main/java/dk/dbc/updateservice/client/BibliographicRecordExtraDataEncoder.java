@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.client;
 
 import org.slf4j.ext.XLogger;
@@ -10,13 +15,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.StringWriter;
 
 /**
  * Encoder to encode a BibliographicRecordExtraData to XML.
@@ -50,25 +48,4 @@ public class BibliographicRecordExtraDataEncoder {
         }
     }
 
-    public static String toXmlString(BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException, TransformerException {
-        logger.entry();
-
-        String result = null;
-        try {
-            Document document = toXmlDocument(data);
-
-            StringWriter sw = new StringWriter();
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty(OutputKeys.INDENT, "no");
-            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-
-            transformer.transform(new DOMSource(document), new StreamResult(sw));
-            return result = sw.toString();
-        } finally {
-            logger.exit();
-        }
-    }
 }
