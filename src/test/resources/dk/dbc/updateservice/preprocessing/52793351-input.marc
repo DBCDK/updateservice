@@ -1,6 +1,7 @@
 001 00 *a5 279 335 1*b870970*c20170111180146*d20161130*fa
-004 00 *rn*ae
+004 00 *rn*ab
 008 00 *tm*uf*os*x02*v0
+014 00 *a5 284 764 8
 021 00 *e9788771299311*cib.
 032 00 *xACC201648*aDBF201703*xBKM201703
 245 00 *a42 aktiviteter, du selv kan lave
@@ -9,8 +10,6 @@
 504 00 *&1*aAktivitetsbog med 42 aktiviteter, opdelt i 40 kapitler, som knytter sig til danmarkshistorien. Aktiviteterne er en blanding af madopskrifter, lege, spil og ting. Alle med illustreret trin for trin guide og materialeliste
 521 00 *b1. oplag*c2016*kSpecialtrykkeriet, Viborg
 666 00 *0*oidebøger
-666 00 *0*ufor 42 år
-666 00 *0*ufor -42 år
 666 00 *u for 9-10 år
 720 00 *oIda Mary Walker Larsen*4ill
 720 00 *oDennis Hornhave Jacobsen*4ill
