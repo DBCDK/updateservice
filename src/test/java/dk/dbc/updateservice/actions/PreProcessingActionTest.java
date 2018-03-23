@@ -17,12 +17,18 @@ public class PreProcessingActionTest {
     private static final String INPUT_53911005 = "preprocessing/53911005-input.marc";
     private static final String INPUT_54016247 = "preprocessing/54016247-input.marc";
     private static final String INPUT_54018207 = "preprocessing/54018207-input.marc";
+    private static final String INPUT_54057318 = "preprocessing/54057318-input.marc";
+    private static final String INPUT_54057319 = "preprocessing/54057319-input.marc";
+    private static final String INPUT_54057320 = "preprocessing/54057320-input.marc";
 
     private static final String EXPECTED_52793351 = "preprocessing/52793351-expected.marc";
     private static final String EXPECTED_53575153 = "preprocessing/53575153-expected.marc";
     private static final String EXPECTED_53911005 = "preprocessing/53911005-expected.marc";
     private static final String EXPECTED_54016247 = "preprocessing/54016247-expected.marc";
     private static final String EXPECTED_54018207 = "preprocessing/54018207-expected.marc";
+    private static final String EXPECTED_54057318 = "preprocessing/54057318-expected.marc";
+    private static final String EXPECTED_54057319 = "preprocessing/54057319-expected.marc";
+    private static final String EXPECTED_54057320 = "preprocessing/54057320-expected.marc";
 
     @Before
     public void before() throws IOException {
@@ -67,8 +73,18 @@ public class PreProcessingActionTest {
     }
 
     @Test
-    public void testMatchInterval_54018207_ExistingAgeFields() throws Exception {
-        testExample(EXPECTED_54018207, EXPECTED_54018207);
+    public void testMatchInterval_54057318() throws Exception {
+        testExample(INPUT_54057318, EXPECTED_54057318);
+    }
+
+    @Test
+    public void testMatchInterval_54057319() throws Exception {
+        testExample(INPUT_54057319, EXPECTED_54057319);
+    }
+
+    @Test
+    public void testMatchInterval_54057320() throws Exception {
+        testExample(INPUT_54057320, EXPECTED_54057320);
     }
 
     private void testExample(String inputFileName, String expectedFileName) throws Exception {

@@ -1,6 +1,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
@@ -86,10 +87,9 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
         for (MarcField field : record.getFields()) {
             if ("666".equals(field.getName())) {
-                for (MarcSubField subfield : field.getSubfields()) {
-                    if ("u".equals(subfield.getName())) {
-                        fieldsToRemove.add(field);
-                    }
+                MarcFieldReader fieldReader = new MarcFieldReader(field);
+                if (fieldReader.hasSubfield("u") && !fieldReader.hasSubfield("0")) {
+                    fieldsToRemove.add(field);
                 }
             }
         }
