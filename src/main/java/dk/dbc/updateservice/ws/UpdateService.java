@@ -313,7 +313,7 @@ public class UpdateService {
     }
 
     public String objectToStringReflection(Object object) {
-        return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
+        return new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString();
     }
 
 }
