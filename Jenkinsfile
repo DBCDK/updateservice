@@ -84,7 +84,7 @@ pipeline {
 
                         if (isMasterBranch) {
                             image.push("latest")
-                            image.push("candidate")
+                            image.push("staging")
                         }
 
                     }
