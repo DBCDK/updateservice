@@ -10,8 +10,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ExtraRecordData;
 import dk.dbc.updateservice.service.api.RecordData;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 

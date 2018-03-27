@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.json;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 import java.io.File;
