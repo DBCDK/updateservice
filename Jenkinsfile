@@ -42,7 +42,7 @@ pipeline {
                             findbugsPublisher(disabled: true),
                             openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
                     ]) {
-                        sh "mvn clean install -Dmaven.test.failure.ignore=false"
+                        sh "mvn clean install pmd:pmd findbugs:findbugs -Dmaven.test.failure.ignore=false"
                         junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
                         archiveArtifacts(artifacts: "target/*.war, target/*.log", onlyIfSuccessful: true, fingerprint: true)
                     }
