@@ -50,6 +50,28 @@ pipeline {
             }
         }
 
+        stage("Warnings") {
+            steps {
+                warnings consoleParsers: [
+                        [parserName: "Java Compiler (javac)"],
+                        [parserName: "JavaDoc Tool"]
+                ],
+                        unstableTotalAll: "0",
+                        failedTotalAll: "0"
+            }
+        }
+
+        stage("PMD") {
+            steps {
+                step([
+                        $class          : 'hudson.plugins.pmd.PmdPublisher',
+                        pattern         : '**/target/pmd.xml',
+                        unstableTotalAll: "0",
+                        failedTotalAll  : "0"
+                ])
+            }
+        }
+
         stage('Docker') {
             steps {
                 script {
@@ -89,28 +111,6 @@ pipeline {
 
                     }
                 }
-            }
-        }
-
-        stage("Warnings") {
-            steps {
-                warnings consoleParsers: [
-                        [parserName: "Java Compiler (javac)"],
-                        [parserName: "JavaDoc Tool"]
-                ],
-                        unstableTotalAll: "0",
-                        failedTotalAll: "0"
-            }
-        }
-
-        stage("PMD") {
-            steps {
-                step([
-                        $class          : 'hudson.plugins.pmd.PmdPublisher',
-                        pattern         : '**/target/pmd.xml',
-                        unstableTotalAll: "0",
-                        failedTotalAll  : "35" //TODO Fix the PMD errors in updateservice to threshold can be set to 0!
-                ])
             }
         }
     }
