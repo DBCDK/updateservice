@@ -73,6 +73,11 @@ pipeline {
         }
 
         stage('Docker') {
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
             steps {
                 script {
                     def isMasterBranch = env.BRANCH_NAME == 'master'
