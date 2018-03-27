@@ -23,8 +23,6 @@ import dk.dbc.oss.ns.catalogingbuild.RecordData;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
-import org.apache.commons.lang3.builder.RecursiveToStringStyle;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -37,7 +35,6 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.jws.WebMethod;
 import javax.jws.WebService;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -45,7 +42,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.WebServiceContext;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -313,10 +309,6 @@ public class OpenBuild implements BuildPortType {
         }
     }
 
-    private String objectToStringReflection(Object object) {
-        return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
-    }
-
     private String buildRequestToString(BuildRequest br) {
         String res;
         try {
@@ -351,16 +343,4 @@ public class OpenBuild implements BuildPortType {
         return stringWriter.toString();
     }
 
-    /*
-     * Test properties.
-     * Properties that are only used by JUnit to set the instance of members
-     * that is injected by the Java EE Container.
-     */
-    @WebMethod(exclude = true)
-    public void setupEnvironmentForUnitTestOnly(Scripter scripter, Properties p, WebServiceContext wsx, DocumentFactory df) {
-        addJacksonMixInAnnotations();
-        this.scripter = scripter;
-        buildProperties = p;
-        documentFactory = df;
-    }
 }

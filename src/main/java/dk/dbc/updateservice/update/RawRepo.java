@@ -734,44 +734,4 @@ public class RawRepo {
         }
     }
 
-    private void linkEnrichment(RawRepoDAO dao, Record record) throws RawRepoException, SQLException {
-        logger.entry(dao, record);
-        try {
-            linkToRecord(dao, record.getId(), new RecordId(record.getId().getBibliographicRecordId(), COMMON_AGENCY));
-        } finally {
-            logger.exit();
-        }
-    }
-
-    private void linkMultivolume(RawRepoDAO dao, Record record, String parentId) throws RawRepoException, SQLException {
-        logger.entry(dao, record, parentId);
-        try {
-            linkToRecord(dao, record.getId(), new RecordId(parentId, record.getId().getAgencyId()));
-        } finally {
-            logger.exit();
-        }
-    }
-
-    private void linkToRecord(RawRepoDAO dao, RecordId id, RecordId refer_id) throws SQLException, RawRepoException {
-        logger.entry(dao, id, refer_id);
-        try {
-            final HashSet<RecordId> references = new HashSet<>();
-            references.add(refer_id);
-            dao.setRelationsFrom(id, references);
-            logger.info("Set relation from [{}:{}] -> [{}:{}]", id.getBibliographicRecordId(), id.getAgencyId(), refer_id.getBibliographicRecordId(), refer_id.getAgencyId());
-        } finally {
-            logger.exit();
-        }
-    }
-
-    private void clearLinks(RawRepoDAO dao, Record record) throws RawRepoException {
-        logger.entry();
-        try {
-            final HashSet<RecordId> references = new HashSet<>();
-            dao.setRelationsFrom(record.getId(), references);
-            logger.info("Clear relations for [{}:{}]", record.getId().getBibliographicRecordId(), record.getId().getAgencyId());
-        } finally {
-            logger.exit();
-        }
-    }
 }

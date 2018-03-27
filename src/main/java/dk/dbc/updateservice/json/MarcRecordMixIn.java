@@ -13,10 +13,10 @@ import java.util.List;
 
 /**
  * This class is a companion to the Sink DTO class.
- *
+ * <p>
  * Think of this as a way to keep the DTO class "jackson-free" by mixing in annotations
  * to the DTO class during runtime.
- *
+ * <p>
  * Method implementations of a MixIn class are ignored.
  */
 public abstract class MarcRecordMixIn {
@@ -25,7 +25,8 @@ public abstract class MarcRecordMixIn {
      *
      * @param content List&lt;MarcField&gt;
      */
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     @JsonCreator
-    public MarcRecordMixIn( @JsonProperty( "fields" ) List<MarcField> content ) {
+    public MarcRecordMixIn(@JsonProperty("fields") List<MarcField> content) {
     }
 }
