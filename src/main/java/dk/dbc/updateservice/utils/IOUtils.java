@@ -79,52 +79,6 @@ public class IOUtils {
     }
 
     /**
-     * @param classLoader ClassLoader to use to load the resource.
-     * @param name        The name of the resource.
-     * @return The properties.
-     * @throws IOException In case of IO error.
-     * @brief Loads properties from a resource.
-     */
-    public static Properties loadProperties(ClassLoader classLoader, String name) throws IOException {
-        Properties props = new Properties();
-        props.load(classLoader.getResourceAsStream(name));
-
-        return props;
-    }
-
-    /**
-     * @param classLoader ClassLoader to use to load the resource.
-     * @param sep         Separator.
-     * @param names       The name of the resources.
-     * @return The properties.
-     * @throws IOException In case of IO error.
-     * @brief Loads properties from multiple resources.
-     * <p>
-     * The properties from each resource are merged together by using an
-     * separator to separate values for keys that exists in multiple resources.
-     */
-    public static Properties loadProperties(ClassLoader classLoader, String sep, String... names) throws IOException {
-        Properties result = new Properties();
-
-        for (String name : names) {
-            Properties props = loadProperties(classLoader, name);
-
-            Enumeration<?> propertyNames = props.propertyNames();
-            while (propertyNames.hasMoreElements()) {
-                String propName = propertyNames.nextElement().toString();
-
-                if (result.containsKey(propName)) {
-                    result.put(propName, result.getProperty(propName) + sep + props.getProperty(propName));
-                } else {
-                    result.put(propName, props.getProperty(propName));
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
      * @param resName The resource name.
      * @return The content of the resource.
      * @throws IOException In case of IO failures.
@@ -159,7 +113,7 @@ public class IOUtils {
      * <p>
      * The InputStream is assumed to be a text resource.
      */
-    public static String readAll(InputStream in, String encoding) throws UnsupportedEncodingException, IOException {
+    public static String readAll(InputStream in, String encoding) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         byte[] buffer = new byte[1024];
@@ -171,10 +125,6 @@ public class IOUtils {
         return new String(baos.toByteArray(), encoding);
     }
 
-    //-----------------------------------------------------------------------------
-    //              Files & Directories
-    //-----------------------------------------------------------------------------
-
     public static boolean exists(File baseDir, String filename) throws IOException {
         logger.entry(baseDir, filename);
 
@@ -185,7 +135,7 @@ public class IOUtils {
         }
     }
 
-    public static boolean exists(String filename) throws IOException {
+    public static boolean exists(String filename) {
         logger.entry(filename);
 
         try {
@@ -194,62 +144,5 @@ public class IOUtils {
             logger.exit();
         }
     }
-
-    public static File mkdirs(File baseDir, String dirname) throws IOException {
-        logger.entry(baseDir, dirname);
-
-        File file = null;
-        try {
-            file = new File(baseDir.getCanonicalPath() + "/" + dirname);
-            file.mkdirs();
-
-            return file;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static File mkdirs(String dirname) throws IOException {
-        logger.entry(dirname);
-
-        File file = null;
-        try {
-            file = mkdirs(new File("."), dirname);
-            return file;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static void deleteDirRecursively(File file) {
-        logger.entry();
-
-        try {
-            if (!file.exists()) {
-                return;
-            }
-
-            if (file.isDirectory()) {
-                for (File f : file.listFiles()) {
-                    deleteDirRecursively(f);
-                }
-            }
-
-            file.delete();
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static void writeFile(File file, String content) {
-        logger.entry();
-
-        try {
-
-        } finally {
-            logger.exit();
-        }
-    }
-
 
 }

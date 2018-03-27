@@ -47,8 +47,6 @@ public class JsonMapper {
     }
 
     public String writePrettyValue(Object value) throws IOException {
-        ObjectWriter objectWriter = mapper.writerWithDefaultPrettyPrinter();
-
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(value);
     }
 

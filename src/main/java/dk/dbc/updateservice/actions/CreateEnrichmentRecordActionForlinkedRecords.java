@@ -162,7 +162,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 if (yNoteFieldString == null) {
                     faustWithIntro = String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust);
                 } else {
-                    faustWithIntro = (String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString));
+                    faustWithIntro = String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString);
                     faustWithIntro = faustWithIntro.replace(RECATEGORIZATION_STRING_OBSOLETE, "");
                 }
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));

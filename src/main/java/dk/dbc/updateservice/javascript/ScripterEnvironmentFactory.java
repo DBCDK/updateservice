@@ -21,7 +21,6 @@ import java.util.Properties;
 public class ScripterEnvironmentFactory {
     private static final XLogger logger = XLoggerFactory.getXLogger(ScripterEnvironmentFactory.class);
     private static final String ENTRYPOINTS_PATTERN_UPDATE = "%s/distributions/common/src/entrypoints/update/entrypoint.js";
-    private static final String ENTRYPOINTS_PATTERN_BUILD = "%s/distributions/common/src/entrypoints/build/openbuild.js";
     private static final String MODULES_PATH_PATTERN = "%s/distributions/common/src";
 
 
