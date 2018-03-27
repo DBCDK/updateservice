@@ -208,37 +208,37 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
 
-            if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) && state.getLibraryRecordsHandler().hasClassificationData(record)) {
-                if (state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
+            if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
+                    state.getLibraryRecordsHandler().hasClassificationData(record) &&
+                    state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
 
-                    logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
-                    final Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                    final Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecordNotDeleted(record);
+                logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
+                final Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
+                final Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecordNotDeleted(record);
 
-                    final Set<Integer> librariesWithPosts = new HashSet<>();
-                    librariesWithPosts.addAll(holdingsLibraries);
-                    librariesWithPosts.addAll(enrichmentLibraries);
+                final Set<Integer> librariesWithPosts = new HashSet<>();
+                librariesWithPosts.addAll(holdingsLibraries);
+                librariesWithPosts.addAll(enrichmentLibraries);
 
-                    logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
+                logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
 
-                    for (int id : librariesWithPosts) {
-                        if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                            continue;
-                        }
-                        if (rawRepo.recordExists(recordId, id)) {
-                            Record extRecord = rawRepo.fetchRecord(recordId, id);
-                            MarcRecord extRecordData = RecordContentTransformer.decodeRecord(extRecord.getContent());
-                            logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, Integer.toString(id)));
-                        } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
-                            logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
+                for (int id : librariesWithPosts) {
+                    if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+                        continue;
+                    }
+                    if (rawRepo.recordExists(recordId, id)) {
+                        Record extRecord = rawRepo.fetchRecord(recordId, id);
+                        MarcRecord extRecordData = RecordContentTransformer.decodeRecord(extRecord.getContent());
+                        logger.info("Update classifications for extended library record: [{}:{}]", recordId, id);
+                        result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, record, currentRecord, Integer.toString(id)));
+                    } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
+                        logger.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
+                    } else {
+                        if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
+                            logger.info("Create new enrichment library record: [{}:{}].", recordId, id);
+                            result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, Integer.toString(id)));
                         } else {
-                            if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), record, currentRecord)) {
-                                logger.info("Create new enrichment library record: [{}:{}].", recordId, id);
-                                result.add(getActionDataForEnrichmentWithClassification(record, currentRecord, Integer.toString(id)));
-                            } else {
-                                logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
-                            }
+                            logger.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                         }
                     }
                 }

@@ -10,21 +10,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This class is a companion to the Sink DTO class.
- *
+ * <p>
  * Think of this as a way to keep the DTO class "jackson-free" by mixing in annotations
  * to the DTO class during runtime.
- *
+ * <p>
  * Method implementations of a MixIn class are ignored.
  */
 public class MarcSubFieldMixIn {
     /**
      * Makes jackson runtime aware of non-default constructor.
      *
-     * @param name String
+     * @param name  String
      * @param value String
      */
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     @JsonCreator
-    public MarcSubFieldMixIn( @JsonProperty( "name" ) String name,
-                              @JsonProperty( "value" ) String value ) {
+    public MarcSubFieldMixIn(@JsonProperty("name") String name,
+                             @JsonProperty("value") String value) {
     }
 }

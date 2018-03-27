@@ -32,7 +32,6 @@ import javax.xml.bind.annotation.XmlType;
 @XmlRootElement(namespace = BibliographicRecordExtraData.NAMESPACE,
         name = "updateRecordExtraData")
 public class BibliographicRecordExtraData {
-    private static final XLogger logger = XLoggerFactory.getXLogger(BibliographicRecordExtraData.class);
 
     public static final String NAMESPACE = "http://oss.dbc.dk/ns/updateRecordExtraData";
 

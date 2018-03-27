@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -18,13 +17,18 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.ws.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJBException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
 
 /**
  * Action to authenticate a record.
@@ -155,11 +159,10 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             int groupIdAsInt = Integer.parseInt(groupId);
-            if (300000 <= groupIdAsInt && groupIdAsInt <= 399999) {
-                if (reader.getAgencyIdAsInt() == RawRepo.SCHOOL_COMMON_AGENCY) {
-                    logger.info("Group is school agency and record is owner by 300000 -> exit OK");
-                    return result;
-                }
+            if (300000 <= groupIdAsInt && groupIdAsInt <= 399999 &&
+                    reader.getAgencyIdAsInt() == RawRepo.SCHOOL_COMMON_AGENCY) {
+                logger.info("Group is school agency and record is owner by 300000 -> exit OK");
+                return result;
             }
 
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
@@ -239,10 +242,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createErrorReply(resourceBundle.getString("update.common.record.error"));
             }
 
-            if ("700300".equals(curOwner)) {
-                if (!("700300".equals(groupId) && "700300".equals(owner))) {
-                    return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
-                }
+            if ("700300".equals(curOwner) &&
+                    !("700300".equals(groupId) && "700300".equals(owner))) {
+                return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
             }
 
              /*

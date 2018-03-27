@@ -17,13 +17,15 @@ import java.util.Map;
  */
 public class MixIns {
     private static Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+
     static {
-        mixIns.put( MarcRecord.class, MarcRecordMixIn.class);
-        mixIns.put( MarcField.class, MarcFieldMixIn.class );
-        mixIns.put( MarcSubField.class, MarcSubFieldMixIn.class );
+        mixIns.put(MarcRecord.class, MarcRecordMixIn.class);
+        mixIns.put(MarcField.class, MarcFieldMixIn.class);
+        mixIns.put(MarcSubField.class, MarcSubFieldMixIn.class);
     }
 
-    private MixIns() { }
+    private MixIns() {
+    }
 
     public static Map<Class<?>, Class<?>> getMixIns() {
         return mixIns;

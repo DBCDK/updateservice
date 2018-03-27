@@ -106,7 +106,7 @@ public class UpdateRequestAction extends AbstractAction {
         logger.entry();
         try {
             OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
-            return (optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY));
+            return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
         } finally {
             logger.exit();
         }

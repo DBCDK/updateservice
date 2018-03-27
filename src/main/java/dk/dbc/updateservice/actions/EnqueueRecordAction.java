@@ -73,7 +73,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // Enqueuing should be done differently for authority record, so first we have to determine whether
             // this is a authority record
             boolean isAuthorityRecord = RawRepo.AUTHORITY_AGENCY == agencyId ||
-                    (RawRepo.DBC_ENRICHMENT == agencyId && RawRepo.AUTHORITY_AGENCY == parentAgencyId);
+                    RawRepo.DBC_ENRICHMENT == agencyId && RawRepo.AUTHORITY_AGENCY == parentAgencyId;
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);

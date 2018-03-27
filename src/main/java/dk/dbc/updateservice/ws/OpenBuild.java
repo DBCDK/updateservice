@@ -313,10 +313,6 @@ public class OpenBuild implements BuildPortType {
         }
     }
 
-    private String objectToStringReflection(Object object) {
-        return (new ReflectionToStringBuilder(object, new RecursiveToStringStyle()).toString());
-    }
-
     private String buildRequestToString(BuildRequest br) {
         String res;
         try {
@@ -351,16 +347,4 @@ public class OpenBuild implements BuildPortType {
         return stringWriter.toString();
     }
 
-    /*
-     * Test properties.
-     * Properties that are only used by JUnit to set the instance of members
-     * that is injected by the Java EE Container.
-     */
-    @WebMethod(exclude = true)
-    public void setupEnvironmentForUnitTestOnly(Scripter scripter, Properties p, WebServiceContext wsx, DocumentFactory df) {
-        addJacksonMixInAnnotations();
-        this.scripter = scripter;
-        buildProperties = p;
-        documentFactory = df;
-    }
 }
