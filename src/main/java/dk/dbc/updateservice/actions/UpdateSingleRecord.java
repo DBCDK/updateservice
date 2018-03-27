@@ -261,7 +261,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
           }
       } catch (Throwable e) {
           logger.info("performActionsFor002Links fails with : {}", e.toString());
-          throw (e);
+          throw e;
       }
     }
 }

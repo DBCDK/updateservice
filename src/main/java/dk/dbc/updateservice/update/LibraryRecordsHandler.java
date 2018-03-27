@@ -193,10 +193,8 @@ public class LibraryRecordsHandler {
                     subCollector = aSubfieldList.getValue();
                 }
                 subCollector = subCollector.toLowerCase().replaceAll(ALPHA_NUMERIC_DANISH_CHARS, "");
-                if (cut > 0) {
-                    if (subCollector.length() > cut) {
-                        subCollector = subCollector.substring(0, cut);
-                    }
+                if (cut > 0 && subCollector.length() > cut) {
+                    subCollector = subCollector.substring(0, cut);
                 }
                 collector.append(subCollector);
             }
@@ -261,15 +259,11 @@ public class LibraryRecordsHandler {
     private boolean compareSubfieldContentMultiField(MarcRecordReader oldList, MarcRecordReader newList, String field, String subfield, boolean normalize, int cut) {
         String oldValue = oldList.getValue(field, subfield);
         String newValue = newList.getValue(field, subfield);
-        if (oldValue != null && newValue != null) {
-            if (cutAndClean(oldValue, normalize, cut).equals(cutAndClean(newValue, normalize, cut))) {
-                return true;
-            }
-        }
-        if (oldValue == null && newValue == null) {
-            return true;
-        }
-        return false;
+
+        return oldValue != null &&
+                newValue != null &&
+                cutAndClean(oldValue, normalize, cut).equals(cutAndClean(newValue, normalize, cut)) || oldValue == null && newValue == null;
+
     }
 
     /**
@@ -382,7 +376,7 @@ public class LibraryRecordsHandler {
             }
         }
 
-        if (result || ((oldField == null && newField != null) || (oldField != null && newField == null))) {
+        if (result || oldField == null && newField != null || oldField != null && newField == null) {
             logger.info("Classification has changed - reason 039 difference");
             return true;
         } else {
@@ -512,10 +506,8 @@ public class LibraryRecordsHandler {
                     checkField245 = false;
                 }
             } else {
-                if (newValue.equals("b")) {
-                    if (compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 0)) {
-                        checkField245 = false;
-                    }
+                if (newValue.equals("b") && compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, 0)) {
+                    checkField245 = false;
                 }
             }
             if (checkField245) {

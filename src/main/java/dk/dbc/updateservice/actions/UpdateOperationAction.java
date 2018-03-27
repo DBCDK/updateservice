@@ -334,10 +334,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
                     for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                         Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
-                        if (holdingAgencies002.size() > 0) {
-                            if (!rawRepo.recordExists(previousFaust, readerAgencyId)) {
-                                return state.getMessages().getString("delete.record.holdings.on.002a");
-                            }
+                        if (holdingAgencies002.size() > 0 && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
+                            return state.getMessages().getString("delete.record.holdings.on.002a");
                         }
                     }
                 }

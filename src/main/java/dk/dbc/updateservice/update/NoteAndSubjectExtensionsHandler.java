@@ -13,13 +13,13 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -150,10 +150,8 @@ public class NoteAndSubjectExtensionsHandler {
         }
 
         for (MarcField cf : reader.getFieldAll(field.getName())) {
-            if (cf.getName().equals(field.getName())) {
-                if (cf.equals(field)) {
-                    return false;
-                }
+            if (cf.getName().equals(field.getName()) && cf.equals(field)) {
+                return false;
             }
         }
 
@@ -277,21 +275,17 @@ public class NoteAndSubjectExtensionsHandler {
             }
             extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
             for (MarcField field : record.getFields()) {
-                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
-                    if (isFieldChangedInOtherRecord(field, curRecord)) {
-                        String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
-                        result.add(createMessageDTO(message));
-                    }
+                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, curRecord)) {
+                    String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                    result.add(createMessageDTO(message));
                 }
             }
             for (MarcField field : curRecord.getFields()) {
-                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx))) {
-                    if (isFieldChangedInOtherRecord(field, record)) {
-                        String fieldName = field.getName();
-                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
-                            String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
-                            result.add(createMessageDTO(message));
-                        }
+                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, record)) {
+                    String fieldName = field.getName();
+                    if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                        String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                        result.add(createMessageDTO(message));
                     }
                 }
             }

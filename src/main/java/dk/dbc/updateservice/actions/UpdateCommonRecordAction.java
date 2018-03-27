@@ -94,7 +94,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            if ((RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt())) {
+            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
                 logger.info("Rewriting indicators");
                 rewriteIndicators();
             }

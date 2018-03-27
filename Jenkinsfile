@@ -42,7 +42,7 @@ pipeline {
                             findbugsPublisher(disabled: true),
                             openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
                     ]) {
-                        sh "mvn clean install -Dmaven.test.failure.ignore=false"
+                        sh "mvn clean install pmd:pmd findbugs:findbugs -Dmaven.test.failure.ignore=false"
                         junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
                         archiveArtifacts(artifacts: "target/*.war, target/*.log", onlyIfSuccessful: true, fingerprint: true)
                     }
@@ -50,7 +50,34 @@ pipeline {
             }
         }
 
+        stage("Warnings") {
+            steps {
+                warnings consoleParsers: [
+                        [parserName: "Java Compiler (javac)"],
+                        [parserName: "JavaDoc Tool"]
+                ],
+                        unstableTotalAll: "0",
+                        failedTotalAll: "0"
+            }
+        }
+
+        stage("PMD") {
+            steps {
+                step([
+                        $class          : 'hudson.plugins.pmd.PmdPublisher',
+                        pattern         : '**/target/pmd.xml',
+                        unstableTotalAll: "0",
+                        failedTotalAll  : "0"
+                ])
+            }
+        }
+
         stage('Docker') {
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
             steps {
                 script {
                     def isMasterBranch = env.BRANCH_NAME == 'master'
@@ -89,28 +116,6 @@ pipeline {
 
                     }
                 }
-            }
-        }
-
-        stage("Warnings") {
-            steps {
-                warnings consoleParsers: [
-                        [parserName: "Java Compiler (javac)"],
-                        [parserName: "JavaDoc Tool"]
-                ],
-                        unstableTotalAll: "0",
-                        failedTotalAll: "0"
-            }
-        }
-
-        stage("PMD") {
-            steps {
-                step([
-                        $class          : 'hudson.plugins.pmd.PmdPublisher',
-                        pattern         : '**/target/pmd.xml',
-                        unstableTotalAll: "0",
-                        failedTotalAll  : "35" //TODO Fix the PMD errors in updateservice to threshold can be set to 0!
-                ])
             }
         }
     }

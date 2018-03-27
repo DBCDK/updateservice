@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.json;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.type.TypeFactory;
 
 import java.io.File;
@@ -47,8 +46,6 @@ public class JsonMapper {
     }
 
     public String writePrettyValue(Object value) throws IOException {
-        ObjectWriter objectWriter = mapper.writerWithDefaultPrettyPrinter();
-
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(value);
     }
 
