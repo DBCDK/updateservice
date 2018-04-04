@@ -5,7 +5,7 @@
 
 package dk.dbc.updateservice.client;
 
-import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcXConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ExtraRecordData;
@@ -80,7 +80,7 @@ public class BibliographicRecordFactory {
 
         RecordData recData = new RecordData();
         recData.getContent().add("\n");
-        recData.getContent().add(MarcConverter.convertToMarcXChangeAsDocument(record).getDocumentElement());
+        recData.getContent().add(MarcXConverter.convertToMarcXChangeAsDocument(record).getDocumentElement());
         recData.getContent().add("\n");
         bibRecord.setRecordData(recData);
         bibRecord.setExtraRecordData(createExtraRecordData(data));
