@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcXConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
@@ -165,7 +165,7 @@ public class OpenBuild implements BuildPortType {
                 List<Object> list = recordData.getContent();
                 for (Object o : list) {
                     if (o instanceof Node) {
-                        res = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                        res = MarcXConverter.createFromMarcXChange(new DOMSource((Node) o));
                         break;
                     }
                 }

@@ -5,7 +5,8 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.Marc21Converter;
+import dk.dbc.common.records.MarcXConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.openagency.client.OpenAgencyException;
@@ -39,6 +40,7 @@ import java.util.Set;
 public class GlobalActionState {
     private static final XLogger logger = XLoggerFactory.getXLogger(GlobalActionState.class);
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
+    private static final String RECORD_SCHEMA_MARC21_1_0 = "http://www.loc.gov/MARC21/slim";
     private static final String RECORD_PACKING_XML = "xml";
 
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
@@ -307,7 +309,11 @@ public class GlobalActionState {
                 if (list != null) {
                     for (Object o : list) {
                         if (o instanceof Node) {
-                            marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                            if (RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())) {
+                                marcRecord = MarcXConverter.createFromMarcXChange(new DOMSource((Node) o));
+                            } else if (RECORD_SCHEMA_MARC21_1_0.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())) {
+                                marcRecord = Marc21Converter.createFromMarc21(new DOMSource((Node) o));
+                            }
                             break;
                         }
                     }
@@ -333,7 +339,8 @@ public class GlobalActionState {
         boolean result = false;
         try {
             if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
-                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
+                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema()) ||
+                        RECORD_SCHEMA_MARC21_1_0.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
             } else {
                 logger.warn("Unable to record schema from request");
             }
