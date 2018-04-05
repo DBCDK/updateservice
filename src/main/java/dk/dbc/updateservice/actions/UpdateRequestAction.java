@@ -167,6 +167,7 @@ public class UpdateRequestAction extends AbstractAction {
         logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() != null ?
                 state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema() : "Unknown");
         logger.info("Request record: \n{}", state.readRecord());
+        logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
         logger.info("======================================");
     }
 
