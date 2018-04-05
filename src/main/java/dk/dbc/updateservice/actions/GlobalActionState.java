@@ -302,9 +302,11 @@ public class GlobalActionState {
                     for (Object o : list) {
                         if (o instanceof Node) {
                             if (RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())) {
+                                logger.info("Using marcXChange converter");
                                 marcRecord = MarcXConverter.createFromMarcXChange(new DOMSource((Node) o));
                             } else if (RECORD_SCHEMA_MARC21_1_0.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())) {
                                 marcRecord = Marc21Converter.createFromMarc21(new DOMSource((Node) o));
+                                logger.info("Using marc21 converter");
                             }
                             break;
                         }

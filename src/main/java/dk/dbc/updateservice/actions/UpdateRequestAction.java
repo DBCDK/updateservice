@@ -159,6 +159,7 @@ public class UpdateRequestAction extends AbstractAction {
         logger.info("Template name: {}", state.getSchemaName());
         logger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
         logger.info("Request record: \n{}", state.readRecord());
+        logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
         logger.info("======================================");
     }
 
