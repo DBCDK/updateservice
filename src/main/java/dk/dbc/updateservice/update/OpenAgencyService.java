@@ -40,7 +40,7 @@ public class OpenAgencyService {
     private OpenAgencyServiceFromURL service;
 
     public enum LibraryGroup {
-        DBC("dbc"), FBS("fbs"), PH("ph");
+        DBC("dbc"), FBS("fbs"), PH("ph"), M21("m21");
 
         private final String value;
 
@@ -148,6 +148,9 @@ public class OpenAgencyService {
                 case "fbslokal":
                 case "skole":
                     result = LibraryGroup.FBS;
+                    break;
+                case "m21_udland":
+                    result = LibraryGroup.M21;
                     break;
                 default:
                     throw new UpdateException("Unknown library group: " + reply);
