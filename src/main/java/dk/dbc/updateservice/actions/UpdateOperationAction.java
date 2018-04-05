@@ -104,8 +104,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
 
             if (state.getSchemaType() == GlobalActionState.SchemaType.MARCXCHANGE) {
+                logger.info("Using performMarcXchangeAction");
                 result = performMarcXchangeAction();
             } else {
+                logger.info("Using performMarc21Action");
                 result = performMarc21Action();
             }
 
@@ -317,7 +319,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
         logger.info("Delete?..................: " + updReader.markedForDeletion());
         logger.info("Library group?...........: " + state.getLibraryGroup());
-        logger.info("Schema name?.............: " + state.getSchemaName());
+        logger.info("Template schema name?....: " + state.getSchemaName());
+        logger.info("Record schema type?......: " + state.getSchemaType());
         logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
         logger.info("agency id?...............: " + updReader.getAgencyIdAsInt());
         logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
