@@ -167,7 +167,12 @@ public class UpdateRequestAction extends AbstractAction {
         logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() != null ?
                 state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema() : "Unknown");
         logger.info("Request record: \n{}", state.readRecord());
-        logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
+        if (state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() != null) {
+            // UpdateServiceRequestDTO will always be there but BibliographicRecordDTO might be null
+            // If BibliographicRecordDTO is null the request should fail with a nice validation error
+            // The request shouldn't fail because a null pointer exception was thrown while logging
+            logger.info("Record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
+        }
         logger.info("======================================");
     }
 
