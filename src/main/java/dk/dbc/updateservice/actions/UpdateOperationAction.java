@@ -228,14 +228,17 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private ServiceResult performMarc21Action() throws UpdateException, SolrException {
+    private ServiceResult performMarc21Action() throws UpdateException {
         logger.entry();
         ServiceResult result = null;
         try {
-            //children.add(new ValidateOperationAction());
-        //} catch (OpenAgencyException | UnsupportedEncodingException e) {
-         //   return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), state);
+            MarcRecordReader updReader = state.getMarcRecordReader();
+
+            logRecordInfo(updReader);
+
             logger.info("This is where the marc21 actions would be!");
+
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
 
             return ServiceResult.newOkResult();
         } finally {
