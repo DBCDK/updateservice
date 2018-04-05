@@ -6,9 +6,9 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.Marc21Converter;
-import dk.dbc.common.records.MarcXConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcXConverter;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -42,6 +42,8 @@ public class GlobalActionState {
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
     private static final String RECORD_SCHEMA_MARC21_1_0 = "http://www.loc.gov/MARC21/slim";
     private static final String RECORD_PACKING_XML = "xml";
+
+    public enum SchemaType {MARCXCHANGE, MARC21, UNKNOWN }
 
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
     private WebServiceContext wsContext = null;
@@ -600,6 +602,18 @@ public class GlobalActionState {
         }
 
         return providerId;
+    }
+
+    public SchemaType getSchemaType() {
+        if (this.updateServiceRequestDTO.getBibliographicRecordDTO() == null) {
+            return SchemaType.UNKNOWN;
+        } else if (RECORD_SCHEMA_MARC21_1_0.equals(this.updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())) {
+            return SchemaType.MARC21;
+        } else if (RECORD_SCHEMA_MARCXCHANGE_1_1.equals(this.updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema())){
+            return SchemaType.MARCXCHANGE;
+        } else {
+            return SchemaType.UNKNOWN;
+        }
     }
 
 }

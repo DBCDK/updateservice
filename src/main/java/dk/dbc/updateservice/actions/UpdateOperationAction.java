@@ -102,6 +102,23 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
+
+            if (state.getSchemaType() == GlobalActionState.SchemaType.MARCXCHANGE) {
+                result = performMarcXchangeAction();
+            } else {
+                result = performMarc21Action();
+            }
+
+            return result;
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    private ServiceResult performMarcXchangeAction() throws UpdateException, SolrException {
+        logger.entry();
+        ServiceResult result = null;
+        try {
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
                 logger.error("Unable to update record: {}", serviceResult);
@@ -204,6 +221,21 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             return result = ServiceResult.newOkResult();
         } catch (OpenAgencyException | UnsupportedEncodingException e) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), state);
+        } finally {
+            logger.exit(result);
+        }
+    }
+
+    private ServiceResult performMarc21Action() throws UpdateException, SolrException {
+        logger.entry();
+        ServiceResult result = null;
+        try {
+            //children.add(new ValidateOperationAction());
+        //} catch (OpenAgencyException | UnsupportedEncodingException e) {
+         //   return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), state);
+            logger.info("This is where the marc21 actions would be!");
+
+            return ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
         }

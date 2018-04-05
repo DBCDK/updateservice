@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -76,6 +77,8 @@ public class UpdateTestUtils {
         UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
         updateServiceRequestDTO.setAuthenticationDTO(AuthenticationDTO);
+        updateServiceRequestDTO.setBibliographicRecordDTO(new BibliographicRecordDTO());
+        updateServiceRequestDTO.getBibliographicRecordDTO().setRecordSchema("info:lc/xmlns/marcxchange-v1");
         AuthenticationDTO.setGroupId(GROUP_ID);
         AuthenticationDTO.setUserId(USER_ID);
         AuthenticationDTO.setPassword("passwd");

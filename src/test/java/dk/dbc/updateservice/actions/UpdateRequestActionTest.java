@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -39,33 +40,6 @@ public class UpdateRequestActionTest {
         settings = new UpdateTestUtils().getSettings();
         state.setMarcRecord(null);
         state.setLibraryGroup(libraryGroup);
-    }
-
-    /**
-     * Test UpdateRequestAction.performAction() with an empty request and an empty
-     * WebServiceContext.
-     * <p>
-     * <dl>
-     * <dt>Given</dt>
-     * <dd>
-     * An empty request and WebServiceContext.
-     * </dd>
-     * <dt>When</dt>
-     * <dd>
-     * Perform the request.
-     * </dd>
-     * <dt>Then</dt>
-     * <dd>
-     * Return ServiceResult with an error.
-     * </dd>
-     * </dl>
-     */
-    @Test
-    public void testEmptyRequest() throws Exception {
-        state.setMarcRecord(new MarcRecord());
-        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        String message = state.getMessages().getString("request.record.is.missing");
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
 
     @Test
