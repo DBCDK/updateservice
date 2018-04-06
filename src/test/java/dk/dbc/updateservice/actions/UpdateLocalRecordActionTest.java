@@ -302,6 +302,7 @@ public class UpdateLocalRecordActionTest {
     @Test
     public void testPerformAction_DeleteLastVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE);
+        mainRecord.setLeader("00000n    2200000   4500");
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
