@@ -111,34 +111,34 @@ public class DeleteCommonRecordActionTest {
      * </dd>
      * </dl>
      */
-    @Test
-    public void testPerformAction_NoChildren_WithEnrichments() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
-        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
-
-        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
-
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
-        when(state.getRawRepo().enrichments(eq(record))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
-
-        DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        MarcRecord expectedEnrichmentRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        List<ServiceAction> children = deleteCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
-
-        ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), expectedEnrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
-        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
-        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
-    }
+//    @Test
+//    public void testPerformAction_NoChildren_WithEnrichments() throws Exception {
+//        MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+//        String recordId = AssertActionsUtil.getRecordId(record);
+//        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+//
+//        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+//        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
+//
+//        when(state.getRawRepo().recordExistsMaybeDeleted(eq(recordId), eq(agencyId))).thenReturn(true);
+//        when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
+//        when(state.getRawRepo().enrichments(eq(record))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
+//        when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
+//        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
+//
+//        DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
+//        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+//
+//        MarcRecord expectedEnrichmentRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+//        List<ServiceAction> children = deleteCommonRecordAction.children();
+//        Assert.assertThat(children.size(), is(4));
+//
+//        ListIterator<ServiceAction> iterator = children.listIterator();
+//        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), expectedEnrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+//        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
+//        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+//        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
+//    }
 
     /**
      * Test performAction(): Delete single common record with children, but no enrichments.
