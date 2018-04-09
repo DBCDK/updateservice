@@ -38,6 +38,8 @@ pipeline {
         stage('Build') {
             steps {
                 script {
+                    cleanWs() // Clean Workspace
+
                     withMaven(maven: 'maven 3.5', options: [
                             findbugsPublisher(disabled: true),
                             openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
