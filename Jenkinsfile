@@ -124,10 +124,13 @@ pipeline {
         unstable {
             notifyOfBuildStatus("build became unstable")
         }
+
         failure {
             notifyOfBuildStatus("build failed")
         }
 
-        cleanWs() // Clean Workspace
+        always {
+            cleanWs()
+        }
     }
 }
