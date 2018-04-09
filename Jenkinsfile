@@ -61,8 +61,6 @@ pipeline {
 
         stage('Build updateservice') {
             steps {
-                cleanWs() // Clean Workspace
-
                     withMaven(maven: 'maven 3.5', options: [
                             findbugsPublisher(disabled: true),
                             openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
@@ -219,22 +217,7 @@ pipeline {
         failure {
             notifyOfBuildStatus("build failed")
         }
-        always {
-            sh """
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:staging
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
-
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:staging
-
-                docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
-            """
-
-            deleteDir()
-        }
+        cleanWs() // Clean Workspace
     }
 }
