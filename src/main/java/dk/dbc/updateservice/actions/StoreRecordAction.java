@@ -82,7 +82,6 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 agencyId = Integer.parseInt(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
             }
             MarcRecord recordToStore = recordToStore();
-            //recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
             rawRepoRecord.setMimeType(mimetype);
