@@ -86,7 +86,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 throw new UpdateException("MimeType must be set");
             }
 
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            logger.info("Handling record: {}", record.toString());
             MarcRecordReader reader = new MarcRecordReader(record);
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
@@ -95,7 +95,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 agencyId = Integer.parseInt(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
             }
             MarcRecord recordToStore = recordToStore();
-            recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
+            //recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
             updateModifiedDate(recordToStore);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
