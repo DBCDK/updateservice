@@ -235,7 +235,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader updReader = state.getMarcRecordReader();
 
-            logRecordInfo(updReader);
+
 
             logger.info("This is where the marc21 actions would be!");
 
@@ -255,6 +255,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("Control fields:");
             logger.info(record.getControlFields().toString());
+
+            logRecordInfo(updReader);
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
