@@ -239,6 +239,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("This is where the marc21 actions would be!");
 
+            logger.info("Overwriting ganecyid with {}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
             MarcControlField controlField = new MarcControlField("003", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
 
             List<MarcControlField> controlFields = new ArrayList<>();
@@ -251,6 +252,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             controlFields.add(controlField);
             record.setControlFields(controlFields);
+
+            logger.info("Control fields:");
+            logger.info(record.getControlFields().toString());
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
