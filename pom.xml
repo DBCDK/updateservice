@@ -183,7 +183,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>common-records</artifactId>
-            <version>m21-1.3-SNAPSHOT</version>
+            <version>m21-1.4-SNAPSHOT</version>
         </dependency>
 
         <dependency>

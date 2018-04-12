@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcControlField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
@@ -237,6 +238,19 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logRecordInfo(updReader);
 
             logger.info("This is where the marc21 actions would be!");
+
+            MarcControlField controlField = new MarcControlField("003", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+
+            List<MarcControlField> controlFields = new ArrayList<>();
+
+            for (MarcControlField c : state.getMarcRecord().getControlFields()) {
+                if (!"003".equals(c.getName())) {
+                    controlFields.add(c);
+                }
+            }
+
+            controlFields.add(controlField);
+            record.setControlFields(controlFields);
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
