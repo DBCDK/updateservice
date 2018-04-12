@@ -239,8 +239,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.info("This is where the marc21 actions would be!");
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
 
-            return ServiceResult.newOkResult();
+            return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
         }
