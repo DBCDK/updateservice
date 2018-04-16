@@ -87,7 +87,7 @@
             </build>
         </profile>
     </profiles>
-    
+
     <pluginRepositories>
         <pluginRepository>
             <id>mavenrepo.dbc.dk</id>

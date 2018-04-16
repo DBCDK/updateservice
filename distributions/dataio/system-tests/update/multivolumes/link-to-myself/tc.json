@@ -1,0 +1,112 @@
+[
+    {
+        "name": "basis-link-to-myself-volume",
+        "description": "Tester link til sig selv (014a = 001a)",
+        "request": {
+            "authentication": {
+                "group": "010100",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "dbcbind",
+            "record": "request.marc"
+        },
+        "setup": {
+            "rawrepo": [
+                {
+                    "record": "rawrepo-main.marc",
+                    "type": "MARCXCHANGE",
+                    "deleted": false,
+                    "children": [
+                        "rawrepo-volume.marc"
+                    ],
+                    "enrichments": [
+                        "rawrepo-main-dbc-enrichment.marc"
+                    ]
+                },
+                {
+                    "record": "rawrepo-main-dbc-enrichment.marc",
+                    "type": "ENRICHMENT",
+                    "deleted": false
+                },
+                {
+                    "record": "rawrepo-volume.marc",
+                    "type": "MARCXCHANGE",
+                    "deleted": false,
+                    "enrichments": [
+                        "rawrepo-volume-dbc-enrichment.marc"
+                    ]
+                },
+                {
+                    "record": "rawrepo-volume-dbc-enrichment.marc",
+                    "type": "ENRICHMENT",
+                    "deleted": false
+                }
+            ]
+        },
+        "expected": {
+            "validation": {
+                "errors": [
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9.htm",
+                        "ordinalPositionOfField" : 2,
+                        "ordinalPositionOfSubfield" : 2,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelt 008a må ikke anvendes i posten '58442895', da delfeltet allerede er anvendt i flerbindsværket"
+                    },
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9.htm",
+                        "ordinalPositionOfField" : 2,
+                        "ordinalPositionOfSubfield" : 3,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelt 008z må ikke anvendes i posten '58442895', da delfeltet allerede er anvendt i flerbindsværket"
+                    },
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.f.htm",
+                        "ordinalPositionOfField" : 3,
+                        "ordinalPositionOfSubfield" : 0,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Posten med faustnr '58442895' har ikke en af følgende værdier 'h,s' i 004a"
+                    }
+                ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9.htm",
+                        "ordinalPositionOfField" : 2,
+                        "ordinalPositionOfSubfield" : 2,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelt 008a må ikke anvendes i posten '58442895', da delfeltet allerede er anvendt i flerbindsværket"
+                    },
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9.htm",
+                        "ordinalPositionOfField" : 2,
+                        "ordinalPositionOfSubfield" : 3,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelt 008z må ikke anvendes i posten '58442895', da delfeltet allerede er anvendt i flerbindsværket"
+                    },
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.f.htm",
+                        "ordinalPositionOfField" : 3,
+                        "ordinalPositionOfSubfield" : 0,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Posten med faustnr '58442895' har ikke en af følgende værdier 'h,s' i 004a"
+                    }
+                ]
+            }
+        }
+    }
+]
