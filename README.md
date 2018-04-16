@@ -52,7 +52,7 @@ Servicen bruger disse resourcer:
 * *forsrights.url*: Angiver den fulde url til forsrights webservicen. Pt er det vigtigt at huske at afslutte url'en
 med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan updateservice ikke håndterer.
 * *openagency.url*: Angiver den fulde url til openagency webservicen. Pt er det vigtigt at huske at afslutte url'en
-                    med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan 
+                    med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan
                     updateservice ikke håndterer.
 * *auth.product.name*: Angiver navnet på det produkt, som forsrights skal returnerer for at brugeren har adgang til
 at bruge denne webservice.
@@ -61,7 +61,7 @@ brugere. Angives værdien *True* sendes IP-adressen med. Hvis settingen indehold
 helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
 * *javascript.basedir*: Angiver rodkataloget hvor opencat-business distributionen ligger. Hvis man peger på sit projekt fra svn skal man
 pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
-* *javascript.pool.size*: Heltal som angiver hvor mange Nashorn/Rhino engines som skal oprettes i det JavaScript Engine pool som Update anvender 
+* *javascript.pool.size*: Heltal som angiver hvor mange Nashorn/Rhino engines som skal oprettes i det JavaScript Engine pool som Update anvender
  til JavaScript. Et udgangspunkt vil være intervallet mellem *thread-pool.size / 2* og *thread-pool.size*.
 * *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
 * *prod.state*: Angiver om update kører i produktion eller ej, og derfor om 13 biblioteker må sende poster ind. Kan være True/true eller False/false.
@@ -81,4 +81,3 @@ Til logning af diverse beskeder anvendes logback. Servicen 2 system properties t
 
 * **LOGDIR**: Angiver den fulde path til den folder hvor logfilerne skal placeres.
 * **logback.configurationFile**: Den fulde path til logback.xml konfigurationsfilen.
-

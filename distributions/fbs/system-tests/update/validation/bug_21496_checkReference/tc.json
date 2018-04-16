@@ -1,0 +1,254 @@
+[
+    {
+        "name": "child-reference-missing",
+        "description": "Skal fejle på, at henvisningsmålet i 900z ikke findes i posten.",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "bog",
+            "record": "request-child-reference-missing.marc"
+        },
+        "expected": {
+            "validation": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 18,
+                        "ordinalPositionOfSubfield": 2,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Felt '600' findes ikke i posten"
+                    }
+                ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 18,
+                        "ordinalPositionOfSubfield": 2,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Felt '600' findes ikke i posten"
+                    }
+                ],
+                "rawrepo": []
+            }
+        }
+    },
+    {
+        "name": "child-reference-missing-numerator",
+        "description": "Skal fejle på at henvisningsmålet ikke er entydigt. Der findes flere 600-felter, alle uden numerator (*å)",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "bog",
+            "record": "request-child-reference-missing-numerator.marc"
+        },
+        "expected": {
+            "validation": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 22,
+                        "ordinalPositionOfSubfield": 2,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Henvisningen i felt '900' delfelt 'z' er ikke entydig, mangler anvisning om hvilket felt '600' den peger på"
+                    }
+                ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 22,
+                        "ordinalPositionOfSubfield": 2,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Henvisningen i felt '900' delfelt 'z' er ikke entydig, mangler anvisning om hvilket felt '600' den peger på"
+                    }
+                ],
+                "rawrepo": []
+            }
+        }
+    },
+    {
+        "name": "parent-references-with-illegal-syntax",
+        "description": "Skal fejle på at værdier i 900 *z og 910 *z er ugyldige",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "bog",
+            "record": "request-parent-references-with-illegal-syntax.marc"
+        },
+        "expected": {
+            "validation": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 20,
+                        "ordinalPositionOfSubfield": 1,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Værdien '652ah' i felt '900' delfelt 'z' mangler skråstreg mellem feltnummer og numeratorværdi"
+                    },
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField": 21,
+                        "ordinalPositionOfSubfield": 1,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Værdien '7101' i felt '910' delfelt 'z' mangler skråstreg mellem feltnummer og numeratorværdi"
+                    },
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField": 22,
+                        "ordinalPositionOfSubfield": 5,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Skråstreg i felt '910' delfelt 'z' skal altid efterfølges af numeratorværdien (delfelt å) i det felt, der henvises til"
+                    }, {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 23,
+                        "ordinalPositionOfSubfield" : 4,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Numeratorværdien i felt '910' delfelt 'z' skal være et tal fra 1 og opefter"
+                    }, {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 24,
+                        "ordinalPositionOfSubfield" : 4,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelter i delfeltlisten i felt '910' delfelt 'z' skal adskilles med komma"
+                    }
+                ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.99.htm",
+                        "ordinalPositionOfField": 20,
+                        "ordinalPositionOfSubfield": 1,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Værdien '652ah' i felt '900' delfelt 'z' mangler skråstreg mellem feltnummer og numeratorværdi"
+                    },
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField": 21,
+                        "ordinalPositionOfSubfield": 1,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Værdien '7101' i felt '910' delfelt 'z' mangler skråstreg mellem feltnummer og numeratorværdi"
+                    },
+                    {
+                        "type": "ERROR",
+                        "code": null,
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField": 22,
+                        "ordinalPositionOfSubfield": 5,
+                        "ordinalPositionInSubfield": null,
+                        "message": "Skråstreg i felt '910' delfelt 'z' skal altid efterfølges af numeratorværdien (delfelt å) i det felt, der henvises til"
+                    }, {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 23,
+                        "ordinalPositionOfSubfield" : 4,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Numeratorværdien i felt '910' delfelt 'z' skal være et tal fra 1 og opefter"
+                    }, {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 24,
+                        "ordinalPositionOfSubfield" : 4,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelter i delfeltlisten i felt '910' delfelt 'z' skal adskilles med komma"
+                    }
+                ],
+                "rawrepo": []
+            }
+        }
+    },
+    {
+        "name": "parent-reference-to-non-existing-subfield",
+        "description": "Skal fejle på at henvisningsmål i 710 og 910 ikke findes",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "bog",
+            "record": "request-parent-reference-to-non-existing-subfield.marc"
+        },
+        "expected": {
+            "validation": {
+                "errors": [ {
+                    "type" : "ERROR",
+                    "code" : null,
+                    "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                    "ordinalPositionOfField" : 20,
+                    "ordinalPositionOfSubfield" : 1,
+                    "ordinalPositionInSubfield" : null,
+                    "message" : "I nummer '1', felt '710' mangler delfeltet 'a'"
+                },
+                {
+                    "type" : "ERROR",
+                    "code" : null,
+                    "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                    "ordinalPositionOfField" : 23,
+                    "ordinalPositionOfSubfield" : 4,
+                    "ordinalPositionInSubfield" : null,
+                    "message" : "Delfelt 'c' er ikke gentaget på felt '910' 2 gange"
+                } ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 20,
+                        "ordinalPositionOfSubfield" : 1,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "I nummer '1', felt '710' mangler delfeltet 'a'"
+                    },
+                    {
+                        "type" : "ERROR",
+                        "code" : null,
+                        "urlForDocumentation" : "http://www.kat-format.dk/danMARC2/Danmarc2.9a.htm",
+                        "ordinalPositionOfField" : 23,
+                        "ordinalPositionOfSubfield" : 4,
+                        "ordinalPositionInSubfield" : null,
+                        "message" : "Delfelt 'c' er ikke gentaget på felt '910' 2 gange"
+                    }
+                ],
+                "rawrepo": []
+            }
+        }
+    }
+]

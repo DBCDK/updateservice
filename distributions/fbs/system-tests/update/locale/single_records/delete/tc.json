@@ -1,0 +1,87 @@
+[
+    {
+        "name": "fbs-delete-locale-record-no-holdings",
+        "bugs": [
+            "#1518"
+        ],
+        "description": "Tester slettet af lokalpost",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "lokalpost",
+            "record": "request.marc"
+        },
+        "setup": {
+            "rawrepo": [
+                {
+                    "record": "rawrepo.marc",
+                    "type": "MARCXCHANGE",
+                    "deleted": false
+                }
+            ]
+        },
+        "expected": {
+            "validation": {},
+            "update": {
+                "errors": [],
+                "rawrepo": [
+                    {
+                        "record": "result.marc",
+                        "type": "MARCXCHANGE",
+                        "deleted": true,
+                        "enqueued": true
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "name": "fbs-delete-locale-record-holdings",
+        "bugs": [
+            "#1518"
+        ],
+        "description": "Tester slettet af lokalpost med beholdninger",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "lokalpost",
+            "record": "request.marc"
+        },
+        "setup": {
+            "holdings": [
+                723000
+            ],
+            "rawrepo": [
+                {
+                    "record": "rawrepo.marc",
+                    "type": "MARCXCHANGE",
+                    "deleted": false
+                }
+            ]
+        },
+        "expected": {
+            "validation": {},
+            "update": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "message": "Posten må ikke slettes da der er beholdning på"
+                    }
+                ],
+                "rawrepo": [
+                    {
+                        "record": "rawrepo.marc",
+                        "type": "MARCXCHANGE",
+                        "deleted": false
+                    }
+                ]
+            }
+        }
+    }
+]

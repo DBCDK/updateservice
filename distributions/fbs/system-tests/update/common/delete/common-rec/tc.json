@@ -1,0 +1,77 @@
+[
+    {
+        "name": "fbs-delete-common-record",
+        "bugs": [
+            "#1819"
+        ],
+        "description": "Tester sletning af fællesskabspost fra et FBS-bibliotek",
+        "request": {
+            "authentication": {
+                "group": "723000",
+                "user": "netpunkt",
+                "password": "20Koster"
+            },
+            "templateName": "netlydbog",
+            "record": "request.marc"
+        },
+        "setup": {
+            "holdings": [
+                723000
+            ],
+            "rawrepo": [
+                {
+                    "record": "rawrepo-common.marc",
+                    "type": "MARCXCHANGE",
+                    "deleted": false,
+                    "enrichments": [
+                        "rawrepo-dbc-enrichment.marc"
+                    ]
+                },
+                {
+                    "record": "rawrepo-dbc-enrichment.marc",
+                    "type": "ENRICHMENT",
+                    "deleted": false
+                }
+            ]
+        },
+        "expected": {
+            "validation": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.7.htm",
+                        "ordinalPositionOfField": 1,
+                        "ordinalPositionOfSubfield": 0,
+                        "message": "Værdien 'd' er ikke en del af de valide værdier: 'n', 'c'"
+                    }
+                ]
+            },
+            "update": {
+                "errors": [
+                    {
+                        "type": "ERROR",
+                        "urlForDocumentation": "http://www.kat-format.dk/danMARC2/Danmarc2.7.htm",
+                        "ordinalPositionOfField": 1,
+                        "ordinalPositionOfSubfield": 0,
+                        "message": "Værdien 'd' er ikke en del af de valide værdier: 'n', 'c'"
+                    }
+                ],
+                "rawrepo": [
+                    {
+                        "record": "rawrepo-common.marc",
+                        "type": "MARCXCHANGE",
+                        "deleted": false,
+                        "enrichments": [
+                            "rawrepo-dbc-enrichment.marc"
+                        ]
+                    },
+                    {
+                        "record": "rawrepo-dbc-enrichment.marc",
+                        "type": "ENRICHMENT",
+                        "deleted": false
+                    }
+                ]
+            }
+        }
+    }
+]
