@@ -36,7 +36,7 @@ services:
       - "./logs/fakesmtp:/output"
 
   update-systemtests-update-db:
-    image: docker-i.dbc.dk/update-postgres:candidate
+    image: docker-i.dbc.dk/update-postgres:${SUBST_IMAGE_NAME}
     environment:
       - POSTGRES_DB=updateservice
       - POSTGRES_USER=updateservice
@@ -47,7 +47,7 @@ services:
       - "14332:5432"
 
   update-systemtests-updateservice:
-    image: docker-i.dbc.dk/update-payara-deployer:candidate
+    image: docker-i.dbc.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
     env_file:
       - ./settings.env
       - ./db.env
