@@ -21,8 +21,6 @@ function removeImages() {
   docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
-  docker rmi 'docker-i.dbc.dk/update-postgres:'${SUBST_IMAGE_NAME}
-  docker rmi 'docker-i.dbc.dk/update-payara-deployer:'${SUBST_IMAGE_NAME}
   docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 }
 
