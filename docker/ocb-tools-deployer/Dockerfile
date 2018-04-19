@@ -16,8 +16,22 @@ ENV PATH $PATH:$OCB_USER_HOME/bin
 ARG BRANCH_NAME=master
 ARG BUILD_NUMBER=lastSuccessfulBuild
 
-ADD https://is.dbc.dk/job/updateservice/job/ocb-tools/job/master/lastSuccessfulBuild/artifact/target/dist/ocb-tools-1.0.0.tar.gz $OCB_USER_HOME/
-ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz $OCB_USER_HOME/
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN cd $OCB_USER_HOME && \
+    wget https://is.dbc.dk/job/updateservice/job/ocb-tools/job/master/lastSuccessfulBuild/artifact/target/dist/ocb-tools-1.0.0.tar.gz && \
+    tar zxvf ocb-tools-1.0.0.tar.gz && \
+    rm ocb-tools-1.0.0.tar.gz
+
+RUN cd $OCB_USER_HOME && \
+    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz && \
+    tar zxvf opencat-business.tar.gz && \
+    rm opencat-business.tar.gz
+
+RUN ls -lh $OCB_USER_HOME/
+
 ADD scripts/bin/*.sh $OCB_USER_HOME/bin/
 
 RUN cd $OCB_USER_HOME/bin && \
