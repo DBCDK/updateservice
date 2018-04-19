@@ -85,7 +85,7 @@ services:
       - "18148:4848"
 
   ocb-tools-systemtests:
-    image: docker-i.dbc.dk/ocb-tools-deployer:latest
+    image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
     env_file:
       - ./db.env
     environment:
