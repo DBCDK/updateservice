@@ -17,7 +17,7 @@ ARG BRANCH_NAME=master
 ARG BUILD_NUMBER=lastSuccessfulBuild
 
 ADD https://is.dbc.dk/job/updateservice/job/ocb-tools/job/master/lastSuccessfulBuild/artifact/target/dist/ocb-tools-1.0.0.tar.gz $OCB_USER_HOME/
-ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz /data/
+ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz $OCB_USER_HOME/
 ADD scripts/bin/*.sh $OCB_USER_HOME/bin/
 
 RUN cd $OCB_USER_HOME/bin && \
