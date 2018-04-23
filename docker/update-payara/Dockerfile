@@ -1,7 +1,5 @@
 FROM docker-io.dbc.dk/dbc-payara-logback:latest
 
-MAINTAINER Team Iscrum, iscrum@dbc.dk
-
 ENV SETTINGS_JAVASCRIPT_BASEDIR /data/opencat-business
 ENV THREAD_POOL_SIZE 1
 ENV SETTINGS_RAWREPO_PROVIDER_ID_DBC empty
@@ -49,3 +47,4 @@ RUN mkdir -p /home/$PAYARA_USER && \
 USER $PAYARA_USER 
 
 LABEL INSTANCE_NAME="Name of the updateservice instance. Default is blank (Optional)"
+LABEL MAINTAINER="meta-scrum@dbc.dk"

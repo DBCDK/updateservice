@@ -1,6 +1,5 @@
 ARG PARENT_IMAGE=docker-i.dbc.dk/update-payara:latest
 FROM $PARENT_IMAGE
-MAINTAINER Team Metascrum, meta-scrum@dbc.dk
 
 ARG BRANCH_NAME=master
 ARG BUILD_NUMBER=lastSuccessfulBuild
@@ -17,3 +16,4 @@ RUN chown -R $PAYARA_USER:$PAYARA_USER /data && \
 
 USER $PAYARA_USER
 
+LABEL MAINTAINER="meta-scrum@dbc.dk"
