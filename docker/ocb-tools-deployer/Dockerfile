@@ -1,5 +1,4 @@
 FROM docker-i.dbc.dk/dbc-java8:latest
-MAINTAINER Team Iscrum, iscrum@dbc.dk
 
 ENV OCB_USER ocbtools
 ENV OCB_USER_HOME /home/$OCB_USER
@@ -42,3 +41,5 @@ RUN cd $OCB_USER_HOME/bin && \
 
 USER $OCB_USER
 EXPOSE 8080
+
+LABEL MAINTAINER="meta-scrum@dbc.dk"
