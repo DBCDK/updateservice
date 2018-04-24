@@ -68,7 +68,7 @@ function setSysVars () {
   export SYSTEST_PATH="docker/deployments/systemtests-payara"
   export COMPOSE_PROJECT_NAME=systemtestspayara
   export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
-  export UPDATE_PAYARA_TAG=$1
+  export UPDATE_PAYARA_TAG=${1}
   echo "systest ---> Using host IP: ${HOST_IP}"
 }
 

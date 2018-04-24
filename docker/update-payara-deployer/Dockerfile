@@ -7,10 +7,20 @@ ARG BUILD_NUMBER=lastSuccessfulBuild
 RUN echo $BRANCH_NAME
 
 ADD dbc-payara.d/* $PAYARA_USER_HOME/dbc-payara.d/
-ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz /data/
-ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/updateservice-2.0-SNAPSHOT.war /data/
 
 USER root
+
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && apt-get clean
+
+RUN cd /data && \
+    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/updateservice-2.0-SNAPSHOT.war && \
+    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz && \
+    tar zxvf opencat-business.tar.gz && \
+    rm opencat-business.tar.gz && \
+    cd -
+
 RUN chown -R $PAYARA_USER:$PAYARA_USER /data && \
     chown -R $PAYARA_USER:$PAYARA_USER $PAYARA_USER_HOME 
 
