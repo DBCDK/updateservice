@@ -1837,14 +1837,7 @@
                 "t":{},
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 9,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "v":{},
                 "0":{
@@ -2053,7 +2046,11 @@
                         }
                     ]
                 },
-                "z":{},
+                "z":{
+                    "rules":[{
+                        "type":"SubfieldRules.checkISSN"
+                    }]
+                },
                 "n":{}
             },
 			"rules": [
@@ -2172,7 +2169,8 @@
                     "repeatable":false
 				},
                 "z":{
-                    "repeatable":false
+                    "repeatable":false,
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "u":{},
                 "y":{}
@@ -2348,14 +2346,7 @@
                 },
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 8,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 }
             }
         },
@@ -3864,14 +3855,7 @@
                 "o":{},
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 9,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "v":{},
                 "0":{

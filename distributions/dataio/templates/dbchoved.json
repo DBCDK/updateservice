@@ -129,8 +129,15 @@
                     ]
                 },
                 "k": "DanMarc2.fields.008.subfields.k",
-                "l": "DanMarc2.fields.008.subfields.l",
-                "x": "DanMarc2.fields.008.subfields.x",
+                "l": {
+                    "repeatable": false,
+                    "values": "Lister.fields.codes.subfields.language.current_and_old.values",
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInChildrenRecords"
+                        }
+                    ]
+                },
                 "m": {
                     "repeatable": false,
                     "values": [ "1" ],
@@ -140,9 +147,36 @@
                         }
                     ]
                 },
+                "n": {
+                    "repeatable": false,
+                    "values": [ "a", "b", "c" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInChildrenRecords"
+                        }
+                    ]
+                },
                 "o": {
                     "repeatable": false,
                     "values": [ "b", "s" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInChildrenRecords"
+                        }
+                    ]
+                },
+                "w": {
+                    "repeatable": false,
+                    "values": [ "1" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInChildrenRecords"
+                        }
+                    ]
+                },
+                "x": {
+                    "values": [ "01", "02", "03", "04", "05", "06", "07", "99",
+                        "a", "b", "c", "d", "e", "f", "g", "j" ],
                     "rules": [
                         {
                             "type": "SubfieldRules.checkSubfieldNotUsedInChildrenRecords"
