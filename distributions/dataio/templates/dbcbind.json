@@ -130,15 +130,6 @@
                         }
                     ]
                 },
-                "x": {
-                    "values": [ "01", "02", "03", "04", "05", "06", "07", "99",
-                        "a", "b", "c", "d", "e", "f", "g", "j" ],
-                    "rules": [
-                        {
-                            "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
-                        }
-                    ]
-                },
                 "m": {
                     "repeatable": false,
                     "values": [ "1" ],
@@ -148,9 +139,36 @@
                         }
                     ]
                 },
+                "n": {
+                    "repeatable": false,
+                    "values": [ "a", "b", "c" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
+                        }
+                    ]
+                },
                 "o": {
                     "repeatable": false,
                     "values": [ "b", "s" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
+                        }
+                    ]
+                },
+                "w": {
+                    "repeatable": false,
+                    "values": [ "1" ],
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
+                        }
+                    ]
+                },
+                "x": {
+                    "values": [ "01", "02", "03", "04", "05", "06", "07", "99",
+                        "a", "b", "c", "d", "e", "f", "g", "j" ],
                     "rules": [
                         {
                             "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
@@ -336,6 +354,7 @@
                 "c":"DanMarc2.fields.652.subfields.c",
                 "t":"DanMarc2.fields.652.subfields.t",
                 "b":"DanMarc2.fields.652.subfields.b",
+                "z":"DanMarc2.fields.652.subfields.z",
                 "q":"DanMarc2.fields.652.subfields.q",
                 "r":"DanMarc2.fields.652.subfields.r",
                 "0":"DanMarc2.fields.652.subfields.0"
