@@ -2054,7 +2054,13 @@
                     ]
                 },
                 "z":{},
-                "n":{}
+                "n": {
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkFaust"
+                        }
+                    ]
+                }
             },
 			"rules": [
                 {
