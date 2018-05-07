@@ -187,9 +187,9 @@
             }
         },
         "009": "dbcsingle.fields.009",
-        "011": "DanMarc2.fields.011",
-        "017": "DanMarc2.fields.017",
-        "018": "DanMarc2.fields.018",
+        "011": "dbcsingle.fields.011",
+        "017": "dbcsingle.fields.017",
+        "018": "dbcsingle.fields.018",
 		"020": "DanMarc2.fields.020",
 		"021": "DanMarc2.fields.021",
 		"022": "DanMarc2.fields.022",
