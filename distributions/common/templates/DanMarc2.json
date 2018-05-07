@@ -2051,7 +2051,13 @@
                         "type":"SubfieldRules.checkISSN"
                     }]
                 },
-                "n":{}
+                "n": {
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkFaust"
+                        }
+                    ]
+                }
             },
 			"rules": [
                 {
