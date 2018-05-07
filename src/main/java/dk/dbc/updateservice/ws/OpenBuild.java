@@ -96,7 +96,7 @@ public class OpenBuild implements BuildPortType {
      */
     @Override
     public BuildResult build(BuildRequest parameters) {
-        DBCTrackedLogContext.setTrackingId(createTrackingId());
+        new DBCTrackedLogContext(createTrackingId());
         logger.entry();
         StopWatch watch = new Log4JStopWatch("OpenBuild.build");
         logger.info("Build request: " + buildRequestToString(parameters));
