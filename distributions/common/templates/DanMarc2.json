@@ -2047,11 +2047,19 @@
                     ]
                 },
                 "z":{
-                    "rules":[{
+                    "rules":[
+                        {
                         "type":"SubfieldRules.checkISSN"
-                    }]
+                        }
+                    ]
                 },
-                "n":{}
+                "n":{
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkFaust"
+                        }
+                    ]
+                }
             },
 			"rules": [
                 {
