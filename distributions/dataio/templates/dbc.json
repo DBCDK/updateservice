@@ -34,7 +34,15 @@
             "repeatable": false,
             "sorting": "abcdf",
             "subfields": {
-                "a": "DanMarc2.fields.001.subfields.a",
+                "a": {
+                    "mandatory": true,
+                    "repeatable": false,
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkFaust"
+                        }
+                    ]
+                },
                 "b": {
                     "mandatory": true,
                     "repeatable": false,
@@ -797,7 +805,26 @@
             }
         },
         "710": "DanMarc2.fields.710",
-        "720": "DanMarc2.fields.720",
+        "720":{
+            "url":"http://www.kat-format.dk/danMARC2/Danmarc2.85a.htm",
+            "subfields":{
+                "&": {},
+                "a":{
+                    "repeatable":false
+                },
+                "h":{
+                    "repeatable":false
+                },
+                "o":{
+                    "repeatable":false
+                },
+                "4": "Lister.fields.codes.subfields.relator_code",
+                "g":{
+                    "repeatable":false,
+                    "values":[ "1" ]
+                }
+            }
+        },
         "739": "DanMarc2.fields.739",
         "740": "DanMarc2.fields.740",
         "745": "DanMarc2.fields.745",
