@@ -2054,10 +2054,12 @@
                     ]
                 },
                 "z":{
-                    "rules":[{
-                        "type":"SubfieldRules.checkISSN"
-                    }]
-                },
+                    "rules":[
+			{
+                            "type":"SubfieldRules.checkISSN"
+                        }
+		    ]
+                }
             },
 	    "rules": [
 		{
