@@ -2046,24 +2046,24 @@
                         }
                     ]
                 },
-                "z":{
-                    "rules":[{
-                        "type":"SubfieldRules.checkISSN"
-                    }]
-                },
                 "n": {
                     "rules": [
                         {
                             "type": "SubfieldRules.checkFaust"
                         }
                     ]
-                }
+                },
+                "z":{
+                    "rules":[{
+                        "type":"SubfieldRules.checkISSN"
+                    }]
+                },
             },
-			"rules": [
-                {
+	    "rules": [
+		{
                     "type": "FieldRules.exclusiveSubfield"
                 }
-            ]
+	    ]
         },
         "521":{
             "url":"www.kat-format.dk/danMARC2/Danmarc2.57.htm",
