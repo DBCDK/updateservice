@@ -1837,14 +1837,7 @@
                 "t":{},
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 9,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "v":{},
                 "0":{
@@ -2053,14 +2046,26 @@
                         }
                     ]
                 },
-                "z":{},
-                "n":{}
+                "n": {
+                    "rules": [
+                        {
+                            "type": "SubfieldRules.checkFaust"
+                        }
+                    ]
+                },
+                "z":{
+                    "rules":[
+			{
+                            "type":"SubfieldRules.checkISSN"
+                        }
+		    ]
+                }
             },
-			"rules": [
-                {
+	    "rules": [
+		{
                     "type": "FieldRules.exclusiveSubfield"
                 }
-            ]
+	    ]
         },
         "521":{
             "url":"www.kat-format.dk/danMARC2/Danmarc2.57.htm",
@@ -2172,7 +2177,8 @@
                     "repeatable":false
 				},
                 "z":{
-                    "repeatable":false
+                    "repeatable":false,
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "u":{},
                 "y":{}
@@ -2348,14 +2354,7 @@
                 },
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 8,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 }
             }
         },
@@ -3864,14 +3863,7 @@
                 "o":{},
                 "z":{
                     "repeatable":false,
-                    "rules": [{
-                            "type": "SubfieldRules.checkLength",
-                            "params": {
-                                "min": 9,
-                                "max": 9
-                            }
-                        }
-                    ]
+                    "rules":[ { "type":"SubfieldRules.checkISSN" } ]
                 },
                 "v":{},
                 "0":{

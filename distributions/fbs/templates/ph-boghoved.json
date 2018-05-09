@@ -153,6 +153,8 @@
 						}
                     ]
                 },
+                "h": "DanMarc2.fields.008.subfields.h",
+                "i": "DanMarc2.fields.008.subfields.i",
                 "j": {
                     "repeatable": false,
                     "values": [ "d", "e", "f", "i", "j", "m", "p" ],
@@ -413,6 +415,7 @@
             }
         },
         "250": "DanMarc2.fields.250",
+        "255": "DanMarc2.fields.255",
         "256": "DanMarc2.fields.256",
         "260": "DanMarc2.fields.260",
         "264": "DanMarc2.fields.264",
