@@ -660,6 +660,7 @@
             "url":"http://www.kat-format.dk/danMARC2/Danmarc2.72.htm",
             "subfields":{
                 "a": "DanMarc2.fields.630.subfields.a",
+                "f": "DanMarc2.fields.630.subfields.f",
                 "2": "DanMarc2.fields.630.subfields.2"
             }
         },
