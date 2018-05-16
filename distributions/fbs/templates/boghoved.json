@@ -172,11 +172,7 @@
 						}
                     ]
                 },
-                "v":{
-                    "mandatory": true,
-                    "repeatable": false,
-                    "values":[ "0", "1", "4", "7" ]
-                }
+                "v": "bog.fields.008.subfields.v"
             }
 		},
         "009":{
