@@ -48,7 +48,7 @@
                         }
                     ]
                 },
-                "b": "Lister.fields.codes.subfields.libraries.001b_lokal",
+                "b": "DanMarc2.fields.001.subfields.b",
                 "c": "DanMarc2.fields.001.subfields.c",
                 "d": "DanMarc2.fields.001.subfields.d",
                 "f": "DanMarc2.fields.001.subfields.f",
