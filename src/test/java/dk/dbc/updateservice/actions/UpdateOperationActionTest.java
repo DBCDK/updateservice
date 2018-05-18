@@ -129,7 +129,7 @@ public class UpdateOperationActionTest {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date expectedOverwriteDate = sdf.parse("02/06/2017");
-        assertThat(state.getCreateOverwriteDate(), equalTo(expectedOverwriteDate));
+        assertThat(state.getCreateOverwriteDate(), equalTo(expectedOverwriteDate.toInstant()));
 
         MarcRecordReader reader = new MarcRecordReader(updateOperationAction.getRecord());
         assertFalse(reader.hasSubfield("n55", "a"));

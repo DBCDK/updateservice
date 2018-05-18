@@ -14,7 +14,15 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
+import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
+import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.RecordSorter;
+import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -23,7 +31,7 @@ import org.w3c.dom.Node;
 
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.WebServiceContext;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -53,7 +61,7 @@ public class GlobalActionState {
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
     private Boolean recordExists = null;
-    private Date createOverwriteDate = null;
+    private Instant createOverwriteDate = null;
     private Set<String> phLibraries = null;
     private Set<String> ffuLibraries = null;
     private Set<String> lokbikLibraries = null;
@@ -205,11 +213,11 @@ public class GlobalActionState {
         this.templateGroup = templateGroup;
     }
 
-    public Date getCreateOverwriteDate() {
+    public Instant getCreateOverwriteDate() {
         return createOverwriteDate;
     }
 
-    public void setCreateOverwriteDate(Date createOverwriteDate) {
+    public void setCreateOverwriteDate(Instant createOverwriteDate) {
         this.createOverwriteDate = createOverwriteDate;
     }
 
