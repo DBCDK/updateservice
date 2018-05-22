@@ -199,7 +199,7 @@
                 "g":{
                     "mandatory":true,
                     "repeatable":false,
-                    "values":[ "xx", "xy" ]
+                    "values":[ "xx", "xe", "xy" ]
                 },
                 "b": "DanMarc2.fields.009.subfields.b",
                 "h": "DanMarc2.fields.009.subfields.h"
@@ -339,7 +339,8 @@
                 "u":"DanMarc2.fields.245.subfields.u",
                 "w":"DanMarc2.fields.245.subfields.w",
                 "x":"DanMarc2.fields.245.subfields.x",
-                "y":"DanMarc2.fields.245.subfields.y"
+                "y":"DanMarc2.fields.245.subfields.y",
+                "z":"DanMarc2.fields.245.subfields.z"
             }
         },
         "250": "DanMarc2.fields.250",
@@ -818,8 +819,9 @@
                 "s": "DanMarc2.fields.856.subfields.s",
                 "t": "DanMarc2.fields.856.subfields.t",
                 "u":{
-                    "mandatory":true
-				},
+                    "mandatory":true,
+                    "repeatable":false
+                },
                 "y": "DanMarc2.fields.856.subfields.y",
                 "v": "DanMarc2.fields.856.subfields.v",
                 "x": "DanMarc2.fields.856.subfields.x",
