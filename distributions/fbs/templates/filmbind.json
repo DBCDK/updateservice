@@ -46,10 +46,29 @@
 		},
         "009": "bogbind.fields.009",
         "014": "bogbind.fields.014",
-        "017": "bogbind.fields.017",
+        "017": "bog.fields.017",
         "021": "film.fields.021",
         "023": "DanMarc2.fields.023",
-        "041": "film.fields.041",
+        "035": "DanMarc2.fields.035",
+        "041":{
+            "url": "http://www.kat-format.dk/danMARC2/Danmarc2.23.htm",
+            "repeatable":false,
+            "sorting":"apbcde",
+            "subfields":{
+                "a": "DanMarc2.fields.041.subfields.a",
+                "b": "DanMarc2.fields.041.subfields.b",
+                "c": "DanMarc2.fields.041.subfields.c",
+                "e": "DanMarc2.fields.041.subfields.e",
+                "p": "DanMarc2.fields.041.subfields.p",
+                "s": "DanMarc2.fields.041.subfields.s",
+                "u": "DanMarc2.fields.041.subfields.u"
+            },
+            "rules": [
+                {
+                    "type": "SubfieldRules.checkSubfieldNotUsedInParentRecord"
+                }
+            ]
+        },
         "239": "film.fields.239",
         "241": "bog.fields.241",
         "245":{
