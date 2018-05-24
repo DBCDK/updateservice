@@ -24,11 +24,12 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -53,6 +54,12 @@ import java.util.Set;
  */
 class UpdateOperationAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
+
+    private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyyMMdd")
+            .parseDefaulting(ChronoField.NANO_OF_DAY, 0)
+            .toFormatter()
+            .withZone(ZoneId.of("Europe/Copenhagen"));
 
     Properties settings;
 
@@ -414,18 +421,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         if (reader.hasSubfield("n55", "a")) {
             String dateString = reader.getValue("n55", "a");
             if (dateString != null && !dateString.isEmpty()) {
-                DateFormat formatter = new SimpleDateFormat("yyyyMMdd");
-                try {
-                    Date date = formatter.parse(dateString);
-                    boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
-                    // We only want to set the created date to a specific value if the record is new
-                    if (!recordExists) {
-                        state.setCreateOverwriteDate(date);
-                        logger.info("Found overwrite create date value: {}. Field has been removed from the record", date);
-                    }
-                } catch (ParseException e) {
-                    logger.error("Caught ParseException trying to parse " + dateString + " as a date", e);
-                    throw new UpdateException("Caught ParseException trying to parse " + dateString + " as a date");
+                boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
+                // We only want to set the created date to a specific value if the record is new
+                if (!recordExists) {
+                    Instant instant = formatter.parse(dateString, Instant::from);
+
+                    state.setCreateOverwriteDate(instant);
+                    logger.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
                 }
             }
 
