@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
@@ -149,6 +150,8 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                     validationErrors = authenticateCommonRecord();
                 }
 
+                validationErrors.addAll(authenticateMetaCompassField());
+
                 if (validationErrors.size() > 0) {
                     logger.info("Validation errors!");
                     result.addAll(validationErrors);
@@ -268,6 +271,53 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             if (!(owner.equals(groupId) && groupId.equals(curOwner))) {
                 return createErrorReply(resourceBundle.getString("update.common.record.other.library.error"));
+            }
+
+            return createOkReply();
+        } catch (UnsupportedEncodingException ex) {
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            logger.exit();
+        }
+    }
+
+    List<MessageEntryDTO> authenticateMetaCompassField() throws UpdateException, OpenAgencyException {
+        logger.entry();
+
+        try {
+            String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+            ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+
+            MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
+            MarcField field665 = recordReader.getField("665");
+
+            if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
+                MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
+                MarcField curField665 = curRecordReader.getField("665");
+
+                if ((field665 != null && curField665 == null) ||
+                        (field665 == null && curField665 != null) ||
+                        (field665 != null && !field665.equals(curField665))) {
+                    logger.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
+                    boolean canChangeMetaCompassRule = state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS);
+
+                    if (!canChangeMetaCompassRule) {
+                        logger.info("Groupid {} does not have permission to change field 665, so returning error");
+                        return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
+                    }
+                }
+            } else {
+                if (field665 != null) {
+                    logger.info("Field 665 is present in new record - chcking if {} has permission to use field 665", groupId);
+                    boolean canChangeMetaCompassRule = state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS);
+
+                    if (!canChangeMetaCompassRule) {
+                        logger.info("Groupid {} does not have permission to use field 665, so returning error");
+                        return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
+                    }
+                }
             }
 
             return createOkReply();

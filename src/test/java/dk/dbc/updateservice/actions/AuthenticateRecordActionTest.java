@@ -8,16 +8,21 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.updateservice.dto.*;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -676,4 +681,166 @@ public class AuthenticateRecordActionTest {
         assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.other.library.error")));
     }
 
+    @Test
+    public void testAuthenticateMetaCompassField_AddOk() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_AddError() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+
+        MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
+        expectedMessageEntryDTO.setType(TypeEnumDTO.ERROR);
+        expectedMessageEntryDTO.setMessage("Du har ikke ret til at ændre i felt 665");
+        expectedMessageEntryDTO.setUrlForDocumentation("");
+        List<MessageEntryDTO> expected = new ArrayList<>();
+        expected.add(expectedMessageEntryDTO);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_No665HasAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_No665NoAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_Same665HasAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, equalTo(new ArrayList<>()));
+    }
+
+    @Test
+    public void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
+        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+
+        MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
+        expectedMessageEntryDTO.setType(TypeEnumDTO.ERROR);
+        expectedMessageEntryDTO.setMessage("Du har ikke ret til at ændre i felt 665");
+        expectedMessageEntryDTO.setUrlForDocumentation("");
+        List<MessageEntryDTO> expected = new ArrayList<>();
+        expected.add(expectedMessageEntryDTO);
+
+        assertThat(actual, equalTo(expected));
+    }
 }
