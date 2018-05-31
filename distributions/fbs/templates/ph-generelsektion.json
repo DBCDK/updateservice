@@ -46,6 +46,7 @@
                 "v": "DanMarc2.fields.008.subfields.v"
             }
         },
+        "009": "ph-generelbind.fields.009",
         "011": "ph-generel.fields.011",
         "014":{
             "url":"http://www.kat-format.dk/danMARC2/Danmarc2.f.htm",
