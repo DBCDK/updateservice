@@ -134,6 +134,7 @@
                     ]
                 },
                 "h": "DanMarc2.fields.008.subfields.h",
+                "i": "DanMarc2.fields.008.subfields.i",
                 "j": {
                     "repeatable": false,
                     "values": [ "d", "e", "f", "i", "j", "m", "p" ],
@@ -234,6 +235,8 @@
         "099": "DanMarc2.fields.099",
         "100": "ph-generel.fields.100",
         "110": "ph-generel.fields.110",
+        "222": "DanMarc2.fields.222",
+        "239": "ph-musik.fields.239",
         "240": "ph-generel.fields.240",
         "241": "DanMarc2.fields.241",
         "242": "DanMarc2.fields.242",
@@ -257,6 +260,7 @@
         "347": "DanMarc2.fields.347",
         "440": "DanMarc2.fields.440",
         "500": "DanMarc2.fields.500",
+        "501": "DanMarc2.fields.501",
         "502": "DanMarc2.fields.502",
         "504": "DanMarc2.fields.504",
         "505": "DanMarc2.fields.505",
