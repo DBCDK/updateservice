@@ -5,18 +5,18 @@ function die() {
   exit 1
 }
 
-rm -rf deploy || die "rm -rf deploy"
+rm -rf target/opencat-business || die "rm -rf target/opencat-business"
 
-mkdir -p deploy/opencat-business || die "mkdir -p deploy/opencat-business"
-cp -r bin deploy/opencat-business/ || die "cp -r bin deploy/opencat-business/"
-cp -r distributions deploy/opencat-business/ || die "cp -r distributions deploy/opencat-business/"
+mkdir -p target/opencat-business || die "mkdir -p target/opencat-business"
+cp -r bin target/opencat-business/ || die "cp -r bin target/opencat-business/"
+cp -r distributions target/opencat-business/ || die "cp -r distributions target/opencat-business/"
 
 if [ -n "$1" ];
     then
-        echo "opencat-business revision : $1" > deploy/opencat-business/svn_revision.txt;
+        echo "opencat-business revision : $1" > target/opencat-business/git_revision.txt;
     else
-        echo "svn revision could not be resolved" > deploy/opencat-business/svn_revision.txt;
+        echo "git revision could not be resolved" > target/opencat-business/git_revision.txt;
 fi
 
-cd deploy || die "cd deploy"
+cd target || die "cd target"
 tar --exclude-vcs --exclude=.idea -czf opencat-business.tar.gz opencat-business || die "tar --exclude-vcs --exclude=.idea -czf opencat-business.tar.gz opencat-business"

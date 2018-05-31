@@ -21,9 +21,6 @@ function removeImages() {
   docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
-  docker rmi 'docker-i.dbc.dk/update-postgres:candidate'
-  docker rmi 'docker-i.dbc.dk/update-payara-deployer:candidate'
-  docker rmi 'docker-i.dbc.dk/ocb-tools-deployer:latest'
 }
 
 function startContainers () {
@@ -71,11 +68,12 @@ function setSysVars () {
   export SYSTEST_PATH="docker/deployments/systemtests-payara"
   export COMPOSE_PROJECT_NAME=systemtestspayara
   export HOST_IP=$(ip addr show | grep -A 99 '^2' | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' |grep -v '^127.0.0.1' | head -1)
+  export UPDATE_PAYARA_TAG=$1
   echo "systest ---> Using host IP: ${HOST_IP}"
 }
 
 function main ()  {
-  setSysVars ${1}
+  setSysVars $1
   setupLogAndLogdir
   echo "systest ---> systest ---> Stop glassfish containers"
   docker-compose down
