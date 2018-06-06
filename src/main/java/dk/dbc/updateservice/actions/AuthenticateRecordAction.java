@@ -297,9 +297,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
                 MarcField curField665 = curRecordReader.getField("665");
 
-                if ((field665 != null && curField665 == null) ||
-                        (field665 == null && curField665 != null) ||
-                        (field665 != null && !field665.equals(curField665))) {
+                if (field665 != null && curField665 == null ||
+                        field665 == null && curField665 != null ||
+                        field665 != null && !field665.equals(curField665)) {
                     logger.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
                     boolean canChangeMetaCompassRule = state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS);
 
