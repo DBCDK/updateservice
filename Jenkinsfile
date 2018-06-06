@@ -47,15 +47,6 @@ pipeline {
             }
         }
 
-        stage('Build opencat-business') {
-            steps {
-                sh "./bin/run-tests.sh ${env.GIT_COMMIT}"
-                sh "./bin/create_artifact_tarball.sh ${env.GIT_COMMIT}"
-                archiveArtifacts(artifacts: "target/*.tar.gz", onlyIfSuccessful: true, fingerprint: true)
-                junit("TEST-*.xml,target/surefire-reports/TEST-*.xml")
-            }
-        }
-
         stage('Build updateservice') {
             steps {
                 withMaven(maven: 'maven 3.5', options: [
