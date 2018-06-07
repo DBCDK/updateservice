@@ -13,7 +13,7 @@ You need to clone the following projects to the same root folder:
 * opencat-business (https://github.com/DBCDK/opencat-business)
 * ocb-tools (https://github.com/DBCDK/ocb-tools)
 
-Start by doing a maven install on ocb-tools. In most cases you won't have to mess around with ocb-tools after this as you just been the compiled artifact.
+Start by doing a maven install on ocb-tools. In most cases you won't have to mess around with ocb-tools after this as you just need the compiled artifact.
 
 Next you have to run transpile-templates in opencat-business. If you are running on a machine with the dbc-jsshell package install run bin/run-js-tests.sh. Otherwise use bin/run-js-tests-in-docker.sh (assuming you have docker installed).
 
