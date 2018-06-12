@@ -16,7 +16,7 @@ RUN  apt-get update \
 
 RUN cd /data && \
     wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/updateservice-2.0-SNAPSHOT.war && \
-    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz && \
+    wget https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
     tar zxvf opencat-business.tar.gz && \
     rm opencat-business.tar.gz && \
     cd -
