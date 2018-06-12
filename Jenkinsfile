@@ -1,5 +1,8 @@
 #!groovy
 
+dockerImageVersion = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+dockerImageDITVersion = "DIT-${env.BUILD_NUMBER}"
+
 void notifyOfBuildStatus(final String buildStatus) {
     final String subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
     final String details = """<p> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
@@ -12,8 +15,21 @@ void notifyOfBuildStatus(final String buildStatus) {
     )
 }
 
-dockerImageVersion = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-dockerImageDITVersion = "DIT-${env.BUILD_NUMBER}"
+void deploy(String deployEnvironment) {
+	dir("deploy") {
+		git(url: "gitlab@git-platform.dbc.dk:metascrum/deploy.git", credentialsId: "gitlab-meta")
+	}
+	sh """
+        bash -c '
+            virtualenv -p python3 .
+            source bin/activate
+            pip3 install --upgrade pip
+            pip3 install -U -e \"git+https://github.com/DBCDK/mesos-tools.git#egg=mesos-tools\"
+            marathon-config-producer updateservice-${deployEnvironment} --root deploy/marathon --template-keys DOCKER_TAG=${dockerImageVersion} -o updateservice-${deployEnvironment}.json
+            marathon-deployer -a ${MARATHON_TOKEN} -b https://mcp1.dbc.dk:8443 deploy updateservice-${deployEnvironment}.json
+        '
+	"""
+}
 
 pipeline {
     agent { label 'itwn-002' }
@@ -27,14 +43,13 @@ pipeline {
 
     triggers {
         pollSCM('H/3 * * * *')
-        upstream(upstreamProjects: "updateservice/opencat-business/master",
-        			threshold: hudson.model.Result.SUCCESS)
+        upstream(upstreamProjects: "updateservice/opencat-business/master", threshold: hudson.model.Result.SUCCESS)
     }
 
     environment {
         MAVEN_OPTS = "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
         JAVA_OPTS = "-XX:-UseSplitVerifier"
-        VERSION = readMavenPom().getVersion()
+        MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
     }
 
     tools {
@@ -92,7 +107,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo "Using branch ${env.BRANCH_NAME}"
+                    echo "Using branch: \"${env.BRANCH_NAME}\""
                     echo "JOBNAME: \"${env.JOB_NAME}\""
                     echo "GIT_COMMIT: \"${env.GIT_COMMIT}\""
                     echo "BUILD_NUMBER: \"${env.BUILD_NUMBER}\""
@@ -175,20 +190,15 @@ pipeline {
             }
         }
 
-        stage('Deploy staging') {
-            when {
-                expression {
-                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
-                }
-            }
-            steps {
-                echo "Should be deploying here..."
-                dir('dit') {
-                    git(url: "https://github.com/DBCDK/dit")
-                    sh 'kubernetes/handle_deployment.sh'
-                }
-            }
-        }
+        stage("Deploy staging") {
+			when {
+				branch "master"
+			}
+			steps {
+				deploy("staging-basismig")
+				//deploy("staging-fbs")
+			}
+		}
     }
 
     post {
