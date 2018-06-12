@@ -1,7 +1,6 @@
 #!groovy
 
-dockerImageVersion = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
-dockerImageDITVersion = "DIT-${env.BUILD_NUMBER}"
+def workerNode = "devel8"
 
 void notifyOfBuildStatus(final String buildStatus) {
     final String subject = "${buildStatus}: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
@@ -25,19 +24,16 @@ void deploy(String deployEnvironment) {
             source bin/activate
             pip3 install --upgrade pip
             pip3 install -U -e \"git+https://github.com/DBCDK/mesos-tools.git#egg=mesos-tools\"
-            marathon-config-producer updateservice-${deployEnvironment} --root deploy/marathon --template-keys DOCKER_TAG=${dockerImageVersion} -o updateservice-${deployEnvironment}.json
+            marathon-config-producer updateservice-${deployEnvironment} --root deploy/marathon --template-keys DOCKER_TAG=${DOCKER_IMAGE_VERSION} -o updateservice-${deployEnvironment}.json
             marathon-deployer -a ${MARATHON_TOKEN} -b https://mcp1.dbc.dk:8443 deploy updateservice-${deployEnvironment}.json
         '
 	"""
 }
 
 pipeline {
-    agent { label 'itwn-002' }
+    agent {label workerNode}
 
     options {
-        buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '20'))
-        disableConcurrentBuilds()
-        timeout(time: 1, unit: 'HOURS')
         timestamps()
     }
 
@@ -47,9 +43,9 @@ pipeline {
     }
 
     environment {
-        MAVEN_OPTS = "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dorg.slf4j.simpleLogger.showThreadName=true"
-        JAVA_OPTS = "-XX:-UseSplitVerifier"
         MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
+        DOCKER_IMAGE_VERSION = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
+        DOCKER_IMAGE_DIT_VERSION = "DIT-${env.BUILD_NUMBER}"
     }
 
     tools {
@@ -111,33 +107,33 @@ pipeline {
                     echo "JOBNAME: \"${env.JOB_NAME}\""
                     echo "GIT_COMMIT: \"${env.GIT_COMMIT}\""
                     echo "BUILD_NUMBER: \"${env.BUILD_NUMBER}\""
-                    echo "IMAGE VERSION: \"${dockerImageVersion}\""
+                    echo "IMAGE VERSION: \"${DOCKER_IMAGE_VERSION}\""
 
-                    docker.build("docker-i.dbc.dk/update-postgres:${dockerImageVersion}",
+                    docker.build("docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
                                     "docker/update-postgres/")
 
-                    docker.build("docker-i.dbc.dk/update-payara:${dockerImageVersion}",
+                    docker.build("docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
                                     "docker/update-payara/")
 
-                    docker.build("docker-i.dbc.dk/update-payara-deployer:${dockerImageVersion}",
+                    docker.build("docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
-                                    "--build-arg PARENT_IMAGE=docker-i.dbc.dk/update-payara:${dockerImageVersion} " +
+                                    "--build-arg PARENT_IMAGE=docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION} " +
                                     "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} " +
                                     "--build-arg BRANCH_NAME=${env.BRANCH_NAME} " +
                                     "docker/update-payara-deployer/")
 
-                    docker.build("docker-i.dbc.dk/ocb-tools-deployer:${dockerImageVersion}",
+                    docker.build("docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
@@ -156,7 +152,7 @@ pipeline {
                 }
             }
             steps {
-                sh "bin/envsubst.sh ${dockerImageVersion}"
+                sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
                 sh "./system-test.sh payara"
 
                 junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
@@ -172,18 +168,18 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker push docker-i.dbc.dk/update-postgres:${dockerImageVersion}
-                        docker push docker-i.dbc.dk/update-payara:${dockerImageVersion}
-                        docker push docker-i.dbc.dk/update-payara-deployer:${dockerImageVersion}
+                        docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
+                        docker push docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
+                        docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
                     """
 
                     if (env.BRANCH_NAME == 'master') {
                         sh """
-                            docker tag docker-i.dbc.dk/update-postgres:${dockerImageVersion} docker-i.dbc.dk/update-postgres:${dockerImageDITVersion}
-                            docker push docker-i.dbc.dk/update-postgres:${dockerImageDITVersion}
+                            docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                            docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
 
-                            docker tag docker-i.dbc.dk/update-payara-deployer:${dockerImageVersion} docker-i.dbc.dk/update-payara-deployer:${dockerImageDITVersion}
-                            docker push docker-i.dbc.dk/update-payara-deployer:${dockerImageDITVersion}
+                            docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                            docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
                         """
                     }
                 }
@@ -196,7 +192,7 @@ pipeline {
 			}
 			steps {
 				deploy("staging-basismig")
-				//deploy("staging-fbs")
+				deploy("staging-fbs")
 			}
 		}
     }
@@ -210,15 +206,15 @@ pipeline {
         }
         always {
             sh """
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${dockerImageVersion}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${dockerImageDITVersion}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${dockerImageVersion}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${dockerImageVersion}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${dockerImageDITVersion}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${dockerImageVersion}
+                docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
         }
     }
