@@ -25,7 +25,7 @@ RUN cd $OCB_USER_HOME && \
     rm ocb-tools-1.0.0.tar.gz
 
 RUN cd $OCB_USER_HOME && \
-    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/opencat-business.tar.gz && \
+    wget https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
     tar zxvf opencat-business.tar.gz && \
     rm opencat-business.tar.gz
 

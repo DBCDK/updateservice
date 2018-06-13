@@ -653,7 +653,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            watch.stop("rawrepo.changedRecord");
+            watch.stop("rawrepo.enqueue");
             logger.exit();
         }
     }

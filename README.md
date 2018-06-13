@@ -6,6 +6,19 @@ UpdaterService er en SOAP webservice som bruges til at validerer og indlægge po
 Servicen er udviklet med Java EE og kræver en Java EE 7 container for at kunne afvikles. Servicen er blevet testet
 med Glassfish 4.0.
 
+### Developers how-to
+
+You need to clone the following projects to the same root folder:
+* updateservice (https://github.com/DBCDK/updateservice)
+* opencat-business (https://github.com/DBCDK/opencat-business)
+* ocb-tools (https://github.com/DBCDK/ocb-tools)
+
+Start by doing a maven install on ocb-tools. In most cases you won't have to mess around with ocb-tools after this as you just need the compiled artifact.
+
+Next you have to run transpile-templates in opencat-business. If you are running on a machine with the dbc-jsshell package install run bin/run-js-tests.sh. Otherwise use bin/run-js-tests-in-docker.sh (assuming you have docker installed).
+
+Now you are ready to start working on updateservice.
+
 ### Endpoint
 
 Når servicen er deployet kan den tilgås via følgende:

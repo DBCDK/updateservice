@@ -99,6 +99,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             }
         }
+
+        children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
     }
 
