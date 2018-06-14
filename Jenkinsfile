@@ -39,7 +39,6 @@ pipeline {
 
     triggers {
         pollSCM('H/3 * * * *')
-        upstream(upstreamProjects: "updateservice/opencat-business/master", threshold: hudson.model.Result.SUCCESS)
     }
 
     environment {
