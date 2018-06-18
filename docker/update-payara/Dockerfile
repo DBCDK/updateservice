@@ -35,8 +35,8 @@ ADD dbc-payara.d $PAYARA_USER_HOME/dbc-payara.d/
 
 ADD update-logback-include.xml /data/
 ADD update-logback-include-stdout.xml /data/
-ADD http://glu-repos.dbc.dk/meta/updateservice-logback-json-debug.xml /data/
-ADD http://glu-repos.dbc.dk/meta/updateservice-logback-json-info.xml /data/
+ADD update-logback-json-debug.xml /data/
+ADD update-logback-json-info.xml /data/
 
 USER root
 RUN mkdir -p /home/$PAYARA_USER && \ 
