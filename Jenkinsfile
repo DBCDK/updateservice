@@ -177,8 +177,14 @@ pipeline {
                             docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
                             docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
 
+                            docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:staging
+                            docker push docker-i.dbc.dk/update-postgres:staging
+
                             docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
                             docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+
+                            docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:staging
+                            docker push docker-i.dbc.dk/update-payara-deployer:staging
                         """
                     }
                 }
@@ -207,11 +213,13 @@ pipeline {
             sh """
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:staging
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:staging
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
