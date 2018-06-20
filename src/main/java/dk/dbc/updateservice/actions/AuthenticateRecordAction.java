@@ -172,6 +172,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             String message = String.format(resourceBundle.getString("edit.record.other.library.error"), reader.getRecordId());
             MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
             messageEntryDTO.setMessage(message);
+            messageEntryDTO.setType(TypeEnumDTO.ERROR);
             result.add(messageEntryDTO);
 
             return result;

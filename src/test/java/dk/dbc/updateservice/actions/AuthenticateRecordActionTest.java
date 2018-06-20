@@ -128,9 +128,10 @@ public class AuthenticateRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
 
         ServiceResult expected = new ServiceResult();
-        expected.setStatus(UpdateStatusEnumDTO.OK);
+        expected.setStatus(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(new ArrayList<>());
         MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+        messageEntryDTO.setType(TypeEnumDTO.ERROR);
         messageEntryDTO.setMessage("Du har ikke ret til at rette posten '20611529' da den er ejet af et andet bibliotek");
         expected.getEntries().add(messageEntryDTO);
 
