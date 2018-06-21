@@ -192,12 +192,18 @@ pipeline {
         }
 
         stage("Deploy staging") {
-			when {
-				branch "master"
-			}
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
 			steps {
-				deploy("staging-basismig")
-				deploy("staging-fbs")
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        deploy("staging-basismig")
+                        deploy("staging-fbs")
+                    }
+				}
 			}
 		}
     }
