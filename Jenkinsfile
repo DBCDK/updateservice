@@ -231,7 +231,8 @@ pipeline {
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
+
+            deleteDir()
         }
     }
-
 }
