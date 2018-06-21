@@ -73,9 +73,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
+        children.add(new RemoveLinksAction(state, record));
 
         if (reader.getParentRecordId() != null) {
-            children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
         }
 
