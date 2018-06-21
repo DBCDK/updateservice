@@ -151,7 +151,7 @@ pipeline {
                 }
             }
             steps {
-                lock('meta-updateservice-systemtest-pool') {
+                lock('meta-updateservice-systemtest') {
                     sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
                     sh "./system-test.sh payara"
 
