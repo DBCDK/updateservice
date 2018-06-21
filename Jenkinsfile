@@ -151,10 +151,12 @@ pipeline {
                 }
             }
             steps {
-                sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
-                sh "./system-test.sh payara"
+                lock('meta-updateservice-systemtest') {
+                    sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
+                    sh "./system-test.sh payara"
 
-                junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                    junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                }
             }
         }
 
@@ -192,12 +194,18 @@ pipeline {
         }
 
         stage("Deploy staging") {
-			when {
-				branch "master"
-			}
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
 			steps {
-				deploy("staging-basismig")
-				deploy("staging-fbs")
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        deploy("staging-basismig")
+                        deploy("staging-fbs")
+                    }
+				}
 			}
 		}
     }
