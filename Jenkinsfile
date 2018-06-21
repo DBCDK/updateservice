@@ -151,10 +151,12 @@ pipeline {
                 }
             }
             steps {
-                sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
-                sh "./system-test.sh payara"
+                lock('meta-updateservice-systemtest-pool') {
+                    sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
+                    sh "./system-test.sh payara"
 
-                junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                    junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                }
             }
         }
 
