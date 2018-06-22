@@ -202,8 +202,10 @@ pipeline {
 			steps {
                 script {
                     if (env.BRANCH_NAME == 'master') {
-                        deploy("staging-basismig")
-                        deploy("staging-fbs")
+                        lock('meta-updateservice-deploy-staging') {
+                            deploy("staging-basismig")
+                            deploy("staging-fbs")
+                        }
                     }
 				}
 			}
