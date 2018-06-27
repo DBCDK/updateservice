@@ -39,7 +39,6 @@ pipeline {
 
     triggers {
         pollSCM('H/3 * * * *')
-        upstream(upstreamProjects: "updateservice/opencat-business/master", threshold: hudson.model.Result.SUCCESS)
     }
 
     environment {
@@ -152,10 +151,12 @@ pipeline {
                 }
             }
             steps {
-                sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
-                sh "./system-test.sh payara"
+                lock('meta-updateservice-systemtest') {
+                    sh "bin/envsubst.sh ${DOCKER_IMAGE_VERSION}"
+                    sh "./system-test.sh payara"
 
-                junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                    junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                }
             }
         }
 
@@ -178,8 +179,14 @@ pipeline {
                             docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
                             docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
 
+                            docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:staging
+                            docker push docker-i.dbc.dk/update-postgres:staging
+
                             docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
                             docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+
+                            docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:staging
+                            docker push docker-i.dbc.dk/update-payara-deployer:staging
                         """
                     }
                 }
@@ -187,12 +194,20 @@ pipeline {
         }
 
         stage("Deploy staging") {
-			when {
-				branch "master"
-			}
+            when {
+                expression {
+                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                }
+            }
 			steps {
-				deploy("staging-basismig")
-				deploy("staging-fbs")
+                script {
+                    if (env.BRANCH_NAME == 'master') {
+                        lock('meta-updateservice-deploy-staging') {
+                            deploy("staging-basismig")
+                            deploy("staging-fbs")
+                        }
+                    }
+				}
 			}
 		}
     }
@@ -208,15 +223,18 @@ pipeline {
             sh """
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:staging
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
                 docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:staging
 
                 docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
+
+            deleteDir()
         }
     }
-
 }
