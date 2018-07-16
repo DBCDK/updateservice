@@ -39,6 +39,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             final MarcRecord record = state.getMarcRecord();
 
             processAgeInterval(record);
+            processCodeForEBooks(record);
 
             return ServiceResult.newOkResult();
         } finally {
@@ -84,6 +85,49 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
             // The new fields are added to the bottom of the field list, so we have to do a simple sort on field name
             new MarcRecordWriter(record).sort();
+        }
+    }
+
+    /**
+     * This function adds a code (008 *w1) to mark the record is an e-book, if it is an e-book
+     * <p>
+     * Rule:
+     * Must be a 870790 record
+     * The record is not a volume or section record
+     * It is a e-book
+     * The record is not already marked as an e-book
+     * <p>
+     * If the conditions are not met or 008 *w1 already exists then nothing is done to the record
+     *
+     * @param record The record to be processed
+     */
+    private void processCodeForEBooks(MarcRecord record) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+
+        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
+        if (!"870970".equals(reader.getAgencyId())) {
+            return;
+        }
+
+        // This preprocessing action can only add 008 *w1 - so if the subfield already exists then there is no point in continuing
+        if (reader.hasValue("008", "w", "1")) {
+            return;
+        }
+
+        // This preprocessing is not applicable to volume or section records
+        String bibliographicRecordType = reader.getValue("004", "a");
+        if ("b".equals(bibliographicRecordType) || "s".equals(bibliographicRecordType)) {
+            return;
+        }
+
+        // 009 *aa = text
+        // 009 *gxe = online
+        // 008 *tp = periodica
+        // 008 *uo = not complete periodica
+        if ("a".equals(reader.getValue("009", "a")) && "xe".equals(reader.getValue("009", "g")) &&
+                !"p".equals(reader.getValue("008", "t")) && !"o".equals(reader.getValue("008", "u"))) {
+            MarcRecordWriter writer = new MarcRecordWriter(record);
+            writer.addOrReplaceSubfield("008", "w", "1");
         }
     }
 
