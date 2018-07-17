@@ -40,7 +40,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
             processAgeInterval(record);
             processCodeForEBooks(record);
-            processFirstEdition(record);
+            processFirstOrNewEdition(record);
 
             return ServiceResult.newOkResult();
         } finally {
@@ -133,17 +133,20 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     /**
-     * This function adds a code (008 *&f) to mark that the record is a first edition
+     * When a record is created the specific type of edition is set in 008*u. However when the record is update 008*u
+     * can be set to the value 'r' which means updated. When the record is either a first edition or new edition that
+     * indicator remain visible on the record. This is done by adding 008*&.
      * <p>
      * Rule:
      * Must be a 870970 record
-     * Edition is "unchanged" and the description indicates it is first edition
+     * Record doesn't already have 008*&
+     * Edition is updated (not new or first edition)
      * <p>
      * Note: The first edition indicator should be only be applied if the release status (008 *u) is no longer first edition.
      *
      * @param record The record to be processed
      */
-    private void processFirstEdition(MarcRecord record) {
+    private void processFirstOrNewEdition(MarcRecord record) {
         final MarcRecordReader reader = new MarcRecordReader(record);
 
         // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
@@ -157,13 +160,33 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         }
 
         // 008*u = Release status
-        // r = unchanged edition
+        // r = updated but unchanged edition
+        // u = new edition
+        // f = first edition
         if ("r".equals(reader.getValue("008", "u"))) {
             final String subfield250a = reader.getValue("250", "a"); // Edition description
+            final MarcRecordWriter writer = new MarcRecordWriter(record);
 
-            if (subfield250a == null || (subfield250a.contains("1.") && !subfield250a.contains("i.e."))) {
-                final MarcRecordWriter writer = new MarcRecordWriter(record);
+            if (subfield250a == null) {
                 writer.addOrReplaceSubfield("008", "&", "f");
+            } else if (subfield250a.contains("1.")) {
+                if (subfield250a.contains("i.e.")) {
+                    writer.addOrReplaceSubfield("008", "&", "u");
+                } else {
+                    writer.addOrReplaceSubfield("008", "&", "f");
+                }
+            } else {
+                // Field 520 contains several subfield which can hold a lot of text
+                // So in order to look for a string "somewhere" in 520 we have to loop through all the subfields
+                MarcField field520 = reader.getField("520");
+                if (field520 != null) {
+                    for (MarcSubField subField : field520.getSubfields()) {
+                        if (subField.getValue().contains("idligere")) {
+                            writer.addOrReplaceSubfield("008", "&", "u");
+                            return;
+                        }
+                    }
+                }
             }
         }
     }

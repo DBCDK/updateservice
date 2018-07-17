@@ -41,18 +41,6 @@ public class PreProcessingActionTest {
     }
 
     @Test
-    public void testNoMatch() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        final MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
-        state.setMarcRecord(record);
-
-        final PreProcessingAction instance = new PreProcessingAction(state);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-        assertThat(state.getMarcRecord(), equalTo(expected));
-    }
-
-    @Test
     public void testEbook1() throws Exception {
         testExample("preprocessing/ebook/ebook-1-input.marc",
                 "preprocessing/ebook/ebook-1-output.marc");
@@ -146,6 +134,24 @@ public class PreProcessingActionTest {
     public void testFirstEdition2() throws Exception {
         testExample("preprocessing/first-edition/first-edition-2-input.marc",
                 "preprocessing/first-edition/first-edition-2-output.marc");
+    }
+
+    @Test
+    public void testNewEdition1() throws Exception {
+        testExample("preprocessing/new-edition/new-edition-1-input.marc",
+                "preprocessing/new-edition/new-edition-1-output.marc");
+    }
+
+    @Test
+    public void testNewEdition2() throws Exception {
+        testExample("preprocessing/new-edition/new-edition-2-input.marc",
+                "preprocessing/new-edition/new-edition-2-output.marc");
+    }
+
+    @Test
+    public void testNewEdition3() throws Exception {
+        testExample("preprocessing/new-edition/new-edition-3-input.marc",
+                "preprocessing/new-edition/new-edition-3-output.marc");
     }
 
     @Test
