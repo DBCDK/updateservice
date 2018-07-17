@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * This action is responsible for performing preprocessing of incoming records
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
     private static final String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
     private static final Pattern p = Pattern.compile(pattern);
 
@@ -34,16 +34,17 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             final MarcRecord record = state.getMarcRecord();
 
             processAgeInterval(record);
             processCodeForEBooks(record);
+            processFirstEdition(record);
 
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -115,7 +116,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         }
 
         // This preprocessing is not applicable to volume or section records
-        String bibliographicRecordType = reader.getValue("004", "a");
+        final String bibliographicRecordType = reader.getValue("004", "a");
         if ("b".equals(bibliographicRecordType) || "s".equals(bibliographicRecordType)) {
             return;
         }
@@ -126,8 +127,44 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         // 008 *uo = not complete periodica
         if ("a".equals(reader.getValue("009", "a")) && "xe".equals(reader.getValue("009", "g")) &&
                 !"p".equals(reader.getValue("008", "t")) && !"o".equals(reader.getValue("008", "u"))) {
-            MarcRecordWriter writer = new MarcRecordWriter(record);
+            final MarcRecordWriter writer = new MarcRecordWriter(record);
             writer.addOrReplaceSubfield("008", "w", "1");
+        }
+    }
+
+    /**
+     * This function adds a code (008 *&f) to mark that the record is a first edition
+     * <p>
+     * Rule:
+     * Must be a 870970 record
+     * Edition is "unchanged" and the description indicates it is first edition
+     * <p>
+     * Note: The first edition indicator should be only be applied if the release status (008 *u) is no longer first edition.
+     *
+     * @param record The record to be processed
+     */
+    private void processFirstEdition(MarcRecord record) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordWriter writer = new MarcRecordWriter(record);
+
+        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
+        if (!"870970".equals(reader.getAgencyId())) {
+            return;
+        }
+
+        // *& fields can never be changed, so if there already is a 008 *& field then we might as well abort now
+        if (reader.hasSubfield("008", "&")) {
+            return;
+        }
+
+        // 008*u = Release status
+        // r = unchanged edition
+        if ("r".equals(reader.getValue("008", "u"))) {
+            final String subfield250a = reader.getValue("250", "a"); // Edition description
+
+            if (subfield250a == null || (subfield250a.contains("1.") && !subfield250a.contains("i.e."))) {
+                writer.addOrReplaceSubfield("008", "&", "f");
+            }
         }
     }
 

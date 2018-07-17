@@ -137,6 +137,18 @@ public class PreProcessingActionTest {
     }
 
     @Test
+    public void testFirstEdition1() throws Exception {
+        testExample("preprocessing/first-edition/first-edition-1-input.marc",
+                "preprocessing/first-edition/first-edition-1-output.marc");
+    }
+
+    @Test
+    public void testFirstEdition2() throws Exception {
+        testExample("preprocessing/first-edition/first-edition-2-input.marc",
+                "preprocessing/first-edition/first-edition-2-output.marc");
+    }
+
+    @Test
     public void testMatchInterval_52793351() throws Exception {
         testExample(INPUT_52793351, EXPECTED_52793351);
     }
