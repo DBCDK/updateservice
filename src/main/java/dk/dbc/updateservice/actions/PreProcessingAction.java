@@ -145,7 +145,6 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      */
     private void processFirstEdition(MarcRecord record) {
         final MarcRecordReader reader = new MarcRecordReader(record);
-        final MarcRecordWriter writer = new MarcRecordWriter(record);
 
         // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
         if (!"870970".equals(reader.getAgencyId())) {
@@ -163,6 +162,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             final String subfield250a = reader.getValue("250", "a"); // Edition description
 
             if (subfield250a == null || (subfield250a.contains("1.") && !subfield250a.contains("i.e."))) {
+                final MarcRecordWriter writer = new MarcRecordWriter(record);
                 writer.addOrReplaceSubfield("008", "&", "f");
             }
         }
