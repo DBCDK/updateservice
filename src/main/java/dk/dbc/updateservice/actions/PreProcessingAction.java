@@ -169,7 +169,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
             if (subfield250a == null) {
                 writer.addOrReplaceSubfield("008", "&", "f");
-            } else if (subfield250a.contains("1.")) {
+            } else if (subfield250a.contains("1.")) { // as in "1. edition"
+                // "i.e." means corrected edition description.
+                // It is therefor assumed that "1. edition" combined with "corrected edition" means the record is an edition update and not a first edition
+                // See http://praxis.dbc.dk/formatpraksis/px-for1862.html/#-250a-udgavebetegnelse for more details
                 if (subfield250a.contains("i.e.")) {
                     writer.addOrReplaceSubfield("008", "&", "u");
                 } else {
