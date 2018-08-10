@@ -196,16 +196,14 @@ pipeline {
         stage("Deploy staging") {
             when {
                 expression {
-                    currentBuild.result == null || currentBuild.result == 'SUCCESS'
+                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME == 'master'
                 }
             }
 			steps {
                 script {
-                    if (env.BRANCH_NAME == 'master') {
-                        lock('meta-updateservice-deploy-staging') {
-                            deploy("staging-basismig")
-                            deploy("staging-fbs")
-                        }
+                    lock('meta-updateservice-deploy-staging') {
+                        deploy("staging-basismig")
+                        deploy("staging-fbs")
                     }
 				}
 			}

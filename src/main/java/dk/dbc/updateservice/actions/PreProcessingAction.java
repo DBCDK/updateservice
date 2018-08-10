@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * This action is responsible for performing preprocessing of incoming records
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
     private static final String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
     private static final Pattern p = Pattern.compile(pattern);
 
@@ -34,15 +34,17 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             final MarcRecord record = state.getMarcRecord();
 
             processAgeInterval(record);
+            processCodeForEBooks(record);
+            processFirstOrNewEdition(record);
 
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -84,6 +86,111 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
             // The new fields are added to the bottom of the field list, so we have to do a simple sort on field name
             new MarcRecordWriter(record).sort();
+        }
+    }
+
+    /**
+     * This function adds a code (008 *w1) to mark the record is an e-book, if it is an e-book
+     * <p>
+     * Rule:
+     * Must be a 870790 record
+     * The record is not a volume or section record
+     * It is a e-book
+     * The record is not already marked as an e-book
+     * <p>
+     * If the conditions are not met or 008 *w1 already exists then nothing is done to the record
+     *
+     * @param record The record to be processed
+     */
+    private void processCodeForEBooks(MarcRecord record) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+
+        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
+        if (!"870970".equals(reader.getAgencyId())) {
+            return;
+        }
+
+        // This preprocessing action can only add 008 *w1 - so if the subfield already exists then there is no point in continuing
+        if (reader.hasValue("008", "w", "1")) {
+            return;
+        }
+
+        // This preprocessing is not applicable to volume or section records
+        final String bibliographicRecordType = reader.getValue("004", "a");
+        if ("b".equals(bibliographicRecordType) || "s".equals(bibliographicRecordType)) {
+            return;
+        }
+
+        // 009 *aa = text
+        // 009 *gxe = online
+        // 008 *tp = periodica
+        // 008 *uo = not complete periodica
+        if ("a".equals(reader.getValue("009", "a")) && "xe".equals(reader.getValue("009", "g")) &&
+                !"p".equals(reader.getValue("008", "t")) && !"o".equals(reader.getValue("008", "u"))) {
+            final MarcRecordWriter writer = new MarcRecordWriter(record);
+            writer.addOrReplaceSubfield("008", "w", "1");
+        }
+    }
+
+    /**
+     * When a record is created the specific type of edition is set in 008*u. However when the record is update 008*u
+     * can be set to the value 'r' which means updated. When the record is either a first edition or new edition that
+     * indicator remain visible on the record. This is done by adding 008*&.
+     * <p>
+     * Rule:
+     * Must be a 870970 record
+     * Record doesn't already have 008*&
+     * Edition is updated (not new or first edition)
+     * <p>
+     * Note: The first edition indicator should be only be applied if the release status (008 *u) is no longer first edition.
+     *
+     * @param record The record to be processed
+     */
+    private void processFirstOrNewEdition(MarcRecord record) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+
+        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
+        if (!"870970".equals(reader.getAgencyId())) {
+            return;
+        }
+
+        // *& fields can never be changed, so if there already is a 008 *& field then we might as well abort now
+        if (reader.hasSubfield("008", "&")) {
+            return;
+        }
+
+        // 008*u = Release status
+        // r = updated but unchanged edition
+        // u = new edition
+        // f = first edition
+        if ("r".equals(reader.getValue("008", "u"))) {
+            final String subfield250a = reader.getValue("250", "a"); // Edition description
+            final MarcRecordWriter writer = new MarcRecordWriter(record);
+
+            if (subfield250a == null) {
+                writer.addOrReplaceSubfield("008", "&", "f");
+            } else if (subfield250a.contains("1.")) { // as in "1. edition"
+                // "i.e." means corrected edition description.
+                // It is therefor assumed that "1. edition" combined with "corrected edition" means the record is an edition update and not a first edition
+                // See http://praxis.dbc.dk/formatpraksis/px-for1862.html/#-250a-udgavebetegnelse for more details
+                if (subfield250a.contains("i.e.")) {
+                    writer.addOrReplaceSubfield("008", "&", "u");
+                } else {
+                    writer.addOrReplaceSubfield("008", "&", "f");
+                }
+            } else {
+                // Field 520 contains several subfield which can hold a lot of text
+                // So in order to look for a string "somewhere" in 520 we have to loop through all the subfields
+                MarcField field520 = reader.getField("520");
+                if (field520 != null) {
+                    for (MarcSubField subField : field520.getSubfields()) {
+                        if (subField.getValue().contains("idligere")) {
+                            writer.addOrReplaceSubfield("008", "&", "u");
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
 
