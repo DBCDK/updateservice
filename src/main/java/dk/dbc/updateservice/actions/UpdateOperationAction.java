@@ -122,6 +122,15 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage, state);
                 }
             }
+
+            // Enrich the record in case the template is the metakompas template with only field 001 and 665
+            try {
+                record = enrichMetaCompassRecord(record);
+            } catch (UpdateException ex) {
+                String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            }
+
             addDoubleRecordFrontendActionIfNecessary();
 
             logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
@@ -234,6 +243,43 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings));
+        }
+    }
+
+    /**
+     * This function handles the situation where metacompass sends a minimal record with only field 001 and 665 to updateservice
+     * <p>
+     * The metacompass templates only allow fields 001 and 665. The template is used by the metacompass application.
+     * <p>
+     * When metacompass template is used we need to load the existing record and then use that with replaced 665 field from the input
+     *
+     * @return The record to be used for the rest if the execution
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    private MarcRecord enrichMetaCompassRecord(MarcRecord record) throws UnsupportedEncodingException, UpdateException {
+        if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
+            logger.info("Got metakompas template so updated the request record.");
+            logger.info("Input metakompas record: \n{}", record);
+            MarcRecordReader reader = new MarcRecordReader(record);
+
+            if (!rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                throw new UpdateException("In order to update field 665 the record must exist");
+            }
+
+            MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+
+            MarcRecord existingRecordWith665 = new MarcRecord(existingRecord);
+            MarcRecordWriter existingRecordWith665Writer = new MarcRecordWriter(existingRecordWith665);
+            existingRecordWith665Writer.removeField("665");
+            existingRecordWith665.getFields().add(reader.getField("665"));
+            existingRecordWith665Writer.sort();
+
+            logger.info("Output metakompas record: \n{}", existingRecordWith665);
+
+            return existingRecordWith665;
+        } else {
+            return record;
         }
     }
 
