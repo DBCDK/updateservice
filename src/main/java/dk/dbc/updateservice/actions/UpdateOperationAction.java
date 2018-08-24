@@ -274,7 +274,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         MarcRecord existingRecordWith665 = new MarcRecord(existingRecord);
         MarcRecordWriter existingRecordWith665Writer = new MarcRecordWriter(existingRecordWith665);
         existingRecordWith665Writer.removeField("665");
-        existingRecordWith665.getFields().add(reader.getField("665"));
+        existingRecordWith665.getFields().addAll(reader.getFieldAll("665"));
         existingRecordWith665Writer.sort();
 
         logger.info("Output metakompas record: \n{}", existingRecordWith665);
