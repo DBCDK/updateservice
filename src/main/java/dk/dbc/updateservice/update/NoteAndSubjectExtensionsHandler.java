@@ -7,6 +7,7 @@ package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
+import dk.dbc.common.records.MarcFieldWriter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
@@ -51,51 +52,89 @@ public class NoteAndSubjectExtensionsHandler {
         logger.entry(record, groupId);
 
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
-            String recId = reader.getRecordId();
-
+            final MarcRecordReader reader = new MarcRecordReader(record);
+            final String recId = reader.getRecordId();
             if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 logger.info("No existing record - returning same record");
                 return record;
             }
-
-            MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
-
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
             if (!isNationalCommonRecord(curRecord)) {
                 logger.info("Record is not national common record - returning same record");
                 return record;
             }
-
             logger.info("Checking for altered classifications for disputas type material");
-            if (reader.hasValue("008", "d", "m")
-                    && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
-                checkForAlteredClassificationForDisputas(reader, messages);
+            if (curReader.hasValue("008", "d", "m") &&
+                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
+                    !canChangeClassificationForDisputas(reader)) {
+                final String msg = messages.getString("update.dbc.record.652");
+                logger.error("Unable to create sub actions due to an error: {}", msg);
+                throw new UpdateException(msg);
             }
-
+            final MarcRecord result = new MarcRecord();
             logger.info("Record exists and is common national record - setting extension fields");
+
             String extendableFieldsRx = createExtendableFieldsRx(groupId);
-            logger.info("Extendablefields: {} ", extendableFieldsRx);
-            if (!extendableFieldsRx.isEmpty()) {
-                for (MarcField field : record.getFields()) {
-                    MarcFieldReader fieldReader = new MarcFieldReader(field);
-                    if (field.getName().matches(extendableFieldsRx)) {
-                        logger.info("Found extendable field! {}", field.getName());
-                        if (fieldReader.hasSubfield("&")) {
-                            field.getSubfields().add(new MarcSubField("&", groupId));
-                        } else if (isFieldChangedInOtherRecord(field, curRecord)) {
-                            field.getSubfields().add(0, new MarcSubField("&", groupId));
-                        }
+
+            if (extendableFieldsRx.isEmpty()) {
+                logger.info("Agency {} doesn't have permission to edit notes or subject fields - returning same record", groupId);
+                return record;
+            }
+            extendableFieldsRx += "|" + EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
+            logger.info("Extendable fields: {} ", extendableFieldsRx);
+
+            // Validate that national common record doesn't have any note/subject fields without '&'
+            // When a record is changed to a national common record all note and subject fields are removed
+            // So the combination of national common record and DBC note and subject fields is an invalid state
+            // The cause of that state is often that the record is marked national common record by a mistake.
+            for (MarcField curField : curRecord.getFields()) {
+                if (curField.getName().matches(extendableFieldsRx) && !"652".equals(curField.getName())) {
+                    MarcFieldReader curFieldReader = new MarcFieldReader(curField);
+                    if (curFieldReader.hasSubfield("&") && (curFieldReader.getValue("&").isEmpty() || "1".equals(curFieldReader.getValue("&")))) {
+                        final String msg = messages.getString("update.dbc.record.dbc.notes");
+                        logger.error("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
                     }
                 }
             }
 
-            return record;
-        } finally {
-            logger.exit(record);
+            // Start by handling all the not-note/subject fields in the existing record
+            for (MarcField curField : curRecord.getFields()) {
+                final MarcField fieldClone = new MarcField(curField);
+                if (!fieldClone.getName().matches(extendableFieldsRx)) {
+                    result.getFields().add(fieldClone);
+                }
+            }
+
+            // Handle note/subject fields in the incoming record
+            for (MarcField field : record.getFields()) {
+                final MarcField fieldClone = new MarcField(field);
+                if (fieldClone.getName().matches(extendableFieldsRx)) {
+                    if (!"652".equals(fieldClone.getName())) {
+                        // All other note/subject fields than 652 must have ampersand subfield to indicate the current owner of that field
+                        // The & subfield must be placed as the first subfield. Instead of sorting the list of subfield we instead
+                        // first remove any existing & subfield and then add it as the first element.
+                        new MarcFieldWriter(fieldClone).removeSubfield("&");
+                        fieldClone.getSubfields().add(0, new MarcSubField("&", groupId));
+                    }
+
+                    result.getFields().add(fieldClone);
+                }
+            }
+
+            new MarcRecordWriter(result).sort();
+
+            return result;
+        } finally
+
+        {
+            logger.exit();
         }
+
     }
 
-    void checkForAlteredClassificationForDisputas(MarcRecordReader reader, ResourceBundle messages) throws UpdateException {
+    boolean canChangeClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
         logger.entry();
 
         try {
@@ -108,14 +147,10 @@ public class NoteAndSubjectExtensionsHandler {
                 String current652 = currentRecordReader.getValue("652", "m");
 
                 if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
-                    if (!(current652.toLowerCase().equals(NO_CLASSIFICATION) ||
-                            currentRecordReader.isDBCRecord() ||
-                            currentRecordReader.hasValue("008", "d", "m"))) {
-                        String msg = messages.getString("update.dbc.record.652");
-                        logger.error("Unable to create sub actions due to an error: {}", msg);
-                        throw new UpdateException(msg);
-                    }
-                    logger.info("Common record met disputas criteria and is being updated");
+                    return current652.toLowerCase().equals(NO_CLASSIFICATION) &&
+                            currentRecordReader.isDBCRecord() &&
+                            currentRecordReader.hasValue("008", "d", "m");
+
                 }
             }
         } catch (UnsupportedEncodingException ex) {
@@ -124,6 +159,8 @@ public class NoteAndSubjectExtensionsHandler {
         } finally {
             logger.exit();
         }
+
+        return true;
     }
 
     /**
@@ -179,7 +216,7 @@ public class NoteAndSubjectExtensionsHandler {
             extendableFields += EXTENDABLE_SUBJECT_FIELDS;
         }
 
-        logger.info("Bibliotek {} har ret til at rette i følgende felter i en national post: {}", agencyId, extendableFields);
+        logger.info("Agency {} can change the following fields in a national common record: {}", agencyId, extendableFields);
 
         return extendableFields;
     }
@@ -220,12 +257,32 @@ public class NoteAndSubjectExtensionsHandler {
         logger.entry(field);
 
         try {
-            MarcFieldReader reader = new MarcFieldReader(field);
-
-            return field.getName().equals("032") && reader.hasSubfield("a") && !reader.getValue("a").matches("^(BKM|NET|SF).*$");
+            return field.getName().equals("032") &&
+                    hasOnlyNationalBibliographicCode(field) &&
+                    hasNoLibraryCataloguingCode(field);
         } finally {
             logger.exit();
         }
+    }
+
+    private boolean hasOnlyNationalBibliographicCode(MarcField field032) {
+        for (MarcSubField subfield : field032.getSubfields()) {
+            if ("a".equals(subfield.getName()) && !subfield.getValue().matches("^(DBF|DBI|DBR|DBÅ|DKF|DLF|DMF|DMO|DOP|DPF|DPO|FBL|FPF|GBF|GBÅ|GMO|GPF|IDO|IDP|KIP).*$")) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean hasNoLibraryCataloguingCode(MarcField field032) {
+        for (MarcSubField subfield : field032.getSubfields()) {
+            if ("x".equals(subfield.getName()) && subfield.getValue().matches("^(BKM|BKR|BKX|CDM|CDR|CDV|CSR|CSV|UTI|SF|NET).*$")) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
