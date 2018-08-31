@@ -65,13 +65,12 @@ public class NoteAndSubjectExtensionsHandler {
                 return record;
             }
             logger.info("Checking for altered classifications for disputas type material");
-            if (curReader.hasValue("008", "d", "m")
-                    && openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
-                if (!canChangeClassificationForDisputas(reader)) {
-                    final String msg = messages.getString("update.dbc.record.652");
-                    logger.error("Unable to create sub actions due to an error: {}", msg);
-                    throw new UpdateException(msg);
-                }
+            if (curReader.hasValue("008", "d", "m") &&
+                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
+                    !canChangeClassificationForDisputas(reader)) {
+                final String msg = messages.getString("update.dbc.record.652");
+                logger.error("Unable to create sub actions due to an error: {}", msg);
+                throw new UpdateException(msg);
             }
             final MarcRecord result = new MarcRecord();
             logger.info("Record exists and is common national record - setting extension fields");
@@ -127,9 +126,12 @@ public class NoteAndSubjectExtensionsHandler {
             new MarcRecordWriter(result).sort();
 
             return result;
-        } finally {
+        } finally
+
+        {
             logger.exit();
         }
+
     }
 
     boolean canChangeClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
