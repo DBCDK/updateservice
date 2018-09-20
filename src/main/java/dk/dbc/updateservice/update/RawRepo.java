@@ -635,14 +635,14 @@ public class RawRepo {
         }
     }
 
-    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf) throws UpdateException {
+    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-                dao.enqueue(recId, provider, changed, leaf);
+                dao.enqueue(recId, provider, changed, leaf, priority);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
