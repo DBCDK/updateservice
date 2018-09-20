@@ -70,6 +70,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
+            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+                priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+            }
+
             // Enqueuing should be done differently for authority record, so first we have to determine whether
             // this is a authority record
             boolean isAuthorityRecord = RawRepo.AUTHORITY_AGENCY == agencyId ||
@@ -81,10 +85,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
             } else if (state.getLibraryGroup().isPH()) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
-                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             } else {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
-                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             }
 
             if (providerId == null) {

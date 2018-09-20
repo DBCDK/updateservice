@@ -61,8 +61,7 @@ public class RawRepo {
     public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
     public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
 
-    public static final int ENQUEUE_PRIORITY_DEFAULT = 1000;
-    public static final int ENQUEUE_PRIORITY_HIGH = 500;
+    public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
 
     @EJB
     private OpenAgencyService openAgency;

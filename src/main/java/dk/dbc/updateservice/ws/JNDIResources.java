@@ -51,6 +51,7 @@ public class JNDIResources {
     public static final String RAWREPO_PROVIDER_ID_PH = "rawrepo.provider.id.ph";
     public static final String RAWREPO_PROVIDER_ID_PH_HOLDINGS = "rawrepo.provider.id.ph.holdings";
     public static final String RAWREPO_PROVIDER_ID_OVERRIDE = "rawrepo.provider.id.override";
+    public static final String RAWREPO_PRIORITY_OVERRIDE = "rawrepo.priority.override";
 
     public static final String UPDATE_PROD_STATE_KEY = "prod.state";
 
