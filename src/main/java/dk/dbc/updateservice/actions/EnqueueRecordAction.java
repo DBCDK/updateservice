@@ -70,8 +70,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
-            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
-                priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+            if (settings.get(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+                priority = (int) settings.get(JNDIResources.RAWREPO_PRIORITY_OVERRIDE);
                 logger.info("Using override priority {}", priority);
             }
 
