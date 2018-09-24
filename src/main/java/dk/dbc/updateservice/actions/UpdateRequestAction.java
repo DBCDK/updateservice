@@ -122,12 +122,12 @@ public class UpdateRequestAction extends AbstractAction {
 
                 if (bibliographicRecordExtraData.getProviderName() != null) {
                     logger.info("Provider name found in request - using {} as override provider for rawrepo queue", bibliographicRecordExtraData.getProviderName());
-                    newSettings.put(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
+                    newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
                 }
 
                 if (bibliographicRecordExtraData.getPriority() != null) {
                     logger.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
-                    newSettings.put(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority());
+                    newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
                 }
 
                 updateOperationAction.setSettings(newSettings);
