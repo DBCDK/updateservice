@@ -70,8 +70,9 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
-            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+            if (settings.containsKey(JNDIResources.RAWREPO_PRIORITY_OVERRIDE)) {
                 priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+                logger.info("Using override priority {}", priority);
             }
 
             // Enqueuing should be done differently for authority record, so first we have to determine whether
