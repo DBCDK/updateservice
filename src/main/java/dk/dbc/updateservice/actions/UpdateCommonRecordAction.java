@@ -26,7 +26,6 @@ import org.slf4j.ext.XLoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
