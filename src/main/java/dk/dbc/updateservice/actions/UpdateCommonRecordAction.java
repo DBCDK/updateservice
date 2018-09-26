@@ -43,7 +43,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
     private Properties settings;
 
-    private static final List<String> metacompassFieldsToCopy = Arrays.asList("e", "i", "g");
+    private static final List<String> metacompassSubFieldsToCopy = Arrays.asList("e", "i", "g");
 
     public UpdateCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(UpdateCommonRecordAction.class.getSimpleName(), globalActionState, record);
@@ -181,7 +181,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     }
 
                     // 665 *e/*i/*g -> 666 *s
-                    if (metacompassFieldsToCopy.contains(subfield.getName())) {
+                    if (metacompassSubFieldsToCopy.contains(subfield.getName())) {
                         subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
                     }
                 }
