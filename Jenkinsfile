@@ -61,15 +61,13 @@ pipeline {
 
         stage('Build updateservice') {
             steps {
-                lock('meta-updateservice-build') {
-                    withMaven(maven: 'maven 3.5', options: [
-                            findbugsPublisher(disabled: true),
-                            openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
-                    ]) {
-                        sh "mvn verify pmd:pmd findbugs:findbugs"
-                        archiveArtifacts(artifacts: "target/*.war,target/*.log", onlyIfSuccessful: true, fingerprint: true)
-                        junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
-                    }
+                withMaven(maven: 'maven 3.5', options: [
+                        findbugsPublisher(disabled: true),
+                        openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
+                ]) {
+                    sh "mvn verify pmd:pmd findbugs:findbugs"
+                    archiveArtifacts(artifacts: "target/*.war,target/*.log", onlyIfSuccessful: true, fingerprint: true)
+                    junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
                 }
             }
         }
