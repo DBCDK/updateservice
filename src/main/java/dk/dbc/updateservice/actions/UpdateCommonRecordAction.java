@@ -199,6 +199,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 boolean hasSubfield = false;
                 for (MarcField field666 : fields666) {
                     if (field666.getSubfields().contains(subfieldToCopy)) {
+                        // If the field has the subfield to copy but doesn't have *0 subfield then *0 must be added
+                        if (!field666.getSubfields().contains(subfield0)) {
+                            field666.getSubfields().add(0, subfield0);
+                        }
+
                         hasSubfield = true;
                         break;
                     }
