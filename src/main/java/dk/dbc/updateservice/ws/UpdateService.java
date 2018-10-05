@@ -11,6 +11,7 @@ import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
@@ -67,6 +68,7 @@ public class UpdateService {
     public static final String UPDATE_WATCHTAG = "request.updaterecord";
     public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
     public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
+    public static final String MDC_REQUEST_PRIORITY = "priority";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     public static final String UPDATE_SERVICE_VERSION = "2.0";
 
@@ -163,7 +165,7 @@ public class UpdateService {
             return serviceResult;
         } catch (SolrException ex) {
             // have to catch and rethrow here, due to every throwable being caught below
-            logger.error ("catching and rethrowing SolrException");
+            logger.error("catching and rethrowing SolrException");
             logger.catching(ex);
             throw new SolrException(ex.getMessage());
         } catch (Throwable ex) {
@@ -206,6 +208,14 @@ public class UpdateService {
         UUID prefixId = UUID.randomUUID();
         MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateServiceRequestDTO.getTrackingId());
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
+
+        final BibliographicRecordExtraData bibliographicRecordExtraData = globalActionState.getRecordExtraData();
+        String priority = Integer.toString(RawRepo.ENQUEUE_PRIORITY_DEFAULT);
+        if (bibliographicRecordExtraData != null && bibliographicRecordExtraData.getPriority() != null) {
+            priority = bibliographicRecordExtraData.getPriority().toString();
+        }
+        MDC.put(MDC_REQUEST_PRIORITY, priority);
+
         String trackingId = prefixId.toString();
         if (updateServiceRequestDTO.getTrackingId() != null) {
             trackingId = updateServiceRequestDTO.getTrackingId();
