@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -21,6 +22,11 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.temporal.ChronoField;
 import java.util.Properties;
 
 /**
@@ -32,6 +38,12 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     Encoder encoder = new Encoder();
     private String mimetype;
     Properties properties;
+
+    private static final DateTimeFormatter modifiedFormatter = new DateTimeFormatterBuilder()
+            .appendPattern("yyyyMMddHHmmss")
+            .parseDefaulting(ChronoField.NANO_OF_DAY, 0)
+            .toFormatter()
+            .withZone(ZoneId.of("Europe/Copenhagen"));
 
     public StoreRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(StoreRecordAction.class.getSimpleName(), globalActionState, record);
@@ -80,6 +92,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
             recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
+            updateModifiedDate(recordToStore);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
             rawRepoRecord.setMimeType(mimetype);
@@ -152,6 +165,21 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         } finally {
             logger.exit();
         }
+    }
+
+    void updateModifiedDate(MarcRecord marcRecord) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+
+        if (RawRepo.DBC_AGENCY_ALL.contains(reader.getAgencyId())) {
+            final String modified = getModifiedDate();
+            final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
+            writer.addOrReplaceSubfield("001", "c", modified);
+        }
+    }
+
+    // The purpose of this function is to make testing/mocking easier
+    protected String getModifiedDate() {
+        return modifiedFormatter.format(Instant.now());
     }
 
 }
