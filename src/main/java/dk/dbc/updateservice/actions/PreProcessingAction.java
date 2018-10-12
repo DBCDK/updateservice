@@ -154,18 +154,14 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             return;
         }
 
-        // *& fields can never be changed, so if there already is a 008 *& field then we might as well abort now
-        if (reader.hasSubfield("008", "&")) {
-            return;
-        }
-
         // 008*u = Release status
         // r = updated but unchanged edition
         // u = new edition
         // f = first edition
-        if ("r".equals(reader.getValue("008", "u"))) {
+        final MarcRecordWriter writer = new MarcRecordWriter(record);
+        String subfield008u = reader.getValue("008", "u");
+        if ("r".equals(subfield008u)) {
             final String subfield250a = reader.getValue("250", "a"); // Edition description
-            final MarcRecordWriter writer = new MarcRecordWriter(record);
 
             if (subfield250a == null) {
                 writer.addOrReplaceSubfield("008", "&", "f");
@@ -191,8 +187,13 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                     }
                 }
             }
+            // If someone updates the a first edition record then 008 *u must be manually changed to the value u
+            // And in that case the 008 *& should be changed to indicate new edition
+        } else if ("u".equals(subfield008u) && "f".equals(reader.getValue("008", "&"))) {
+            writer.addOrReplaceSubfield("008", "&", "u");
         }
     }
+
 
     private void remove666UFields(MarcRecord record) {
         final List<MarcField> fieldsToRemove = new ArrayList<>();

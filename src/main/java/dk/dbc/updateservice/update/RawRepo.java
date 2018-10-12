@@ -54,6 +54,7 @@ public class RawRepo {
     public static final int ARTICLE_AGENCY = 870971;
     public static final int AUTHORITY_AGENCY = 870979;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
+    public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "191919", "870970", "870971", "870979"); // More will probably be added later
     public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "000002", "000004", "000007", "000008");
     public static final int DBC_ENRICHMENT = 191919;
     public static final int SCHOOL_COMMON_AGENCY = 300000;
@@ -61,8 +62,7 @@ public class RawRepo {
     public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
     public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700");
 
-    public static final int ENQUEUE_PRIORITY_DEFAULT = 1000;
-    public static final int ENQUEUE_PRIORITY_HIGH = 500;
+    public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
 
     @EJB
     private OpenAgencyService openAgency;
@@ -636,14 +636,14 @@ public class RawRepo {
         }
     }
 
-    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf) throws UpdateException {
+    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
         try (Connection conn = dataSourceWriter.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
-                dao.enqueue(recId, provider, changed, leaf);
+                dao.enqueue(recId, provider, changed, leaf, priority);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);

@@ -118,12 +118,18 @@ public class UpdateRequestAction extends AbstractAction {
             // Overwrite "settings" with provider name from RecordExtraData
             BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
             if (bibliographicRecordExtraData != null) {
-                if (bibliographicRecordExtraData.getProviderName() == null) {
-                    throw new UpdateException(state.getMessages().getString("extra.record.data.provider.name.is.missing"));
-                }
-                logger.info("Provider name found in request - using {} as override provider for rawrepo queue", bibliographicRecordExtraData.getProviderName());
                 Properties newSettings = (Properties) settings.clone();
-                newSettings.put(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
+
+                if (bibliographicRecordExtraData.getProviderName() != null) {
+                    logger.info("Provider name found in request - using {} as override provider for rawrepo queue", bibliographicRecordExtraData.getProviderName());
+                    newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
+                }
+
+                if (bibliographicRecordExtraData.getPriority() != null) {
+                    logger.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                    newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                }
+
                 updateOperationAction.setSettings(newSettings);
             }
         }

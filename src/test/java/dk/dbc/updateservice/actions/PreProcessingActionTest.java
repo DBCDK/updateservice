@@ -137,6 +137,12 @@ public class PreProcessingActionTest {
     }
 
     @Test
+    public void testNewEdition4() throws Exception {
+        testExample("preprocessing/new-edition/new-edition-4-input.marc",
+                "preprocessing/new-edition/new-edition-4-output.marc");
+    }
+
+    @Test
     public void testAgeInterval1() throws Exception {
         testExample("preprocessing/age-interval/age-interval-1-input.marc",
                 "preprocessing/age-interval/age-interval-1-output.marc");

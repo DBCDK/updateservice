@@ -120,6 +120,7 @@ public class EnqueueRecordActionTest {
 
         Properties clonedSettings = (Properties) settings.clone();
         clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-update-well3.5");
+        clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
         EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -143,6 +144,7 @@ public class EnqueueRecordActionTest {
 
         Properties clonedSettings = (Properties) settings.clone();
         clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-bulk");
+        clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
         EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -166,7 +168,10 @@ public class EnqueueRecordActionTest {
 
         state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
 
-        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+        Properties newSettings = (Properties) settings.clone();
+        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
+
+        EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, newSettings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);

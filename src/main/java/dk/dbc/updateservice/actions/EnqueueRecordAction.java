@@ -70,6 +70,11 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
+            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+                priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+                logger.info("Using override priority {}", priority);
+            }
+
             // Enqueuing should be done differently for authority record, so first we have to determine whether
             // this is a authority record
             boolean isAuthorityRecord = RawRepo.AUTHORITY_AGENCY == agencyId ||
@@ -81,10 +86,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
             } else if (state.getLibraryGroup().isPH()) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
-                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             } else {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
-                priority = RawRepo.ENQUEUE_PRIORITY_HIGH;
             }
 
             if (providerId == null) {
@@ -100,12 +103,12 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // NOTE: We know that a authority record doesn't have any siblings (other than enrichment, which will be
             // enqueued by another action) so only queuing children is fine
             if (isAuthorityRecord) {
-                logger.info("Enqueuing authority record: {}:{} using provider '{}'", recId, agencyId, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR));
-                rawRepo.enqueue(new RecordId(recId, agencyId), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), true, false);
+                logger.info("Enqueuing authority record: {}:{} using provider '{}' with priority {}", recId, agencyId, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), priority);
+                rawRepo.enqueue(new RecordId(recId, agencyId), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), true, false, priority);
 
                 for (RecordId childId : rawRepo.children(record)) {
-                    logger.info("Enqueuing child record {}:{} using provider '{}'", childId.getBibliographicRecordId(), childId.getAgencyId(), providerId);
-                    rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC), childId);
+                    logger.info("Enqueuing child record {}:{} using provider '{}' with priority {}", childId.getBibliographicRecordId(), childId.getAgencyId(), providerId, priority);
+                    rawRepo.changedRecord(settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC), childId, priority);
                 }
             } else {
                 logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);

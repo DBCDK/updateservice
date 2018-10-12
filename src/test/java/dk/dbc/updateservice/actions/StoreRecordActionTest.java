@@ -7,11 +7,11 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -196,5 +196,50 @@ public class StoreRecordActionTest {
         StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         assertThat(instance.recordToStore(), equalTo(record));
+    }
+
+    private class StoreRecordActionMock extends StoreRecordAction {
+        public StoreRecordActionMock(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
+            super(globalActionState, properties, record);
+        }
+
+        public String modified;
+
+        @Override
+        protected String getModifiedDate() {
+            return modified;
+        }
+    }
+
+    @Test
+    public void testUpdateModifiedDateDBC() throws Exception {
+        // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
+        final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
+
+        final String modified = "20181008151342";
+
+        instance.modified = modified;
+        instance.updateModifiedDate(record);
+
+        final MarcRecordReader modifiedReader = new MarcRecordReader(record);
+
+        assertThat(modifiedReader.getValue("001", "c"), equalTo(modified));
+    }
+
+    @Test
+    public void testUpdateModifiedDateNotDBC() throws Exception {
+        // 001 00 *a 20611529 *b 700400 *c 19971020 *d 19940516 *f a
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
+
+        final String modified = "20181008151342";
+
+        instance.modified = modified;
+        instance.updateModifiedDate(record);
+
+        final MarcRecordReader modifiedReader = new MarcRecordReader(record);
+
+        assertThat(modifiedReader.getValue("001", "c"), equalTo("19971020"));
     }
 }
