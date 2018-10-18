@@ -284,7 +284,7 @@ public class OpenBuild implements BuildPortType {
         // Initialize jackson with annotation classes
         try {
             for (Map.Entry<Class<?>, Class<?>> e : MixIns.getMixIns().entrySet()) {
-                jacksonObjectMapper.addMixInAnnotations(e.getKey(), e.getValue());
+                jacksonObjectMapper.addMixIn(e.getKey(), e.getValue());
             }
         } finally {
             logger.exit();
