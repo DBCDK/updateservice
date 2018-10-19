@@ -11,10 +11,13 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
+import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,12 +40,18 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         LOGGER.entry();
         try {
             final MarcRecord record = state.getMarcRecord();
+            final MarcRecordReader reader = new MarcRecordReader(record);
 
-            processAgeInterval(record);
-            processCodeForEBooks(record);
-            processFirstOrNewEdition(record);
+            // Pre-processing should only be performed on 870970 records owned by DBC
+            if (reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY && reader.hasValue("996", "a", "DBC")) {
+                processAgeInterval(record, reader);
+                processCodeForEBooks(record, reader);
+                processFirstOrNewEdition(record, reader);
+            }
 
             return ServiceResult.newOkResult();
+        } catch (UnsupportedEncodingException ex) {
+            throw new UpdateException("Caught unexpected exception: " + ex.toString());
         } finally {
             LOGGER.exit();
         }
@@ -60,9 +69,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      *
      * @param record The record to be processed
      */
-    private void processAgeInterval(MarcRecord record) {
-        final MarcRecordReader reader = new MarcRecordReader(record);
-
+    private void processAgeInterval(MarcRecord record, MarcRecordReader reader) {
         final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
 
         if (matchers.size() > 0) {
@@ -102,20 +109,13 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      *
      * @param record The record to be processed
      */
-    private void processCodeForEBooks(MarcRecord record) {
-        final MarcRecordReader reader = new MarcRecordReader(record);
-
-        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
-        if (!"870970".equals(reader.getAgencyId())) {
-            return;
-        }
-
-        // This preprocessing action can only add 008 *w1 - so if the subfield already exists then there is no point in continuing
+    private void processCodeForEBooks(MarcRecord record, MarcRecordReader reader) {
+        // This pre-processing action can only add 008 *w1 - so if the subfield already exists then there is no point in continuing
         if (reader.hasValue("008", "w", "1")) {
             return;
         }
 
-        // This preprocessing is not applicable to volume or section records
+        // This pre-processing is not applicable to volume or section records
         final String bibliographicRecordType = reader.getValue("004", "a");
         if ("b".equals(bibliographicRecordType) || "s".equals(bibliographicRecordType)) {
             return;
@@ -133,9 +133,9 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     /**
-     * When a record is created the specific type of edition is set in 008*u. However when the record is update 008*u
-     * can be set to the value 'r' which means updated. When the record is either a first edition or new edition that
-     * indicator remain visible on the record. This is done by adding 008*&.
+     * When a record is created the specific type of edition is set in 008*u. However when the record is updated 008*u
+     * can be set to the value 'r' which means updated. When the existing record is either a first edition or new edition that
+     * indicator must remain visible on the record. This is done by adding 008*&.
      * <p>
      * Rule:
      * Must be a 870970 record
@@ -146,43 +146,50 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      *
      * @param record The record to be processed
      */
-    private void processFirstOrNewEdition(MarcRecord record) {
-        final MarcRecordReader reader = new MarcRecordReader(record);
-
-        // This preprocessing is only applicable for common records, so if it is any other kind of agency then just abort now
-        if (!"870970".equals(reader.getAgencyId())) {
-            return;
-        }
-
+    private void processFirstOrNewEdition(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         // 008*u = Release status
         // r = updated but unchanged edition
         // u = new edition
         // f = first edition
-        final MarcRecordWriter writer = new MarcRecordWriter(record);
-        String subfield008u = reader.getValue("008", "u");
-        if ("r".equals(subfield008u)) {
-            final String subfield250a = reader.getValue("250", "a"); // Edition description
 
-            if (subfield250a == null) {
+        String subfield008u = reader.getValue("008", "u");
+        String subfield008Ampersand = reader.getValue("008", "&");
+        final MarcRecordWriter writer = new MarcRecordWriter(record);
+        if ("r".equals(subfield008u) && // Update edition
+                !("f".equals(subfield008Ampersand) || "u".equals(subfield008Ampersand)) && // Doesn't already have indicator
+                rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) { // Record exists
+            // Note that creating a new record with 008 *u = r must be handled manually
+            final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+            final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+            final String existingSubfield008u = existingReader.getValue("008", "u");
+            final String existingSubfield250a = existingReader.getValue("250", "a"); // Edition description
+
+            if ("f".equals(existingSubfield008u)) {
                 writer.addOrReplaceSubfield("008", "&", "f");
-            } else if (subfield250a.contains("1.")) { // as in "1. edition"
-                // "i.e." means corrected edition description.
-                // It is therefor assumed that "1. edition" combined with "corrected edition" means the record is an edition update and not a first edition
-                // See http://praxis.dbc.dk/formatpraksis/px-for1862.html/#-250a-udgavebetegnelse for more details
-                if (subfield250a.contains("i.e.")) {
-                    writer.addOrReplaceSubfield("008", "&", "u");
-                } else {
+            } else if ("u".equals(existingSubfield008u)) {
+                writer.addOrReplaceSubfield("008", "&", "u");
+            } else if ("r".equals(existingSubfield008u)) {
+                if (existingSubfield250a == null) {
                     writer.addOrReplaceSubfield("008", "&", "f");
-                }
-            } else {
-                // Field 520 contains several subfield which can hold a lot of text
-                // So in order to look for a string "somewhere" in 520 we have to loop through all the subfields
-                MarcField field520 = reader.getField("520");
-                if (field520 != null) {
-                    for (MarcSubField subField : field520.getSubfields()) {
-                        if (subField.getValue().contains("idligere")) {
-                            writer.addOrReplaceSubfield("008", "&", "u");
-                            return;
+                } else if (existingSubfield250a.contains("1.")) { // as in "1. edition"
+                    // "i.e." means corrected edition description.
+                    // It is therefor assumed that "1. edition" combined with "corrected edition" means the record is an edition update and not a first edition
+                    // See http://praxis.dbc.dk/formatpraksis/px-for1862.html/#-250a-udgavebetegnelse for more details
+                    if (existingSubfield250a.contains("i.e.")) {
+                        writer.addOrReplaceSubfield("008", "&", "u");
+                    } else {
+                        writer.addOrReplaceSubfield("008", "&", "f");
+                    }
+                } else {
+                    // Field 520 contains several subfield which can hold a lot of text
+                    // So in order to look for a string "somewhere" in 520 we have to loop through all the subfields
+                    final MarcField field520 = existingReader.getField("520");
+                    if (field520 != null) {
+                        for (MarcSubField subField : field520.getSubfields()) {
+                            if (subField.getValue().contains("idligere")) {
+                                writer.addOrReplaceSubfield("008", "&", "u");
+                                return;
+                            }
                         }
                     }
                 }
@@ -193,7 +200,6 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             writer.addOrReplaceSubfield("008", "&", "u");
         }
     }
-
 
     private void remove666UFields(MarcRecord record) {
         final List<MarcField> fieldsToRemove = new ArrayList<>();
