@@ -1,7 +1,7 @@
 001 00 *a5 421 887 7*b870970*c20180620181336*d20180612*fa
 004 00 *rn*ae
 005 00 *zp
-008 00 *ts*ur*a2018*z2018*bdk*dx*jp*ldan*v0
+008 00 *ts*ur*a2018*z2018*bdk*dx*jp*ldan*v0*&f
 009 00 *ar*gxc
 021 00 *e9788702268935
 032 00 *aDLF201826*xBKM201826
@@ -22,9 +22,9 @@
 720 00 *oMarie Silkeberg*4edt
 720 00 *oPeter Borum*4edt
 990 00 *o201826*bv*uop
+996 00 *aDBC
 f06 00 *bv
 n51 00 *a20180620
-s10 00 *aDBC
 s12 00 *tTeamBAC201824
 z98 00 *aMinus korrekturprint
 z99 00 *akga

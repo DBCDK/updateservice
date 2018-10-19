@@ -1,6 +1,6 @@
 001 00 *a5 363 160 6*b870970*c20180110180338*d20171031*fa
 004 00 *rn*ae
-008 00 *tm*ur*a2017*z2017*bdk*dy*kb*ldan*v0
+008 00 *tm*uf*a2017*z2017*bdk*dy*kb*ldan*v0
 009 00 *aa*gxx
 021 00 *e9788702214369*cib.
 032 00 *xACC201744*aDBF201803*xBKM201803
@@ -24,12 +24,12 @@
 666 00 *0*i2010-2019
 666 00 *0*obiografier
 990 00 *o201803*bv*uop
+996 00 *aDBC
 d90 00 *o201748*bl*bv*unt
 d90 00 *x201747*bl*bv*unt
 d91 00 *oEkspres 201747
 f06 00 *bv
 n51 00 *a20180110
-s10 00 *aDBC
 s12 00 *tTeamBAM201801
 z98 00 *aMinus korrekturprint
 z99 00 *als
