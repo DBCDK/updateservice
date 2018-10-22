@@ -32,7 +32,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     private static final Pattern p = Pattern.compile(pattern);
 
     public PreProcessingAction(GlobalActionState globalActionState) {
-        super(UpdateRequestAction.class.getSimpleName(), globalActionState);
+        super(PreProcessingAction.class.getSimpleName(), globalActionState);
     }
 
     @Override
@@ -151,13 +151,13 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         // r = updated but unchanged edition
         // u = new edition
         // f = first edition
-
         String subfield008u = reader.getValue("008", "u");
-        String subfield008Ampersand = reader.getValue("008", "&");
-        final MarcRecordWriter writer = new MarcRecordWriter(record);
+        // *& is repeatable and have different meaning so we have to match the specific values
+        final boolean has008AmpersandF = reader.hasValue("008", "&", "f");
+        final boolean has008AmpersandU = reader.hasValue("008", "&", "u");
         if ("r".equals(subfield008u) && // Update edition
-                !("f".equals(subfield008Ampersand) || "u".equals(subfield008Ampersand)) && // Doesn't already have indicator
-                rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) { // Record exists
+                !(has008AmpersandF || has008AmpersandU) && // Doesn't already have indicator
+                rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) { // Record exists
             // Note that creating a new record with 008 *u = r must be handled manually
             final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
             final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
@@ -165,20 +165,20 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             final String existingSubfield250a = existingReader.getValue("250", "a"); // Edition description
 
             if ("f".equals(existingSubfield008u)) {
-                writer.addOrReplaceSubfield("008", "&", "f");
+                update008AmpersandEdition(record, "f");
             } else if ("u".equals(existingSubfield008u)) {
-                writer.addOrReplaceSubfield("008", "&", "u");
+                update008AmpersandEdition(record, "u");
             } else if ("r".equals(existingSubfield008u)) {
                 if (existingSubfield250a == null) {
-                    writer.addOrReplaceSubfield("008", "&", "f");
+                    update008AmpersandEdition(record, "f");
                 } else if (existingSubfield250a.contains("1.")) { // as in "1. edition"
                     // "i.e." means corrected edition description.
                     // It is therefor assumed that "1. edition" combined with "corrected edition" means the record is an edition update and not a first edition
                     // See http://praxis.dbc.dk/formatpraksis/px-for1862.html/#-250a-udgavebetegnelse for more details
                     if (existingSubfield250a.contains("i.e.")) {
-                        writer.addOrReplaceSubfield("008", "&", "u");
+                        update008AmpersandEdition(record, "u");
                     } else {
-                        writer.addOrReplaceSubfield("008", "&", "f");
+                        update008AmpersandEdition(record, "f");
                     }
                 } else {
                     // Field 520 contains several subfield which can hold a lot of text
@@ -187,8 +187,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                     if (field520 != null) {
                         for (MarcSubField subField : field520.getSubfields()) {
                             if (subField.getValue().contains("idligere")) {
-                                writer.addOrReplaceSubfield("008", "&", "u");
-                                return;
+                                update008AmpersandEdition(record, "u");
+                                break;
                             }
                         }
                     }
@@ -196,9 +196,41 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             }
             // If someone updates the a first edition record then 008 *u must be manually changed to the value u
             // And in that case the 008 *& should be changed to indicate new edition
-        } else if ("u".equals(subfield008u) && "f".equals(reader.getValue("008", "&"))) {
-            writer.addOrReplaceSubfield("008", "&", "u");
+        } else if ("u".equals(subfield008u) && reader.hasValue("008", "&", "f")) {
+            update008AmpersandEdition(record, "u");
         }
+    }
+
+    /**
+     * Field 008 can have up to three different *& subfields which all have different meaning.
+     * So in order to change between "first edition" and "new edition" we have to either update the existing *& with the
+     * opposite value are add a new *&.
+     * Simply using addOrReplace will lead to bad things
+     *
+     * @param record The record which should be updated
+     * @param value  The new value for *&
+     */
+    private void update008AmpersandEdition(MarcRecord record, String value) {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+        // There is no reason to continue if the field already has the correct value
+        if (!reader.hasValue("008", "&", value)) {
+            final MarcField field = reader.getField("008");
+            // Here we know that there isn't a 008 *& with the input value
+            // However there might be a *& with the opposite value (u <> f)
+            final String oppositeValue = "u".equals(value) ? "f" : "u";
+            if (reader.hasValue("008", "&", oppositeValue)) {
+                for (MarcSubField subField : field.getSubfields()) {
+                    if ("&".equals(subField.getName()) && oppositeValue.equals(subField.getValue())) {
+                        subField.setValue(value);
+                        break;
+                    }
+                }
+            } else {
+                // If there isn't a *& for either value or opposite value then just add a new *& subfield
+                field.getSubfields().add(new MarcSubField("&", value));
+            }
+        }
+
     }
 
     private void remove666UFields(MarcRecord record) {

@@ -253,7 +253,7 @@ public class PreProcessingActionTest {
         final MarcRecord existing = existingFileName != null ? AssertActionsUtil.loadRecord(existingFileName) : null;
 
         state.setMarcRecord(actual);
-        when(state.getRawRepo().recordExists(anyString(), anyInt())).thenReturn(existingFileName != null);
+        when(state.getRawRepo().recordExistsMaybeDeleted(anyString(), anyInt())).thenReturn(existingFileName != null);
         when(state.getRawRepo().fetchRecord(anyString(), anyInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
