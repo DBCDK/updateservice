@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,6 +14,9 @@ import java.io.IOException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 
 public class PreProcessingActionTest {
     private GlobalActionState state;
@@ -20,6 +24,30 @@ public class PreProcessingActionTest {
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+    }
+
+    @Test
+    public void testIgnore1() throws Exception {
+        testExample("preprocessing/ignore/ignore-1.marc",
+                "preprocessing/ignore/ignore-1.marc");
+    }
+
+    @Test
+    public void testIgnore2() throws Exception {
+        testExample("preprocessing/ignore/ignore-2.marc",
+                "preprocessing/ignore/ignore-2.marc");
+    }
+
+    @Test
+    public void testIgnore3() throws Exception {
+        testExample("preprocessing/ignore/ignore-3.marc",
+                "preprocessing/ignore/ignore-3.marc");
+    }
+
+    @Test
+    public void testIgnore4() throws Exception {
+        testExample("preprocessing/ignore/ignore-4.marc",
+                "preprocessing/ignore/ignore-4.marc");
     }
 
     @Test
@@ -108,38 +136,55 @@ public class PreProcessingActionTest {
 
     @Test
     public void testFirstEdition1() throws Exception {
-        testExample("preprocessing/first-edition/first-edition-1-input.marc",
+        testExampleNotExistingRecord("preprocessing/first-edition/first-edition-1-input.marc",
                 "preprocessing/first-edition/first-edition-1-output.marc");
     }
 
     @Test
     public void testFirstEdition2() throws Exception {
-        testExample("preprocessing/first-edition/first-edition-2-input.marc",
+        testExampleNotExistingRecord("preprocessing/first-edition/first-edition-2-input.marc",
                 "preprocessing/first-edition/first-edition-2-output.marc");
     }
 
     @Test
     public void testNewEdition1() throws Exception {
         testExample("preprocessing/new-edition/new-edition-1-input.marc",
-                "preprocessing/new-edition/new-edition-1-output.marc");
+                "preprocessing/new-edition/new-edition-1-output.marc",
+                "preprocessing/new-edition/new-edition-1-existing.marc");
     }
 
     @Test
     public void testNewEdition2() throws Exception {
         testExample("preprocessing/new-edition/new-edition-2-input.marc",
-                "preprocessing/new-edition/new-edition-2-output.marc");
+                "preprocessing/new-edition/new-edition-2-output.marc",
+                "preprocessing/new-edition/new-edition-2-existing.marc");
     }
 
     @Test
     public void testNewEdition3() throws Exception {
         testExample("preprocessing/new-edition/new-edition-3-input.marc",
-                "preprocessing/new-edition/new-edition-3-output.marc");
+                "preprocessing/new-edition/new-edition-3-output.marc",
+                "preprocessing/new-edition/new-edition-3-existing.marc");
     }
 
     @Test
     public void testNewEdition4() throws Exception {
         testExample("preprocessing/new-edition/new-edition-4-input.marc",
-                "preprocessing/new-edition/new-edition-4-output.marc");
+                "preprocessing/new-edition/new-edition-4-output.marc",
+                "preprocessing/new-edition/new-edition-4-existing.marc");
+    }
+
+    @Test
+    public void testNewEdition5() throws Exception {
+        testExample("preprocessing/new-edition/new-edition-5-input.marc",
+                "preprocessing/new-edition/new-edition-5-output.marc",
+                "preprocessing/new-edition/new-edition-5-existing.marc");
+    }
+
+    @Test
+    public void testNewEdition5Null() throws Exception {
+        testExampleNotExistingRecord("preprocessing/new-edition/new-edition-5-input.marc",
+                "preprocessing/new-edition/new-edition-5-input.marc");
     }
 
     @Test
@@ -190,11 +235,38 @@ public class PreProcessingActionTest {
                 "preprocessing/age-interval/age-interval-8-output.marc");
     }
 
+
     private void testExample(String inputFileName, String expectedFileName) throws Exception {
         final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
         final MarcRecord expected = AssertActionsUtil.loadRecord(expectedFileName);
 
         state.setMarcRecord(actual);
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    private void testExample(String inputFileName, String expectedFileName, String existingFileName) throws Exception {
+        final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
+        final MarcRecord expected = AssertActionsUtil.loadRecord(expectedFileName);
+        final MarcRecord existing = existingFileName != null ? AssertActionsUtil.loadRecord(existingFileName) : null;
+
+        state.setMarcRecord(actual);
+        when(state.getRawRepo().recordExistsMaybeDeleted(anyString(), anyInt())).thenReturn(existingFileName != null);
+        when(state.getRawRepo().fetchRecord(anyString(), anyInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    private void testExampleNotExistingRecord(String inputFileName, String expectedFileName) throws Exception {
+        final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
+        final MarcRecord expected = AssertActionsUtil.loadRecord(expectedFileName);
+
+        state.setMarcRecord(actual);
+        when(state.getRawRepo().recordExists(anyString(), anyInt())).thenReturn(false);
 
         final PreProcessingAction instance = new PreProcessingAction(state);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));

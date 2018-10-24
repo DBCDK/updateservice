@@ -9,9 +9,9 @@
 512 00 *aDownloades i EPUB-format
 652 00 *mNY TITEL
 720 00 *oCalina Leonhardt*4aut
+996 00 *aDBC
 d70 00 *bPublizon
 f06 00 *bv*bl
 f07 00 *a5 410 130 9*nautoLU
 f21 00 *ahttp://dmat.dbc.dk/eVALU/get.php?isbn=9788772006338*lPublizon*fhttp://images.pubhub.dk/originals/c7f455db-0967-4a4d-a9ea-c74b08c5bf0c.jpg*n9788772006338
-s10 00 *aDBC
 z99 00 *aPublizon
