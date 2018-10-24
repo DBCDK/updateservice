@@ -204,7 +204,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     /**
      * Field 008 can have up to three different *& subfields which all have different meaning.
      * So in order to change between "first edition" and "new edition" we have to either update the existing *& with the
-     * opposite value are add a new *&.
+     * opposite value are or a new *&.
      * Simply using addOrReplace will lead to bad things
      *
      * @param record The record which should be updated
