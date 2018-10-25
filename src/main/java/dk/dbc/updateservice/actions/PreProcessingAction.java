@@ -48,6 +48,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 processCodeForEBooks(record, reader);
                 processFirstOrNewEdition(record, reader);
                 processISBNFromPreviousVersion(record, reader);
+                processAddInitialNote(record, reader);
 
                 new MarcRecordWriter(record).sort();
             }
@@ -271,6 +272,27 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         }
 
         return result;
+    }
+
+    /**
+     * Adds initial note to the record if:
+     * - The record is for music (009 *a = s or c)
+     * - Field 531 isn't already present
+     * - Field 795 is present
+     *
+     * The initial note is 'Indhold:'
+     *
+     * @param record The record to be processed
+     * @param reader Reader for record
+     */
+    private void processAddInitialNote(MarcRecord record, MarcRecordReader reader) {
+        final String subfield009a = reader.getValue("009", "a");
+
+        if (("s".equals(subfield009a) || "c".equals(subfield009a)) &&
+                !reader.hasField("531") &&
+                reader.hasField("795")) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("531", "a", "Indhold:");
+        }
     }
 
     /**
