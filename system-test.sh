@@ -18,7 +18,7 @@ function collect_logs () {
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:'${COMPOSE_PROJECT_NAME}
+  docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
 }
@@ -34,8 +34,8 @@ function startContainers () {
 
 function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
-  docker tag docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest
+  docker tag docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
 }

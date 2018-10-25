@@ -74,15 +74,15 @@ docker-compose down
 docker-compose ps
 echo "docker ps : $?"
 
-docker rmi -f docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:${USER}
+docker rmi -f docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:${USER}
 docker rmi -f docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
 docker rmi -f docker-i.dbc.dk/update-payara:${USER}
 docker-compose pull
 docker-compose up -d rawrepoDb updateserviceDb holdingsitemsDb fakeSmtp
 sleep 3
-docker tag docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:${USER}
-docker rmi docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest
+docker tag docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:${USER}
+docker rmi docker-os.dbc.dk/rawrepo-postgres-1.11-snapshot:latest
 docker tag docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:${USER}
 docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
 docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
