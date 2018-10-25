@@ -272,6 +272,24 @@ public class PreProcessingActionTest {
         assertThat(state.getMarcRecord(), equalTo(expected));
     }
 
+    @Test
+    public void testInitialNote1() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-1-input.marc",
+                "preprocessing/initial-note/initial-note-1-output.marc");
+    }
+
+    @Test
+    public void testInitialNote2() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-2-input.marc",
+                "preprocessing/initial-note/initial-note-2-output.marc");
+    }
+
+    @Test
+    public void testInitialNote3() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-3-input.marc",
+                "preprocessing/initial-note/initial-note-3-output.marc");
+    }
+
     private void testExample(String inputFileName, String expectedFileName) throws Exception {
         final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
         final MarcRecord expected = AssertActionsUtil.loadRecord(expectedFileName);
