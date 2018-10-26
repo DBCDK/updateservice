@@ -212,7 +212,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * All text (009 *a a) and music (009 a* r) must be pre-processed so ISBN from previous records (520 *n) are written
      * to this record as well. If a previous version is found in 520*n then all values from 021*a and *e must be copied
      * from the previous record.
-     *
+     * <p>
      * A couple of things to note:
      * Field 520 is repeatable
      * Subfield 520*n is repeatable
@@ -220,7 +220,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      *
      * @param record The record to be processed
      * @param reader Reader for record
-     * @throws UpdateException If rawrepo throws exception
+     * @throws UpdateException              If rawrepo throws exception
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
     private void processISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
@@ -231,12 +231,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             for (MarcField field520 : reader.getFieldAll("520")) {
                 MarcField newSubfield520 = new MarcField(field520);
                 for (MarcSubField subField : field520.getSubfields()) {
-                    if ("n".equals(subField.getName())) {
-                        if (state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
-                            List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
-                            for (String isbn : isbnFromCommonRecord) {
-                                newSubfield520.getSubfields().add(new MarcSubField("r", isbn));
-                            }
+                    if ("n".equals(subField.getName()) && state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
+                        List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
+                        for (String isbn : isbnFromCommonRecord) {
+                            newSubfield520.getSubfields().add(new MarcSubField("r", isbn));
                         }
                     }
                 }
@@ -254,7 +252,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      *
      * @param bibliographicRecordId The id of the record to find
      * @return List of values from subfield 021 *a and *e
-     * @throws UpdateException If rawrepo throws exception
+     * @throws UpdateException              If rawrepo throws exception
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
     private List<String> getISBNFromCommonRecord(String bibliographicRecordId) throws UpdateException, UnsupportedEncodingException {
@@ -279,7 +277,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * - The record is for music (009 *a = s or c)
      * - Field 531 isn't already present
      * - Field 795 is present
-     *
+     * <p>
      * The initial note is 'Indhold:'
      *
      * @param record The record to be processed
