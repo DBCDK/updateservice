@@ -47,6 +47,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 processAgeInterval(record, reader);
                 processCodeForEBooks(record, reader);
                 processFirstOrNewEdition(record, reader);
+                processISBNFromPreviousVersion(record, reader);
+                processAddInitialNote(record, reader);
+
+                new MarcRecordWriter(record).sort();
             }
 
             return ServiceResult.newOkResult();
@@ -68,6 +72,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * If there is no matching subfield then nothing is done to the record
      *
      * @param record The record to be processed
+     * @param reader Reader for record
      */
     private void processAgeInterval(MarcRecord record, MarcRecordReader reader) {
         final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
@@ -108,6 +113,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * If the conditions are not met or 008 *w1 already exists then nothing is done to the record
      *
      * @param record The record to be processed
+     * @param reader Reader for record
      */
     private void processCodeForEBooks(MarcRecord record, MarcRecordReader reader) {
         // This pre-processing action can only add 008 *w1 - so if the subfield already exists then there is no point in continuing
@@ -145,6 +151,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * Note: The first edition indicator should be only be applied if the release status (008 *u) is no longer first edition.
      *
      * @param record The record to be processed
+     * @param reader Reader for record
      */
     private void processFirstOrNewEdition(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         // 008*u = Release status
@@ -202,6 +209,91 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     /**
+     * All text (009 *a a) and music (009 a* r) must be pre-processed so ISBN from previous records (520 *n) are written
+     * to this record as well. If a previous version is found in 520*n then all values from 021*a and *e must be copied
+     * from the previous record.
+     * <p>
+     * A couple of things to note:
+     * Field 520 is repeatable
+     * Subfield 520*n is repeatable
+     * Subfield 021*a and *e are repeatable
+     *
+     * @param record The record to be processed
+     * @param reader Reader for record
+     * @throws UpdateException              If rawrepo throws exception
+     * @throws UnsupportedEncodingException If the previous record can't be decoded
+     */
+    private void processISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+        final String subfield009a = reader.getValue("009", "a");
+        final List<MarcField> newSubfield520List = new ArrayList<>();
+
+        if ("a".equals(subfield009a) || "r".equals(subfield009a)) {
+            for (MarcField field520 : reader.getFieldAll("520")) {
+                MarcField newSubfield520 = new MarcField(field520);
+                for (MarcSubField subField : field520.getSubfields()) {
+                    if ("n".equals(subField.getName()) && state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
+                        List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
+                        for (String isbn : isbnFromCommonRecord) {
+                            newSubfield520.getSubfields().add(new MarcSubField("r", isbn));
+                        }
+                    }
+                }
+                newSubfield520List.add(newSubfield520);
+            }
+
+            new MarcRecordWriter(record).removeField("520");
+            record.getFields().addAll(newSubfield520List);
+        }
+    }
+
+    /**
+     * Given a bibliographicRecordId this function retrieves that record from agency 870970 and returns a list of
+     * subfield 021 *a and *e values.
+     *
+     * @param bibliographicRecordId The id of the record to find
+     * @return List of values from subfield 021 *a and *e
+     * @throws UpdateException              If rawrepo throws exception
+     * @throws UnsupportedEncodingException If the previous record can't be decoded
+     */
+    private List<String> getISBNFromCommonRecord(String bibliographicRecordId) throws UpdateException, UnsupportedEncodingException {
+        List<String> result = new ArrayList<>();
+        MarcRecord record520 = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY).getContent());
+        MarcRecordReader record520Reader = new MarcRecordReader(record520);
+
+        for (MarcField field21 : record520Reader.getFieldAll("021")) {
+            for (MarcSubField subField21 : field21.getSubfields()) {
+                if ("a".equals(subField21.getName()) || "e".equals(subField21.getName())) {
+                    String previousISBN = subField21.getValue();
+                    result.add(previousISBN);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Adds initial note to the record if:
+     * - The record is for music (009 *a = s or c)
+     * - Field 531 isn't already present
+     * - Field 795 is present
+     * <p>
+     * The initial note is 'Indhold:'
+     *
+     * @param record The record to be processed
+     * @param reader Reader for record
+     */
+    private void processAddInitialNote(MarcRecord record, MarcRecordReader reader) {
+        final String subfield009a = reader.getValue("009", "a");
+
+        if (("s".equals(subfield009a) || "c".equals(subfield009a)) &&
+                !reader.hasField("531") &&
+                reader.hasField("795")) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("531", "a", "Indhold:");
+        }
+    }
+
+    /**
      * Field 008 can have up to three different *& subfields which all have different meaning.
      * So in order to change between "first edition" and "new edition" we have to either update the existing *& with the
      * opposite value or add a new *&.
@@ -230,7 +322,6 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 field.getSubfields().add(new MarcSubField("&", value));
             }
         }
-
     }
 
     private void remove666UFields(MarcRecord record) {
