@@ -15,12 +15,17 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.*;
+import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.SolrException;
+import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
 
 /**
  * Action to create, overwrite or delete a single record.
@@ -54,6 +59,30 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 children.add(createCreateRecordAction());
                 return ServiceResult.newOkResult();
             }
+
+            // Check for change from head or section to single
+            // Changing type from head/section to single is only allowed if the record doesn't have any common record children
+            // 004 *a e = single record
+            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && reader.hasValue("004", "a", "e")) {
+                final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+                final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+
+                // 004 *a h = head record
+                // 004 *a s = section record
+                if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
+                    Set<RecordId> children = state.getRawRepo().children(record);
+                    for (RecordId childId : children) {
+                        // 870971 records are okay as children but a 870970 means it is in volume hierarchy
+                        if (RawRepo.COMMON_AGENCY == childId.getAgencyId()) {
+                            String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), recordId, agencyId);
+
+                            logger.info("Record can't be changed from head or section record single record. Returning error: {}", recordId, reader.getAgencyId(), message);
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        }
+                    }
+                }
+            }
+
             if (reader.markedForDeletion()) {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
@@ -167,101 +196,101 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         }
     }
 
-            /*
-            Uden opstillingsændring, ingen bestand, ingen påhæng, ingen lokalopstil : NOP, der skal ikke ske noget - DONE
-            Uden opstillingsændring, ingen bestand, ingen påhæng, med lokalopstil : Umulig - kræver en påhæng -NOP
-            Uden opstillingsændring, ingen bestand, med påhæng, ingen lokalopstil : påhæng flyttes - DONE
-            Uden opstillingsændring, ingen bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
-            --
-            Uden opstillingsændring, med bestand, ingen påhæng, ingen lokalopstil : NOP, der skal ikke ske noget - DONE
-            Uden opstillingsændring, med bestand, ingen påhæng, med lokalopstil : umulig - kræver påhæng - NOP
-            Uden opstillingsændring, med bestand, med påhæng, uden lokalopstil : påhæng flyttes - DONE
-            Uden opstillingsændring, med bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
-            ______
-            Med opstillingsændring, ingen bestand, uden påhæng, uden lokalopstil : NOP, der skal ikke ske noget - DONE
-            Med opstillingsændring, ingen bestand, uden påhæng, med lokalopstil : umulig - kræver påhæng - NOP
-            Med opstillingsændring, ingen bestand, med påhæng, uden lokalopstil :
-                    afhænger af produktion :
-                            hvis moder record er i prod -> flyt uden y08aOpstillingsændring; -DONE
-                            hvis moder record ikke er i prod -> flyt og tilføj y08aOpstillingsændring - DONE
-            Med opstillingsændring, ingen bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
-            --
-            Med opstillingsændring, med bestand, ingen påhæng, uden lokalopstil : opret påhæng med y08 - DONE
-                    afhænger af produktion :
-                            hvis moder record er i prod -> ingenting - DONE
-                            hvis moder record ikke er i prod -> opret påhæng med opstil og tilføj flyttemeddelelse - DONE
-            Med opstillingsændring, med bestand, ingen påhæng, med lokalopstil : umulig - kræver påhæng - NOP
-            Med opstillingsændring, med bestand, med påhæng, uden lokalopstil :
-                    afhænger af produktion :
-                            hvis moder record er i prod -> flyt uden y08aOpstillingsændring; -DONE
-                            hvis moder record ikke er i prod -> flyt og tilføj y08aOpstillingsændring - DONE
-            Med opstillingsændring, med bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
+    /*
+    Uden opstillingsændring, ingen bestand, ingen påhæng, ingen lokalopstil : NOP, der skal ikke ske noget - DONE
+    Uden opstillingsændring, ingen bestand, ingen påhæng, med lokalopstil : Umulig - kræver en påhæng -NOP
+    Uden opstillingsændring, ingen bestand, med påhæng, ingen lokalopstil : påhæng flyttes - DONE
+    Uden opstillingsændring, ingen bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
+    --
+    Uden opstillingsændring, med bestand, ingen påhæng, ingen lokalopstil : NOP, der skal ikke ske noget - DONE
+    Uden opstillingsændring, med bestand, ingen påhæng, med lokalopstil : umulig - kræver påhæng - NOP
+    Uden opstillingsændring, med bestand, med påhæng, uden lokalopstil : påhæng flyttes - DONE
+    Uden opstillingsændring, med bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
+    ______
+    Med opstillingsændring, ingen bestand, uden påhæng, uden lokalopstil : NOP, der skal ikke ske noget - DONE
+    Med opstillingsændring, ingen bestand, uden påhæng, med lokalopstil : umulig - kræver påhæng - NOP
+    Med opstillingsændring, ingen bestand, med påhæng, uden lokalopstil :
+            afhænger af produktion :
+                    hvis moder record er i prod -> flyt uden y08aOpstillingsændring; -DONE
+                    hvis moder record ikke er i prod -> flyt og tilføj y08aOpstillingsændring - DONE
+    Med opstillingsændring, ingen bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
+    --
+    Med opstillingsændring, med bestand, ingen påhæng, uden lokalopstil : opret påhæng med y08 - DONE
+            afhænger af produktion :
+                    hvis moder record er i prod -> ingenting - DONE
+                    hvis moder record ikke er i prod -> opret påhæng med opstil og tilføj flyttemeddelelse - DONE
+    Med opstillingsændring, med bestand, ingen påhæng, med lokalopstil : umulig - kræver påhæng - NOP
+    Med opstillingsændring, med bestand, med påhæng, uden lokalopstil :
+            afhænger af produktion :
+                    hvis moder record er i prod -> flyt uden y08aOpstillingsændring; -DONE
+                    hvis moder record ikke er i prod -> flyt og tilføj y08aOpstillingsændring - DONE
+    Med opstillingsændring, med bestand, med påhæng, med lokalopstil : påhæng flyttes - DONE
 
-            Produktion : Hvis 032*a/x har en kode ude i fremtiden så er posten under produktion - samme hvis den indeholder 999999
-             */
-  private void performActionsFor002Links() throws ScripterException, UpdateException, SolrException, UnsupportedEncodingException, OpenAgencyException {
-      logger.entry("performActionsFor002Links");
-      try {
-          MarcRecordReader recordReader = new MarcRecordReader(record);
-          String recordIdForRecordToDelete = recordReader.getValue("001", "a");
-          Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
+    Produktion : Hvis 032*a/x har en kode ude i fremtiden så er posten under produktion - samme hvis den indeholder 999999
+     */
+    private void performActionsFor002Links() throws ScripterException, UpdateException, SolrException, UnsupportedEncodingException, OpenAgencyException {
+        logger.entry("performActionsFor002Links");
+        try {
+            MarcRecordReader recordReader = new MarcRecordReader(record);
+            String recordIdForRecordToDelete = recordReader.getValue("001", "a");
+            Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
 
-          String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
-          if (motherRecordId.equals("")) {
-              return;
-          }
-          logger.info("Record : {} has {} as 002 field", motherRecordId, recordIdForRecordToDelete);
-          MarcRecord motherRecord;
+            String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
+            if (motherRecordId.equals("")) {
+                return;
+            }
+            logger.info("Record : {} has {} as 002 field", motherRecordId, recordIdForRecordToDelete);
+            MarcRecord motherRecord;
 
-          if (rawRepo.recordExists(motherRecordId, agencyIdForRecordToDelete)) {
-              motherRecord = loadRecord(motherRecordId, agencyIdForRecordToDelete);
-          } else {
-              logger.warn("Solr index 002a points to a nonexisting record : {}:{}", agencyIdForRecordToDelete, motherRecordId);
-              return;
-          }
-          MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
-          logger.info("Holdings for " + recordIdForRecordToDelete);
-          Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordIdForRecordToDelete);
-          logger.info("is " + holdingAgencies.toString());
-          // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
-          boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);
-          logger.info("classificationsChanged : {}", classificationsChanged);
-          logger.info("Enrichments for {}", recordIdForRecordToDelete);
+            if (rawRepo.recordExists(motherRecordId, agencyIdForRecordToDelete)) {
+                motherRecord = loadRecord(motherRecordId, agencyIdForRecordToDelete);
+            } else {
+                logger.warn("Solr index 002a points to a nonexisting record : {}:{}", agencyIdForRecordToDelete, motherRecordId);
+                return;
+            }
+            MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
+            logger.info("Holdings for " + recordIdForRecordToDelete);
+            Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordIdForRecordToDelete);
+            logger.info("is " + holdingAgencies.toString());
+            // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
+            boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);
+            logger.info("classificationsChanged : {}", classificationsChanged);
+            logger.info("Enrichments for {}", recordIdForRecordToDelete);
 
-          Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
-          enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
-          logger.info("is " + enrichmentIds.toString());
-          Set<Integer> totalAgencies = new HashSet<>();
-          totalAgencies.addAll(holdingAgencies);
-          for (RecordId enrichmentId : enrichmentIds) {
-              totalAgencies.add(enrichmentId.getAgencyId());
-          }
+            Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
+            enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
+            logger.info("is " + enrichmentIds.toString());
+            Set<Integer> totalAgencies = new HashSet<>();
+            totalAgencies.addAll(holdingAgencies);
+            for (RecordId enrichmentId : enrichmentIds) {
+                totalAgencies.add(enrichmentId.getAgencyId());
+            }
 
-          boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(motherRecord);
-          logger.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
+            boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(motherRecord);
+            logger.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
 
-          for (Integer workAgencyId : totalAgencies) {
-              if (!state.getOpenAgencyService().hasFeature(workAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
-                  // Why this check ? 002 linking only works for agencies that uses enrichments - LJL says it can be PH/SBCI that makes it necessary - doesn't hurt so kept for now
-                  logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
-                  continue;
-              }
-              boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));
-              logger.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
-              if (hasEnrichment) {
-                  Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
-                  MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
-                  children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
-              } else {
-                  if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {
-                      children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, rrVersionOfRecordToDelete));
-                      children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, rrVersionOfRecordToDelete));
-                  }
-              }
-          }
-      } catch (Throwable e) {
-          logger.info("performActionsFor002Links fails with : {}", e.toString());
-          throw e;
-      }
+            for (Integer workAgencyId : totalAgencies) {
+                if (!state.getOpenAgencyService().hasFeature(workAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+                    // Why this check ? 002 linking only works for agencies that uses enrichments - LJL says it can be PH/SBCI that makes it necessary - doesn't hurt so kept for now
+                    logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
+                    continue;
+                }
+                boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));
+                logger.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
+                if (hasEnrichment) {
+                    Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
+                    MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
+                    children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
+                } else {
+                    if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {
+                        children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, rrVersionOfRecordToDelete));
+                        children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, rrVersionOfRecordToDelete));
+                    }
+                }
+            }
+        } catch (Throwable e) {
+            logger.info("performActionsFor002Links fails with : {}", e.toString());
+            throw e;
+        }
     }
 }
