@@ -234,7 +234,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                     if ("n".equals(subField.getName()) && state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
                         List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
                         for (String isbn : isbnFromCommonRecord) {
-                            newSubfield520.getSubfields().add(new MarcSubField("r", isbn));
+                            MarcSubField subfieldR = new MarcSubField("r", isbn);
+                            if (!field520.getSubfields().contains(subfieldR)) {
+                                newSubfield520.getSubfields().add(subfieldR);
+                            }
                         }
                     }
                 }
