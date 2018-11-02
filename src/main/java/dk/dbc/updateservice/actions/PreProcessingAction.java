@@ -47,7 +47,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 processAgeInterval(record, reader);
                 processCodeForEBooks(record, reader);
                 processFirstOrNewEdition(record, reader);
-                processISBNFromPreviousVersion(record, reader);
+                processISBNFromPreviousEdition(record, reader);
                 processAddInitialNote(record, reader);
 
                 new MarcRecordWriter(record).sort();
@@ -210,7 +210,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     /**
      * All text (009 *a a) and sound (009 a* r) must be pre-processed so ISBN from previous records (520 *n) are written
-     * to this record as well. If a previous version is found in 520*n then all values from 021*a and *e must be copied
+     * to this record as well. If a previous edition is found in 520*n then all values from 021*a and *e must be copied
      * from the previous record.
      * <p>
      * A couple of things to note:
@@ -223,22 +223,19 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @throws UpdateException              If rawrepo throws exception
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
-    private void processISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+    private void processISBNFromPreviousEdition(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         // This record has field 520 which means it might be a text or sound record
         if (reader.hasSubfield("520", "n")) {
             // This record is indeed a text or sound record
             if (reader.hasValue("009", "a", "a") || reader.hasValue("009", "a", "r")) {
-                update520WithISBNFromPreviousVersion(record, reader);
+                update520WithISBNFromPreviousEdition(record, reader);
             } else if (reader.hasValue("004", "a", "b")) {
                 // If the record has a head volume and that head volume is text or sound, then process the 520 field anyway
-                String parentId = getHeadVolumeId(reader);
+                final MarcRecordReader parentReader = getHeadVolumeId(reader);
 
-                if (parentId != null) {
-                    final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, RawRepo.COMMON_AGENCY).getContent());
-                    final MarcRecordReader parentReader = new MarcRecordReader(parent);
-
+                if (parentReader != null) {
                     if (parentReader.hasValue("009", "a", "a") || parentReader.hasValue("009", "a", "r")) {
-                        update520WithISBNFromPreviousVersion(record, reader);
+                        update520WithISBNFromPreviousEdition(record, reader);
                     }
                 }
             }
@@ -254,7 +251,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @throws UpdateException              If rawrepo throws exception
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
-    private String getHeadVolumeId(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+    private MarcRecordReader getHeadVolumeId(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         // Check if input record even has a parent
         if (reader.getParentRecordId() == null) {
             return null;
@@ -264,7 +261,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         final MarcRecordReader parentReader = new MarcRecordReader(parent);
 
         if (parentReader.hasValue("004", "a", "h")) { // Parent is a head volume - so return that
-            return parentReader.getRecordId();
+            return parentReader;
         } else if (parentReader.hasValue("004", "a", "s")) {
             if (parentReader.getParentRecordId() == null) { // Parent is a section volume - check if that record has a parent
                 // No parent to the section volume - it shouldn't really happen but it might
@@ -272,9 +269,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             } else {
                 // Parent to the section volume is found - we assume it is a head volume
                 final MarcRecord nextParent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentReader.getParentRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                final MarcRecordReader nextParentReader = new MarcRecordReader(nextParent);
 
-                return nextParentReader.getRecordId();
+                return new MarcRecordReader(nextParent);
             }
         }
 
@@ -290,7 +286,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @throws UpdateException              If rawrepo throws exception
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
-    private void update520WithISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+    private void update520WithISBNFromPreviousEdition(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         final List<MarcField> newSubfield520List = new ArrayList<>();
         for (MarcField field520 : reader.getFieldAll("520")) {
             final MarcField newSubfield520 = new MarcField(field520); // Clone the field so we can manipulate it while looping
@@ -331,12 +327,9 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             return getISBNsFromRecord(record520Reader);
         } else if (record520Reader.hasValue("004", "a", "b")) {
             // If this record doesn't have ISBN field and it is a volume record then look at the parent head volume
-            String parentId = getHeadVolumeId(record520Reader);
+            final MarcRecordReader parentReader = getHeadVolumeId(record520Reader);
 
-            if (parentId != null) {
-                final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, RawRepo.COMMON_AGENCY).getContent());
-                final MarcRecordReader parentReader = new MarcRecordReader(parent);
-
+            if (parentReader != null) {
                 if (parentReader.hasSubfield("021", "a") || parentReader.hasSubfield("021", "e")) {
                     return getISBNsFromRecord(parentReader);
                 }
