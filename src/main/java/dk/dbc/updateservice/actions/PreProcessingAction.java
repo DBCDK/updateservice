@@ -209,7 +209,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     /**
-     * All text (009 *a a) and music (009 a* r) must be pre-processed so ISBN from previous records (520 *n) are written
+     * All text (009 *a a) and sound (009 a* r) must be pre-processed so ISBN from previous records (520 *n) are written
      * to this record as well. If a previous version is found in 520*n then all values from 021*a and *e must be copied
      * from the previous record.
      * <p>
@@ -224,29 +224,92 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
     private void processISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
-        final String subfield009a = reader.getValue("009", "a");
-        final List<MarcField> newSubfield520List = new ArrayList<>();
+        // This record has field 520 which means it might be a text or sound record
+        if (reader.hasSubfield("520", "n")) {
+            // This record is indeed a text or sound record
+            if (reader.hasValue("009", "a", "a") || reader.hasValue("009", "a", "r")) {
+                update520WithISBNFromPreviousVersion(record, reader);
+            } else if (reader.hasValue("004", "a", "b")) {
+                // If the record has a head volume and that head volume is text or sound, then process the 520 field anyway
+                String parentId = getHeadVolumeId(reader);
 
-        if ("a".equals(subfield009a) || "r".equals(subfield009a)) {
-            for (MarcField field520 : reader.getFieldAll("520")) {
-                MarcField newSubfield520 = new MarcField(field520);
-                for (MarcSubField subField : field520.getSubfields()) {
-                    if ("n".equals(subField.getName()) && state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
-                        List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
-                        for (String isbn : isbnFromCommonRecord) {
-                            MarcSubField subfieldR = new MarcSubField("r", isbn);
-                            if (!field520.getSubfields().contains(subfieldR)) {
-                                newSubfield520.getSubfields().add(subfieldR);
-                            }
+                if (parentId != null) {
+                    final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, RawRepo.COMMON_AGENCY).getContent());
+                    final MarcRecordReader parentReader = new MarcRecordReader(parent);
+
+                    if (parentReader.hasValue("009", "a", "a") || parentReader.hasValue("009", "a", "r")) {
+                        update520WithISBNFromPreviousVersion(record, reader);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This function attempts to find the parent head volume. If there is no parent or the top parent isn't a head volume
+     * then null is returned.
+     *
+     * @param reader MarcRecordReader of the record to find the parent for
+     * @return MarcRecord if there is a head volume in the top parent hierarchy else null
+     * @throws UpdateException              If rawrepo throws exception
+     * @throws UnsupportedEncodingException If the previous record can't be decoded
+     */
+    private String getHeadVolumeId(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+        // Check if input record even has a parent
+        if (reader.getParentRecordId() == null) {
+            return null;
+        }
+
+        final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), RawRepo.COMMON_AGENCY).getContent());
+        final MarcRecordReader parentReader = new MarcRecordReader(parent);
+
+        if (parentReader.hasValue("004", "a", "h")) { // Parent is a head volume - so return that
+            return parentReader.getRecordId();
+        } else if (parentReader.hasValue("004", "a", "s")) {
+            if (parentReader.getParentRecordId() == null) { // Parent is a section volume - check if that record has a parent
+                // No parent to the section volume - it shouldn't really happen but it might
+                return null;
+            } else {
+                // Parent to the section volume is found - we assume it is a head volume
+                final MarcRecord nextParent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentReader.getParentRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                final MarcRecordReader nextParentReader = new MarcRecordReader(nextParent);
+
+                return nextParentReader.getRecordId();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * This function loops over all 520 field in the input record and add 520 *r subfield for each ISBN found in the
+     * records in 520 *n references
+     *
+     * @param record The record to update
+     * @param reader MarcRecordReader of the record
+     * @throws UpdateException              If rawrepo throws exception
+     * @throws UnsupportedEncodingException If the previous record can't be decoded
+     */
+    private void update520WithISBNFromPreviousVersion(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+        final List<MarcField> newSubfield520List = new ArrayList<>();
+        for (MarcField field520 : reader.getFieldAll("520")) {
+            final MarcField newSubfield520 = new MarcField(field520); // Clone the field so we can manipulate it while looping
+            for (MarcSubField subField : field520.getSubfields()) {
+                if ("n".equals(subField.getName()) && state.getRawRepo().recordExists(subField.getValue(), RawRepo.COMMON_AGENCY)) {
+                    final List<String> isbnFromCommonRecord = getISBNFromCommonRecord(subField.getValue());
+                    for (String isbn : isbnFromCommonRecord) {
+                        final MarcSubField subfieldR = new MarcSubField("r", isbn);
+                        if (!field520.getSubfields().contains(subfieldR)) {
+                            newSubfield520.getSubfields().add(subfieldR);
                         }
                     }
                 }
-                newSubfield520List.add(newSubfield520);
             }
-
-            new MarcRecordWriter(record).removeField("520");
-            record.getFields().addAll(newSubfield520List);
+            newSubfield520List.add(newSubfield520);
         }
+
+        new MarcRecordWriter(record).removeField("520");
+        record.getFields().addAll(newSubfield520List);
     }
 
     /**
@@ -259,14 +322,42 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException If the previous record can't be decoded
      */
     private List<String> getISBNFromCommonRecord(String bibliographicRecordId) throws UpdateException, UnsupportedEncodingException {
-        List<String> result = new ArrayList<>();
-        MarcRecord record520 = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY).getContent());
-        MarcRecordReader record520Reader = new MarcRecordReader(record520);
+        final List<String> result = new ArrayList<>();
+        final MarcRecord record520 = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY).getContent());
+        final MarcRecordReader record520Reader = new MarcRecordReader(record520);
 
-        for (MarcField field21 : record520Reader.getFieldAll("021")) {
+        // If this record has the ISBN fields then get ISBN from this record
+        if (record520Reader.hasSubfield("021", "a") || record520Reader.hasSubfield("021", "e")) {
+            return getISBNsFromRecord(record520Reader);
+        } else if (record520Reader.hasValue("004", "a", "b")) {
+            // If this record doesn't have ISBN field and it is a volume record then look at the parent head volume
+            String parentId = getHeadVolumeId(record520Reader);
+
+            if (parentId != null) {
+                final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentId, RawRepo.COMMON_AGENCY).getContent());
+                final MarcRecordReader parentReader = new MarcRecordReader(parent);
+
+                if (parentReader.hasSubfield("021", "a") || parentReader.hasSubfield("021", "e")) {
+                    return getISBNsFromRecord(parentReader);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Given a MarcRecordReader this function returns a list of all values from subfield 021 *a and *e from that record
+     *
+     * @param reader MarcRecordReader of the record to find the subfields in
+     * @return List of values from subfield 021 *a and *e. List is empty if no subfield is found
+     */
+    private List<String> getISBNsFromRecord(MarcRecordReader reader) {
+        final List<String> result = new ArrayList<>();
+        for (MarcField field21 : reader.getFieldAll("021")) {
             for (MarcSubField subField21 : field21.getSubfields()) {
                 if ("a".equals(subField21.getName()) || "e".equals(subField21.getName())) {
-                    String previousISBN = subField21.getValue();
+                    final String previousISBN = subField21.getValue();
                     result.add(previousISBN);
                 }
             }
