@@ -233,10 +233,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 // If the record has a head volume and that head volume is text or sound, then process the 520 field anyway
                 final MarcRecordReader parentReader = getHeadVolumeId(reader);
 
-                if (parentReader != null) {
-                    if (parentReader.hasValue("009", "a", "a") || parentReader.hasValue("009", "a", "r")) {
-                        update520WithISBNFromPreviousEdition(record, reader);
-                    }
+                if (parentReader != null && parentReader.hasValue("009", "a", "a") || parentReader.hasValue("009", "a", "r")) {
+                    update520WithISBNFromPreviousEdition(record, reader);
                 }
             }
         }
@@ -329,10 +327,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             // If this record doesn't have ISBN field and it is a volume record then look at the parent head volume
             final MarcRecordReader parentReader = getHeadVolumeId(record520Reader);
 
-            if (parentReader != null) {
-                if (parentReader.hasSubfield("021", "a") || parentReader.hasSubfield("021", "e")) {
-                    return getISBNsFromRecord(parentReader);
-                }
+            if (parentReader != null && parentReader.hasSubfield("021", "a") || parentReader.hasSubfield("021", "e")) {
+                return getISBNsFromRecord(parentReader);
             }
         }
 
