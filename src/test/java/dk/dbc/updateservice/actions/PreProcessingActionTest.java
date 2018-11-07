@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,6 +17,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 public class PreProcessingActionTest {
@@ -235,6 +237,163 @@ public class PreProcessingActionTest {
                 "preprocessing/age-interval/age-interval-8-output.marc");
     }
 
+    @Test
+    public void testPreviousISBN1() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-expected.marc");
+        final MarcRecord previous = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-rawrepo-29469237-870970.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("29469237"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("29469237"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testPreviousISBN2() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-2-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-2-expected.marc");
+        final MarcRecord previous1 = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-2-rawrepo-52079020-870970.marc");
+        final MarcRecord previous2 = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-2-rawrepo-52106249-870970.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("52079020"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("52079020"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("52106249"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("52106249"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous2, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testPreviousISBN3_ParentIsHead() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-expected.marc");
+        final MarcRecord previous = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-rawrepo-05259282-870970.marc");
+        final MarcRecord requestParent = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-rawrepo-54948441-870970.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testPreviousISBN3_ParentIsSection() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-request.marc");
+        final MarcRecord previous = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-rawrepo-05259282-870970.marc");
+        final MarcRecord requestParent = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-3-rawrepo-54948441-870970-section.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(request));
+    }
+
+    @Test
+    public void testPreviousISBN4() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-4-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-4-expected.marc");
+        final MarcRecord previous = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-4-rawrepo-29469237-870970.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("29469237"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("29469237"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testPreviousISBN5() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-5-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-5-expected.marc");
+        final MarcRecord previous1 = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-5-rawrepo-52079020-870970.marc");
+        final MarcRecord previous2 = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-5-rawrepo-52106249-870970.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("52079020"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("52079020"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous1, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("52106249"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("52106249"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous2, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testPreviousISBN6() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-6-request.marc");
+
+        state.setMarcRecord(request);
+        when(state.getRawRepo().recordExists(eq("29469237"), eq(870970))).thenReturn(false);
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(request));
+    }
+
+    @Test
+    public void testPreviousISBN7() throws Exception {
+        final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-7-request.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-7-expected.marc");
+        final MarcRecord headVolume = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-7-rawrepo-head-volume.marc");
+        final MarcRecord sectionVolume = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-7-rawrepo-section-volume.marc");
+        final MarcRecord previous = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-7-rawrepo-50953033-870970.marc");
+
+        state.setMarcRecord(request);
+
+        when(state.getRawRepo().recordExists(eq("50953033"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("50953033"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq("27364500"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(headVolume, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq("27430961"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(sectionVolume, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        new MarcRecordWriter(state.getMarcRecord()).sort();
+        assertThat(state.getMarcRecord(), equalTo(expected));
+
+    }
+
+    @Test
+    public void testInitialNote1() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-1-input.marc",
+                "preprocessing/initial-note/initial-note-1-output.marc");
+    }
+
+    @Test
+    public void testInitialNote2() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-2-input.marc",
+                "preprocessing/initial-note/initial-note-2-output.marc");
+    }
+
+    @Test
+    public void testInitialNote3() throws Exception {
+        testExample("preprocessing/initial-note/initial-note-3-input.marc",
+                "preprocessing/initial-note/initial-note-3-output.marc");
+    }
 
     private void testExample(String inputFileName, String expectedFileName) throws Exception {
         final MarcRecord actual = AssertActionsUtil.loadRecord(inputFileName);
