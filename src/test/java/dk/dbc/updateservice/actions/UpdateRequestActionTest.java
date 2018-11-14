@@ -27,6 +27,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
 public class UpdateRequestActionTest {
     private GlobalActionState state;
@@ -362,6 +364,7 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
         state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        when(state.getRawRepo().checkProvider(eq("new_provider_name"))).thenReturn(true);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));

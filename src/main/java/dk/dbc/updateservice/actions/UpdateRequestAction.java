@@ -121,8 +121,14 @@ public class UpdateRequestAction extends AbstractAction {
                 Properties newSettings = (Properties) settings.clone();
 
                 if (bibliographicRecordExtraData.getProviderName() != null) {
-                    logger.info("Provider name found in request - using {} as override provider for rawrepo queue", bibliographicRecordExtraData.getProviderName());
-                    newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
+                    final String providerName = bibliographicRecordExtraData.getProviderName();
+                    if (state.getRawRepo().checkProvider(providerName)) {
+                        logger.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                        newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
+                    } else {
+                        logger.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.");
+                        throw new UpdateException("Provider " + providerName + " findes ikke.");
+                    }
                 }
 
                 if (bibliographicRecordExtraData.getPriority() != null) {
