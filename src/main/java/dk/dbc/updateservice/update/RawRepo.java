@@ -658,6 +658,31 @@ public class RawRepo {
         }
     }
 
+    public boolean checkProvider(String provider) throws UpdateException {
+        logger.entry(provider);
+        boolean result = false;
+        final StopWatch watch = new Log4JStopWatch();
+        try (Connection conn = dataSourceWriter.getConnection()) {
+            try {
+                final RawRepoDAO dao = createDAO(conn);
+
+                result = dao.checkProvider(provider);
+
+                return result;
+            } catch (RawRepoException ex) {
+                conn.rollback();
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (SQLException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new UpdateException(ex.getMessage(), ex);
+        } finally {
+            watch.stop("rawrepo.checkProvider");
+            logger.exit(result);
+        }
+    }
+
     /**
      * Encodes the record as marcxchange.
      *
