@@ -85,6 +85,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+
+                // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
+                // don't actually have to change anything in the child record
+                children.add(new OverwriteSingleRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
+
                 Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
                 updatedRecordCollection.put(reader.getRecordId(), record);
                 try {
