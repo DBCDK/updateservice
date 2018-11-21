@@ -109,6 +109,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             MarcRecordReader reader = new MarcRecordReader(record);
             create001dForFBSRecords(reader);
+            keep001dForExistingRecords(reader);
             children.add(new AuthenticateRecordAction(state, record));
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
@@ -235,6 +236,24 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 writer.setCreationTimestamp();
                 logger.info("Adding new date to field 001 , subfield d : " + record);
             }
+        }
+    }
+
+    /**
+     * If the record aready exist then always overwrite the creation date with the original creation date
+     *
+     * @param reader MarcRecordReader for record
+     * @throws UpdateException              when something goes wrong
+     * @throws UnsupportedEncodingException when UTF8 doesn't work
+     */
+    void keep001dForExistingRecords(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
+        if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+            MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+
+            MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+            String original001d = existingReader.getValue("001", "d");
+
+            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", original001d);
         }
     }
 
