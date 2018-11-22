@@ -986,4 +986,31 @@ public class UpdateOperationActionTest {
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
+
+    @Test
+    public void testKeepCreatedDate() throws Exception {
+        MarcRecord existing = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+
+        new MarcRecordWriter(existing).addOrReplaceSubfield("001", "d", "20182221");
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("20611529"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
+        state.setMarcRecord(new MarcRecord(record));
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.keep001dForExistingRecords(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(existing));
+    }
+
+    @Test
+    public void testKeepCreatedDateNewRecord() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(false);
+        state.setMarcRecord(new MarcRecord(record));
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.keep001dForExistingRecords(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(record));
+    }
 }
