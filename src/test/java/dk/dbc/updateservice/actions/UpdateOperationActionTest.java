@@ -1013,4 +1013,20 @@ public class UpdateOperationActionTest {
 
         assertThat(instance.getRecord(), equalTo(record));
     }
+
+    @Test
+    public void testKeepCreatedDateAdmin() throws Exception {
+        MarcRecord existing = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setUserId("ADMIN");
+
+        new MarcRecordWriter(existing).addOrReplaceSubfield("001", "d", "20182221");
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(true);
+        state.setMarcRecord(new MarcRecord(record));
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.keep001dForExistingRecords(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(record));
+    }
 }

@@ -498,6 +498,12 @@ public class GlobalActionState {
         return this.recordExists;
     }
 
+    public boolean isAdmin() {
+        String userId = updateServiceRequestDTO.getAuthenticationDTO().getUserId();
+
+        return "admin".equalsIgnoreCase(userId);
+    }
+
     public OpenAgencyService.LibraryGroup getLibraryGroup() throws UpdateException {
         if (libraryGroup == null) {
             String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();

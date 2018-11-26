@@ -247,7 +247,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
     void keep001dForExistingRecords(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
-        if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+        if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt()) && !state.isAdmin()) {
             MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
 
             MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
@@ -310,6 +310,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
         logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
+        logger.info("User is admin?...........: " + state.isAdmin());
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
