@@ -88,7 +88,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
                 // don't actually have to change anything in the child record
-                children.add(new OverwriteSingleRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
+                children.add(new UpdateCommonRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
 
                 // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
                 final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
