@@ -990,7 +990,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testKeepCreatedDateOverwriteWithExisting() throws Exception {
+    public void testSetCreatedDateOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
@@ -1007,12 +1007,28 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testKeepCreatedDateNewRecord() throws Exception {
+    public void testSetCreatedDateNewRecordWith001d() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
+
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+        MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+
+        when(state.getOpenAgencyService().hasFeature("010100", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(false);
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateNewRecordWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
 
-        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", null);
         MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", format.format(LocalDateTime.now()));
 
         when(state.getOpenAgencyService().hasFeature("010100", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -1025,7 +1041,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testKeepCreatedDateAdmin() throws Exception {
+    public void testSetCreatedDateAdmin() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
@@ -1042,7 +1058,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testKeepCreatedDateFFUWithoutCreated() throws Exception {
+    public void testSetCreatedDateFFUWithoutCreated() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("222222");
 
         MarcRecord record = constructRecordWith001("20611529", "222222", "20001234", null);
@@ -1058,7 +1074,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testKeepCreatedDateFBSOverwriteWithExisting() throws Exception {
+    public void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("333333");
 
         MarcRecord existing = constructRecordWith001("20611529", "333333", "20001234", "20182221");
