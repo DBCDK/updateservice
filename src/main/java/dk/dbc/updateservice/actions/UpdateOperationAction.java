@@ -108,8 +108,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
-            create001dForFBSRecords(reader);
-            keep001dForExistingRecords(reader);
+            setCreatedDate(reader);
             children.add(new AuthenticateRecordAction(state, record));
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
@@ -228,32 +227,36 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
 
-    private void create001dForFBSRecords(MarcRecordReader reader) throws UpdateException {
-        if (state.getLibraryGroup().isFBS()) {
-            String valOf001 = reader.getValue("001", "d");
-            if (StringUtils.isEmpty(valOf001)) {
+    /**
+     * This function handles the creation date (001 *d).
+     * If the record already exists, and there is a creation date on the existing record then use that value
+     * If the record is new then set creation date to the current date
+     * <p>
+     * Only applicable for agencies which uses enrichments (i.e. FFU and lokbib are ignored)
+     *
+     * @param reader MarcRecordReader of the record to be checked
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
+        String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        // If the user has admin role in DBCKat then we don't touch created date
+        // Setting 001d is only applicable for libraries using enrichments
+        if (!state.isAdmin() && state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+            if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+
+                MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+                String original001d = existingReader.getValue("001", "d");
+
+                if (original001d != null && !original001d.isEmpty()) {
+                    new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", original001d);
+                }
+            } else {
                 MarcRecordWriter writer = new MarcRecordWriter(record);
                 writer.setCreationTimestamp();
                 logger.info("Adding new date to field 001 , subfield d : " + record);
             }
-        }
-    }
-
-    /**
-     * If the record aready exist then always overwrite the creation date with the original creation date
-     *
-     * @param reader MarcRecordReader for record
-     * @throws UpdateException              when something goes wrong
-     * @throws UnsupportedEncodingException when UTF8 doesn't work
-     */
-    void keep001dForExistingRecords(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
-        if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt()) && !state.isAdmin()) {
-            MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-
-            MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-            String original001d = existingReader.getValue("001", "d");
-
-            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", original001d);
         }
     }
 
