@@ -253,9 +253,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", original001d);
                 }
             } else {
-                MarcRecordWriter writer = new MarcRecordWriter(record);
-                writer.setCreationTimestamp();
-                logger.info("Adding new date to field 001 , subfield d : " + record);
+                String createdDate = reader.getValue("001", "d");
+                if (StringUtils.isEmpty(createdDate)) {
+                    MarcRecordWriter writer = new MarcRecordWriter(record);
+                    writer.setCreationTimestamp();
+                    logger.info("Adding new date to field 001 , subfield d : " + record);
+                }
             }
         }
     }
