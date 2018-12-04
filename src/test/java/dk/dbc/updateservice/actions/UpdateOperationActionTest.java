@@ -22,6 +22,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -986,4 +988,122 @@ public class UpdateOperationActionTest {
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
         assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
     }
+
+    @Test
+    public void testSetCreatedDateOverwriteWithExisting() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
+
+        MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+        MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", "20182221");
+        when(state.getOpenAgencyService().hasFeature(eq("010100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("20611529"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateNewRecordWith001d() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
+
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+        MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+
+        when(state.getOpenAgencyService().hasFeature("010100", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(false);
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateNewRecordWithout001d() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
+
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", null);
+        MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", format.format(LocalDateTime.now()));
+
+        when(state.getOpenAgencyService().hasFeature("010100", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(false);
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateAdmin() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
+
+        MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+        MarcRecord expected = constructRecordWith001("20611529", "870970", "20001234", "19001234");
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setUserId("ADMIN");
+        when(state.getOpenAgencyService().hasFeature("010100", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(870970))).thenReturn(true);
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateFFUWithoutCreated() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("222222");
+
+        MarcRecord record = constructRecordWith001("20611529", "222222", "20001234", null);
+        MarcRecord expected = constructRecordWith001("20611529", "222222", "20001234", null);
+
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setUserId("ADMIN");
+        when(state.getOpenAgencyService().hasFeature("222222", LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(false);
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
+        state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("333333");
+
+        MarcRecord existing = constructRecordWith001("20611529", "333333", "20001234", "20182221");
+        MarcRecord record = constructRecordWith001("20611529", "333333", "20001234", "19001234");
+        MarcRecord expected = constructRecordWith001("20611529", "333333", "20001234", "20182221");
+        when(state.getOpenAgencyService().hasFeature(eq("333333"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq("20611529"), eq(333333))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("20611529"), eq(333333))).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
+        state.setMarcRecord(record);
+        UpdateOperationAction instance = new UpdateOperationAction(state, settings);
+        instance.setCreatedDate(new MarcRecordReader(record));
+
+        assertThat(instance.getRecord(), equalTo(expected));
+    }
+
+    private MarcRecord constructRecordWith001(String bibliographicRecordId, String agencyId, String modified, String created) {
+        MarcField field = new MarcField("001", "00");
+        field.getSubfields().add(new MarcSubField("a", bibliographicRecordId));
+        field.getSubfields().add(new MarcSubField("b", agencyId));
+        field.getSubfields().add(new MarcSubField("c", modified));
+
+        if (created != null) {
+            field.getSubfields().add(new MarcSubField("d", created));
+        }
+
+        MarcRecord record = new MarcRecord();
+        record.getFields().add(field);
+
+        return record;
+    }
+
 }

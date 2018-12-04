@@ -70,7 +70,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
@@ -81,16 +81,31 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
         if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
-            Set<RecordId> ids = state.getRawRepo().children(record);
+            final Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
-                Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
-                Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
+                final Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+
+                // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
+                // don't actually have to change anything in the child record
+                children.add(new UpdateCommonRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
+
+                // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
+                final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
+                for (RecordId enrichmentToChild : enrichmentsToChild) {
+                    if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
+                        final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
+                                enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
+                        children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+                    }
+                }
+
+                final Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
                 updatedRecordCollection.put(reader.getRecordId(), record);
                 try {
-                    MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
+                    final MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
                             ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, id.getBibliographicRecordId()), settings);
-                    MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
+                    final MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
                             ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()), settings);
                     children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentCommonRecord));
                 } catch (RawRepoException e) {
