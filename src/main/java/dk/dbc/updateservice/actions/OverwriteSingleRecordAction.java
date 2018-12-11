@@ -86,17 +86,20 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 final Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
 
-                // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
-                // don't actually have to change anything in the child record
-                children.add(new UpdateCommonRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
 
-                // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
-                final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
-                for (RecordId enrichmentToChild : enrichmentsToChild) {
-                    if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
-                        final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
-                                enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
-                        children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+                if (authorityRecordHasProofPrintingDiff(record)) {
+                    // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
+                    // don't actually have to change anything in the child record
+                    children.add(new UpdateCommonRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
+
+                    // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
+                    final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
+                    for (RecordId enrichmentToChild : enrichmentsToChild) {
+                        if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
+                            final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
+                                    enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+                        }
                     }
                 }
 
@@ -111,12 +114,37 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 } catch (RawRepoException e) {
                     throw new UpdateException("Exception while expanding the records", e);
                 }
-
             }
         }
 
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+    }
+
+    /**
+     * This function checks if the authority record has been changed in a way which affects proof printing (korrekturprint)
+     * <p>
+     * The rule is the child common records should be updated if field 100 (non repeatable), 400 (repeatable) or 500 (repeatable)
+     * in the authority record has been changed.
+     *
+     * @param record The incoming authority record
+     * @return True if field 100, 400 or 500 has been changed
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    boolean authorityRecordHasProofPrintingDiff(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+        if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+            final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+            final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+            // Field exists in the updated record but not in the current record -> korrekturprint
+            return !(currentReader.getField("100").equals(reader.getField("100")) &&
+                    currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
+                    currentReader.getFieldAll("500").equals(reader.getFieldAll("500")));
+        } else {
+            return false;
+        }
     }
 
     private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
