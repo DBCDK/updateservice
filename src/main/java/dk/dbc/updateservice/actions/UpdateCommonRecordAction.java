@@ -111,7 +111,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 rewriteIndicators();
             }
 
-            if (CatalogExtractionCode.isUnderProduction(record)) {
+            if (!CatalogExtractionCode.isPublished(record)) {
                 logger.info("Record is under production - checking if there are any metacompass fields to copy to 666");
                 copyMetaCompassFields();
             }

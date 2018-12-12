@@ -282,4 +282,16 @@ public class UpdateCommonRecordActionTest {
         assertThat(actual, is(expected));
     }
 
+    @Test
+    public void testMetaCompassCopy_ACC() throws Exception{
+        MarcRecord actual = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-3-input.marc");
+        MarcRecord expected = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-3-expected.marc");
+
+        UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, actual);
+        updateCommonRecordAction.copyMetaCompassFields();
+
+        new MarcRecordWriter(actual).sort();
+
+        assertThat(actual, is(expected));
+    }
 }
