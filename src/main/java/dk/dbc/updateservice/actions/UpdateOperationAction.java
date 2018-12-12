@@ -239,7 +239,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException
      */
     void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
-        String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
         if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && !state.isAdmin()) {
             if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
