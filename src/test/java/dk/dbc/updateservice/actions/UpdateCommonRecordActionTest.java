@@ -294,4 +294,20 @@ public class UpdateCommonRecordActionTest {
 
         assertThat(actual, is(expected));
     }
+
+    @Test
+    public void test_isYearInterval() throws Exception {
+        UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, null);
+
+        assertThat(updateCommonRecordAction.isYearInterval("1900-2000"), is(true));
+        assertThat(updateCommonRecordAction.isYearInterval("0-90"), is(true));
+        assertThat(updateCommonRecordAction.isYearInterval("2400 BC - 23500"), is(true));
+
+        assertThat(updateCommonRecordAction.isYearInterval("år 1900 til år 2000"), is(false));
+        assertThat(updateCommonRecordAction.isYearInterval(""), is(false));
+        assertThat(updateCommonRecordAction.isYearInterval("-"), is(false));
+        assertThat(updateCommonRecordAction.isYearInterval("1942-"), is(false));
+        assertThat(updateCommonRecordAction.isYearInterval("not a year interval"), is(false));
+    }
+
 }

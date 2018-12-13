@@ -43,7 +43,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
     private Properties settings;
 
-    private static final List<String> metacompassSubFieldsToCopy = Arrays.asList("e", "i", "g");
+    private static final List<String> metacompassSubFieldsToCopy = Arrays.asList("e", "g", "p", "m");
 
     public UpdateCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(UpdateCommonRecordAction.class.getSimpleName(), globalActionState, record);
@@ -180,7 +180,16 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                         subfieldsToCopy.add(new MarcSubField("q", subfield.getValue()));
                     }
 
-                    // 665 *e/*i/*g -> 666 *s
+                    // 665 *i -> 666 *i is year interval, otherwise *i -> *s
+                    if ("i".equals(subfield.getName())) {
+                        if (isYearInterval(subfield.getValue())) {
+                            subfieldsToCopy.add(new MarcSubField("i", subfield.getValue()));
+                        } else {
+                            subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
+                        }
+                    }
+
+                    // 665 *e/*g/*p/*m -> 666 *s
                     if (metacompassSubFieldsToCopy.contains(subfield.getName())) {
                         subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
                     }
@@ -214,5 +223,15 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
         }
+    }
+
+    /**
+     * Check if a string matches the year interval pattern
+     *
+     * @param value The string to check
+     * @return True if the pattern matches otherwise False
+     */
+    boolean isYearInterval(String value) {
+        return value.matches(".*\\d+.*-.*\\d+.*");
     }
 }
