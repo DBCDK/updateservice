@@ -173,7 +173,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
         for (MarcField field : fields665) {
             if (field.getSubfields().stream().
-                    anyMatch(subfield -> "&".equals(subfield.getName()) && "LEKTOR".equals(subfield.getValue()))) {
+                    anyMatch(subfield -> "&".equals(subfield.getName()) && "LEKTOR".equalsIgnoreCase(subfield.getValue()))) {
                 for (MarcSubField subfield : field.getSubfields()) {
                     // 665 *q -> 666 *q
                     if ("q".equals(subfield.getName())) {
