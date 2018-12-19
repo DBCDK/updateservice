@@ -4,7 +4,7 @@
 
 UpdaterService er en SOAP webservice som bruges til at validerer og indlægge poster i råpostrepositoriet.
 Servicen er udviklet med Java EE og kræver en Java EE 7 container for at kunne afvikles. Servicen er blevet testet
-med Glassfish 4.0.
+med Payara 4.0.
 
 ### Developers how-to
 
