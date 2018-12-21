@@ -232,6 +232,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      * @return True if the pattern matches otherwise False
      */
     boolean isYearInterval(String value) {
-        return value.matches(".*\\d+.*-.*\\d+.*");
+        return value.matches("\\d+-\\d+");
     }
 }
