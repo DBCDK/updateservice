@@ -111,7 +111,13 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 rewriteIndicators();
             }
 
-            if (!CatalogExtractionCode.isPublished(record)) {
+            /*
+             * If the record is not yet published and the record is sent from metakompas then copy relevant 665 subfields to 666.
+             *
+             * Note that in order to be able manually edit the copied 666 subfields the copy only happens when using the
+             * metakompas schema.
+             */
+            if (!CatalogExtractionCode.isPublished(record) && "metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                 logger.info("Record is under production - checking if there are any metacompass fields to copy to 666");
                 copyMetaCompassFields();
             }
