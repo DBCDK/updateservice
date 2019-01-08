@@ -238,6 +238,54 @@ public class PreProcessingActionTest {
     }
 
     @Test
+    public void testSupplierRelations1() throws Exception {
+        testExample("preprocessing/supplier-relations/test-1-input.marc",
+                "preprocessing/supplier-relations/test-1-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations2() throws Exception {
+        testExample("preprocessing/supplier-relations/test-2-input.marc",
+                "preprocessing/supplier-relations/test-2-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations3() throws Exception {
+        testExample("preprocessing/supplier-relations/test-3-input.marc",
+                "preprocessing/supplier-relations/test-3-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations4() throws Exception {
+        testExample("preprocessing/supplier-relations/test-4-input.marc",
+                "preprocessing/supplier-relations/test-4-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations5() throws Exception {
+        testExample("preprocessing/supplier-relations/test-5-input.marc",
+                "preprocessing/supplier-relations/test-5-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations6() throws Exception {
+        testExample("preprocessing/supplier-relations/test-6-input.marc",
+                "preprocessing/supplier-relations/test-6-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations7() throws Exception {
+        testExample("preprocessing/supplier-relations/test-7-input.marc",
+                "preprocessing/supplier-relations/test-7-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations8() throws Exception {
+        testExample("preprocessing/supplier-relations/test-8-input.marc",
+                "preprocessing/supplier-relations/test-8-expected.marc");
+    }
+    
+    @Test
     public void testPreviousISBN1() throws Exception {
         final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-request.marc");
         final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-expected.marc");
