@@ -284,7 +284,22 @@ public class PreProcessingActionTest {
         testExample("preprocessing/supplier-relations/test-8-input.marc",
                 "preprocessing/supplier-relations/test-8-expected.marc");
     }
-    
+
+    @Test
+    public void testSupplierRelations9() throws Exception {
+        final MarcRecord head = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-head.marc");
+        final MarcRecord actual = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-input.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-expected.marc");
+
+        state.setMarcRecord(actual);
+        when(state.getRawRepo().recordExists(anyString(), anyInt())).thenReturn(false);
+        when(state.getRawRepo().fetchRecord(eq("46079922"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(head, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
     @Test
     public void testPreviousISBN1() throws Exception {
         final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-request.marc");
