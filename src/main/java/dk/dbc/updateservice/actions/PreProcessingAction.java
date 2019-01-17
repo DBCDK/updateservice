@@ -435,10 +435,17 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         return new MarcField("666", "00", subfields);
     }
 
-    private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) {
+    private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException{
         if (reader.hasSubfield("990", "b") && CatalogExtractionCode.isUnderProduction(record)) {
             MarcRecordWriter writer = new MarcRecordWriter(record);
             String subfield008u = reader.getValue("008", "u");
+            // If this record doesn't have 008 *u then see if there is on the parent head volume
+            if (subfield008u == null) {
+                MarcRecordReader parentReader = getHeadVolumeId(reader);
+                if (parentReader != null) {
+                    subfield008u = parentReader.getValue("008", "u");
+                }
+            }
             if ("f".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
                 writer.addOrReplaceSubfield("990", "u", "nt"); // First edition
             } else if ("u".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
