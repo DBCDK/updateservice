@@ -12,6 +12,7 @@ import dk.dbc.common.records.marcxchange.CollectionType;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marcxmerge.FieldRules;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.RawRepoDAO;
@@ -385,6 +386,50 @@ public class RawRepo {
         } finally {
             watch.stop("rawrepo.fetchRecordCollection");
             logger.exit();
+        }
+    }
+
+    /**
+     * The function is used to fetch a merged DBC record. The returned record will have the agencyid of the parent
+     * record and not of the input record
+     *
+      * @param bibliographicRecordId The record id for the record to check for.
+     * @param agencyId The agency id for the record to check for.
+     * @return A merged DBC record with letter-fields
+     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
+     */
+    public Record fetchMergedDBCRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
+        logger.entry(bibliographicRecordId, agencyId);
+        StopWatch watch = new Log4JStopWatch();
+        Record result = null;
+        try {
+            if (bibliographicRecordId == null) {
+                throw new IllegalArgumentException("recId can not be null");
+            }
+            try (Connection conn = dataSourceReader.getConnection()) {
+                try {
+                    RawRepoDAO dao = createDAO(conn);
+
+                    final String immutable = "001;010;020;990;991;996";
+                    final String overwrite = "004;005;013;014;017;035;036;240;243;247;300;008 009 038 039 100 110 239 245 652 654";
+
+                    final FieldRules customFieldRules = new FieldRules(immutable, overwrite, FieldRules.INVALID_DEFAULT, FieldRules.VALID_REGEX_DANMARC2);
+                    final MarcXMerger merger = new MarcXMerger(customFieldRules, "USE_PARENT_AGENCY");
+
+                    result = dao.fetchMergedRecord(bibliographicRecordId, agencyId, merger, true);
+                    return result;
+                } catch (RawRepoException | MarcXMergerException ex) {
+                    conn.rollback();
+                    logger.error(ex.getMessage(), ex);
+                    throw new UpdateException(ex.getMessage(), ex);
+                }
+            } catch (SQLException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } finally {
+            watch.stop("rawrepo.fetchRecord");
+            logger.exit(result);
         }
     }
 

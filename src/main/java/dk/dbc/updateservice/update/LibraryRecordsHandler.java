@@ -848,16 +848,16 @@ public class LibraryRecordsHandler {
 
         List<MarcRecord> result = new ArrayList<>();
         MarcRecordReader reader = new MarcRecordReader(record);
-
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
                     openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
+                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT) ||
+                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS))) {
 
-                logger.info("Record is 870970 and has either USE_ENRICHMENT or AUTH_ROOT so calling splitRecordDataIO");
+                logger.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
                 result = splitRecordDataIO(record, reader.getAgencyId());
             } else {
-                logger.info("Record is not 870970 or has neither USE_ENRICHMENT nor AUTH_ROOT so returning same record");
+                logger.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
                 result = Arrays.asList(record);
             }
 
