@@ -15,6 +15,7 @@ import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.MetakompasHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -126,7 +127,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                 try {
-                    record = enrichMetaCompassRecord(record);
+                    record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
                 } catch (UpdateException ex) {
                     String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -167,7 +168,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         } else {
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)) {
+                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS) ||
+                            state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
@@ -269,40 +271,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings));
         }
-    }
-
-    /**
-     * This function handles the situation where metacompass sends a minimal record updateservice
-     * <p>
-     * The metacompass templates only allow fields 001, 004 and 665. The template is used only by the metacompass application.
-     * <p>
-     * When metacompass template is used we need to load the existing record and then use that with replaced 665 field from the input
-     *
-     * @return The record to be used for the rest if the execution
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
-     */
-    private MarcRecord enrichMetaCompassRecord(MarcRecord record) throws UnsupportedEncodingException, UpdateException {
-        logger.info("Got metakompas template so updated the request record.");
-        logger.info("Input metakompas record: \n{}", record);
-
-        MarcRecordReader reader = new MarcRecordReader(record);
-
-        if (!rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-            throw new UpdateException("In order to update field 665 the record must exist");
-        }
-
-        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-
-        MarcRecord existingRecordWith665 = new MarcRecord(existingRecord);
-        MarcRecordWriter existingRecordWith665Writer = new MarcRecordWriter(existingRecordWith665);
-        existingRecordWith665Writer.removeField("665");
-        existingRecordWith665.getFields().addAll(reader.getFieldAll("665"));
-        existingRecordWith665Writer.sort();
-
-        logger.info("Output metakompas record: \n{}", existingRecordWith665);
-
-        return existingRecordWith665;
     }
 
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
