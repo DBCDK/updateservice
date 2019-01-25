@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.CatalogExtractionCode;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
@@ -24,11 +23,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 /**
  * This action is used to update a common record.
