@@ -18,7 +18,7 @@ function collect_logs () {
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.12-snapshot:'${COMPOSE_PROJECT_NAME}
+  docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.13-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
 }

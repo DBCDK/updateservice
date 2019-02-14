@@ -256,30 +256,4 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
     }
 
-    @Test
-    public void testMetaCompassCopy_New() throws Exception{
-        MarcRecord actual = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-1-input.marc");
-        MarcRecord expected = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-1-expected.marc");
-
-        UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, actual);
-        updateCommonRecordAction.copyMetaCompassFields();
-
-        new MarcRecordWriter(actual).sort();
-
-        assertThat(actual, is(expected));
-    }
-
-    @Test
-    public void testMetaCompassCopy_Update() throws Exception{
-        MarcRecord actual = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-2-input.marc");
-        MarcRecord expected = AssertActionsUtil.loadRecord("actions/metacompass-copy-test-2-expected.marc");
-
-        UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, actual);
-        updateCommonRecordAction.copyMetaCompassFields();
-
-        new MarcRecordWriter(actual).sort();
-
-        assertThat(actual, is(expected));
-    }
-
 }

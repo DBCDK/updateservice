@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.CatalogExtractionCode;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
@@ -49,6 +50,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 processFirstOrNewEdition(record, reader);
                 processISBNFromPreviousEdition(record, reader);
                 processAddInitialNote(record, reader);
+                processSupplierRelations(record, reader);
 
                 new MarcRecordWriter(record).sort();
             }
@@ -433,4 +435,59 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         return new MarcField("666", "00", subfields);
     }
 
+    private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException{
+        if (reader.hasSubfield("990", "b") && CatalogExtractionCode.isUnderProduction(record)) {
+            MarcRecordWriter writer = new MarcRecordWriter(record);
+            String subfield008u = reader.getValue("008", "u");
+            // If this record doesn't have 008 *u then see if there is on the parent head volume
+            if (subfield008u == null) {
+                MarcRecordReader parentReader = getHeadVolumeId(reader);
+                if (parentReader != null) {
+                    subfield008u = parentReader.getValue("008", "u");
+                }
+            }
+            if ("f".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
+                writer.addOrReplaceSubfield("990", "u", "nt"); // First edition
+            } else if ("u".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
+                writer.addOrReplaceSubfield("990", "u", "nu"); // New edition
+            } else if ("r".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
+                if (reader.hasValue("990", "&", "1")) {
+                    writer.removeSubfield("990", "&");
+                } else {
+                    MarcField field990Original  = findField990(reader);
+                    if (field990Original != null) {
+                        // Add new d08 field
+                        MarcField fieldd90 = new MarcField(field990Original); // Clone field
+
+                        fieldd90.setName("d90");
+                        record.getFields().add(fieldd90);
+
+                        // Remove subfield *b l and all other non-*b subfields
+                        field990Original.getSubfields().removeIf(marcSubField -> "b".equals(marcSubField.getName()) && "l".equals(marcSubField.getValue()));
+                        field990Original.getSubfields().removeIf(marcSubField -> !"b".equals(marcSubField.getName()));
+                        field990Original.getSubfields().add(new MarcSubField("u", "op"));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * This function returns the first 990 field which doesn't have subfield *r.
+     *
+     * *r indicated a correction of the field, so the field 990 without *r is probably the original field 990
+     * @param reader MarcRecordReader object
+     * @return MarcField if conditions are met otherwise null
+     */
+    private MarcField findField990(MarcRecordReader reader) {
+        for (MarcField field : reader.getFieldAll("990")) {
+            MarcFieldReader fieldReader = new MarcFieldReader(field);
+            if (!fieldReader.hasSubfield("r")) {
+                return field;
+            }
+        }
+
+        // This should really never happen as the first/original 990 field will not contain *r
+        return null;
+    }
 }
