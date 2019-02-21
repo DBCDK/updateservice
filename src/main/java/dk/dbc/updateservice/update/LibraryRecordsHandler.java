@@ -581,7 +581,10 @@ public class LibraryRecordsHandler {
         //      if 652h stripped changed return true
         String f652m = oldReader.getValue("652", "m");
         String f652o = oldReader.getValue("652", "o");
-        if (f652m != null || f652o != null) {
+        boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "m");
+        boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "o");
+        if (f652m != null || f652o != null &&
+                !(subfieldMHasBeenCopied || subfieldOHasBeenCopied)) {
             if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "e", true, 0)) {
                 logger.info("Classification has changed - reason 652m|o : subfield e difference");
                 return true;
@@ -597,19 +600,27 @@ public class LibraryRecordsHandler {
         }
 
         //  if 652m stripped changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
+        if (!subfieldMHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
             logger.info("Classification has changed - reason 652m difference");
             return true;
         }
 
         //  if 652o stripped changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
+        if (!subfieldOHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
             logger.info("Classification has changed - reason 652o difference");
             return true;
         }
 
         return false;
     }
+
+    private boolean hasSubfieldBeenCopied(MarcRecordReader oldReader, MarcRecordReader newReader, String oldField, String newField, String subfield) {
+        String oldValue = oldReader.getValue(oldField, subfield);
+        String newValue = newReader.getValue(newField, subfield);
+
+        return oldValue != null && newValue != null && oldValue.equals(newValue);
+    }
+
 
     private MarcRecord updateClassificationsInRecord(MarcRecord currentCommonMarc, MarcRecord libraryRecord) {
         MarcRecord result = new MarcRecord(libraryRecord);
