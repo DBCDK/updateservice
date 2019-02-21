@@ -583,7 +583,7 @@ public class LibraryRecordsHandler {
         String f652o = oldReader.getValue("652", "o");
         boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "m");
         boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "o");
-        if (f652m != null || f652o != null &&
+        if ((f652m != null || f652o != null) &&
                 !(subfieldMHasBeenCopied || subfieldOHasBeenCopied)) {
             if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "e", true, 0)) {
                 logger.info("Classification has changed - reason 652m|o : subfield e difference");
