@@ -295,4 +295,22 @@ public class LibraryRecordsHandlerTest {
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
 
     }
+
+    @Test
+    public void test652() {
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+
+        String f001DBC = "001 00 *b 870970 \n";
+
+        String f652Socialdemokraterne = "652 00 *p 32.269 *a Socialdemokraterne \n";
+        String f652NyrupRasmussen = "652 00 *å 1 *m 99.4 *a Nyrup Rasmussen *h Poul \n";
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + f652Socialdemokraterne + f652NyrupRasmussen);
+        newRecord = MarcRecordFactory.readRecord(f001DBC + f652NyrupRasmussen + f652Socialdemokraterne);
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+    }
+
 }
