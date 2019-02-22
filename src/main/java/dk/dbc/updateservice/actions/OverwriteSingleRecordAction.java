@@ -136,7 +136,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         final MarcRecordReader reader = new MarcRecordReader(record);
 
         // Suppress updating B-records if A-record has "minusAJOUR" even if there are proof printing changes in field 100/400/500.
-        if (reader.hasValue("s13", "a", "minusAJOUR")) {
+        // s13 will not be present in the common record, so we have to look at the input record
+        final MarcRecordReader inputRecordReader = new MarcRecordReader(state.getMarcRecord());
+        if (inputRecordReader.hasValue("s13", "a", "minusAJOUR")) {
             return false;
         }
 
