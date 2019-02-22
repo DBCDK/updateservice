@@ -277,5 +277,22 @@ public class LibraryRecordsHandlerTest {
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
         newRecord = MarcRecordFactory.readRecord(f001FBS + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC);
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *o Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
+
     }
 }
