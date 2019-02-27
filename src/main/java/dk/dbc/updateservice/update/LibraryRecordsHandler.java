@@ -266,6 +266,26 @@ public class LibraryRecordsHandler {
 
     }
 
+    private boolean compareMultiSubfieldContentMultiField(MarcRecordReader oldReader, MarcRecordReader newReader, String field, String subfield, boolean normalize, int cut) {
+        List<String> oldValues = oldReader.getValues(field, subfield);
+        List<String> newValues = newReader.getValues(field, subfield);
+
+        if (oldValues.size() != newValues.size()) {
+            return false;
+        }
+
+        Collections.sort(oldValues);
+        Collections.sort(newValues);
+
+        for (int i = 0; i < oldValues.size(); i++) {
+            if (!cutAndClean(oldValues.get(i), normalize, cut).equals(cutAndClean(newValues.get(i), normalize, cut))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Returns the content of a field/subfield if exists and an empty string if not
      *
@@ -565,12 +585,12 @@ public class LibraryRecordsHandler {
 
     private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader, int cut) {
         // 652 section
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
+        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
             logger.info("Classification has changed - reason 652a difference");
             return true;
         }
 
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
+        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
             logger.info("Classification has changed - reason 652b difference");
             return true;
         }
