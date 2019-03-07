@@ -449,7 +449,11 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             if ("f".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
                 writer.addOrReplaceSubfield("990", "u", "nt"); // First edition
             } else if ("u".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
-                writer.addOrReplaceSubfield("990", "u", "nu"); // New edition
+                if (reader.hasValue("990", "&", "1")) {
+                    writer.removeSubfield("990", "&");
+                } else {
+                    writer.addOrReplaceSubfield("990", "u", "nu"); // New edition
+                }
             } else if ("r".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
                 if (reader.hasValue("990", "&", "1")) {
                     writer.removeSubfield("990", "&");
