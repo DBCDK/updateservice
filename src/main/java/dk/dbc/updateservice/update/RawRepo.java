@@ -55,7 +55,7 @@ public class RawRepo {
     public static final int ARTICLE_AGENCY = 870971;
     public static final int AUTHORITY_AGENCY = 870979;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
-    public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "191919", "870970", "870971", "870979"); // More will probably be added later
+    public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "190004", "191919", "870970", "870971", "870979"); // More will probably be added later
     public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
     public static final int DBC_ENRICHMENT = 191919;
     public static final int SCHOOL_COMMON_AGENCY = 300000;
@@ -393,8 +393,8 @@ public class RawRepo {
      * The function is used to fetch a merged DBC record. The returned record will have the agencyid of the parent
      * record and not of the input record
      *
-      * @param bibliographicRecordId The record id for the record to check for.
-     * @param agencyId The agency id for the record to check for.
+     * @param bibliographicRecordId The record id for the record to check for.
+     * @param agencyId              The agency id for the record to check for.
      * @return A merged DBC record with letter-fields
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
