@@ -39,17 +39,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
 
     Properties settings;
-    private int parentAgencyId;
 
     public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
         this.settings = properties;
-    }
-
-    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, int parentAgencyId) {
-        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
-        this.settings = properties;
-        this.parentAgencyId = parentAgencyId;
     }
 
     /**
@@ -107,17 +100,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         EnqueueRecordAction enqueueRecordAction;
         try {
             enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
-            return enqueueRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties, int parentAgencyId) {
-        logger.entry(globalActionState, record);
-        EnqueueRecordAction enqueueRecordAction;
-        try {
-            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record, parentAgencyId);
             return enqueueRecordAction;
         } finally {
             logger.exit();
