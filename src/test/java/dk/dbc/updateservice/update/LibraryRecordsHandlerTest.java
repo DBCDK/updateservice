@@ -278,4 +278,38 @@ public class LibraryRecordsHandlerTest {
         newRecord = MarcRecordFactory.readRecord(f001FBS + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
     }
+
+    @Test
+    public void test652() {
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+
+        String f001DBC = "001 00 *b 870970 \n";
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC);
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *o Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(true));
+
+        String f652Socialdemokraterne = "652 00 *p 32.269 *a Socialdemokraterne \n";
+        String f652NyrupRasmussen = "652 00 *å 1 *m 99.4 *a Nyrup Rasmussen *h Poul \n";
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + f652Socialdemokraterne + f652NyrupRasmussen);
+        newRecord = MarcRecordFactory.readRecord(f001DBC + f652NyrupRasmussen + f652Socialdemokraterne);
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), equalTo(false));
+    }
+
 }

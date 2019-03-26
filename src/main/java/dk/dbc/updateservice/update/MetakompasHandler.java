@@ -54,7 +54,7 @@ public class MetakompasHandler {
         fullMetakompassRecordWriter.removeField("665");
         fullMetakompassRecord.getFields().addAll(reader.getFieldAll("665"));
 
-        int copiedSubfieldsCount = 0;
+        boolean hasAdded666Subfield = false;
         /*
          * If the record is not yet published and the record is send from metakompas then copy relevant 665 subfields to 666.
          *
@@ -62,12 +62,12 @@ public class MetakompasHandler {
          * metakompas schema.
          */
         if (!CatalogExtractionCode.isPublished(fullMetakompassRecord)) {
-            copiedSubfieldsCount = copyMetakompasFields(fullMetakompassRecord);
+            hasAdded666Subfield = copyMetakompasFields(fullMetakompassRecord);
         }
 
         // If no 666 subfields are updated (either because there was no change or because the record is published) then
         // we must add *z98 Minus korrekturprint to suppress unnecessary proof printing
-        if (copiedSubfieldsCount == 0) {
+        if (!hasAdded666Subfield) {
             addMinusProofPrinting(fullMetakompassRecord);
         }
 
@@ -81,8 +81,8 @@ public class MetakompasHandler {
     /**
      * If the record is still under production then all 665 *q, *e, *i and *g subfields must be copied to 666
      */
-    static int copyMetakompasFields(MarcRecord record) {
-        int count = 0;
+    static boolean copyMetakompasFields(MarcRecord record) {
+        boolean hasAdded666Subfield = false;
         final List<MarcSubField> subfieldsToCopy = new ArrayList<>();
         final List<MarcField> fields665 = record.getFields().stream().
                 filter(field -> "665".equals(field.getName())).
@@ -115,7 +115,6 @@ public class MetakompasHandler {
         }
 
         if (subfieldsToCopy.size() > 0) {
-            count = subfieldsToCopy.size();
             logger.info("Found {} number of 665 subfield to copy");
             // Fields added by automation should always have an empty *0
             final MarcSubField subfield0 = new MarcSubField("0", "");
@@ -139,11 +138,12 @@ public class MetakompasHandler {
 
                 if (!hasSubfield) {
                     record.getFields().add(new MarcField("666", "00", Arrays.asList(subfield0, subfieldToCopy)));
+                    hasAdded666Subfield = true;
                 }
             }
         }
 
-        return count;
+        return hasAdded666Subfield;
     }
 
     static void addMinusProofPrinting(MarcRecord record) {

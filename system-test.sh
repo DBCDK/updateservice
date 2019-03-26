@@ -18,7 +18,7 @@ function collect_logs () {
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi 'docker-os.dbc.dk/rawrepo-postgres-1.13-snapshot:'${COMPOSE_PROJECT_NAME}
+  docker rmi 'docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:'${COMPOSE_PROJECT_NAME}
   docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
 }
@@ -36,8 +36,8 @@ function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
   RAWREPO_DB_VERSION=1.12
   HOLDINGS_DB_VERION=1.1.1
-  docker tag docker-os.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
+  docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
 }

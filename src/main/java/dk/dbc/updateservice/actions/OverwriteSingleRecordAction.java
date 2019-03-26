@@ -134,6 +134,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      */
     boolean authorityRecordHasProofPrintingDiff(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
         final MarcRecordReader reader = new MarcRecordReader(record);
+
+        // Suppress updating B-records if A-record has "minusAJOUR" even if there are proof printing changes in field 100/400/500.
+        // s13 will not be present in the common record, so we have to look at the input record
+        final MarcRecordReader inputRecordReader = new MarcRecordReader(state.getMarcRecord());
+        if (inputRecordReader.hasValue("s13", "a", "minusAJOUR")) {
+            return false;
+        }
+
         if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
             final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
             final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
@@ -142,9 +150,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             return !(currentReader.getField("100").equals(reader.getField("100")) &&
                     currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
                     currentReader.getFieldAll("500").equals(reader.getFieldAll("500")));
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
