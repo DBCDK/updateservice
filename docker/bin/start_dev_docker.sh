@@ -83,7 +83,10 @@ docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
 docker rmi -f docker-i.dbc.dk/update-payara:${USER}
 docker-compose pull
-docker-compose up -d rawrepoDb updateserviceDb holdingsitemsDb fakeSmtp
+docker-compose up -d rawrepoDb
+docker-compose up -d updateserviceDb
+docker-compose up -d holdingsitemsDb
+docker-compose up -d fakeSmtp
 sleep 3
 docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
