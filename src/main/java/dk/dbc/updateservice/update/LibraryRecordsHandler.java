@@ -66,6 +66,12 @@ public class LibraryRecordsHandler {
         CONTROL_AND_CLASSIFICATION_FIELDS.addAll(CLASSIFICATION_FIELDS);
     }
 
+    /**
+     * Ignore the fact that intellij claims this is never used.
+     * If it doesn't exist then the following error will come when deploying :
+     * javax.enterprise.system.core ======> Exception while loading the app : EJB Container initialization error
+     * java.lang.NoSuchMethodError: dk.dbc.updateservice.update.LibraryRecordsHandler: method <init>()V not found
+     */
     public LibraryRecordsHandler() {
     }
 
@@ -183,7 +189,7 @@ public class LibraryRecordsHandler {
         if (subfieldList == null) {
             return "";
         }
-        StringBuilder collector = new StringBuilder("");
+        StringBuilder collector = new StringBuilder();
         String subCollector;
         for (MarcSubField aSubfieldList : subfieldList) {
             if (subfields.contains(aSubfieldList.getName())) {
@@ -315,7 +321,10 @@ public class LibraryRecordsHandler {
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
 
-        int compareLength = 10;
+        // It is wanted to compare the full data content when deciding if classification has changed.
+        // This would normally mean removal of this variable and fix things where it has effect.
+        // Though, it has been mentioned that it could change in the future, so we don't do the nice stuff.
+        int compareLength = 0;
 
         // If the library is a FBS library then we need to compare the full subfield values and not just the first 10 chars
         if (RawRepo.COMMON_AGENCY != newReader.getAgencyIdAsInt()) {
