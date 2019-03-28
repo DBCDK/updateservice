@@ -241,25 +241,49 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException
      */
     void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
+        logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
-        if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && !state.isAdmin()) {
-            if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-
-                MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-                String original001d = existingReader.getValue("001", "d");
-
-                if (original001d != null && !original001d.isEmpty()) {
-                    new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", original001d);
-                }
-            } else {
-                String createdDate = reader.getValue("001", "d");
-                if (StringUtils.isEmpty(createdDate)) {
-                    MarcRecordWriter writer = new MarcRecordWriter(record);
-                    writer.setCreationTimestamp();
-                    logger.info("Adding new date to field 001 , subfield d : " + record);
+        String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
+            if (!state.isAdmin()) {
+                if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    setCreationDateToExistingCreationDate(record);
+                } else {
+                    setCreationDateToToday(record);
                 }
             }
+        } else if (state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+            // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
+            if (!reader.hasSubfield("001", "d") &&
+                    rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                setCreationDateToExistingCreationDate(record);
+            } else {
+                setCreationDateToToday(record);
+            }
+        }
+
+        logger.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+    }
+
+    // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
+    private void setCreationDateToExistingCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+
+        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        String existingCreatedDate = existingReader.getValue("001", "d");
+        if (!StringUtils.isEmpty(existingCreatedDate)) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
+        }
+    }
+
+    // Set 001 *d to today's date if the field doesn't have a value
+    private void setCreationDateToToday(MarcRecord record) {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String createdDate = reader.getValue("001", "d");
+        if (StringUtils.isEmpty(createdDate)) {
+            new MarcRecordWriter(record).setCreationTimestamp();
         }
     }
 
