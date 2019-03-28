@@ -1,4 +1,4 @@
-FROM docker-i.dbc.dk/dbc-postgres:latest
+FROM docker.dbc.dk/dbc-postgres:latest
 
 # postgres on docker registry defines that user and pass must be defined.
 ENV POSTGRES_DB=updatestore
