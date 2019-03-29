@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/dbc-java8:latest
+FROM docker.dbc.dk/dbc-java8:stretch
 
 ENV OCB_USER ocbtools
 ENV OCB_USER_HOME /home/$OCB_USER
@@ -15,13 +15,17 @@ ENV PATH $PATH:$OCB_USER_HOME/bin
 ARG BRANCH_NAME=master
 ARG BUILD_NUMBER=lastSuccessfulBuild
 
+RUN  apt-get update \
+  && apt-get install -y wget \
+  && apt-get clean
+
 RUN cd $OCB_USER_HOME && \
-    curl -o ocb-tools-1.0.0.tar.gz https://is.dbc.dk/job/updateservice/job/ocb-tools/job/master/lastSuccessfulBuild/artifact/target/dist/ocb-tools-1.0.0.tar.gz && \
+    wget https://is.dbc.dk/job/updateservice/job/ocb-tools/job/master/lastSuccessfulBuild/artifact/target/dist/ocb-tools-1.0.0.tar.gz && \
     tar zxvf ocb-tools-1.0.0.tar.gz && \
     rm ocb-tools-1.0.0.tar.gz
 
 RUN cd $OCB_USER_HOME && \
-    curl -o opencat-business.tar.gz https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
+    wget https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
     tar zxvf opencat-business.tar.gz && \
     rm opencat-business.tar.gz
 
