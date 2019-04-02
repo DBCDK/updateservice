@@ -16,7 +16,7 @@ ARG BRANCH_NAME=master
 ARG BUILD_NUMBER=lastSuccessfulBuild
 
 RUN  apt-get update \
-  && apt-get install -y wget \
+  && apt-get install -y wget ca-certificates \
   && apt-get clean
 
 RUN cd $OCB_USER_HOME && \
