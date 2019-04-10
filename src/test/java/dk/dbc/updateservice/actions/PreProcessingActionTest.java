@@ -293,6 +293,7 @@ public class PreProcessingActionTest {
 
         state.setMarcRecord(actual);
         when(state.getRawRepo().recordExists(anyString(), anyInt())).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq("46079922"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("46079922"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(head, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -345,6 +346,7 @@ public class PreProcessingActionTest {
         state.setMarcRecord(request);
         when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("54948441"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -362,6 +364,7 @@ public class PreProcessingActionTest {
         state.setMarcRecord(request);
         when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("54948441"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -430,7 +433,9 @@ public class PreProcessingActionTest {
 
         when(state.getRawRepo().recordExists(eq("50953033"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("50953033"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("27364500"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("27364500"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(headVolume, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("27430961"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("27430961"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(sectionVolume, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);

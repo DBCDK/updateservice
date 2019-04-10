@@ -13,6 +13,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -56,6 +57,9 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             }
 
             return ServiceResult.newOkResult();
+        } catch (UpdateException ex) {
+            LOGGER.error("Error during pre-processing", ex);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException("Caught unexpected exception: " + ex.toString());
         } finally {
@@ -257,6 +261,11 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             return null;
         }
 
+        if (!rawRepo.recordExists(reader.getParentRecordId(), RawRepo.COMMON_AGENCY)) {
+            final String message = String.format(state.getMessages().getString("parent.does.not.exist"), reader.getParentRecordId(), RawRepo.COMMON_AGENCY);
+            throw new UpdateException(message);
+        }
+
         final MarcRecord parent = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), RawRepo.COMMON_AGENCY).getContent());
         final MarcRecordReader parentReader = new MarcRecordReader(parent);
 
@@ -435,7 +444,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         return new MarcField("666", "00", subfields);
     }
 
-    private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException{
+    private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
         if (reader.hasSubfield("990", "b") && CatalogExtractionCode.isUnderProduction(record)) {
             MarcRecordWriter writer = new MarcRecordWriter(record);
             String subfield008u = reader.getValue("008", "u");
@@ -458,7 +467,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 if (reader.hasValue("990", "&", "1")) {
                     writer.removeSubfield("990", "&");
                 } else {
-                    MarcField field990Original  = findField990(reader);
+                    MarcField field990Original = findField990(reader);
                     if (field990Original != null) {
                         // Add new d08 field
                         MarcField fieldd90 = new MarcField(field990Original); // Clone field
@@ -478,8 +487,9 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     /**
      * This function returns the first 990 field which doesn't have subfield *r.
-     *
+     * <p>
      * *r indicated a correction of the field, so the field 990 without *r is probably the original field 990
+     *
      * @param reader MarcRecordReader object
      * @return MarcField if conditions are met otherwise null
      */
