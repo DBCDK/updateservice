@@ -384,7 +384,7 @@ public class GlobalActionState {
                 if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO() != null) {
                     list = updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO().getContent();
                 } else {
-                    logger.warn("Unable to read record from request");
+                    logger.warn("Unable to read extra record data from request");
                 }
                 if (list != null) {
                     for (Object o : list) {
