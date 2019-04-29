@@ -157,7 +157,6 @@ public class SolrService {
                 JsonArray docsArray = response.getJsonArray("docs");
                 for (JsonObject jObj : docsArray.getValuesAs(JsonObject.class)) {
                     // Sometimes the value is an array and sometimes a string, so we need to check the type first
-                    // If the value is null then the type will be NULL which means it won't hit neither checks below
                     JsonValue jsonValue = jObj.get("marc.001a");
                     if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
                         JsonArray marc001aArray = (JsonArray) jsonValue;
@@ -167,6 +166,8 @@ public class SolrService {
                         JsonString marc001aString = (JsonString) jsonValue;
                         result = marc001aString.getString();
                         break;
+                    } else {
+                        throw new SolrException("Expected type of marc.001a to be ARRAY or STRING but it was " + jsonValue.getValueType());
                     }
                 }
             }
