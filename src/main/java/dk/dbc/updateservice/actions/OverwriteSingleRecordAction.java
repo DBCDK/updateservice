@@ -26,6 +26,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -155,6 +156,33 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return false;
     }
 
+    /*
+        This record find all agencies with enrichments or holdings for the volume records in under the input record.
+        The function calls it self recursively until the hierarchy has been traversed
+     */
+    private void findChildrenAndHoldingsOnChildren(MarcRecord record, Set<Integer> librariesWithPosts) throws UpdateException, UnsupportedEncodingException {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+        final RecordId recordId = new RecordId(reader.getRecordId(),reader.getAgencyIdAsInt());
+
+        logger.info("Getting children for {}", recordId);
+
+        if (recordIsHeadOrSection(record)) {
+            for (RecordId child : state.getRawRepo().children(recordId)) {
+                logger.info("Found child record {}", child);
+                MarcRecord childRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId()).getContent());
+                findChildrenAndHoldingsOnChildren(childRecord, librariesWithPosts);
+            }
+        } else {
+            logger.info("Getting holdings and agencies for volume {}", recordId);
+            librariesWithPosts.addAll(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record));
+            librariesWithPosts.addAll(state.getRawRepo().agenciesForRecordNotDeleted(record));
+        }
+    }
+
+    private boolean recordIsHeadOrSection(MarcRecord record) {
+        return Arrays.asList("s", "h").contains(new MarcRecordReader(record).getValue("004", "a"));
+    }
+
     private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
@@ -264,16 +292,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                     state.getLibraryRecordsHandler().hasClassificationData(record) &&
                     state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
-
                 logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
-                final Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                final Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecordNotDeleted(record);
 
                 final Set<Integer> librariesWithPosts = new HashSet<>();
-                librariesWithPosts.addAll(holdingsLibraries);
-                librariesWithPosts.addAll(enrichmentLibraries);
+                findChildrenAndHoldingsOnChildren(record, librariesWithPosts);
 
-                logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
+                logger.info("Found holdings or enrichments record for: {}", librariesWithPosts.toString());
 
                 for (int id : librariesWithPosts) {
                     if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
