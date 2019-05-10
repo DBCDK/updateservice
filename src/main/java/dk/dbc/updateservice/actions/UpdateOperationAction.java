@@ -128,6 +128,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                 try {
                     record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
+                    MetakompasHandler.createMetakompasSubjectRecords(children, state, record, settings);
                 } catch (UpdateException ex) {
                     String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
