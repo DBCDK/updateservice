@@ -5,26 +5,179 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.CatalogExtractionCode;
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.common.records.*;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.updateservice.actions.*;
+import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MetakompasHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
     private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "g", "p");
+    private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
+    private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i","q","p","m","g","u","e","h","j","k","l","s","r","t");
+    private static final String commonRecordTemplate =
+            "001 00 *a*b190004*c*d*fa*tFAUST\n" +
+                    "004 00 *rn*ae*xm\n" +
+                    "008 00 *th*v0\n" +
+                    "040 00 *bdan*fDBC\n" +
+                    "165 00 \n" +
+                    "565 00 *n*xBT\n" +
+                    "670 00 *a\n" +
+                    "996 00 *aDBC\n";
+    private static final String enrichmentRecordTemplate =
+            "001 00 *a*b191919*c*d*fa*tFAUST\n" +
+                    "004 00 *rn*ae*xm\n" +
+                    "d08 00 *aMetakompas\n" +
+                    "d09 00 *z\n" +
+                    "x08 00 *ps\n" +
+                    "x09 00 *p";
+
+    private static JsonObject callUrl(String url) throws UpdateException {
+        try {
+
+            logger.info("Numberroll url : {}", url);
+            URL numberUrl = new URL(url);
+            HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+            InputStream is;
+            int response = conn.getResponseCode();
+            if (response == 200) {
+                logger.info("Ok Went Well");
+                is = conn.getInputStream();
+            } else {
+                logger.info("DIDNT Went Well {}", response);
+                is = conn.getErrorStream();
+            }
+            JsonReader jReader = Json.createReader(is);
+            JsonObject jObj = jReader.readObject();
+            conn.disconnect();
+
+            if (response == 200) {
+                logger.info("Numberroll response {} ==> {}", url, jObj.toString());
+            } else {
+                String s = String.format("Numberroll response {%s} ==> {%s}", url, jObj.toString());
+                logger.warn(s);
+                if (jObj.containsKey("error")) {
+                    s = String.format("Numberroll returned error code : %s", jObj.getJsonObject("error").toString());
+                    logger.warn(s);
+                }
+                throw new UpdateException(s);
+            }
+            if (jObj.containsKey("numberRollResponse")) {
+                return jObj.getJsonObject("numberRollResponse");
+            } else {
+                throw new UpdateException("Numberroll request did not contain a rollnumber");
+            }
+        } catch (IOException e) {
+            logger.info("IOException {}", e.getMessage());
+            throw new UpdateException(e.getMessage());
+        }
+    }
+
+    private static String getNewIdNumber(Properties properties) throws UpdateException {
+        if (properties.containsKey(JNDIResources.PROP_OPENNUMBERROLL_URL)) {
+            String url = properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_URL);
+            logger.info("Numberroll url {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_URL));
+            if (properties.containsKey(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST)) {
+                logger.info("Numberroll name {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST));
+                JsonObject response = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST) + "&outputType=json");
+                if (response.containsKey("rollNumber")) {
+                    return response.getString("rollNumber");
+                } else throw new UpdateException("No rollNumber in response from NumberrollService");
+            } else throw new UpdateException("No configuration numberroll");
+        } else throw new UpdateException("No configuration for opennumberroll service");
+    }
+
+    private static void doCreateMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, String id, String index, String subFieldName, String subfieldContent, String category, Properties properties)
+            throws UpdateException, SolrException {
+        try {
+            String solrQuery = SolrServiceIndexer.createGetSubjectHits(index, subfieldContent);
+            if (!state.getSolrService().hasDocuments(solrQuery)) {
+                MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(commonRecordTemplate);
+                MarcRecordWriter writer = new MarcRecordWriter(commonSubjectRecord);
+                String newId = getNewIdNumber(properties);
+                writer.addOrReplaceSubfield("001", "a", newId);
+                writer.setChangedTimestamp();
+                writer.setCreationTimestamp();
+                if ("n".equals(subFieldName)) writer.addOrReplaceSubfield("165", "n", subfieldContent);
+                    else writer.addOrReplaceSubfield("165", "a", subfieldContent);
+                if ("".equals(category)) {
+                    writer.removeField("565");
+                } else writer.addOrReplaceSubfield("565", "n", category);
+                writer.addOrReplaceSubfield("670", "a", id);
+                children.add(new CreateSingleRecordAction(state, properties, commonSubjectRecord));
+
+                MarcRecord enrichmentRecord = MarcRecordFactory.readRecord(enrichmentRecordTemplate);
+                writer = new MarcRecordWriter(enrichmentRecord);
+                writer.addOrReplaceSubfield("001", "a", newId);
+                writer.setChangedTimestamp();
+                writer.setCreationTimestamp();
+                LocalDate ld = LocalDate.now();
+                DateTimeFormatter ywFormat = DateTimeFormatter.ofPattern("yyyyww");
+                String weekCode = ld.format(ywFormat);
+                writer.addOrReplaceSubfield("d09", "z", "EMK" + weekCode);
+                writer.addOrReplaceSubfield("x09", "p", subFieldName);
+                children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
+            }
+        } catch (UpdateException | SolrException e) {
+            logger.info("Creating subject record(s) failed {}", e.getMessage());
+            throw e;
+        }
+
+    }
+
+    /**
+     * This function creates subject records for subjects mentioned in field 665 and not found in the subject database.
+     * @param minimalMetakompasRecord The record that has to be checked
+     *
+     */
+    public static void createMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, MarcRecord minimalMetakompasRecord, Properties properties)
+            throws UpdateException, SolrException {
+
+        MarcRecordReader reader = new MarcRecordReader(minimalMetakompasRecord);
+        String id = reader.getRecordId();
+        List<MarcField> listOf665 = reader.getFieldAll("665");
+        for (MarcField field : listOf665) {
+            String category = "";
+            if (field.getSubfields().stream().
+                    anyMatch(subfield -> "&".equals(subfield.getName()) && "LEKTOR".equalsIgnoreCase(subfield.getValue()))) {
+                for (MarcSubField subfield : field.getSubfields()) {
+                    if ("&".equals(subfield.getName()) && !"LEKTOR".equalsIgnoreCase(subfield.getValue())) {
+                        category = subfield.getValue();
+                    }
+                }
+                for (MarcSubField subfield : field.getSubfields()) {
+                    String subFieldName = subfield.getName();
+                    if (!"&".equals(subFieldName)) {
+                        if (atmosphereSubjectSubFields.contains(subFieldName)) {
+                            doCreateMetakompasSubjectRecords(children, state, id, "phrase.vln", subFieldName, subfield.getValue(), category, properties);
+                        } else {
+                            if (nonAtmosphereSubjectSubFields.contains(subfield.getName())) {
+                                doCreateMetakompasSubjectRecords(children, state, id, "phrase.vla", subFieldName, subfield.getValue(), category, properties);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * This function handles the situation where metakompas sends a minimal record to updateservice
@@ -36,8 +189,9 @@ public class MetakompasHandler {
      * Additionally certain 665 subfields are copied to 666 subfields.
      *
      * @return The record to be used for the rest if the execution
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException Thrown if the record has wrong encoding
+     * @throws UpdateException Thrown when the record doesn't exist - don't expect it to happen because the
+     *                         enrichMetakompasRecord function will catch this too.
      */
     public static MarcRecord enrichMetakompasRecord(RawRepo rawRepo, MarcRecord minimalMetakompasRecord) throws UnsupportedEncodingException, UpdateException {
         logger.info("Got metakompas template so updated the request record.");
