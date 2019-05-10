@@ -45,6 +45,8 @@ pipeline {
         MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
         DOCKER_IMAGE_VERSION = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         DOCKER_IMAGE_DIT_VERSION = "DIT-${env.BUILD_NUMBER}"
+        GITOPS_DEPLOY_TAG = "master-3"
+        GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
     }
 
     tools {
@@ -193,21 +195,48 @@ pipeline {
             }
         }
 
-        stage("Deploy staging") {
+        stage("Deploy mesos") {
             when {
                 expression {
                     (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME == 'master'
                 }
             }
-			steps {
+            steps {
                 script {
                     lock('meta-updateservice-deploy-staging') {
                         deploy("staging-basismig")
                         deploy("staging-fbs")
                     }
-				}
-			}
-		}
+                }
+            }
+        }
+
+        stage("Deploy k8s") {
+            agent {
+                docker {
+                    label workerNode
+                    image "docker.dbc.dk/gitops-deploy-env:${env.GITOPS_DEPLOY_TAG}"
+                    alwaysPull true
+                }
+            }
+            when {
+                expression {
+                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME == 'master'
+                }
+            }
+            steps {
+                script {
+                    dir("deploy") {
+                        git(url: "gitlab@gitlab.dbc.dk:metascrum/updateservice-deploy.git", credentialsId: "gitlab-meta",
+                                branch: "basismig", poll: false)
+                        sh """
+							set-new-version updateservice.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b basismig
+                            set-new-version updateservice.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b fbstest
+						"""
+                    }
+                }
+            }
+        }
     }
 
     post {
