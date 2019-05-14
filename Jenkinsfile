@@ -230,8 +230,8 @@ pipeline {
                         git(url: "gitlab@gitlab.dbc.dk:metascrum/updateservice-deploy.git", credentialsId: "gitlab-meta",
                                 branch: "basismig", poll: false)
                         sh """
-							set-new-version updateservice.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b basismig
-                            set-new-version updateservice.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b fbstest
+							set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b basismig
+                            set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b fbstest
 						"""
                     }
                 }
