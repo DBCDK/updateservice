@@ -6,7 +6,7 @@ export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
 RAWREPO_VERSION=1.13-snapshot
 RAWREPO_DIT_TAG=DIT-5016
-HOLDINGS_ITEMS_VERSION=1.1.1-snapshot
+HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
 
 cd ${IDEA_ROOT}/docker
 mkdir -p logs/update/app logs/update/server logs/fakesmtp
