@@ -38,7 +38,7 @@ pipeline {
     }
 
     triggers {
-        pollSCM('H/3 * * * *')
+        pollSCM('H/20 * * * *')
     }
 
     environment {
