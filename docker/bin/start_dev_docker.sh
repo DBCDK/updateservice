@@ -6,6 +6,8 @@
 # to
 # image: docker-i.dbc.dk/update-payara:mib (or whomever you are)
 # in docker-compos.yml
+# also go to updateservice/docker/update-payara and make :
+# docker build -t docker-i.dbc.dk/update-payara:mib .
 USE_LOCAL_PAYARA="N"
 
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble

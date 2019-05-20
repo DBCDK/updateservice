@@ -48,7 +48,7 @@ public class MetakompasHandler {
                     "x08 00 *ps\n" +
                     "x09 00 *p";
 
-    private static JsonObject callUrl(String url) throws UpdateException {
+    private static String callUrl(String url) throws UpdateException {
         try {
 
             logger.info("Numberroll url : {}", url);
@@ -81,7 +81,7 @@ public class MetakompasHandler {
                 throw new UpdateException(s);
             }
             if (jObj.containsKey("numberRollResponse")) {
-                return jObj.getJsonObject("numberRollResponse");
+                return jObj.getJsonObject("numberRollResponse").getJsonObject("rollNumber").getString("$");
             } else {
                 throw new UpdateException("Numberroll request did not contain a rollnumber");
             }
@@ -97,10 +97,9 @@ public class MetakompasHandler {
             logger.info("Numberroll url {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_URL));
             if (properties.containsKey(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST)) {
                 logger.info("Numberroll name {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST));
-                JsonObject response = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST) + "&outputType=json");
-                if (response.containsKey("rollNumber")) {
-                    return response.getString("rollNumber");
-                } else throw new UpdateException("No rollNumber in response from NumberrollService");
+                String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST) + "&outputType=json");
+                logger.info("Got new id number {} ", res);
+                return res;
             } else throw new UpdateException("No configuration numberroll");
         } else throw new UpdateException("No configuration for opennumberroll service");
     }
