@@ -302,6 +302,12 @@ public class PreProcessingActionTest {
     }
 
     @Test
+    public void testSupplierRelations10() throws Exception {
+        testExample("preprocessing/supplier-relations/test-10-input.marc",
+                "preprocessing/supplier-relations/test-10-expected.marc");
+    }
+
+    @Test
     public void testPreviousISBN1() throws Exception {
         final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-request.marc");
         final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-expected.marc");

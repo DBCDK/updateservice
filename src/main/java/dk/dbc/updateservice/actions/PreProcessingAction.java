@@ -21,6 +21,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -455,7 +456,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                     subfield008u = parentReader.getValue("008", "u");
                 }
             }
-            if ("f".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
+            if (Arrays.asList("f", "c", "d", "o").contains(subfield008u) && !reader.hasSubfield("990", "i")) {
                 writer.addOrReplaceSubfield("990", "u", "nt"); // First edition
             } else if ("u".equals(subfield008u) && !reader.hasSubfield("990", "i")) {
                 if (reader.hasValue("990", "&", "1")) {
