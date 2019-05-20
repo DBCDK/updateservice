@@ -5,7 +5,12 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.CatalogExtractionCode;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.actions.*;
 import dk.dbc.updateservice.ws.JNDIResources;
