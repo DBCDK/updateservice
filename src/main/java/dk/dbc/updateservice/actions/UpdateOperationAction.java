@@ -250,7 +250,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
                     setCreationDateToExistingCreationDate(record);
                 } else {
-                    setCreationDateToToday(record);
+                    // For specifically 870974 (literature analysis) must have a creation date equal to the parent
+                    // record creation date
+                    if ("870974".equals(reader.getAgencyId())) {
+                     setCreationDateToParentCreationDate(record);
+                    } else {
+                        setCreationDateToToday(record);
+                    }
                 }
             }
         } else if (state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
@@ -284,6 +290,17 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         String createdDate = reader.getValue("001", "d");
         if (StringUtils.isEmpty(createdDate)) {
             new MarcRecordWriter(record).setCreationTimestamp();
+        }
+    }
+
+    private void setCreationDateToParentCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
+
+        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        String existingCreatedDate = existingReader.getValue("001", "d");
+        if (!StringUtils.isEmpty(existingCreatedDate)) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
     }
 
