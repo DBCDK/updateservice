@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class MetakompasHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
-    private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "g", "p", "m");
+    private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "g", "p");
 
     /**
      * This function handles the situation where metakompas sends a minimal record to updateservice
@@ -106,7 +106,7 @@ public class MetakompasHandler {
                         }
                     }
 
-                    // 665 *e/*g/*p/*m -> 666 *s
+                    // 665 *e/*g/*p -> 666 *s
                     if (metakompasSubFieldsToCopy.contains(subfield.getName())) {
                         subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
                     }
@@ -115,7 +115,7 @@ public class MetakompasHandler {
         }
 
         if (subfieldsToCopy.size() > 0) {
-            logger.info("Found {} number of 665 subfield to copy");
+            logger.info("Found {} number of 665 subfield to copy", subfieldsToCopy);
             // Fields added by automation should always have an empty *0
             final MarcSubField subfield0 = new MarcSubField("0", "");
             final List<MarcField> fields666 = record.getFields().stream().
