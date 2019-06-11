@@ -71,6 +71,9 @@ services:
       - SETTINGS_OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - SETTINGS_OPENAGENCY_CACHE_AGE=8
       - INSTANCE_NAME=${USER}_systemtest
+      - SETTINGS_OPENNUMBERROLL_URL=http://opennumberroll.addi.dk/1.0/
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
     links:
       - update-systemtests-update-db:update-systemtests-update-db
     volumes:
