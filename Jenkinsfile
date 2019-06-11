@@ -195,22 +195,6 @@ pipeline {
             }
         }
 
-        stage("Deploy mesos") {
-            when {
-                expression {
-                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME == 'master'
-                }
-            }
-            steps {
-                script {
-                    lock('meta-updateservice-deploy-staging') {
-                        deploy("staging-basismig")
-                        deploy("staging-fbs")
-                    }
-                }
-            }
-        }
-
         stage("Deploy k8s") {
             agent {
                 docker {
