@@ -16,6 +16,7 @@ import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.MetakompasHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -128,7 +129,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
-            create001dForFBSRecords(reader);
+            setCreatedDate(reader);
             children.add(new AuthenticateRecordAction(state, record));
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
@@ -146,7 +147,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                 try {
-                    record = enrichMetaCompassRecord(record);
+                    record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
                 } catch (UpdateException ex) {
                     String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
@@ -187,7 +188,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         } else {
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)) {
+                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS) ||
+                            state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
@@ -285,14 +287,78 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
 
-    private void create001dForFBSRecords(MarcRecordReader reader) throws UpdateException {
-        if (state.getLibraryGroup().isFBS()) {
-            String valOf001 = reader.getValue("001", "d");
-            if (StringUtils.isEmpty(valOf001)) {
-                MarcRecordWriter writer = new MarcRecordWriter(record);
-                writer.setCreationTimestamp();
-                logger.info("Adding new date to field 001 , subfield d : " + record);
+    /**
+     * This function handles the creation date (001 *d).
+     * If the record already exists, and there is a creation date on the existing record then use that value
+     * If the record is new then set creation date to the current date
+     * <p>
+     * Only applicable for agencies which uses enrichments (i.e. FFU and lokbib are ignored)
+     *
+     * @param reader MarcRecordReader of the record to be checked
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
+        logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+
+        // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
+        String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
+            if (!state.isAdmin()) {
+                if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    setCreationDateToExistingCreationDate(record);
+                } else {
+                    // For specifically 870974 (literature analysis) must have a creation date equal to the parent
+                    // record creation date
+                    if ("870974".equals(reader.getAgencyId())) {
+                     setCreationDateToParentCreationDate(record);
+                    } else {
+                        setCreationDateToToday(record);
+                    }
+                }
             }
+        } else if (state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+            // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
+            if (!reader.hasSubfield("001", "d") &&
+                    rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                setCreationDateToExistingCreationDate(record);
+            } else {
+                setCreationDateToToday(record);
+            }
+        }
+
+        logger.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+    }
+
+    // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
+    private void setCreationDateToExistingCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+
+        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        String existingCreatedDate = existingReader.getValue("001", "d");
+        if (!StringUtils.isEmpty(existingCreatedDate)) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
+        }
+    }
+
+    // Set 001 *d to today's date if the field doesn't have a value
+    private void setCreationDateToToday(MarcRecord record) {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        String createdDate = reader.getValue("001", "d");
+        if (StringUtils.isEmpty(createdDate)) {
+            new MarcRecordWriter(record).setCreationTimestamp();
+        }
+    }
+
+    private void setCreationDateToParentCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
+
+        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        String existingCreatedDate = existingReader.getValue("001", "d");
+        if (!StringUtils.isEmpty(existingCreatedDate)) {
+            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
     }
 
@@ -306,40 +372,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    /**
-     * This function handles the situation where metacompass sends a minimal record updateservice
-     * <p>
-     * The metacompass templates only allow fields 001, 004 and 665. The template is used only by the metacompass application.
-     * <p>
-     * When metacompass template is used we need to load the existing record and then use that with replaced 665 field from the input
-     *
-     * @return The record to be used for the rest if the execution
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
-     */
-    private MarcRecord enrichMetaCompassRecord(MarcRecord record) throws UnsupportedEncodingException, UpdateException {
-        logger.info("Got metakompas template so updated the request record.");
-        logger.info("Input metakompas record: \n{}", record);
-
-        MarcRecordReader reader = new MarcRecordReader(record);
-
-        if (!rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-            throw new UpdateException("In order to update field 665 the record must exist");
-        }
-
-        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-
-        MarcRecord existingRecordWith665 = new MarcRecord(existingRecord);
-        MarcRecordWriter existingRecordWith665Writer = new MarcRecordWriter(existingRecordWith665);
-        existingRecordWith665Writer.removeField("665");
-        existingRecordWith665.getFields().addAll(reader.getFieldAll("665"));
-        existingRecordWith665Writer.sort();
-
-        logger.info("Output metakompas record: \n{}", existingRecordWith665);
-
-        return existingRecordWith665;
-    }
-
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
         logger.info("Delete?..................: " + updReader.markedForDeletion());
         logger.info("Library group?...........: " + state.getLibraryGroup());
@@ -350,6 +382,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
         logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
         logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
+        logger.info("User is admin?...........: " + state.isAdmin());
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {

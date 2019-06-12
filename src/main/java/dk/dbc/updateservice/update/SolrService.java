@@ -18,7 +18,10 @@ import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
-import java.io.*;
+import javax.json.JsonString;
+import javax.json.JsonValue;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -120,7 +123,7 @@ public class SolrService {
         }
     }
 
-    long hits(String query) throws UpdateException, SolrException  {
+    long hits(String query) throws UpdateException, SolrException {
         logger.entry(query);
         StopWatch watch = new Log4JStopWatch("service.solr.hits");
         URL solrUrl;
@@ -153,16 +156,22 @@ public class SolrService {
             if (response.containsKey("docs")) {
                 JsonArray docsArray = response.getJsonArray("docs");
                 for (JsonObject jObj : docsArray.getValuesAs(JsonObject.class)) {
-                    JsonArray marc001aArray = jObj.getJsonArray("marc.001a");
-                    if (marc001aArray != null) {
+                    // Sometimes the value is an array and sometimes a string, so we need to check the type first
+                    JsonValue jsonValue = jObj.get("marc.001a");
+                    if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                        JsonArray marc001aArray = (JsonArray) jsonValue;
                         result = marc001aArray.getString(0);
                         break;
+                    } else if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
+                        JsonString marc001aString = (JsonString) jsonValue;
+                        result = marc001aString.getString();
+                        break;
+                    } else {
+                        throw new SolrException("Expected type of marc.001a to be ARRAY or STRING but it was " + jsonValue.getValueType());
                     }
-
                 }
             }
             return result;
-
         } finally {
             watch.stop();
             logger.exit(result);

@@ -39,17 +39,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
 
     Properties settings;
-    private int parentAgencyId;
 
     public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
         this.settings = properties;
-    }
-
-    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, int parentAgencyId) {
-        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
-        this.settings = properties;
-        this.parentAgencyId = parentAgencyId;
     }
 
     /**
@@ -75,11 +68,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 logger.info("Using override priority {}", priority);
             }
 
-            // Enqueuing should be done differently for authority record, so first we have to determine whether
-            // this is a authority record
-            boolean isAuthorityRecord = RawRepo.AUTHORITY_AGENCY == agencyId ||
-                    RawRepo.DBC_ENRICHMENT == agencyId && RawRepo.AUTHORITY_AGENCY == parentAgencyId;
-
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
             } else if (state.getLibraryGroup().isDBC()) {
@@ -94,26 +82,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
             }
 
-            logger.info("Using provider id: '{}'", providerId);
-
-            // Authority records should never be send out of rawrepo, but affected records must be.
-            // Since that functionality cannot fully be done with configuration of the providers we have to handle this
-            // case a bit differently.
-            // First queue the authority record + enrichment on one provider, and then all children the standard way.
-            // NOTE: We know that a authority record doesn't have any siblings (other than enrichment, which will be
-            // enqueued by another action) so only queuing children is fine
-            if (isAuthorityRecord) {
-                logger.info("Enqueuing authority record: {}:{} using provider '{}' with priority {}", recId, agencyId, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), priority);
-                rawRepo.enqueue(new RecordId(recId, agencyId), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC_SOLR), true, false, priority);
-
-                for (RecordId childId : rawRepo.children(record)) {
-                    logger.info("Enqueuing child record {}:{} using provider '{}' with priority {}", childId.getBibliographicRecordId(), childId.getAgencyId(), providerId, priority);
-                    rawRepo.changedRecord(providerId, childId, priority);
-                }
-            } else {
-                logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
-                rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
-            }
+            logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
+            rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
 
             return result = ServiceResult.newOkResult();
         } finally {
@@ -130,17 +100,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         EnqueueRecordAction enqueueRecordAction;
         try {
             enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
-            return enqueueRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties, int parentAgencyId) {
-        logger.entry(globalActionState, record);
-        EnqueueRecordAction enqueueRecordAction;
-        try {
-            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record, parentAgencyId);
             return enqueueRecordAction;
         } finally {
             logger.exit();

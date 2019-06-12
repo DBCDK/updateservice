@@ -1,4 +1,4 @@
-ARG PARENT_IMAGE=docker-i.dbc.dk/update-payara:latest
+ARG PARENT_IMAGE=docker-io.dbc.dk/update-payara:latest
 FROM $PARENT_IMAGE
 
 ARG BRANCH_NAME=master
@@ -12,13 +12,9 @@ ADD https://is.dbc.dk/job/updateservice/job/updateservice-master/job/marc21_proo
 
 USER root
 
-RUN  apt-get update \
-  && apt-get install -y wget \
-  && apt-get clean
-
 RUN cd /data && \
-    wget https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/updateservice-2.0-SNAPSHOT.war && \
-    wget https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
+    curl -o "updateservice-2.0-SNAPSHOT.war" https://is.dbc.dk/job/updateservice/job/updateservice-master/job/$BRANCH_NAME/$BUILD_NUMBER/artifact/target/updateservice-2.0-SNAPSHOT.war && \
+    curl -o "opencat-business.tar.gz" https://is.dbc.dk/job/updateservice/job/opencat-business/job/master/lastSuccessfulBuild/artifact/deploy/opencat-business.tar.gz && \
     tar zxvf opencat-business.tar.gz && \
     rm opencat-business.tar.gz && \
     cd -

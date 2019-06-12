@@ -9,7 +9,7 @@ networks:
 
 services:
   update-systemtests-rawrepo-db:
-    image: docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest
+    image: docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:DIT-5016
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
@@ -20,7 +20,7 @@ services:
       - "13132:5432"
 
   update-systemtests-holdingsitems-db:
-    image: docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
+    image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
     environment:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
@@ -71,6 +71,9 @@ services:
       - SETTINGS_OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - SETTINGS_OPENAGENCY_CACHE_AGE=8
       - INSTANCE_NAME=${USER}_systemtest
+      - SETTINGS_OPENNUMBERROLL_URL=http://opennumberroll.addi.dk/1.0/
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
     links:
       - update-systemtests-update-db:update-systemtests-update-db
     volumes:

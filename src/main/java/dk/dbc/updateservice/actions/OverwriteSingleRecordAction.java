@@ -26,6 +26,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +71,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
@@ -81,27 +82,105 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
         if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
-            Set<RecordId> ids = state.getRawRepo().children(record);
+            final Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
-                Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
-                Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
+                final Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
+
+
+                if (authorityRecordHasProofPrintingDiff(record)) {
+                    // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
+                    // don't actually have to change anything in the child record
+                    children.add(new UpdateCommonRecordAction(state, settings, currentRecordCollection.get(id.getBibliographicRecordId())));
+
+                    // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
+                    final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
+                    for (RecordId enrichmentToChild : enrichmentsToChild) {
+                        if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
+                            final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
+                                    enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+                        }
+                    }
+                }
+
+                final Map<String, MarcRecord> updatedRecordCollection = new HashMap<>(currentRecordCollection);
                 updatedRecordCollection.put(reader.getRecordId(), record);
                 try {
-                    MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
+                    final MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
                             ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, id.getBibliographicRecordId()), settings);
-                    MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
+                    final MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
                             ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()), settings);
                     children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentCommonRecord));
                 } catch (RawRepoException e) {
                     throw new UpdateException("Exception while expanding the records", e);
                 }
-
             }
         }
 
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+    }
+
+    /**
+     * This function checks if the authority record has been changed in a way which affects proof printing (korrekturprint)
+     * <p>
+     * The rule is the child common records should be updated if field 100 (non repeatable), 400 (repeatable) or 500 (repeatable)
+     * in the authority record has been changed.
+     *
+     * @param record The incoming authority record
+     * @return True if field 100, 400 or 500 has been changed
+     * @throws UpdateException
+     * @throws UnsupportedEncodingException
+     */
+    boolean authorityRecordHasProofPrintingDiff(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+
+        // Suppress updating B-records if A-record has "minusAJOUR" even if there are proof printing changes in field 100/400/500.
+        // s13 will not be present in the common record, so we have to look at the input record
+        final MarcRecordReader inputRecordReader = new MarcRecordReader(state.getMarcRecord());
+        if (inputRecordReader.hasValue("s13", "a", "minusAJOUR")) {
+            return false;
+        }
+
+        if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+            final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+            final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+            // Field exists in the updated record but not in the current record -> korrekturprint
+            return !(currentReader.getField("100").equals(reader.getField("100")) &&
+                    currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
+                    currentReader.getFieldAll("500").equals(reader.getFieldAll("500")));
+        }
+
+        return false;
+    }
+
+    /*
+        This record find all agencies with enrichments or holdings for the volume records in under the input record.
+        The function calls it self recursively until the hierarchy has been traversed
+     */
+    private void findChildrenAndHoldingsOnChildren(MarcRecord record, Set<Integer> librariesWithPosts) throws UpdateException, UnsupportedEncodingException {
+        final MarcRecordReader reader = new MarcRecordReader(record);
+        final RecordId recordId = new RecordId(reader.getRecordId(),reader.getAgencyIdAsInt());
+
+        logger.info("Getting children for {}", recordId);
+
+        if (recordIsHeadOrSection(record)) {
+            for (RecordId child : state.getRawRepo().children(recordId)) {
+                logger.info("Found child record {}", child);
+                MarcRecord childRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId()).getContent());
+                findChildrenAndHoldingsOnChildren(childRecord, librariesWithPosts);
+            }
+        } else {
+            logger.info("Getting holdings and agencies for volume {}", recordId);
+            librariesWithPosts.addAll(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record));
+            librariesWithPosts.addAll(state.getRawRepo().agenciesForRecordNotDeleted(record));
+        }
+    }
+
+    private boolean recordIsHeadOrSection(MarcRecord record) {
+        return Arrays.asList("s", "h").contains(new MarcRecordReader(record).getValue("004", "a"));
     }
 
     private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
@@ -213,16 +292,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                     state.getLibraryRecordsHandler().hasClassificationData(record) &&
                     state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
-
                 logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
-                final Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
-                final Set<Integer> enrichmentLibraries = state.getRawRepo().agenciesForRecordNotDeleted(record);
 
                 final Set<Integer> librariesWithPosts = new HashSet<>();
-                librariesWithPosts.addAll(holdingsLibraries);
-                librariesWithPosts.addAll(enrichmentLibraries);
+                findChildrenAndHoldingsOnChildren(record, librariesWithPosts);
 
-                logger.info("Found holdings or enrichments record for: {}", holdingsLibraries.toString());
+                logger.info("Found holdings or enrichments record for: {}", librariesWithPosts.toString());
 
                 for (int id : librariesWithPosts) {
                     if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {

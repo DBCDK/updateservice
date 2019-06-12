@@ -395,7 +395,7 @@ public class GlobalActionState {
                 if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO() != null) {
                     list = updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO().getContent();
                 } else {
-                    logger.warn("Unable to read record from request");
+                    logger.warn("Unable to read extra record data from request");
                 }
                 if (list != null) {
                     for (Object o : list) {
@@ -507,6 +507,12 @@ public class GlobalActionState {
         }
 
         return this.recordExists;
+    }
+
+    public boolean isAdmin() {
+        String userId = updateServiceRequestDTO.getAuthenticationDTO().getUserId();
+
+        return "admin".equalsIgnoreCase(userId);
     }
 
     public OpenAgencyService.LibraryGroup getLibraryGroup() throws UpdateException {

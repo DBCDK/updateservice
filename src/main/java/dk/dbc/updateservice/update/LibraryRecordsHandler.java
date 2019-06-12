@@ -66,6 +66,12 @@ public class LibraryRecordsHandler {
         CONTROL_AND_CLASSIFICATION_FIELDS.addAll(CLASSIFICATION_FIELDS);
     }
 
+    /**
+     * Ignore the fact that intellij claims this is never used.
+     * If it doesn't exist then the following error will come when deploying :
+     * javax.enterprise.system.core ======> Exception while loading the app : EJB Container initialization error
+     * java.lang.NoSuchMethodError: dk.dbc.updateservice.update.LibraryRecordsHandler: method <init>()V not found
+     */
     public LibraryRecordsHandler() {
     }
 
@@ -183,7 +189,7 @@ public class LibraryRecordsHandler {
         if (subfieldList == null) {
             return "";
         }
-        StringBuilder collector = new StringBuilder("");
+        StringBuilder collector = new StringBuilder();
         String subCollector;
         for (MarcSubField aSubfieldList : subfieldList) {
             if (subfields.contains(aSubfieldList.getName())) {
@@ -266,6 +272,26 @@ public class LibraryRecordsHandler {
 
     }
 
+    private boolean compareMultiSubfieldContentMultiField(MarcRecordReader oldReader, MarcRecordReader newReader, String field, String subfield, boolean normalize, int cut) {
+        List<String> oldValues = oldReader.getValues(field, subfield);
+        List<String> newValues = newReader.getValues(field, subfield);
+
+        if (oldValues.size() != newValues.size()) {
+            return false;
+        }
+
+        Collections.sort(oldValues);
+        Collections.sort(newValues);
+
+        for (int i = 0; i < oldValues.size(); i++) {
+            if (!cutAndClean(oldValues.get(i), normalize, cut).equals(cutAndClean(newValues.get(i), normalize, cut))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * Returns the content of a field/subfield if exists and an empty string if not
      *
@@ -295,7 +321,10 @@ public class LibraryRecordsHandler {
         MarcRecordReader oldReader = new MarcRecordReader(oldRecord);
         MarcRecordReader newReader = new MarcRecordReader(newRecord);
 
-        int compareLength = 10;
+        // It is wanted to compare the full data content when deciding if classification has changed.
+        // This would normally mean removal of this variable and fix things where it has effect.
+        // Though, it has been mentioned that it could change in the future, so we don't do the nice stuff.
+        int compareLength = 0;
 
         // If the library is a FBS library then we need to compare the full subfield values and not just the first 10 chars
         if (RawRepo.COMMON_AGENCY != newReader.getAgencyIdAsInt()) {
@@ -565,12 +594,12 @@ public class LibraryRecordsHandler {
 
     private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader, int cut) {
         // 652 section
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
+        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
             logger.info("Classification has changed - reason 652a difference");
             return true;
         }
 
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
+        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
             logger.info("Classification has changed - reason 652b difference");
             return true;
         }
@@ -581,7 +610,10 @@ public class LibraryRecordsHandler {
         //      if 652h stripped changed return true
         String f652m = oldReader.getValue("652", "m");
         String f652o = oldReader.getValue("652", "o");
-        if (f652m != null || f652o != null) {
+        boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "m");
+        boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "o");
+        if ((f652m != null || f652o != null) &&
+                !(subfieldMHasBeenCopied || subfieldOHasBeenCopied)) {
             if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "e", true, 0)) {
                 logger.info("Classification has changed - reason 652m|o : subfield e difference");
                 return true;
@@ -597,19 +629,27 @@ public class LibraryRecordsHandler {
         }
 
         //  if 652m stripped changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
+        if (!subfieldMHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
             logger.info("Classification has changed - reason 652m difference");
             return true;
         }
 
         //  if 652o stripped changed return true
-        if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
+        if (!subfieldOHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
             logger.info("Classification has changed - reason 652o difference");
             return true;
         }
 
         return false;
     }
+
+    private boolean hasSubfieldBeenCopied(MarcRecordReader oldReader, MarcRecordReader newReader, String oldField, String newField, String subfield) {
+        String oldValue = oldReader.getValue(oldField, subfield);
+        String newValue = newReader.getValue(newField, subfield);
+
+        return oldValue != null && newValue != null && oldValue.equals(newValue);
+    }
+
 
     private MarcRecord updateClassificationsInRecord(MarcRecord currentCommonMarc, MarcRecord libraryRecord) {
         MarcRecord result = new MarcRecord(libraryRecord);
@@ -848,16 +888,16 @@ public class LibraryRecordsHandler {
 
         List<MarcRecord> result = new ArrayList<>();
         MarcRecordReader reader = new MarcRecordReader(record);
-
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
                     openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT))) {
+                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT) ||
+                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS))) {
 
-                logger.info("Record is 870970 and has either USE_ENRICHMENT or AUTH_ROOT so calling splitRecordDataIO");
+                logger.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
                 result = splitRecordDataIO(record, reader.getAgencyId());
             } else {
-                logger.info("Record is not 870970 or has neither USE_ENRICHMENT nor AUTH_ROOT so returning same record");
+                logger.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
                 result = Arrays.asList(record);
             }
 

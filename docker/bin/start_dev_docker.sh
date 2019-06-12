@@ -4,6 +4,10 @@
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
+RAWREPO_VERSION=1.13-snapshot
+RAWREPO_DIT_TAG=DIT-5016
+HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
+
 cd ${IDEA_ROOT}/docker
 mkdir -p logs/update/app logs/update/server logs/fakesmtp
 res=$?
@@ -74,17 +78,20 @@ docker-compose down
 docker-compose ps
 echo "docker ps : $?"
 
-docker rmi -f docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:${USER}
-docker rmi -f docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:${USER}
+docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
+docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
 docker rmi -f docker-i.dbc.dk/update-payara:${USER}
 docker-compose pull
-docker-compose up -d rawrepoDb updateserviceDb holdingsitemsDb fakeSmtp
+docker-compose up -d rawrepoDb
+docker-compose up -d updateserviceDb
+docker-compose up -d holdingsitemsDb
+docker-compose up -d fakeSmtp
 sleep 3
-docker tag docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:${USER}
-docker rmi docker-os.dbc.dk/rawrepo-postgres-1.9-snapshot:latest
-docker tag docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:${USER}
-docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
+docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
+docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
+docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
+docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest
 docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
 docker rmi docker-i.dbc.dk/update-postgres:latest
 docker tag docker-i.dbc.dk/update-payara:latest docker-i.dbc.dk/update-payara:${USER}

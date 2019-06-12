@@ -238,6 +238,76 @@ public class PreProcessingActionTest {
     }
 
     @Test
+    public void testSupplierRelations1() throws Exception {
+        testExample("preprocessing/supplier-relations/test-1-input.marc",
+                "preprocessing/supplier-relations/test-1-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations2() throws Exception {
+        testExample("preprocessing/supplier-relations/test-2-input.marc",
+                "preprocessing/supplier-relations/test-2-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations3() throws Exception {
+        testExample("preprocessing/supplier-relations/test-3-input.marc",
+                "preprocessing/supplier-relations/test-3-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations4() throws Exception {
+        testExample("preprocessing/supplier-relations/test-4-input.marc",
+                "preprocessing/supplier-relations/test-4-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations5() throws Exception {
+        testExample("preprocessing/supplier-relations/test-5-input.marc",
+                "preprocessing/supplier-relations/test-5-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations6() throws Exception {
+        testExample("preprocessing/supplier-relations/test-6-input.marc",
+                "preprocessing/supplier-relations/test-6-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations7() throws Exception {
+        testExample("preprocessing/supplier-relations/test-7-input.marc",
+                "preprocessing/supplier-relations/test-7-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations8() throws Exception {
+        testExample("preprocessing/supplier-relations/test-8-input.marc",
+                "preprocessing/supplier-relations/test-8-expected.marc");
+    }
+
+    @Test
+    public void testSupplierRelations9() throws Exception {
+        final MarcRecord head = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-head.marc");
+        final MarcRecord actual = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-input.marc");
+        final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/supplier-relations/test-9-expected.marc");
+
+        state.setMarcRecord(actual);
+        when(state.getRawRepo().recordExists(anyString(), anyInt())).thenReturn(false);
+        when(state.getRawRepo().recordExists(eq("46079922"), eq(870970))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("46079922"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(head, MarcXChangeMimeType.MARCXCHANGE));
+
+        final PreProcessingAction instance = new PreProcessingAction(state);
+        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(state.getMarcRecord(), equalTo(expected));
+    }
+
+    @Test
+    public void testSupplierRelations10() throws Exception {
+        testExample("preprocessing/supplier-relations/test-10-input.marc",
+                "preprocessing/supplier-relations/test-10-expected.marc");
+    }
+
+    @Test
     public void testPreviousISBN1() throws Exception {
         final MarcRecord request = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-request.marc");
         final MarcRecord expected = AssertActionsUtil.loadRecord("preprocessing/isbn-previous-version/test-1-expected.marc");
@@ -282,6 +352,7 @@ public class PreProcessingActionTest {
         state.setMarcRecord(request);
         when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("54948441"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -299,6 +370,7 @@ public class PreProcessingActionTest {
         state.setMarcRecord(request);
         when(state.getRawRepo().recordExists(eq("05259282"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("05259282"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("54948441"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("54948441"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(requestParent, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -367,7 +439,9 @@ public class PreProcessingActionTest {
 
         when(state.getRawRepo().recordExists(eq("50953033"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("50953033"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(previous, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("27364500"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("27364500"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(headVolume, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(eq("27430961"), eq(870970))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("27430961"), eq(870970))).thenReturn(AssertActionsUtil.createRawRepoRecord(sectionVolume, MarcXChangeMimeType.MARCXCHANGE));
 
         final PreProcessingAction instance = new PreProcessingAction(state);
@@ -375,24 +449,6 @@ public class PreProcessingActionTest {
         new MarcRecordWriter(state.getMarcRecord()).sort();
         assertThat(state.getMarcRecord(), equalTo(expected));
 
-    }
-
-    @Test
-    public void testInitialNote1() throws Exception {
-        testExample("preprocessing/initial-note/initial-note-1-input.marc",
-                "preprocessing/initial-note/initial-note-1-output.marc");
-    }
-
-    @Test
-    public void testInitialNote2() throws Exception {
-        testExample("preprocessing/initial-note/initial-note-2-input.marc",
-                "preprocessing/initial-note/initial-note-2-output.marc");
-    }
-
-    @Test
-    public void testInitialNote3() throws Exception {
-        testExample("preprocessing/initial-note/initial-note-3-input.marc",
-                "preprocessing/initial-note/initial-note-3-output.marc");
     }
 
     private void testExample(String inputFileName, String expectedFileName) throws Exception {

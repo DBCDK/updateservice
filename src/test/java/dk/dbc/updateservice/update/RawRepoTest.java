@@ -167,4 +167,15 @@ public class RawRepoTest {
         assertThat(((RecordId) toProvider.getValue().toArray()[1]).getBibliographicRecordId(), equalTo("22222222"));
     }
 
+    @Test
+    public void test_checkProvider() throws Exception {
+        when(rawRepoDAO.checkProvider(anyString())).thenReturn(false);
+        when(rawRepoDAO.checkProvider(eq("found"))).thenReturn(true);
+
+        RawRepo rawRepo = new MockRawRepo();
+
+        assertThat(rawRepo.checkProvider("found"), equalTo(true));
+        assertThat(rawRepo.checkProvider("not-found"), equalTo(false));
+    }
+
 }

@@ -1,0 +1,16 @@
+{
+  "request" : {
+    "url" : "/solr/raw-repo-index/select?q=marc.002a%3A06605142&wt=json&fl=marc.001a",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-owner-002a-hit.json",
+    "headers" : {
+      "Server" : "Apache-Coyote/1.1",
+      "Content-Type" : "text/plain;charset=UTF-8",
+      "Transfer-Encoding" : "chunked",
+      "Date" : "Wed, 01 Oct 2014 13:17:48 GMT"
+    }
+  }
+}

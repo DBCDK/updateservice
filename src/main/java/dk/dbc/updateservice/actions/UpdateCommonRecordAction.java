@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.CatalogExtractionCode;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
@@ -24,11 +23,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 /**
  * This action is used to update a common record.
@@ -42,8 +37,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
 
     private Properties settings;
-
-    private static final List<String> metacompassSubFieldsToCopy = Arrays.asList("e", "i", "g");
 
     public UpdateCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         super(UpdateCommonRecordAction.class.getSimpleName(), globalActionState, record);
@@ -111,11 +104,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 rewriteIndicators();
             }
 
-            if (CatalogExtractionCode.isUnderProduction(record)) {
-                logger.info("Record is under production - checking if there are any metacompass fields to copy to 666");
-                copyMetaCompassFields();
-            }
-
             // It is here we decide whether it's a single record or a volume/section record
             // If there is a field 014 either without a subfield x or if the content of subfield x is ANM
             // then the record is part of a volume/section/head structure.
@@ -162,57 +150,4 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    /**
-     * If the record is still under production then all 665 *q, *e, *i and *g subfields must be copied to 666
-     */
-    void copyMetaCompassFields() {
-        final List<MarcSubField> subfieldsToCopy = new ArrayList<>();
-        final List<MarcField> fields665 = record.getFields().stream().
-                filter(field -> "665".equals(field.getName())).
-                collect(Collectors.toList());
-
-        for (MarcField field : fields665) {
-            if (field.getSubfields().stream().
-                    anyMatch(subfield -> "&".equals(subfield.getName()) && "LEKTOR".equals(subfield.getValue()))) {
-                for (MarcSubField subfield : field.getSubfields()) {
-                    // 665 *q -> 666 *q
-                    if ("q".equals(subfield.getName())) {
-                        subfieldsToCopy.add(new MarcSubField("q", subfield.getValue()));
-                    }
-
-                    // 665 *e/*i/*g -> 666 *s
-                    if (metacompassSubFieldsToCopy.contains(subfield.getName())) {
-                        subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
-                    }
-                }
-            }
-        }
-
-        if (subfieldsToCopy.size() > 0) {
-            // Fields added by automation should always have an empty *0
-            final MarcSubField subfield0 = new MarcSubField("0", "");
-            final List<MarcField> fields666 = record.getFields().stream().
-                    filter(field -> "666".equals(field.getName())).
-                    collect(Collectors.toList());
-
-            for (MarcSubField subfieldToCopy : subfieldsToCopy) {
-                boolean hasSubfield = false;
-                for (MarcField field666 : fields666) {
-                    if (field666.getSubfields().contains(subfieldToCopy)) {
-                        // If the field has the subfield to copy but doesn't have *0 subfield then *0 must be added
-                        if (!field666.getSubfields().contains(subfield0)) {
-                            field666.getSubfields().add(0, subfield0);
-                        }
-
-                        hasSubfield = true;
-                        break;
-                    }
-                }
-
-                if (!hasSubfield) {
-                    record.getFields().add(new MarcField("666", "00", Arrays.asList(subfield0, subfieldToCopy)));
-                }
-            }
-        }
-    }
 }

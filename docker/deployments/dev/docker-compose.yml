@@ -6,7 +6,7 @@ networks:
 
 services:
   rawrepoDb:
-    image: docker-os.dbc.dk/rawrepo-postgres-1.10-snapshot:latest
+    image: docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:DIT-5016
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
@@ -17,7 +17,7 @@ services:
       - "5432"
 
   holdingsitemsDb:
-    image: docker-os.dbc.dk/holdings-items-postgres-1.1.1-snapshot:latest
+    image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
     environment:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
@@ -70,6 +70,9 @@ services:
       - SETTINGS_OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
       - SETTINGS_OPENAGENCY_CACHE_AGE=0
       - INSTANCE_NAME=${USER}_dev
+      - SETTINGS_OPENNUMBERROLL_URL=http://opennumberroll.addi.dk/1.0/
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
+      - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
     extra_hosts:
       - "solrserver:${HOST_IP}"
     volumes:

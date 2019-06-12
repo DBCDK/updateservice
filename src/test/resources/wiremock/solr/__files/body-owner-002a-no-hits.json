@@ -1,0 +1,12 @@
+{
+  "responseHeader":{
+    "status":0,
+    "QTime":0,
+    "params":{
+      "q":"marc.002a:\"06605143\" AND marc.001b:870970",
+      "indent":"on",
+      "fl":"marc.001a",
+      "wt":"json",
+      "_":"1507194231154"}},
+  "response":{"numFound":0,"start":0,"docs":[]
+  }}
