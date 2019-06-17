@@ -4,6 +4,7 @@ set -e
 
 env
 
+SETTINGS_OPENNUMBERROLL_URL_FORMAL=$(echo "${SETTINGS_OPENNUMBERROLL_URL}"|sed -e's/&amp;/&/g'|sed -e's/&/&amp;/g')
 cat << EOF > ${PAYARA_USER_HOME}/dbc-payara.d/18-updateservice-settings.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
@@ -23,6 +24,9 @@ cat << EOF > ${PAYARA_USER_HOME}/dbc-payara.d/18-updateservice-settings.xml
         <property name="openagency.url" value="${SETTINGS_OPENAGENCY_URL}"></property>
         <property name="openagency.cache.age" value="${SETTINGS_OPENAGENCY_CACHE_AGE}"></property>
         <property name="solr.url" value="http://${SOLR_PORT_8080_TCP_ADDR}:${SOLR_PORT_8080_TCP_PORT}/${SOLR_PATH}"></property>
+        <property name="opennumberroll.url" value="${SETTINGS_OPENNUMBERROLL_URL_FORMAL}"></property>
+        <property name="opennumberroll.name.faust8" value="${SETTINGS_OPENNUMBERROLL_NAME_FAUST_8}"></property>
+        <property name="opennumberroll.name.faust" value="${SETTINGS_OPENNUMBERROLL_NAME_FAUST}"></property>
         <property name="double.record.mail.host" value="${SMTP_PORT_25_TCP_ADDR}"></property>
         <property name="double.record.mail.port" value="${SMTP_PORT_25_TCP_PORT}"></property>
         <property name="double.record.mail.user" value="${SETTINGS_SMTP_USER}"></property>

@@ -64,7 +64,7 @@ public class GlobalActionState {
     private Instant createOverwriteDate = null;
     private Set<String> phLibraries = null;
     private Set<String> ffuLibraries = null;
-    private Set<String> lokbikLibraries = null;
+    private Set<String> lokbibLibraries = null;
     private RecordSorter recordSorter = null;
     private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
 
@@ -576,16 +576,16 @@ public class GlobalActionState {
     }
 
     public Set<String> getLokbibLibraries() throws UpdateException {
-        if (lokbikLibraries == null) {
+        if (lokbibLibraries == null) {
             try {
-                lokbikLibraries = openAgencyService.getLokbibLibraries();
+                lokbibLibraries = openAgencyService.getLokbibLibraries();
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
 
-        return lokbikLibraries;
+        return lokbibLibraries;
     }
 
     public String getRawRepoProviderId() throws UpdateException {

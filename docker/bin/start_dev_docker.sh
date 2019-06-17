@@ -1,6 +1,15 @@
 #!/bin/bash
 #set -x
 
+# If this is set different from N then also change
+# image: docker-i.dbc.dk/update-payara:latest
+# to
+# image: docker-i.dbc.dk/update-payara:mib (or whomever you are)
+# in docker-compos.yml
+# also go to updateservice/docker/update-payara and make :
+# docker build -t docker-i.dbc.dk/update-payara:mib .
+USE_LOCAL_PAYARA="N"
+
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
@@ -53,6 +62,11 @@ else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
 
+DEV_NUMBERROLL_URL=${DEV_NUMBERROLL_URL:-NOTSET}
+if [ ${DEV_NUMBERROLL_URL} = "NOTSET" ]
+then
+    export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+fi
 DEV_OPENAGENCY_URL=${DEV_OPENAGENCY_URL:-NOTSET}
 if [ ${DEV_OPENAGENCY_URL} = "NOTSET" ]
 then
@@ -81,7 +95,10 @@ echo "docker ps : $?"
 docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
-docker rmi -f docker-i.dbc.dk/update-payara:${USER}
+if [ "$USE_LOCAL_PAYARA" = "N" ]
+then
+    docker rmi -f docker-i.dbc.dk/update-payara:${USER}
+fi
 docker-compose pull
 docker-compose up -d rawrepoDb
 docker-compose up -d updateserviceDb
@@ -94,9 +111,12 @@ docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:la
 docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest
 docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
 docker rmi docker-i.dbc.dk/update-postgres:latest
-docker tag docker-i.dbc.dk/update-payara:latest docker-i.dbc.dk/update-payara:${USER}
-docker rmi docker-i.dbc.dk/update-payara:latest
 
+if [ "$USE_LOCAL_PAYARA" = "N" ]
+then
+    docker tag docker-i.dbc.dk/update-payara:latest docker-i.dbc.dk/update-payara:${USER}
+    docker rmi docker-i.dbc.dk/update-payara:latest
+fi
 RAWREPO_IMAGE=`docker-compose ps -q rawrepoDb`
 export RAWREPO_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${RAWREPO_IMAGE} `
 echo -e "RAWREPO_PORT is $RAWREPO_PORT\n"
