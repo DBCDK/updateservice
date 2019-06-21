@@ -11,6 +11,7 @@
 USE_LOCAL_PAYARA="N"
 
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
+SOLR_BASIS_PORT_NR=${SOLR_BASIS_PORT_NR:-WHAT}
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
 RAWREPO_VERSION=1.13-snapshot
@@ -72,6 +73,8 @@ if [ ${DEV_OPENAGENCY_URL} = "NOTSET" ]
 then
     export DEV_OPENAGENCY_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
 fi
+
+# Solr FBS settings
 DEV_SOLR_ADDR=${DEV_SOLR_ADDR:-NOTSET}
 if [ ${DEV_SOLR_ADDR} = "NOTSET" ]
 then
@@ -86,6 +89,23 @@ DEV_SOLR_PATH=${DEV_SOLR_PATH:-NOTSET}
 if [ ${DEV_SOLR_PATH} = "NOTSET" ]
 then
     export DEV_SOLR_PATH="solr/raapost-index"
+fi
+
+#Solr basis settings
+DEV_SOLR_BASIS_ADDR=${DEV_SOLR_BASIS_ADDR:-NOTSET}
+if [ ${DEV_SOLR_BASIS_ADDR} = "NOTSET" ]
+then
+    export DEV_SOLR_BASIS_ADDR="solrbasis"
+fi
+DEV_SOLR_BASIS_PORT=${DEV_SOLR_BASIS_PORT:-NOTSET}
+if [ ${DEV_SOLR_BASIS_PORT} = "NOTSET" ]
+then
+    export DEV_SOLR_BASIS_PORT="${SOLR_BASIS_PORT_NR}"
+fi
+DEV_SOLR_BASIS_PATH=${DEV_SOLR_BASIS_PATH:-NOTSET}
+if [ ${DEV_SOLR_BASIS_PATH} = "NOTSET" ]
+then
+    export DEV_SOLR_BASIS_PATH="solr/basis-index"
 fi
 
 docker-compose down

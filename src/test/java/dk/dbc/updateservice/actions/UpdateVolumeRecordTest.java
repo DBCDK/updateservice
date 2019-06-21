@@ -75,7 +75,7 @@ public class UpdateVolumeRecordTest {
         assertThat(updateVolumeRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateVolumeRecord.children().listIterator();
-        AssertActionsUtil.assertCreateVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getHoldingsItems(), state.getSolrService(), settings.getProperty(state.getRawRepoProviderId()));
+        AssertActionsUtil.assertCreateVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getHoldingsItems(), state.getSolrFBS(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -158,8 +158,8 @@ public class UpdateVolumeRecordTest {
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<>());
-        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
-        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
+        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));

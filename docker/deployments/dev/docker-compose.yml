@@ -66,16 +66,19 @@ services:
       - SOLR_PORT_8080_TCP_ADDR=${DEV_SOLR_ADDR}
       - SOLR_PORT_8080_TCP_PORT=${DEV_SOLR_PORT}
       - SOLR_PATH=${DEV_SOLR_PATH}
-      - SETTINGS_OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
+      - SOLR_BASIS_PORT_8080_TCP_ADDR=${DEV_SOLR_BASIS_ADDR}
+      - SOLR_BASIS_PORT_8080_TCP_PORT=${DEV_SOLR_BASIS_PORT}
+      - SOLR_BASIS_PATH=${DEV_SOLR_BASIS_PATH}
       - MAX_HEAP_IN_GB=4
       - SETTINGS_OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
       - SETTINGS_OPENAGENCY_CACHE_AGE=0
       - INSTANCE_NAME=${USER}_dev
-      - SETTINGS_OPENNUMBERROLL_URL=http://opennumberroll.addi.dk/1.0/
+      - SETTINGS_OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
       - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
       - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
     extra_hosts:
       - "solrserver:${HOST_IP}"
+      - "solrbasis:${HOST_IP}"
     volumes:
       - "../../logs/update/app:/data/logs"
       - "../../logs/update/server:/usr/local/payara41/glassfish/domains/domain1/logs"

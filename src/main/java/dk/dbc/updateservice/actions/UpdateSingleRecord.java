@@ -94,7 +94,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                         if (hasAuthExportHoldings) {
                             logger.info("Agency '{}' has feature '{}'", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
                             String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
-                            boolean has002Links = state.getSolrService().hasDocuments(solrQuery);
+                            boolean has002Links = state.getSolrFBS().hasDocuments(solrQuery);
                             if (!has002Links) {
                                 String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, agencyWithHoldings);
 
@@ -235,7 +235,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             String recordIdForRecordToDelete = recordReader.getValue("001", "a");
             Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
 
-            String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
+            String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
             if (motherRecordId.equals("")) {
                 return;
             }

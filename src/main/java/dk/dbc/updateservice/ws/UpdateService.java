@@ -26,7 +26,8 @@ import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
-import dk.dbc.updateservice.update.SolrService;
+import dk.dbc.updateservice.solr.SolrFBS;
+import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
@@ -91,7 +92,10 @@ public class UpdateService {
     private OpenAgencyService openAgencyService;
 
     @EJB
-    private SolrService solrService;
+    private SolrFBS solrService;
+
+    @EJB
+    private SolrBasis solrBasis;
 
     @EJB
     private ScripterPool scripterPool;
@@ -114,6 +118,7 @@ public class UpdateService {
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
         newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
         newGlobalActionStateObject.setSolrService(solrService);
+        newGlobalActionStateObject.setSolrBasis(solrBasis);
         newGlobalActionStateObject.setValidator(validator);
         newGlobalActionStateObject.setUpdateStore(updateStore);
         newGlobalActionStateObject.setLibraryRecordsHandler(libraryRecordsHandler);

@@ -78,7 +78,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
-        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrService(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
+        AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrFBS(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -166,7 +166,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
+        when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -209,8 +209,8 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
-        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
+        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -251,7 +251,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
         when(state.getOpenAgencyService().hasFeature("710100", LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, "710100");
@@ -293,8 +293,8 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
         when(state.getOpenAgencyService().hasFeature(GROUP_ID, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
-        when(state.getSolrService().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
-        when(state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
+        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
+        when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));

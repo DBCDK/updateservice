@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -21,7 +22,6 @@ import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
@@ -83,7 +83,7 @@ public class UpdateTestUtils {
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
         globalActionState.setScripter(mock(Scripter.class));
-        globalActionState.setSolrService(mock(SolrService.class));
+        globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));
         globalActionState.setOpenAgencyService(mock(OpenAgencyService.class));

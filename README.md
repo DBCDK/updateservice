@@ -62,6 +62,7 @@ Servicen bruger disse resourcer:
 **updateservice/settings** skal være af typen *Properties* med følgende værdier:
 
 * *solr.url*: Angiver den fulde url til SOLR-indekset inkl. core.
+* *solr.basis.url*: Angiver den fulde url til Basis SOLR-indekset inkl. core.
 * *forsrights.url*: Angiver den fulde url til forsrights webservicen. Pt er det vigtigt at huske at afslutte url'en
 med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan updateservice ikke håndterer.
 * *openagency.url*: Angiver den fulde url til openagency webservicen. Pt er det vigtigt at huske at afslutte url'en

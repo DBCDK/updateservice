@@ -24,6 +24,7 @@ cat << EOF > ${PAYARA_USER_HOME}/dbc-payara.d/18-updateservice-settings.xml
         <property name="openagency.url" value="${SETTINGS_OPENAGENCY_URL}"></property>
         <property name="openagency.cache.age" value="${SETTINGS_OPENAGENCY_CACHE_AGE}"></property>
         <property name="solr.url" value="http://${SOLR_PORT_8080_TCP_ADDR}:${SOLR_PORT_8080_TCP_PORT}/${SOLR_PATH}"></property>
+        <property name="solr.basis.url" value="http://${SOLR_BASIS_PORT_8080_TCP_ADDR}:${SOLR_BASIS_PORT_8080_TCP_PORT}/${SOLR_BASIS_PATH}"></property>
         <property name="opennumberroll.url" value="${SETTINGS_OPENNUMBERROLL_URL_FORMAL}"></property>
         <property name="opennumberroll.name.faust8" value="${SETTINGS_OPENNUMBERROLL_NAME_FAUST_8}"></property>
         <property name="opennumberroll.name.faust" value="${SETTINGS_OPENNUMBERROLL_NAME_FAUST}"></property>
