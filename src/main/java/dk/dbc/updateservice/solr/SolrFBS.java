@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Properties;
-import java.util.ResourceBundle;
 
 @Stateless
 public class SolrFBS extends SolrBase {
