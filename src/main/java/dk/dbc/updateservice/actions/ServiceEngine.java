@@ -70,7 +70,7 @@ public class ServiceEngine {
 
             logger.info("");
             if (stopExecution(serviceResult)) {
-                logger.error("Action failed before sub actions: {}", serviceResult);
+                logger.info("Action failed before sub actions: {}", serviceResult);
                 return serviceResult;
             } else {
                 logger.info("Action success before sub actions: {}", serviceResult);

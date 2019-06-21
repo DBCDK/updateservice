@@ -94,7 +94,7 @@ public class ValidateRecordAction extends AbstractAction {
             String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {
-                logger.error("Record {{}:{}} contains validation errors.", recordId, agencyId);
+                logger.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
                 result.setStatus(UpdateStatusEnumDTO.FAILED);
             } else {
                 logger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);

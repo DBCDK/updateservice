@@ -76,7 +76,6 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
             }
-            logger.error("Creating sub actions successfully");
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(new RemoveLinksAction(state, record));
             children.add(LinkRecordAction.newLinkParentAction(state, record));
