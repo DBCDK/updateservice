@@ -29,6 +29,7 @@ public class JNDIResources {
     public static final String JNDI_NAME_BUILDSERVICE = "env/iscrum/build/properties";
 
     public static final String SOLR_URL_KEY = "solr.url";
+    public static final String SOLR_BASIS_URL_KEY = "solr.basis.url";
     public static final String FORSRIGHTS_URL_KEY = "forsrights.url";
     public static final String OPENAGENCY_URL_KEY = "openagency.url";
     public static final String OPENAGENCY_CACHE_AGE_KEY = "openagency.cache.age";

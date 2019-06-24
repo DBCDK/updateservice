@@ -7,6 +7,7 @@ package dk.dbc.updateservice.update;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import dk.dbc.updateservice.solr.SolrFBS;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class SolrServiceTest {
+public class SolrFBSTest {
     private WireMockServer solrServer;
 
     @Before
@@ -41,7 +42,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605141"), is("2 041 237 2"));
     }
 
@@ -50,7 +51,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605142"), is("20412372"));
     }
 
@@ -59,7 +60,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605143"), is(""));
     }
 
@@ -68,7 +69,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.hasDocuments("marc.002a:76605141"), is(false));
         assertThat(instance.hasDocuments("marc.002a:06605141"), is(true));
     }
@@ -79,7 +80,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:9090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.hits("marc.002a:06605141"), equalTo(1L));
         assertThat(instance.hits("marc.002a:76605141"), equalTo(0L));
 
@@ -91,7 +92,7 @@ public class SolrServiceTest {
         Properties settings = new Properties();
         settings.put("solr.url", "http://localhost:19090/solr/raw-repo-index");
 
-        SolrService instance = new SolrService(settings);
+        SolrFBS instance = new SolrFBS(settings);
         instance.hits("marc.002a:06605141");
     }
 }

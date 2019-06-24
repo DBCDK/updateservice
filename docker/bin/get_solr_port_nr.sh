@@ -10,10 +10,13 @@ fi
 
 i=0
 SOLR_PORT_NR=12345
+SOLR_BASIS_PORT_NR=12345
 while test $i -lt 20; do
     i=$((( $i + 1 )))
     p=$((( RANDOM % 60000) + 1025 ))
     eval ${cmd} | grep -q $p || { SOLR_PORT_NR=$p; break; }
 done
+SOLR_BASIS_PORT_NR=${SOLR_PORT_NR}
 
 export SOLR_PORT_NR
+export SOLR_BASIS_PORT_NR

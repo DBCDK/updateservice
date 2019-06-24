@@ -226,7 +226,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
 
         String solrQuery = createSolrQuery(false, recordId, "002a", recordId);
-        return state.getSolrService().hasDocuments(solrQuery);
+        return state.getSolrFBS().hasDocuments(solrQuery);
     }
 
 
@@ -364,7 +364,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             String recordId = reader.getRecordId();
-            String motherRecordId = state.getSolrService().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId));
+            String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId));
             if (!motherRecordId.equals("")) {
                 return ServiceResult.newOkResult();
             }
@@ -411,7 +411,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
                     if (holdingAgencies001.size() > 0) {
                         for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
-                            if (!state.getSolrService().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
+                            if (!state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
                                 return state.getMessages().getString("delete.record.holdings.on.002a");
                             }
                         }
@@ -432,7 +432,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 for (String aValue : reader.getValues("002", "a")) {
                     String solrQuery = createSolrQuery(recordExists, readerRecordId, "002a", aValue);
 
-                    if (state.getSolrService().hasDocuments(solrQuery)) {
+                    if (state.getSolrFBS().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
                     }
                 }
@@ -440,7 +440,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 for (String xValue : reader.getValues("002", "x")) {
                     String solrQuery = createSolrQuery(recordExists, readerRecordId, "002x", xValue);
 
-                    if (state.getSolrService().hasDocuments(solrQuery)) {
+                    if (state.getSolrFBS().hasDocuments(solrQuery)) {
                         return state.getMessages().getString("update.record.with.002.links");
                     }
                 }

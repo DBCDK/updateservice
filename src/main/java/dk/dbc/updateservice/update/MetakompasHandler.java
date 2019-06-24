@@ -108,7 +108,7 @@ public class MetakompasHandler {
             throws UpdateException, SolrException {
         try {
             String solrQuery = SolrServiceIndexer.createGetSubjectHits(index, subfieldContent);
-            if (!state.getSolrService().hasDocuments(solrQuery)) {
+            if (!state.getSolrBasis().hasDocuments(solrQuery)) {
                 MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(commonRecordTemplate);
                 MarcRecordWriter writer = new MarcRecordWriter(commonSubjectRecord);
                 String newId = getNewIdNumber(properties);

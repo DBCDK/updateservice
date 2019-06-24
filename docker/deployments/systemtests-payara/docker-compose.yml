@@ -65,13 +65,15 @@ services:
       - HOLDINGSITEMS_PORT_5432_TCP_ADDR=update-systemtests-holdingsitems-db
       - SOLR_PORT_8080_TCP_ADDR=ocb-tools-systemtests
       - SOLR_PORT_8080_TCP_PORT=8080
+      - SOLR_BASIS_PORT_8080_TCP_ADDR=ocb-tools-systemtests
+      - SOLR_BASIS_PORT_8080_TCP_PORT=8080
       - UPDATE_DB_PORT_5432_TCP_ADDR=update-systemtests-update-db
       - UPDATE_DB_PORT_5432_TCP_PORT=5432
       - MAX_HEAP_IN_GB=4
       - SETTINGS_OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - SETTINGS_OPENAGENCY_CACHE_AGE=8
       - INSTANCE_NAME=${USER}_systemtest
-      - SETTINGS_OPENNUMBERROLL_URL=http://opennumberroll.addi.dk/1.0/
+      - SETTINGS_OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
       - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
       - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
     links:
@@ -80,6 +82,7 @@ services:
       - "./logs/update:/data/logs"
     extra_hosts:
       - "solrserver:127.0.0.1"
+      - "solrbasis:127.0.0.1"
     expose:
       - "8080"
       - "4848"

@@ -14,13 +14,14 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.solr.SolrBasis;
+import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
@@ -48,7 +49,8 @@ public class GlobalActionState {
     private RawRepo rawRepo = null;
     private HoldingsItems holdingsItems = null;
     private OpenAgencyService openAgencyService = null;
-    private SolrService solrService = null;
+    private SolrFBS solrService = null;
+    private SolrBasis solrBasis = null;
     private Validator validator = null;
     private UpdateStore updateStore = null;
     private LibraryRecordsHandler libraryRecordsHandler = null;
@@ -71,7 +73,7 @@ public class GlobalActionState {
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrService solrService, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, OpenAgencyService.LibraryGroup libraryGroup) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, OpenAgencyService.LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
@@ -80,6 +82,7 @@ public class GlobalActionState {
         this.holdingsItems = holdingsItems;
         this.openAgencyService = openAgencyService;
         this.solrService = solrService;
+        this.solrBasis = solrBasis;
         this.validator = validator;
         this.updateStore = updateStore;
         this.libraryRecordsHandler = libraryRecordsHandler;
@@ -88,7 +91,7 @@ public class GlobalActionState {
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrService(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), null);
+        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), null);
     }
 
     private void resetState() {
@@ -157,12 +160,20 @@ public class GlobalActionState {
         this.openAgencyService = openAgencyService;
     }
 
-    public SolrService getSolrService() {
+    public SolrFBS getSolrFBS() {
         return solrService;
     }
 
-    public void setSolrService(SolrService solrService) {
+    public void setSolrService(SolrFBS solrService) {
         this.solrService = solrService;
+    }
+
+    public SolrBasis getSolrBasis() {
+        return solrBasis;
+    }
+
+    public void setSolrBasis(SolrBasis solrBasis) {
+        this.solrBasis = solrBasis;
     }
 
     public Validator getValidator() {

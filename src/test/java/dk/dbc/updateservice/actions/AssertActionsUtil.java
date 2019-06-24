@@ -12,20 +12,20 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.updateservice.utils.IOUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
-import dk.dbc.updateservice.update.SolrService;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.IOUtils;
 import org.junit.Assert;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -168,18 +168,18 @@ public class AssertActionsUtil {
         Assert.assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
     }
 
-    public static void assertCreateSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, SolrService solrService, String providerId) throws UpdateException {
+    public static void assertCreateSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, SolrFBS solrService, String providerId) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(CreateSingleRecordAction.class.getName()));
 
         CreateSingleRecordAction createSingleRecordAction = (CreateSingleRecordAction) action;
         Assert.assertThat(createSingleRecordAction.getRawRepo(), is(rawRepo));
         Assert.assertThat(createSingleRecordAction.getRecord(), is(record));
-        Assert.assertThat(createSingleRecordAction.state.getSolrService(), is(solrService));
+        Assert.assertThat(createSingleRecordAction.state.getSolrFBS(), is(solrService));
         Assert.assertThat(createSingleRecordAction.settings.getProperty(createSingleRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
-    public static void assertCreateVolumeRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems, SolrService solrService, String providerId) throws UpdateException {
+    public static void assertCreateVolumeRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems, SolrFBS solrService, String providerId) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(CreateVolumeRecordAction.class.getName()));
 
@@ -187,7 +187,7 @@ public class AssertActionsUtil {
         Assert.assertThat(createVolumeRecordAction.getRawRepo(), is(rawRepo));
         Assert.assertThat(createVolumeRecordAction.getRecord(), is(record));
         Assert.assertThat(createVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        Assert.assertThat(createVolumeRecordAction.state.getSolrService(), is(solrService));
+        Assert.assertThat(createVolumeRecordAction.state.getSolrFBS(), is(solrService));
         Assert.assertThat(createVolumeRecordAction.settings.getProperty(createVolumeRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
