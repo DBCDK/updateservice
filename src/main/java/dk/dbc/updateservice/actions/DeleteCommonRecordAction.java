@@ -69,7 +69,6 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
                 children.add(updateEnrichmentRecordAction);
             }
-            logger.error("Creating sub actions successfully");
 
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             children.add(new RemoveLinksAction(state, record));

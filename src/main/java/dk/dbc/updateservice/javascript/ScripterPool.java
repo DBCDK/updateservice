@@ -95,9 +95,7 @@ public class ScripterPool {
      */
     @PostConstruct
     public void postConstruct() {
-        logger.error("bugxx  unlocked {} ", bugxxxx.get());
         synchronized (bugxxxx) {
-            logger.error("bugxx   {} ", bugxxxx.get());
             if (bugxxxx.get() > 0) {
                 bugxxxx.incrementAndGet();
                 logger.warn("Ups.. postConstruct called multiple time on Singleton " + ScripterPool.class.getName() + " .. ignoring");
