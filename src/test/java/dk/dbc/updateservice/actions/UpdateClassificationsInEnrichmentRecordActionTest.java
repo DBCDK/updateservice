@@ -5,8 +5,11 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,6 +17,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isNull;
@@ -152,4 +157,40 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
         assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), equalTo(newEnrichmentRecord));
     }
+
+    @Test
+    public void testModifyEnrichment() throws Exception {
+        MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("y08", "a", "Ny Note");
+
+        MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcField y08 = new MarcField("y08", "00");
+        y08.getSubfields().add(new MarcSubField("a", "Ny Note"));
+        y08.getSubfields().add(new MarcSubField("a", "UPDATE opstillingsændring"));
+        expected.getFields().add(y08);
+
+        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
+
+        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
+
+        MarcRecord actual = updateClassificationsInEnrichmentRecordAction.createRecord();
+
+        // Subfield 001 *c should have a new value, so the records should not be identical
+        assertThat(actual, not(expected));
+
+        // Check that subfield 001 *c has a value in both records
+        assertNotNull(new MarcRecordReader(expected).getValue("001", "c"));
+        assertNotNull(new MarcRecordReader(actual).getValue("001", "c"));
+
+        // Verify that the records are identical without 001 *c
+        new MarcRecordWriter(expected).removeSubfield("001", "c");
+        new MarcRecordWriter(actual).removeSubfield("001", "c");
+        assertThat(actual, equalTo(expected));
+    }
+
 }

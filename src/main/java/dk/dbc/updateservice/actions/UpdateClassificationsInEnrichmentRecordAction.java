@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
@@ -65,9 +66,15 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             MarcRecordReader reader = new MarcRecordReader(record);
             MarcRecordWriter writer = new MarcRecordWriter(record);
 
-            // Fix for story #1910 , 1911
+            // When categorization has changed in the common record an y08 *a note must be added
             if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
-                writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
+                // If there already is an y08 *a subfield but it contains a different kind of note then keep that note
+                if (reader.hasSubfield("y08", "a")) {
+                    reader.getField("y08").getSubfields().add(new MarcSubField("a", RECLASSIFICATION_STRING));
+                } else {
+                    writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
+                }
+                writer.setChangedTimestamp();
             }
             writer.sort();
             return record;
