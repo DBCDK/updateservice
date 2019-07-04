@@ -1,0 +1,23 @@
+{
+  "appName": "updateservice",
+  "jdbc": {
+    "jdbc/rawrepo": {
+      "url": "${RAWREPO_DB_URL}"
+    },
+    "jdbc/holdingsitems": {
+      "url": "${HOLDINGS_ITEMS_DB_URL}"
+    },
+    "jdbc/update": {
+      "url": "${UPDATE_DB_URL}"
+    }
+  },
+  "logger": {
+    "dk.dbc.jslib.ModuleHandler": {
+      "level": "WARN"
+    },
+    "dk.dbc": {
+      "level": "DEBUG"
+    }
+
+  }
+}

@@ -44,38 +44,35 @@ services:
       - "../../../docker/logs/fakesmtp:/output"
 
   updateservice:
-    image: docker-i.dbc.dk/update-payara:latest
+    image: docker-i.dbc.dk/update-payara-dev:latest
     env_file:
       - ./settings.env
       - ./db.env
     environment:
-      - LOGBACK_FILE=file:///data/update-logback-include.xml
-      - SETTINGS_RAWREPO_ALLOW_EXTRA_RECORD_DATA=True
       - THREAD_POOL_SIZE=1
-      - RAWREPO_PORT_5432_TCP_ADDR=${HOST_IP}
-      - RAWREPO_PORT_5432_TCP_PORT=${RAWREPO_PORT}
-      - SETTINGS_RAWREPO_PROVIDER_ID_DBC=dataio-update
-      - SETTINGS_RAWREPO_PROVIDER_ID_DBC_SOLR=update-rawrepo-solr-sync
-      - SETTINGS_RAWREPO_PROVIDER_ID_FBS=opencataloging-update
-      - SETTINGS_RAWREPO_PROVIDER_ID_PH=fbs-ph-update
-      - SETTINGS_RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update
-      - HOLDINGSITEMS_PORT_5432_TCP_ADDR=${HOST_IP}
-      - HOLDINGSITEMS_PORT_5432_TCP_PORT=${HOLDINGSITEMSDB_PORT}
-      - UPDATE_DB_PORT_5432_TCP_ADDR=${HOST_IP}
-      - UPDATE_DB_PORT_5432_TCP_PORT=${UPDATESERVICEDB_PORT}
-      - SOLR_PORT_8080_TCP_ADDR=${DEV_SOLR_ADDR}
-      - SOLR_PORT_8080_TCP_PORT=${DEV_SOLR_PORT}
-      - SOLR_PATH=${DEV_SOLR_PATH}
-      - SOLR_BASIS_PORT_8080_TCP_ADDR=${DEV_SOLR_BASIS_ADDR}
-      - SOLR_BASIS_PORT_8080_TCP_PORT=${DEV_SOLR_BASIS_PORT}
-      - SOLR_BASIS_PATH=${DEV_SOLR_BASIS_PATH}
+      - JAVASCRIPT_POOL_SIZE=1
+      - JAVASCRIPT_BASEDIR=/data/opencat-business
+      - UPDATE_PROD_STATE=false
+      - RAWREPO_PROVIDER_ID_DBC=dataio-update
+      - RAWREPO_PROVIDER_ID_FBS=opencataloging-update
+      - RAWREPO_PROVIDER_ID_PH=fbs-ph-update
+      - RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update
       - MAX_HEAP_IN_GB=4
-      - SETTINGS_OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
-      - SETTINGS_OPENAGENCY_CACHE_AGE=0
+      - OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      - OPENAGENCY_CACHE_AGE=0
       - INSTANCE_NAME=${USER}_dev
-      - SETTINGS_OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
-      - SETTINGS_OPENNUMBERROLL_NAME_FAUST_8=faust
-      - SETTINGS_OPENNUMBERROLL_NAME_FAUST=faust
+      - OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
+      - OPENNUMBERROLL_NAME_FAUST_8=faust
+      - OPENNUMBERROLL_NAME_FAUST=faust
+      - FORSRIGHTS_URL=http://forsrights.addi.dk/1.2/
+      - AUTH_USE_IP=true
+      - JAVA_MAX_HEAP_SIZE=8G
+      - AUTH_PRODUCT_NAME=netpunkt.dk
+      - RAWREPO_DB_URL=${DEV_RAWREPO_DB_URL}
+      - HOLDINGS_ITEMS_DB_URL=${DEV_HOLDINGS_ITEMS_DB_URL}
+      - UPDATE_DB_URL=${DEV_UPDATE_DB_URL}
+      - SOLR_URL=${DEV_SOLR_URL}
+      - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
     extra_hosts:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"

@@ -1,2 +1,0 @@
-set-log-attributes --passwordfile=./passfile.txt com.sun.enterprise.server.logging.GFFileHandler.maxHistoryFiles=5
-set-log-attributes --passwordfile=./passfile.txt com.sun.enterprise.server.logging.GFFileHandler.rotationLimitInBytes=20000000
