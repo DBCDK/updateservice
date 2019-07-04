@@ -6,7 +6,7 @@
              version="2.1">
     <persistence-unit name="updatestore" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-        <jta-data-source>jdbc/updateservice/updateservicestore</jta-data-source>
+        <jta-data-source>jdbc/update</jta-data-source>
         <class>dk.dbc.updateservice.entities.DpkOverride</class>
         <properties>
             <property name="eclipselink.logging.parameters" value="true"/>

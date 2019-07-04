@@ -29,8 +29,7 @@ public class Validator {
     @EJB
     private Scripter scripter;
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     public List<SchemaDTO> getValidateSchemas(String groupId, String templateGroup) throws ScripterException {
         logger.entry();

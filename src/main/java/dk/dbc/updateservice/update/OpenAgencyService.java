@@ -16,7 +16,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.Singleton;
 import java.io.IOException;
 import java.util.Properties;
@@ -31,11 +30,7 @@ public class OpenAgencyService {
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    /**
-     * Resource to lookup the product name for authentication.
-     */
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     private OpenAgencyServiceFromURL service;
 
@@ -80,9 +75,9 @@ public class OpenAgencyService {
             OpenAgencyServiceFromURL.Builder builder = OpenAgencyServiceFromURL.builder();
             builder = builder.connectTimeout(CONNECT_TIMEOUT).
                     requestTimeout(REQUEST_TIMEOUT).
-                    setCacheAge(Integer.parseInt(settings.getProperty(JNDIResources.OPENAGENCY_CACHE_AGE_KEY)));
+                    setCacheAge(Integer.parseInt(settings.getProperty(JNDIResources.OPENAGENCY_CACHE_AGE)));
 
-            service = builder.build(settings.getProperty(JNDIResources.OPENAGENCY_URL_KEY));
+            service = builder.build(settings.getProperty(JNDIResources.OPENAGENCY_URL));
         } finally {
             watch.stop();
             logger.exit();

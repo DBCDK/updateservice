@@ -8,7 +8,6 @@ package dk.dbc.updateservice.rest;
 import dk.dbc.serviceutils.ServiceStatus;
 import dk.dbc.updateservice.ws.JNDIResources;
 
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -18,8 +17,7 @@ import java.util.Properties;
 @Path("/api")
 public class HowruService implements ServiceStatus {
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     private String dependencies = null;
 
@@ -27,9 +25,9 @@ public class HowruService implements ServiceStatus {
         if (dependencies == null) {
             // Creates a string that can be parsed as JSON
             dependencies = "[" +
-                    "\"" + settings.getProperty(JNDIResources.OPENAGENCY_URL_KEY) + "?wsdl" + "\"" +
+                    "\"" + settings.getProperty(JNDIResources.OPENAGENCY_URL) + "?wsdl" + "\"" +
                     "," +
-                    "\"" + settings.getProperty(JNDIResources.FORSRIGHTS_URL_KEY) + "forsrights.wsdl" + "\"" +
+                    "\"" + settings.getProperty(JNDIResources.FORSRIGHTS_URL) + "forsrights.wsdl" + "\"" +
                     "]";
         }
 

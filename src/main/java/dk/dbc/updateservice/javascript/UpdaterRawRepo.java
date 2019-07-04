@@ -133,7 +133,7 @@ public class UpdaterRawRepo {
      */
     private static Connection getConnection() throws NamingException, SQLException {
         InitialContext ctx = new InitialContext();
-        DataSource ds = (DataSource) ctx.lookup(JNDIResources.JDBC_RAW_REPO_READONLY_NAME);
+        DataSource ds = (DataSource) ctx.lookup("jdbc/rawrepo");
         return ds.getConnection();
     }
 }

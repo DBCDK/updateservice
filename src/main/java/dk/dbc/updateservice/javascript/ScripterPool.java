@@ -13,7 +13,6 @@ import org.slf4j.ext.XLoggerFactory;
 import org.slf4j.profiler.Profiler;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.ConcurrencyManagement;
 import javax.ejb.ConcurrencyManagementType;
 import javax.ejb.Singleton;
@@ -78,11 +77,7 @@ public class ScripterPool {
 
     private static final AtomicInteger bugxxxx = new AtomicInteger(0);
 
-    /**
-     * JNDI settings.
-     */
-    @Resource(lookup = "updateservice/settings")
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     public enum Status {
         ST_NA,
@@ -105,7 +100,7 @@ public class ScripterPool {
         logger.entry();
         try {
             logger.debug("Starting creation of javascript environments.");
-            int javaScriptPoolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+            int javaScriptPoolSize = Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE));
             if (javaScriptPoolSize < MIN_NUMBER_OF_ENVIROMENTS) {
                 javaScriptPoolSize = MIN_NUMBER_OF_ENVIROMENTS;
             }
@@ -199,9 +194,9 @@ public class ScripterPool {
      */
     public Boolean isAllEnviromentsLoaded() {
         logger.entry();
-        boolean res = false ;
+        boolean res = false;
         try {
-            return res =  initializedEnvironments.intValue() >= Integer.valueOf(settings.getProperty(JNDIResources.JAVASCRIPT_POOL_SIZE_KEY));
+            return res = initializedEnvironments.intValue() >= Integer.valueOf(System.getenv(JNDIResources.JAVASCRIPT_POOL_SIZE));
         } finally {
             logger.exit(res);
         }
