@@ -1,20 +1,18 @@
-version: '2'
-networks:
-  default:
-    external:
-        name: update-compose-network
+version: '3.6'
 
 services:
+
   rawrepoDb:
     image: docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:DIT-5016
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "5432"
+    networks:
+      - update-compose-network
+
 
   holdingsitemsDb:
     image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
@@ -22,10 +20,10 @@ services:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "5432"
+    networks:
+      - update-compose-network
 
   updateserviceDb:
     image: docker-i.dbc.dk/update-postgres:latest
@@ -33,41 +31,29 @@ services:
       - POSTGRES_DB=updateservice
       - POSTGRES_USER=updateservice
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "5432"
+    networks:
+      - update-compose-network
 
   fakeSmtp:
     image: docker-i.dbc.dk/fakesmtp
     volumes:
       - "../../../docker/logs/fakesmtp:/output"
+    networks:
+      - update-compose-network
 
   updateservice:
     image: docker-i.dbc.dk/update-payara-dev:latest
     env_file:
-      - ./settings.env
-      - ./db.env
+      - settings.env
+      - db.env
+      - providers.env
     environment:
-      - THREAD_POOL_SIZE=1
-      - JAVASCRIPT_POOL_SIZE=1
-      - JAVASCRIPT_BASEDIR=/data/opencat-business
-      - UPDATE_PROD_STATE=false
-      - RAWREPO_PROVIDER_ID_DBC=dataio-update
-      - RAWREPO_PROVIDER_ID_FBS=opencataloging-update
-      - RAWREPO_PROVIDER_ID_PH=fbs-ph-update
-      - RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update
-      - MAX_HEAP_IN_GB=4
       - OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
-      - OPENAGENCY_CACHE_AGE=0
       - INSTANCE_NAME=${USER}_dev
       - OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
-      - OPENNUMBERROLL_NAME_FAUST_8=faust
-      - OPENNUMBERROLL_NAME_FAUST=faust
-      - FORSRIGHTS_URL=http://forsrights.addi.dk/1.2/
-      - AUTH_USE_IP=true
       - JAVA_MAX_HEAP_SIZE=8G
-      - AUTH_PRODUCT_NAME=netpunkt.dk
       - RAWREPO_DB_URL=${DEV_RAWREPO_DB_URL}
       - HOLDINGS_ITEMS_DB_URL=${DEV_HOLDINGS_ITEMS_DB_URL}
       - UPDATE_DB_URL=${DEV_UPDATE_DB_URL}
@@ -77,14 +63,13 @@ services:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"
     volumes:
-      - "../../logs/update/app:/data/logs"
-      - "../../logs/update/server:/usr/local/payara41/glassfish/domains/domain1/logs"
-      - "../../../../opencat-business:/data/opencat-business"
-    expose:
-      - "8080"
-      - "8686"
-      - "4848"
+      - "../../../../opencat-business:/opt/payara5/deployments/opencat-business"
     ports:
       - "8080"
       - "8686"
       - "4848"
+    networks:
+      - update-compose-network
+
+networks:
+  update-compose-network:

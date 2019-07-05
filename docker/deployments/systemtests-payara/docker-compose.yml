@@ -1,13 +1,7 @@
-version: '2'
-networks:
-  default:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.1.0/28
+version: '3.6'
 
 services:
+
   update-systemtests-rawrepo-db:
     image: docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:DIT-5016
     environment:
@@ -18,6 +12,8 @@ services:
       - "5432"
     ports:
       - "13132:5432"
+    networks:
+      - update-compose-network
 
   update-systemtests-holdingsitems-db:
     image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
@@ -29,11 +25,15 @@ services:
       - "5432"
     ports:
       - "13232:5432"
+    networks:
+      - update-compose-network
 
   update-systemtests-fake-smtp:
     image: docker-i.dbc.dk/fakesmtp:latest
     volumes:
       - "./logs/fakesmtp:/output"
+    networks:
+      - update-compose-network
 
   update-systemtests-update-db:
     image: docker-i.dbc.dk/update-postgres:${SUBST_IMAGE_NAME}
@@ -45,6 +45,8 @@ services:
       - "5432"
     ports:
       - "14332:5432"
+    networks:
+      - update-compose-network
 
   update-systemtests-updateservice:
     image: docker-i.dbc.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
@@ -53,28 +55,13 @@ services:
       - ./db.env
       - ./ocb-tools.env
     environment:
-      - LOGBACK_FILE=file:///data/update-logback-include.xml
       - UPDATE_BUILD_NO=lastSuccessfulBuild
       - JAVASCRIPT_POOL_SIZE=1
-      - RAWREPO_PORT_5432_TCP_ADDR=update-systemtests-rawrepo-db
-      - RAWREPO_PROVIDER_ID_DBC=dataio-update
-      - RAWREPO_PROVIDER_ID_FBS=opencataloging-update
-      - RAWREPO_PROVIDER_ID_PH=fbs-ph-update
-      - RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update
-      - HOLDINGSITEMS_PORT_5432_TCP_ADDR=update-systemtests-holdingsitems-db
-      - SOLR_PORT_8080_TCP_ADDR=ocb-tools-systemtests
-      - SOLR_PORT_8080_TCP_PORT=8080
-      - SOLR_BASIS_PORT_8080_TCP_ADDR=ocb-tools-systemtests
-      - SOLR_BASIS_PORT_8080_TCP_PORT=8080
-      - UPDATE_DB_PORT_5432_TCP_ADDR=update-systemtests-update-db
-      - UPDATE_DB_PORT_5432_TCP_PORT=5432
       - MAX_HEAP_IN_GB=4
       - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
-      - OPENAGENCY_CACHE_AGE=8
       - INSTANCE_NAME=${USER}_systemtest
-      - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
-      - OPENNUMBERROLL_NAME_FAUST_8=faust
-      - OPENNUMBERROLL_NAME_FAUST=faust
+      - SOLR_URL=${DEV_SOLR_URL}
+      - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
     links:
       - update-systemtests-update-db:update-systemtests-update-db
     volumes:
@@ -88,6 +75,8 @@ services:
     ports:
       - "18180:8080"
       - "18148:4848"
+    networks:
+      - update-compose-network
 
   ocb-tools-systemtests:
     image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
@@ -109,3 +98,5 @@ services:
       - "18082:8080"
     entrypoint: run-update-tests.sh
 
+networks:
+  update-compose-network:
