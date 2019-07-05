@@ -19,14 +19,14 @@ RAWREPO_DIT_TAG=DIT-5016
 HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
 
 cd ${IDEA_ROOT}/docker
-mkdir -p logs/update/app logs/update/server logs/fakesmtp
+
 res=$?
 if [ ${res} -ne 0 ]
 then
     echo "Could not create ${IDEA_ROOT}/docker/logs/update/app ${IDEA_ROOT}/docker/logs/update/server"
     exit 1
 fi
-chmod ugo+rw logs logs/update/app logs/update/server logs/fakesmtp
+
 res=$?
 if [ ${res} -ne 0 ]
 then
