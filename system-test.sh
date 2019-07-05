@@ -46,10 +46,6 @@ function setupLogAndLogdir () {
   echo "systest ---> Setting up logdirs"
   cd ${SYSTEST_PATH} || die "cd ${SYSTEST_PATH}"
   rm -rf logs  || die "rm -rf logs"
-  mkdir -p logs/updateservice || die "mkdir -p logs/updateservice"
-  mkdir -p logs/update || die "mkdir -p logs/update"
-  mkdir -p logs/fakesmtp || die "mkdir -p logs/fakesmtp"
-  cp ../../../update-logback-include.xml logs/updateservice/  || die "cp ../../../update-logback-include.xml logs/updateservice/"
   mkdir -p logs/ocb-tools || die "mkdir -p logs/ocb-tools"
   chmod -R a+rw logs || die "chmod -R a+rw logs"
 }

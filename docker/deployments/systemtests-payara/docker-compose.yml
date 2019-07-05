@@ -8,8 +8,6 @@ services:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "13132:5432"
     networks:
@@ -21,8 +19,6 @@ services:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "13232:5432"
     networks:
@@ -41,8 +37,6 @@ services:
       - POSTGRES_DB=updateservice
       - POSTGRES_USER=updateservice
       - POSTGRES_PASSWORD=thePassword
-    expose:
-      - "5432"
     ports:
       - "14332:5432"
     networks:
@@ -51,27 +45,25 @@ services:
   update-systemtests-updateservice:
     image: docker-i.dbc.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
     env_file:
-      - ./settings.env
-      - ./db.env
-      - ./ocb-tools.env
+      - settings.env
+      - db.env
+      - providers.env
     environment:
-      - UPDATE_BUILD_NO=lastSuccessfulBuild
-      - JAVASCRIPT_POOL_SIZE=1
-      - MAX_HEAP_IN_GB=4
       - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - INSTANCE_NAME=${USER}_systemtest
-      - SOLR_URL=${DEV_SOLR_URL}
-      - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
+      - JAVA_MAX_HEAP_SIZE=8G
+      - UPDATE_BUILD_NO=lastSuccessfulBuild
+      - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
+      - RAWREPO_DB_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:13132/rawrepo
+      - HOLDINGS_ITEMS_DB_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:13232/holdingsitems
+      - UPDATE_DB_URL=rawrepo:updateservice@update-systemtests-update-db:14332/updateservice
+      - SOLR_URL=http://solrserver:8080/solr/raapost-index
+      - SOLR_BASIS_URL=http://solrbasis:8080/solr/basis-index
     links:
       - update-systemtests-update-db:update-systemtests-update-db
-    volumes:
-      - "./logs/update:/data/logs"
     extra_hosts:
       - "solrserver:127.0.0.1"
       - "solrbasis:127.0.0.1"
-    expose:
-      - "8080"
-      - "4848"
     ports:
       - "18180:8080"
       - "18148:4848"
