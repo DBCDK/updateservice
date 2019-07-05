@@ -1,8 +1,0 @@
-                    </marcx:collection>
-                </cat:recordData>
-            </cat:bibliographicRecord>
-            <cat:trackingId>dbc_atm_20161010_002</cat:trackingId>
-        </cat:updateRecordRequest>
-    </cat:updateRecord>
-</soapenv:Body>
-</soapenv:Envelope>
