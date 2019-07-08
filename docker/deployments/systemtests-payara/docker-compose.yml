@@ -95,7 +95,10 @@ services:
       - "8080"
     ports:
       - "18082:8080"
+    networks:
+      - update-compose-network
     entrypoint: run-update-tests.sh
+
 
 networks:
   update-compose-network:
