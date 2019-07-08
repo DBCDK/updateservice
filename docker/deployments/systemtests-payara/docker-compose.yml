@@ -63,11 +63,8 @@ services:
       - RAWREPO_DB_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
       - HOLDINGS_ITEMS_DB_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
       - UPDATE_DB_URL=updateservice:thePassword@update-systemtests-update-db:5432/updateservice
-      - SOLR_URL=http://solrserver:8080/solr/raapost-index
-      - SOLR_BASIS_URL=http://solrbasis:8080/solr/basis-index
-    extra_hosts:
-      - "solrserver:127.0.0.1"
-      - "solrbasis:127.0.0.1"
+      - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
+      - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
     expose:
       - "8080"
       - "4848"
