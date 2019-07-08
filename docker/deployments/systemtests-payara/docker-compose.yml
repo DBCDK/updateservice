@@ -8,6 +8,8 @@ services:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
       - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
     ports:
       - "13132:5432"
     networks:
@@ -19,6 +21,8 @@ services:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
       - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
     ports:
       - "13232:5432"
     networks:
@@ -37,6 +41,8 @@ services:
       - POSTGRES_DB=updateservice
       - POSTGRES_USER=updateservice
       - POSTGRES_PASSWORD=thePassword
+    expose:
+      - "5432"
     ports:
       - "14332:5432"
     networks:
@@ -54,9 +60,9 @@ services:
       - JAVA_MAX_HEAP_SIZE=8G
       - UPDATE_BUILD_NO=lastSuccessfulBuild
       - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
-      - RAWREPO_DB_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:13132/rawrepo
-      - HOLDINGS_ITEMS_DB_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:13232/holdingsitems
-      - UPDATE_DB_URL=rawrepo:updateservice@update-systemtests-update-db:14332/updateservice
+      - RAWREPO_DB_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
+      - HOLDINGS_ITEMS_DB_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
+      - UPDATE_DB_URL=rawrepo:updateservice@update-systemtests-update-db:5432/updateservice
       - SOLR_URL=http://solrserver:8080/solr/raapost-index
       - SOLR_BASIS_URL=http://solrbasis:8080/solr/basis-index
     links:
