@@ -13,7 +13,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
