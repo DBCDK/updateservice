@@ -11,7 +11,6 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -133,7 +132,7 @@ public class UpdaterRawRepo {
      */
     private static Connection getConnection() throws NamingException, SQLException {
         InitialContext ctx = new InitialContext();
-        DataSource ds = (DataSource) ctx.lookup(JNDIResources.JDBC_RAW_REPO_READONLY_NAME);
+        DataSource ds = (DataSource) ctx.lookup("jdbc/rawrepo");
         return ds.getConnection();
     }
 }

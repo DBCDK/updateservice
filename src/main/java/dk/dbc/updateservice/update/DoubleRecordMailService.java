@@ -11,7 +11,6 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -35,11 +34,7 @@ public class DoubleRecordMailService {
 
     private final String INSTANCE_NAME = "INSTANCE_NAME";
 
-    /**
-     * Resource to lookup the product name for authentication.
-     */
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     /**
      * Default constructor for the EJB container.
@@ -87,20 +82,20 @@ public class DoubleRecordMailService {
 
             // Setup Mail server properties
             Properties properties = System.getProperties();
-            properties.setProperty(MAIL_HOST_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_HOST_KEY));
-            properties.setProperty(MAIL_PORT_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PORT_KEY));
-            if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_USER_KEY)) {
-                properties.setProperty(MAIL_USER_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_USER_KEY));
+            properties.setProperty(MAIL_HOST_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_HOST));
+            properties.setProperty(MAIL_PORT_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PORT));
+            if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_USER)) {
+                properties.setProperty(MAIL_USER_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_USER));
             }
-            if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD_KEY)) {
-                properties.setProperty(MAIL_PASSWORD_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD_KEY));
+            if (settings.containsKey(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD)) {
+                properties.setProperty(MAIL_PASSWORD_PROPERTY, settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_PASSWORD));
             }
             // Create a new Session object for the mail message.
             Session session = Session.getInstance(properties);
             try {
                 MimeMessage message = new MimeMessage(session);
-                message.setFrom(new InternetAddress(settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_FROM_KEY)));
-                String receipientAddresses = settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY);
+                message.setFrom(new InternetAddress(settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_FROM)));
+                String receipientAddresses = settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT);
                 for (String addr : receipientAddresses.split(";")) {
                     message.addRecipient(Message.RecipientType.TO, new InternetAddress(addr));
                 }
@@ -109,7 +104,7 @@ public class DoubleRecordMailService {
                 Transport.send(message);
                 logger.info("Double Record Checker: Sent message with subject '{}' successfully.", adjustedSubject);
             } catch (MessagingException ex) {
-                logger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT_KEY), ex.getMessage());
+                logger.warn("Double Record Checker: Unable to send mail message to {}: {}", settings.getProperty(JNDIResources.DOUBLE_RECORD_MAIL_RECIPIENT), ex.getMessage());
                 logger.warn("Mail message: {}\n{}", adjustedSubject, body);
                 logger.error("Mail service error");
                 logger.catching(XLogger.Level.ERROR, ex);

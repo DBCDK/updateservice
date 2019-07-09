@@ -12,7 +12,6 @@ import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
@@ -30,8 +29,7 @@ import java.util.Properties;
 public class Authenticator {
     private static final XLogger logger = XLoggerFactory.getXLogger(Authenticator.class);
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
@@ -49,17 +47,17 @@ public class Authenticator {
         logger.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
         boolean result = false;
         try {
-            String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL_KEY).toString();
+            String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL).toString();
             logger.debug("Using endpoint to forsrights webservice: {}", endpoint);
             ForsRights.RightSet rights;
-            Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP_KEY);
+            Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
             if (useIpSetting != null && Boolean.valueOf(useIpSetting.toString())) {
                 String ipAddress = getRemoteAddrFromMessage(state.getWsContext());
                 rights = forsService.forsRightsWithIp(state, ipAddress);
             } else {
                 rights = forsService.forsRights(state);
             }
-            String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME_KEY);
+            String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME);
             logger.debug("Looking for product name: {}", productName);
             return result = rights.hasRightName(productName);
         } catch (ForsRightsException ex) {

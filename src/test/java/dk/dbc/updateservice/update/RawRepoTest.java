@@ -30,10 +30,7 @@ import static org.mockito.Mockito.*;
 public class RawRepoTest {
 
     @Mock
-    DataSource dataSourceReader;
-
-    @Mock
-    DataSource dataSourceWriter;
+    DataSource dataSource;
 
     @Mock
     RawRepoDAO rawRepoDAO;
@@ -45,7 +42,7 @@ public class RawRepoTest {
 
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
-            super(dataSourceReader, dataSourceWriter);
+            super(dataSource);
         }
 
         @Override
@@ -75,7 +72,7 @@ public class RawRepoTest {
         daoAgencies.add(700400);
         daoAgencies.add(RawRepo.COMMON_AGENCY);
 
-        when(dataSourceReader.getConnection()).thenReturn(null);
+        when(dataSource.getConnection()).thenReturn(null);
         when(rawRepoDAO.allAgenciesForBibliographicRecordId(eq(recId))).thenReturn(daoAgencies);
 
         RawRepo rawRepo = new MockRawRepo();

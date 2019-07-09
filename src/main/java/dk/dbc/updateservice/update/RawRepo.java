@@ -20,7 +20,6 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -68,26 +67,15 @@ public class RawRepo {
     @EJB
     private OpenAgencyService openAgency;
 
-    /**
-     * Injected DataSource to read from the rawrepo database.
-     */
-    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_READONLY_NAME)
-    private DataSource dataSourceReader;
-
-    /**
-     * Injected DataSource to write to the rawrepo database.
-     */
-    @Resource(lookup = JNDIResources.JDBC_RAW_REPO_WRITABLE_NAME)
-    private DataSource dataSourceWriter;
+    @Resource(lookup = "jdbc/rawrepo")
+    private DataSource dataSource;
 
     public RawRepo() {
-        this.dataSourceReader = null;
-        this.dataSourceWriter = null;
+        this.dataSource = null;
     }
 
-    public RawRepo(DataSource dataSourceReader, DataSource dataSourceWriter) {
-        this.dataSourceReader = dataSourceReader;
-        this.dataSourceWriter = dataSourceWriter;
+    public RawRepo(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     /**
@@ -203,7 +191,7 @@ public class RawRepo {
             if (recordId.isEmpty()) {
                 throw new IllegalArgumentException("recordId can not be empty");
             }
-            try (Connection conn = dataSourceReader.getConnection()) {
+            try (Connection conn = dataSource.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
                     result = dao.allAgenciesForBibliographicRecordId(recordId);
@@ -250,7 +238,7 @@ public class RawRepo {
                 throw new IllegalArgumentException("recordId can not be null");
             }
 
-            try (Connection conn = dataSourceReader.getConnection()) {
+            try (Connection conn = dataSource.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
                     return dao.getRelationsChildren(recordId);
@@ -295,7 +283,7 @@ public class RawRepo {
                 throw new IllegalArgumentException("recordId can not be null");
             }
 
-            try (Connection conn = dataSourceReader.getConnection()) {
+            try (Connection conn = dataSource.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
 
@@ -333,7 +321,7 @@ public class RawRepo {
             if (recId == null) {
                 throw new IllegalArgumentException("recId can not be null");
             }
-            try (Connection conn = dataSourceReader.getConnection()) {
+            try (Connection conn = dataSource.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
 
@@ -359,7 +347,7 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         Map<String, MarcRecord> result = null;
         Map<String, Record> recordMap;
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             if (recId == null) {
                 throw new IllegalArgumentException("recId can not be null");
             }
@@ -406,7 +394,7 @@ public class RawRepo {
             if (bibliographicRecordId == null) {
                 throw new IllegalArgumentException("recId can not be null");
             }
-            try (Connection conn = dataSourceReader.getConnection()) {
+            try (Connection conn = dataSource.getConnection()) {
                 try {
                     RawRepoDAO dao = createDAO(conn);
 
@@ -446,10 +434,10 @@ public class RawRepo {
         logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
         boolean result = false;
-        if (dataSourceReader == null) {
+        if (dataSource == null) {
             logger.info("RawRepo.recordExists, dataSourceReader == NULL");
         }
-        try (Connection conn = dataSourceReader.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             if (conn == null) {
                 logger.info("RawRepo.recordExists, conn == NULL");
             }
@@ -489,7 +477,7 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
 
         boolean result = false;
-        try (Connection conn = dataSourceReader.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
 
@@ -522,7 +510,7 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
 
         boolean result = false;
-        try (Connection conn = dataSourceReader.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
 
@@ -550,7 +538,7 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 if (record.isDeleted()) {
@@ -574,7 +562,7 @@ public class RawRepo {
     public void removeLinks(RecordId recId) throws UpdateException {
         logger.entry(recId);
         StopWatch watch = new Log4JStopWatch();
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 final HashSet<RecordId> references = new HashSet<>();
@@ -604,7 +592,7 @@ public class RawRepo {
     public void linkRecord(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 Set<RecordId> references = new HashSet<>();
@@ -635,7 +623,7 @@ public class RawRepo {
     public void linkRecordAppend(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 Set<RecordId> references = dao.getRelationsFrom(id);
@@ -663,7 +651,7 @@ public class RawRepo {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 dao.changedRecord(provider, recId, priority);
@@ -685,7 +673,7 @@ public class RawRepo {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
 
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 dao.enqueue(recId, provider, changed, leaf, priority);
@@ -707,7 +695,7 @@ public class RawRepo {
         logger.entry(provider);
         boolean result = false;
         final StopWatch watch = new Log4JStopWatch();
-        try (Connection conn = dataSourceWriter.getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
 

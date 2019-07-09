@@ -7,6 +7,7 @@ package dk.dbc.updateservice.ws;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Contains public accessible contants of all the JNDI resources, that is used
@@ -18,43 +19,32 @@ public class JNDIResources {
     // Managed Executor Service Resources
     public static final String RAWREPO_CACHE_EXECUTOR_SERVICE = "concurrent/rawrepo";
 
-    // JDBC Resources
-    public static final String JDBC_RAW_REPO_READONLY_NAME = "jdbc/updateservice/raw-repo-readonly";
-    public static final String JDBC_RAW_REPO_WRITABLE_NAME = "jdbc/updateservice/raw-repo-writable";
-    public static final String JDBC_HOLDINGITEMS_NAME = "jdbc/updateservice/holdingitems";
-    public static final String JDBC_UPDATE_STORE_NAME = "jdbc/updateservice/updateservicestore";
+    public static final String SOLR_URL = "SOLR_URL";
+    public static final String SOLR_BASIS_URL = "SOLR_BASIS_URL";
+    public static final String FORSRIGHTS_URL = "FORSRIGHTS_URL";
+    public static final String OPENAGENCY_URL = "OPENAGENCY_URL";
+    public static final String OPENAGENCY_CACHE_AGE = "OPENAGENCY_CACHE_AGE";
+    public static final String AUTH_PRODUCT_NAME = "AUTH_PRODUCT_NAME";
+    public static final String AUTH_USE_IP = "AUTH_USE_IP";
 
-    // Settings resource
-    public static final String JNDI_NAME_UPDATESERVICE = "updateservice/settings";
-    public static final String JNDI_NAME_BUILDSERVICE = "env/iscrum/build/properties";
+    public static final String JAVASCRIPT_BASEDIR = "JAVASCRIPT_BASEDIR";
+    public static final String JAVASCRIPT_POOL_SIZE = "JAVASCRIPT_POOL_SIZE";
 
-    public static final String SOLR_URL_KEY = "solr.url";
-    public static final String SOLR_BASIS_URL_KEY = "solr.basis.url";
-    public static final String FORSRIGHTS_URL_KEY = "forsrights.url";
-    public static final String OPENAGENCY_URL_KEY = "openagency.url";
-    public static final String OPENAGENCY_CACHE_AGE_KEY = "openagency.cache.age";
-    public static final String AUTH_PRODUCT_NAME_KEY = "auth.product.name";
-    public static final String AUTH_USE_IP_KEY = "auth.use.ip";
+    public static final String DOUBLE_RECORD_MAIL_HOST = "DOUBLE_RECORD_MAIL_HOST";
+    public static final String DOUBLE_RECORD_MAIL_PORT = "DOUBLE_RECORD_MAIL_PORT";
+    public static final String DOUBLE_RECORD_MAIL_USER = "DOUBLE_RECORD_MAIL_USER";
+    public static final String DOUBLE_RECORD_MAIL_PASSWORD = "DOUBLE_RECORD_MAIL_PASSWORD";
+    public static final String DOUBLE_RECORD_MAIL_FROM = "DOUBLE_RECORD_MAIL_FROM";
+    public static final String DOUBLE_RECORD_MAIL_RECIPIENT = "DOUBLE_RECORD_MAIL_RECIPIENT";
 
-    public static final String JAVASCRIPT_BASEDIR_KEY = "javascript.basedir";
-    public static final String JAVASCRIPT_POOL_SIZE_KEY = "javascript.pool.size";
+    public static final String RAWREPO_PROVIDER_ID_DBC = "RAWREPO_PROVIDER_ID_DBC";
+    public static final String RAWREPO_PROVIDER_ID_FBS = "RAWREPO_PROVIDER_ID_FBS";
+    public static final String RAWREPO_PROVIDER_ID_PH = "RAWREPO_PROVIDER_ID_PH";
+    public static final String RAWREPO_PROVIDER_ID_PH_HOLDINGS = "RAWREPO_PROVIDER_ID_PH_HOLDINGS";
+    public static final String RAWREPO_PROVIDER_ID_OVERRIDE = "RAWREPO_PROVIDER_ID_OVERRIDE";
+    public static final String RAWREPO_PRIORITY_OVERRIDE = "RAWREPO_PRIORITY_OVERRIDE";
 
-    public static final String DOUBLE_RECORD_MAIL_HOST_KEY = "double.record.mail.host";
-    public static final String DOUBLE_RECORD_MAIL_PORT_KEY = "double.record.mail.port";
-    public static final String DOUBLE_RECORD_MAIL_USER_KEY = "double.record.mail.user";
-    public static final String DOUBLE_RECORD_MAIL_PASSWORD_KEY = "double.record.mail.password";
-    public static final String DOUBLE_RECORD_MAIL_FROM_KEY = "double.record.mail.from";
-    public static final String DOUBLE_RECORD_MAIL_RECIPIENT_KEY = "double.record.mail.recipients";
-
-    public static final String RAWREPO_PROVIDER_ID_DBC = "rawrepo.provider.id.dbc";
-    public static final String RAWREPO_PROVIDER_ID_DBC_SOLR = "rawrepo.provider.id.dbc.solr";
-    public static final String RAWREPO_PROVIDER_ID_FBS = "rawrepo.provider.id.fbs";
-    public static final String RAWREPO_PROVIDER_ID_PH = "rawrepo.provider.id.ph";
-    public static final String RAWREPO_PROVIDER_ID_PH_HOLDINGS = "rawrepo.provider.id.ph.holdings";
-    public static final String RAWREPO_PROVIDER_ID_OVERRIDE = "rawrepo.provider.id.override";
-    public static final String RAWREPO_PRIORITY_OVERRIDE = "rawrepo.priority.override";
-
-    public static final String UPDATE_PROD_STATE_KEY = "prod.state";
+    public static final String UPDATE_PROD_STATE = "UPDATE_PROD_STATE";
 
     /**
      * Defines SRU constant for RecordSchema tag to accept marcXChange 1.1.
@@ -71,13 +61,25 @@ public class JNDIResources {
      */
     public static final String MARCXCHANGE_1_1_SCHEMA_LOCATION = "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd";
 
-    public static final String PROP_OPENNUMBERROLL_URL = "opennumberroll.url";
-    public static final String PROP_OPENNUMBERROLL_NAME_FAUST_8 = "opennumberroll.name.faust8";
-    public static final String PROP_OPENNUMBERROLL_NAME_FAUST = "opennumberroll.name.faust";
+    public static final String OPENNUMBERROLL_URL = "OPENNUMBERROLL_URL";
+    public static final String OPENNUMBERROLL_NAME_FAUST_8 = "OPENNUMBERROLL_NAME_FAUST_8";
+    public static final String OPENNUMBERROLL_NAME_FAUST = "OPENNUMBERROLL_NAME_FAUST";
 
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {
         List<String> res = new ArrayList<>();
         return res;
+    }
+
+    public static Properties getProperties() {
+        Properties properties = new Properties();
+
+        for (String key: System.getenv().keySet()) {
+            properties.setProperty(key, System.getenv(key));
+        }
+
+        properties.setProperty("javascript.basedir", System.getenv("JAVASCRIPT_BASEDIR"));
+
+        return properties;
     }
 }

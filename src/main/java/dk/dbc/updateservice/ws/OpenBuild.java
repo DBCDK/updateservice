@@ -31,7 +31,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -73,8 +72,7 @@ public class OpenBuild implements BuildPortType {
     @EJB
     private DocumentFactory documentFactory;
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_BUILDSERVICE)
-    private Properties buildProperties;
+    private Properties buildProperties = JNDIResources.getProperties();
     private ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
     /**
@@ -295,13 +293,13 @@ public class OpenBuild implements BuildPortType {
         logger.entry(properties);
         try {
             List<String> requiredProperties = new ArrayList<>();
-            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_URL);
-            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST_8);
-            requiredProperties.add(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST);
-            requiredProperties.add(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
+            requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
+            requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
+            requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+            requiredProperties.add(JNDIResources.JAVASCRIPT_BASEDIR);
             for (String s : requiredProperties) {
                 if (!properties.containsKey(s)) {
-                    throw new IllegalArgumentException("Required Build property " + s + " not set on property " + JNDIResources.JNDI_NAME_BUILDSERVICE);
+                    throw new IllegalArgumentException("Required Build property " + s + " not set");
                 }
             }
         } finally {

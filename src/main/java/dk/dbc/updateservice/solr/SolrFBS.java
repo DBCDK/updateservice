@@ -9,7 +9,6 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -24,11 +23,10 @@ import java.util.Properties;
 public class SolrFBS extends SolrBase {
     private static XLogger logger = XLoggerFactory.getXLogger(SolrFBS.class);
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
     private Properties settings;
 
     public SolrFBS() {
-        this(new Properties());
+        this(JNDIResources.getProperties());
     }
 
     public SolrFBS(Properties settings) {
@@ -41,13 +39,13 @@ public class SolrFBS extends SolrBase {
         String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
         logger.entry();
         try {
-            if (settings.containsKey(JNDIResources.SOLR_URL_KEY)) {
-                String url = settings.getProperty(JNDIResources.SOLR_URL_KEY);
+            if (settings.containsKey(JNDIResources.SOLR_URL)) {
+                String url = settings.getProperty(JNDIResources.SOLR_URL);
                 URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
                 logger.info("Solr call query: {} -> {}", query, solrUrl);
                 return solrUrl;
             } else {
-                throw new UpdateException("The key '" + JNDIResources.SOLR_URL_KEY + "' does not exist in settings");
+                throw new UpdateException("The key '" + JNDIResources.SOLR_URL + "' does not exist in settings");
             }
         } catch (IOException ex) {
             // IOException covers several exceptions thrown by URL and URLEncoder

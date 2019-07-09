@@ -92,12 +92,12 @@ public class MetakompasHandler {
     }
 
     private static String getNewIdNumber(Properties properties) throws UpdateException {
-        if (properties.containsKey(JNDIResources.PROP_OPENNUMBERROLL_URL)) {
-            String url = properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_URL);
-            logger.info("Numberroll url {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_URL));
-            if (properties.containsKey(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST)) {
-                logger.info("Numberroll name {}", properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST));
-                String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(JNDIResources.PROP_OPENNUMBERROLL_NAME_FAUST) + "&outputType=json");
+        if (properties.containsKey(JNDIResources.OPENNUMBERROLL_URL)) {
+            String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
+            logger.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
+            if (properties.containsKey(JNDIResources.OPENNUMBERROLL_NAME_FAUST)) {
+                logger.info("Numberroll name {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_NAME_FAUST));
+                String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(JNDIResources.OPENNUMBERROLL_NAME_FAUST) + "&outputType=json");
                 logger.info("Got new id number {} ", res);
                 return res;
             } else throw new UpdateException("No configuration numberroll");

@@ -8,7 +8,7 @@
 # in docker-compos.yml
 # also go to updateservice/docker/update-payara and make :
 # docker build -t docker-i.dbc.dk/update-payara:mib .
-USE_LOCAL_PAYARA="N"
+USE_LOCAL_PAYARA="Y"
 
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
 SOLR_BASIS_PORT_NR=${SOLR_BASIS_PORT_NR:-WHAT}
@@ -19,22 +19,20 @@ RAWREPO_DIT_TAG=DIT-5016
 HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
 
 cd ${IDEA_ROOT}/docker
-mkdir -p logs/update/app logs/update/server logs/fakesmtp
+
 res=$?
 if [ ${res} -ne 0 ]
 then
     echo "Could not create ${IDEA_ROOT}/docker/logs/update/app ${IDEA_ROOT}/docker/logs/update/server"
     exit 1
 fi
-chmod ugo+rw logs logs/update/app logs/update/server logs/fakesmtp
+
 res=$?
 if [ ${res} -ne 0 ]
 then
     echo "Could not set o+rw for ${IDEA_ROOT}/logs and subdirectories"
     exit 1
 fi
-
-
 
 cd ${IDEA_ROOT}/docker/deployments/dev
 
@@ -63,51 +61,6 @@ else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
 
-DEV_NUMBERROLL_URL=${DEV_NUMBERROLL_URL:-NOTSET}
-if [ ${DEV_NUMBERROLL_URL} = "NOTSET" ]
-then
-    export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
-fi
-DEV_OPENAGENCY_URL=${DEV_OPENAGENCY_URL:-NOTSET}
-if [ ${DEV_OPENAGENCY_URL} = "NOTSET" ]
-then
-    export DEV_OPENAGENCY_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
-fi
-
-# Solr FBS settings
-DEV_SOLR_ADDR=${DEV_SOLR_ADDR:-NOTSET}
-if [ ${DEV_SOLR_ADDR} = "NOTSET" ]
-then
-    export DEV_SOLR_ADDR="solrserver"
-fi
-DEV_SOLR_PORT=${DEV_SOLR_PORT:-NOTSET}
-if [ ${DEV_SOLR_PORT} = "NOTSET" ]
-then
-    export DEV_SOLR_PORT="${SOLR_PORT_NR}"
-fi
-DEV_SOLR_PATH=${DEV_SOLR_PATH:-NOTSET}
-if [ ${DEV_SOLR_PATH} = "NOTSET" ]
-then
-    export DEV_SOLR_PATH="solr/raapost-index"
-fi
-
-#Solr basis settings
-DEV_SOLR_BASIS_ADDR=${DEV_SOLR_BASIS_ADDR:-NOTSET}
-if [ ${DEV_SOLR_BASIS_ADDR} = "NOTSET" ]
-then
-    export DEV_SOLR_BASIS_ADDR="solrbasis"
-fi
-DEV_SOLR_BASIS_PORT=${DEV_SOLR_BASIS_PORT:-NOTSET}
-if [ ${DEV_SOLR_BASIS_PORT} = "NOTSET" ]
-then
-    export DEV_SOLR_BASIS_PORT="${SOLR_BASIS_PORT_NR}"
-fi
-DEV_SOLR_BASIS_PATH=${DEV_SOLR_BASIS_PATH:-NOTSET}
-if [ ${DEV_SOLR_BASIS_PATH} = "NOTSET" ]
-then
-    export DEV_SOLR_BASIS_PATH="solr/basis-index"
-fi
-
 docker-compose down
 docker-compose ps
 echo "docker ps : $?"
@@ -132,11 +85,6 @@ docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:la
 docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
 docker rmi docker-i.dbc.dk/update-postgres:latest
 
-if [ "$USE_LOCAL_PAYARA" = "N" ]
-then
-    docker tag docker-i.dbc.dk/update-payara:latest docker-i.dbc.dk/update-payara:${USER}
-    docker rmi docker-i.dbc.dk/update-payara:latest
-fi
 RAWREPO_IMAGE=`docker-compose ps -q rawrepoDb`
 export RAWREPO_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${RAWREPO_IMAGE} `
 echo -e "RAWREPO_PORT is $RAWREPO_PORT\n"
@@ -149,28 +97,19 @@ UPDATESERVICEDB_IMAGE=`docker-compose ps -q updateserviceDb`
 export UPDATESERVICEDB_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${UPDATESERVICEDB_IMAGE} `
 echo -e "UPDATESERVICEDB_PORT is $UPDATESERVICEDB_PORT\n"
 
-docker-compose up -d updateservice
-
-UPDATESERVICE_IMAGE=`docker-compose ps -q updateservice`
-UPDATESERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
-echo -e "UPDATESERVICE_PORT_8080 is ${UPDATESERVICE_PORT_8080}\n"
-UPDATESERVICE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8686/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
-echo -e "UPDATESERVICE_PORT_8686 is ${UPDATESERVICE_PORT_8686}\n"
-UPDATESERVICE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
-echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
-
-echo "updateservice.url = http://${HOST_IP}:${UPDATESERVICE_PORT_8080}" > ${HOME}/.ocb-tools/testrun.properties
-echo "buildservice.url = http://${HOST_IP}:${UPDATESERVICE_PORT_8080}" >> ${HOME}/.ocb-tools/testrun.properties
-
-echo "rawrepo.jdbc.driver = org.postgresql.Driver" >> ${HOME}/.ocb-tools/testrun.properties
+echo "rawrepo.jdbc.driver = org.postgresql.Driver" > ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.jdbc.conn.url = jdbc:postgresql://${HOST_IP}:${RAWREPO_PORT}/rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.jdbc.conn.user = rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.jdbc.conn.passwd = thePassword" >> ${HOME}/.ocb-tools/testrun.properties
+echo "rawrepo.db.url= rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "holdings.jdbc.driver = org.postgresql.Driver" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.url = jdbc:postgresql://${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.user = holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.passwd = thePassword" >> ${HOME}/.ocb-tools/testrun.properties
+echo "holdings.db.url= holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
+
+echo "updateservice.db.url= updateservice:thePassword@${HOST_IP}:${UPDATESERVICEDB_PORT}/updateservice" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
@@ -181,28 +120,5 @@ echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/t
 echo "rawrepo.provider.name.ph = fbs-ph-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.ocb-tools/testrun.properties
 
-echo "export SOLR_PORT_NR=${SOLR_PORT_NR}"
-
-cd ${IDEA_ROOT}
-mvn verify install -Dmaven.test.skip=true
-
-echo "Giving glassfish a fair chance - sleeping 20 secs"
-sleep 20
-tries=0
-res=1
-while [ ${tries} -lt 10 -a ${res} -ne 0 ]
-do
-		bash ${IDEA_ROOT}/docker/bin/deploy-app.sh ${USER}_updateservice_1 ${IDEA_ROOT}/target/updateservice-2.0-SNAPSHOT.war
-		res=$?
-		if [ ${res} -ne 0 ]
-		then
-				tries=$(($tries + 1))
-				echo "Glassfish is a lazy bastard - sleep 3 more secs"
-				sleep 3
-		fi
-done
-if [ ${tries} -eq 10 ]
-then
-		echo "Something are probably wrong - could not deploy app in 50 secs "
-		exit 1
-fi
+echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties

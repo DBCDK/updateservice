@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -34,7 +33,7 @@ import java.util.Set;
 public class HoldingsItems {
     private static XLogger logger = XLoggerFactory.getXLogger(HoldingsItems.class);
 
-    @Resource(lookup = JNDIResources.JDBC_HOLDINGITEMS_NAME)
+    @Resource(lookup = "jdbc/holdingsitems")
     private DataSource dataSource;
 
     public HoldingsItems() {

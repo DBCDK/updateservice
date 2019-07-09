@@ -13,7 +13,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import java.io.IOException;
@@ -29,8 +28,7 @@ public class Validator {
     @EJB
     private Scripter scripter;
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     public List<SchemaDTO> getValidateSchemas(String groupId, String templateGroup) throws ScripterException {
         logger.entry();

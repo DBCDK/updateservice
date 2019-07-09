@@ -21,13 +21,13 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.solr.SolrBasis;
+import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
-import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
@@ -39,7 +39,6 @@ import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -73,8 +72,7 @@ public class UpdateService {
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     public static final String UPDATE_SERVICE_VERSION = "2.0";
 
-    @Resource(lookup = JNDIResources.JNDI_NAME_UPDATESERVICE)
-    private Properties settings;
+    private Properties settings = JNDIResources.getProperties();
 
     @EJB
     private Authenticator authenticator;
@@ -318,7 +316,7 @@ public class UpdateService {
 
     private void validateRequiredSettings() {
         if (settings == null) {
-            throw new IllegalStateException("JNDI settings '" + JNDIResources.JNDI_NAME_UPDATESERVICE + "' cannot be empty");
+            throw new IllegalStateException("JNDI settings cannot be empty");
         }
         for (String s : JNDIResources.getListOfRequiredJNDIResources()) {
             if (!settings.containsKey(s)) {

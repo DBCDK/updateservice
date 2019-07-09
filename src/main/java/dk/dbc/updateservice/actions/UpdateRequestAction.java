@@ -178,10 +178,10 @@ public class UpdateRequestAction extends AbstractAction {
         logger.entry();
         boolean res = true;
         try {
-            if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE_KEY) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY) == null) {
-                throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE_KEY + "' not found");
+            if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
+                throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
             }
-            boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE_KEY));
+            boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
             if (isProduction
                     && state.getUpdateServiceRequestDTO() != null
                     && state.getUpdateServiceRequestDTO().getAuthenticationDTO() != null

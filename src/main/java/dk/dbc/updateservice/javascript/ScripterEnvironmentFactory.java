@@ -53,7 +53,7 @@ public class ScripterEnvironmentFactory {
     private Environment createEnvironment(Properties settings) throws Exception {
         logger.entry();
         try {
-            String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR_KEY);
+            String baseDir = settings.getProperty(JNDIResources.JAVASCRIPT_BASEDIR);
             Environment envir = new Environment();
             envir.registerUseFunction(createModulesHandler(baseDir));
             envir.evalFile(String.format(ENTRYPOINTS_PATTERN_UPDATE, baseDir));
