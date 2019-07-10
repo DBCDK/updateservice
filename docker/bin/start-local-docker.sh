@@ -76,9 +76,9 @@ fi
 
 export DEV_SOLR_BASIS_URL="http://${DEV_SOLR_BASIS_ADDR}:${DEV_SOLR_BASIS_PORT}/${DEV_SOLR_BASIS_PATH}"
 
-export DEV_RAWREPO_DB_URL=$(grep rawrepo.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $2}')
-export DEV_HOLDINGS_ITEMS_DB_URL=$(grep holdings.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $2}')
-export DEV_UPDATE_DB_URL=$(grep updateservice.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $2}')
+export DEV_RAWREPO_DB_URL=$(grep rawrepo.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
+export DEV_HOLDINGS_ITEMS_DB_URL=$(grep holdings.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
+export DEV_UPDATE_DB_URL=$(grep updateservice.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 
 docker-compose stop updateservice
 docker-compose up -d updateservice

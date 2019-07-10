@@ -101,15 +101,15 @@ echo "rawrepo.jdbc.driver = org.postgresql.Driver" > ${HOME}/.ocb-tools/testrun.
 echo "rawrepo.jdbc.conn.url = jdbc:postgresql://${HOST_IP}:${RAWREPO_PORT}/rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.jdbc.conn.user = rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.jdbc.conn.passwd = thePassword" >> ${HOME}/.ocb-tools/testrun.properties
-echo "rawrepo.db.url= rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
+echo "rawrepo.db.url = rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "holdings.jdbc.driver = org.postgresql.Driver" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.url = jdbc:postgresql://${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.user = holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
 echo "holdings.jdbc.conn.passwd = thePassword" >> ${HOME}/.ocb-tools/testrun.properties
-echo "holdings.db.url= holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
+echo "holdings.db.url = holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems" >> ${HOME}/.ocb-tools/testrun.properties
 
-echo "updateservice.db.url= updateservice:thePassword@${HOST_IP}:${UPDATESERVICEDB_PORT}/updateservice" >> ${HOME}/.ocb-tools/testrun.properties
+echo "updateservice.db.url = updateservice:thePassword@${HOST_IP}:${UPDATESERVICEDB_PORT}/updateservice" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
