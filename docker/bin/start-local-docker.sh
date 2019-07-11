@@ -94,4 +94,5 @@ echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
 sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
 sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
 
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 '[updateservice]' || die "could not start updateservice"
 cd -
