@@ -13,6 +13,7 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -99,7 +100,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      */
     private boolean checkForNotDeletableLittolkChildren(Set<RecordId> recordChildren) {
         for (RecordId recordId : recordChildren) {
-            if (recordId.getAgencyId() != 870974) {
+            if (recordId.getAgencyId() != RawRepo.LITTOLK_AGENCY) {
                 return false;
             }
         }
@@ -116,13 +117,13 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      */
     private void deleteLittolkChildren(Set<RecordId> recordChildren) throws UpdateException, UnsupportedEncodingException {
         for (RecordId recordId : recordChildren) {
-            MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), 191919).getContent());
-            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), 191919);
+            MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT);
             new MarcRecordWriter(littolkEnrichment).markForDeletion();
             children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
 
-            MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), 870974).getContent());
-            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), 870974);
+            MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY);
             children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
         }
     }

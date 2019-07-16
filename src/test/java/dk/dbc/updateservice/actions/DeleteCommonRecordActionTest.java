@@ -10,6 +10,7 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Before;
@@ -227,12 +228,14 @@ public class DeleteCommonRecordActionTest {
         String littolkRecordId = AssertActionsUtil.getRecordId(littolkRecord);
 
         when(state.getRawRepo().recordExistsMaybeDeleted(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(true);
         when(state.getRawRepo().children(eq(record))).thenReturn(AssertActionsUtil.createRecordSet(littolkRecord));
         when(state.getRawRepo().enrichments(eq(record))).thenReturn(new HashSet<>());
         when(state.getRawRepo().enrichments(eq(littolkRecord))).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
-        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(191919))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(870974))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         MarcRecord littolkEnrichmentRecordMarkedForDeletion = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
         new MarcRecordWriter(littolkEnrichmentRecordMarkedForDeletion).markForDeletion();
