@@ -40,7 +40,7 @@ public class DoubleRecordMailService {
      * Default constructor for the EJB container.
      */
     public DoubleRecordMailService() {
-        this(null);
+
     }
 
     /**
