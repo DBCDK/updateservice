@@ -374,12 +374,18 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 rawRepoAgencyId = RawRepo.COMMON_AGENCY;
             }
             RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
-            logger.debug("UpdateOperationAction.checkRecordForUpdatability().newRecordId: " + newRecordId);
+            logger.debug("UpdateOperationAction.checkRecordForDeleteability().newRecordId: " + newRecordId);
             Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
-            logger.debug("UpdateOperationAction.checkRecordForUpdatability().recordIdSet: " + recordIdSet);
+            logger.debug("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: " + recordIdSet);
             if (!recordIdSet.isEmpty()) {
-                String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                for (RecordId childRecordId: recordIdSet) {
+                    // If all child records are 870974 littolk then the record can be deleted anyway
+                    // The littolk children will be marked for deletion later in the flow
+                    if (childRecordId.getAgencyId() != 870974) {
+                        String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    }
+                }
             }
             return ServiceResult.newOkResult();
         } finally {
