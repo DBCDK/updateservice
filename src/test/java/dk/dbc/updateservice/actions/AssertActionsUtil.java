@@ -385,6 +385,19 @@ public class AssertActionsUtil {
         assertThat(moveEnrichmentRecordAction.settings, equalTo(settings));
     }
 
+    public static void assertOverwriteSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, String groupId) {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(OverwriteSingleRecordAction.class.getName()));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) action;
+        assertThat(overwriteSingleRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(overwriteSingleRecordAction.record, is(record));
+        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
+        assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(openAgencyService));
+        assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
+    }
+
     /**
      * Helper function for comparing two full records where 001 *c and *d are excluded from the comparison
      *

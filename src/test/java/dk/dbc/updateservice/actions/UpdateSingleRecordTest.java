@@ -6,10 +6,12 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
@@ -23,7 +25,6 @@ import java.util.ListIterator;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertTrue;
@@ -114,6 +115,7 @@ public class UpdateSingleRecordTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
@@ -123,15 +125,9 @@ public class UpdateSingleRecordTest {
         List<ServiceAction> children = updateSingleRecord.children();
         Assert.assertThat(children.size(), is(1));
 
-        OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) children.get(0);
-        assertThat(overwriteSingleRecordAction, notNullValue());
-        assertThat(overwriteSingleRecordAction.getRawRepo(), is(state.getRawRepo()));
-        assertThat(overwriteSingleRecordAction.record, is(record));
-        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
-        assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
-        assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
-        assertThat(overwriteSingleRecordAction.settings, equalTo(settings));
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertOverwriteSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService(), GROUP_ID);
+        assertThat(iterator.hasNext(), is(false));
     }
 
     /**
@@ -301,6 +297,44 @@ public class UpdateSingleRecordTest {
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_RemoveD09z() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord littolkCommon = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_COMMON);
+        MarcRecord littolkEnrichment = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
+
+        MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(existingRecord).addOrReplaceSubfield("d09", "z", "LIT123456");
+
+        String recordId = AssertActionsUtil.getRecordId(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        String littolkRecordId = AssertActionsUtil.getRecordId(littolkCommon);
+
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().children(eq(record))).thenReturn(AssertActionsUtil.createRecordSet(littolkCommon));
+        when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkCommon, MarcXChangeMimeType.MARCXCHANGE));
+
+        MarcRecord expectedLittolkCommon = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_COMMON);
+        new MarcRecordWriter(expectedLittolkCommon).markForDeletion();
+        MarcRecord expectedLittolkEnrichment = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
+        new MarcRecordWriter(expectedLittolkEnrichment).markForDeletion();
+
+
+        UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), expectedLittolkEnrichment, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), expectedLittolkCommon, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
+        AssertActionsUtil.assertOverwriteSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService(), GROUP_ID);
         assertThat(iterator.hasNext(), is(false));
     }
 
