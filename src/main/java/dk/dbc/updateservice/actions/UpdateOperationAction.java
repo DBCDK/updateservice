@@ -105,7 +105,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
-                logger.error("Unable to update record: {}", serviceResult);
+                logger.info("Unable to update record: {}", serviceResult);
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(record);
