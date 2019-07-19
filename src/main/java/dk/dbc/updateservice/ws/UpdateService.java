@@ -20,7 +20,6 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
-import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -254,12 +253,22 @@ public class UpdateService {
      * @throws EJBException In case of an error.
      */
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
+        logger.entry();
+
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO;
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
-            logger.entry(schemasRequestDTO);
-            logger.info(JsonMapper.encodePretty(schemasRequestDTO));
+
+            if (schemasRequestDTO.getAuthenticationDTO() != null &&
+                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
+                if (schemasRequestDTO.getTrackingId() != null) {
+                    logger.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
+                } else {
+                    logger.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
+                }
+            }
+
             String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
             String templateGroup = openAgencyService.getTemplateGroup(groupId);
             List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
@@ -269,21 +278,14 @@ public class UpdateService {
             schemasResponseDTO.setError(false);
             return schemasResponseDTO;
         } catch (ScripterException ex) {
-            logger.error("Caught JavaScript exception: {}", ex.getCause());
+            logger.error("Caught JavaScript exception: {}", ex.getCause().toString());
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             // TODO: sæt en korrekt message vedr. fejl
-            schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
-        } catch (IOException ex) {
-            logger.error("Caught runtime exception: {}", ex.getCause());
-            schemasResponseDTO = new SchemasResponseDTO();
-            // TODO: sæt en korrekt message vedr. fejl
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
             return schemasResponseDTO;
         } catch (OpenAgencyException ex) {
-            logger.error("Caught OpenAgencyException exception: {}", ex.getCause());
+            logger.error("Caught OpenAgencyException exception: {}", ex.getCause().toString());
             schemasResponseDTO = new SchemasResponseDTO();
             // TODO: sæt en korrekt message vedr. fejl
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
@@ -291,7 +293,7 @@ public class UpdateService {
             return schemasResponseDTO;
         } catch (RuntimeException ex) {
             // TODO: returner ordentlig fejl her
-            logger.error("Caught runtime exception: {}", ex.getCause());
+            logger.error("Caught runtime exception: {}", ex.getCause().toString());
             throw ex;
         } finally {
             watch.stop(GET_SCHEMAS_WATCHTAG);
@@ -310,8 +312,7 @@ public class UpdateService {
 
     private ServiceResult convertUpdateErrorToResponse(Throwable ex, GlobalActionState globalActionState) {
         Throwable throwable = findServiceException(ex);
-        ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage(), globalActionState);
-        return serviceResult;
+        return ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage(), globalActionState);
     }
 
     private void validateRequiredSettings() {

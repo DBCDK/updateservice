@@ -83,7 +83,6 @@ public class OpenBuild implements BuildPortType {
     public void init() {
         addJacksonMixInAnnotations();
         validateProperties(buildProperties);
-        logger.debug("Build properties: " + buildProperties);
     }
 
     /**

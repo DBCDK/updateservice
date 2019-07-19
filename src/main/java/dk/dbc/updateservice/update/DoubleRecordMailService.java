@@ -37,13 +37,6 @@ public class DoubleRecordMailService {
     private Properties settings = JNDIResources.getProperties();
 
     /**
-     * Default constructor for the EJB container.
-     */
-    public DoubleRecordMailService() {
-
-    }
-
-    /**
      * Constructor with settings.
      * <p>
      * Used by unit tests.
