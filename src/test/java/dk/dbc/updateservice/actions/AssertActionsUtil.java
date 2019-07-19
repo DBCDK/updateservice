@@ -63,6 +63,8 @@ public class AssertActionsUtil {
     public static final String VOLUME_RECORD_RESOURCE = "actions/volume.marc";
     public static final String COMMON_RECORD_CLASSIFICATION = "actions/common_classification.marc";
     public static final String NATIONAL_COMMON_RECORD = "actions/national-common-record.marc";
+    public static final String LITTOLK_COMMON = "actions/littolk-common.marc";
+    public static final String LITTOLK_ENRICHMENT = "actions/littolk-enrichment.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
         InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
@@ -381,6 +383,19 @@ public class AssertActionsUtil {
         assertThat(moveEnrichmentRecordAction.getRecord(), is(record));
         assertThat(moveEnrichmentRecordAction.getTargetRecordId(), is(targetRecordId));
         assertThat(moveEnrichmentRecordAction.settings, equalTo(settings));
+    }
+
+    public static void assertOverwriteSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, String groupId) {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(OverwriteSingleRecordAction.class.getName()));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) action;
+        assertThat(overwriteSingleRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(overwriteSingleRecordAction.record, is(record));
+        assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
+        assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(openAgencyService));
+        assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
     }
 
     /**

@@ -6,9 +6,11 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.junit.Assert;
 import org.junit.Before;
@@ -212,5 +214,43 @@ public class DeleteCommonRecordActionTest {
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
         assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
         assertThat(deleteCommonRecordAction.children().isEmpty(), is(true));
+    }
+
+    @Test
+    public void testPerformAction_DeleteLittolkChildren() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecord littolkEnrichment = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.LITTOLK_ENRICHMENT);
+        MarcRecord littolkRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.LITTOLK_COMMON);
+
+        String recordId = AssertActionsUtil.getRecordId(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        String littolkRecordId = AssertActionsUtil.getRecordId(littolkRecord);
+
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(true);
+        when(state.getRawRepo().children(eq(record))).thenReturn(AssertActionsUtil.createRecordSet(littolkRecord));
+        when(state.getRawRepo().enrichments(eq(record))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().enrichments(eq(littolkRecord))).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        MarcRecord littolkEnrichmentRecordMarkedForDeletion = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
+        new MarcRecordWriter(littolkEnrichmentRecordMarkedForDeletion).markForDeletion();
+
+        DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
+        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        List<ServiceAction> children = deleteCommonRecordAction.children();
+        Assert.assertThat(children.size(), is(5));
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), littolkEnrichmentRecordMarkedForDeletion, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), littolkRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
+        AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.MARCXCHANGE);
     }
 }
