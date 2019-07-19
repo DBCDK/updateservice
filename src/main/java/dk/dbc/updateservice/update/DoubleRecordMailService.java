@@ -37,18 +37,6 @@ public class DoubleRecordMailService {
     private Properties settings = JNDIResources.getProperties();
 
     /**
-     * Constructor with settings.
-     * <p>
-     * Used by unit tests.
-     * </p>
-     *
-     * @param settings Properties to send a mail.
-     */
-    public DoubleRecordMailService(Properties settings) {
-        this.settings = settings;
-    }
-
-    /**
      * Send the actual mail message.
      * <p>
      * The body is formatted as plan text so any HTML tags will have
