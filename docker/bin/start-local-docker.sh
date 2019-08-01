@@ -13,7 +13,13 @@ fi
 export SOLR_PORT_NR=$(grep solr.port ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 DOCKER_FOLDER=${IDEA_ROOT}/docker/update-payara-dev
-export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
+
+if [ "$(uname)" == "Darwin" ]
+then
+    export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1' | head -1)
+else
+    export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
+fi
 
 cd ${IDEA_ROOT}
 mvn verify install -Dmaven.test.skip=true
