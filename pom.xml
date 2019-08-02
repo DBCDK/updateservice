@@ -37,7 +37,7 @@
         <wiremock.version>2.22.0</wiremock.version>
         <postgres.jdbc.version>9.4-1204-jdbc41</postgres.jdbc.version>
         <buildnumber.maven.plugin.version>1.4</buildnumber.maven.plugin.version>
-        <maven.jackson.databind.version>2.9.9</maven.jackson.databind.version>
+        <maven.jackson.databind.version>2.9.9.2</maven.jackson.databind.version>
         <openagency.ws.client.version>2.32-SNAPSHOT</openagency.ws.client.version>
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
     </properties>
