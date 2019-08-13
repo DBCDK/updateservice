@@ -30,10 +30,8 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -167,6 +165,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         if (RawRepo.isSchoolEnrichment(agencyId)) {
                             children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                         } else {
+                            performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
                     } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS) ||
@@ -521,4 +520,51 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
+    /**
+     * If the record already exists and d09 *z with LIT<week number> has been removed in this new version,
+     * then all linked 870974 littolk records must be deleted
+     * Because d09, which contains the LIT code is placed in the 191919 record, we only do it for such.
+     *
+     * @throws UpdateException              In case of an error.
+     * @throws UnsupportedEncodingException If the record can't be decoded
+     */
+    private void performActionsForRemovedLITWeekNumber(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+        logger.entry("performActionsForRemovedLITWeekNumber");
+
+        try {
+            final MarcRecordReader reader = new MarcRecordReader(record);
+
+            // Check if a 191919 record
+            if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {
+                return;
+            }
+
+            Pattern p = Pattern.compile("^LIT[0-9]{6}");
+            // There is a d09zLIT in incoming record
+            if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
+                return;
+            }
+
+            final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedDBCRecord(reader.getRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+            final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+            // There isn't a d09zLIT in incoming record and there is one in existing record
+            if (!existingReader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
+                final Set<RecordId> childrenRecords = state.getRawRepo().children(existingRecord);
+                for (RecordId recordId : childrenRecords) {
+                    if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
+                        final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                        new MarcRecordWriter(littolkEnrichment).markForDeletion();
+                        children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
+                        final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+                        new MarcRecordWriter(littolkRecord).markForDeletion();
+                        children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
+                    }
+                }
+
+            }
+        } catch (Throwable e) {
+            logger.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
+            throw e;
+        }
+    }
 }

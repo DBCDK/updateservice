@@ -86,7 +86,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            logger.info("Handling record: {}", record);
             MarcRecordReader reader = new MarcRecordReader(record);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();
