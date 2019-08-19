@@ -533,15 +533,23 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
         try {
             final MarcRecordReader reader = new MarcRecordReader(record);
+            logger.debug("GOT REC {}", record);
 
             // Check if a 191919 record
             if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {
+                logger.debug("Not a 191919");
+                return;
+            }
+
+            if (!rawRepo.recordExists(reader.getRecordId(), RawRepo.DBC_ENRICHMENT)) {
+                logger.debug("No existing record");
                 return;
             }
 
             Pattern p = Pattern.compile("^LIT[0-9]{6}");
             // There is a d09zLIT in incoming record
             if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
+                logger.debug("there is a d09");
                 return;
             }
 
@@ -552,10 +560,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 final Set<RecordId> childrenRecords = state.getRawRepo().children(existingRecord);
                 for (RecordId recordId : childrenRecords) {
                     if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
-                        final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                        final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().
+                                fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
                         new MarcRecordWriter(littolkEnrichment).markForDeletion();
                         children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
-                        final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+
+                        final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().
+                                fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
                         new MarcRecordWriter(littolkRecord).markForDeletion();
                         children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
                     }

@@ -167,7 +167,7 @@ public class UpdateVolumeRecordTest {
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertCommonDeleteRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
+        AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
 }
