@@ -1232,7 +1232,6 @@ public class UpdateOperationActionTest {
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
         updWriter.addOrReplaceSubfield("001", "a", "206111600");
         updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
-        updWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
 
         // Existing littolk records that will be deleted
         MarcRecord littolkCommon = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_COMMON);
