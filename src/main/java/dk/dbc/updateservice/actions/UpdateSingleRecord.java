@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.LibraryRuleHandler;
@@ -24,12 +23,9 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Action to create, overwrite or delete a single record.
@@ -114,7 +110,6 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 children.add(createDeleteRecordAction());
                 return ServiceResult.newOkResult();
             }
-            performActionsForRemovedLITWeekNumber();
             children.add(createOverwriteRecordAction());
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | ScripterException ex) {
@@ -298,52 +293,4 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         }
     }
 
-    /**
-     * If the record already exists and d09 *z with LIT<week number> has been removed in this new version,
-     * then all linked 870974 littolk records must be deleted
-     *
-     * @throws UpdateException              In case of an error.
-     * @throws UnsupportedEncodingException If the record can't be decoded
-     */
-    private void performActionsForRemovedLITWeekNumber() throws UpdateException, UnsupportedEncodingException {
-        logger.entry("performActionsForRemovedLITWeekNumber");
-
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
-
-            if (Arrays.asList(RawRepo.COMMON_AGENCY, RawRepo.ARTICLE_AGENCY).contains(reader.getAgencyIdAsInt())
-                    && !reader.hasSubfield("d09", "z")
-                    && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedDBCRecord(reader.getRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
-                final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-
-                if (existingReader.hasSubfield("d09", "z")) {
-                    final String d09Value = existingReader.getValue("d09", "z");
-
-
-                    final Pattern p = Pattern.compile("^LIT[0-9]{6}");
-                    final Matcher m = p.matcher(d09Value);
-
-                    if (m.find()) {
-                        final Set<RecordId> childrenRecords = state.getRawRepo().children(record);
-
-                        for (RecordId recordId : childrenRecords) {
-                            if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
-                                final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
-                                new MarcRecordWriter(littolkEnrichment).markForDeletion();
-                                children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
-
-                                final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
-                                new MarcRecordWriter(littolkRecord).markForDeletion();
-                                children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Throwable e) {
-            logger.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
-            throw e;
-        }
-    }
 }

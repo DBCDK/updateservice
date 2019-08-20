@@ -47,6 +47,7 @@ import static org.mockito.Mockito.when;
 public class UpdateOperationActionTest {
     private GlobalActionState state;
     private Properties settings = new UpdateTestUtils().getSettings();
+    private static final String GROUP_ID = "700000";
     private OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
     private OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
 
@@ -1148,6 +1149,132 @@ public class UpdateOperationActionTest {
         record.getFields().add(field);
 
         return record;
+    }
+
+    @Test
+    public void testPerformAction_RemoveD09zNoAction() throws Exception {
+
+        // Load a 870970 record - this is the rawrepo record
+        MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter mergeWriter = new MarcRecordWriter(mergedRecord);
+        mergeWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        String recordId = AssertActionsUtil.getRecordId(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        // Load an enrichment record. Set the library to 191919 in 001*b
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
+        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        enrichmentWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
+
+        // Load the updating record - set the library to 870970 in 001*b
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
+        MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
+        updWriter.addOrReplaceSubfield("001", "a", "206111600");
+        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+
+        state.setLibraryGroup(libraryGroupDBC);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        // Get existing record merged
+        when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
+        List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()),
+                eq(libraryGroupDBC), eq(state.getMessages()))).thenReturn(rawRepoRecords);
+
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        List<ServiceAction> children = updateOperationAction.children();
+        assertThat(children.size(), is(3));
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
+                state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void testPerformAction_RemoveD09zNoD09InIncoming() throws Exception {
+
+        // Load a 870970 record and create a merged version
+        MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter mergeWriter = new MarcRecordWriter(mergedRecord);
+        mergeWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+
+        // Load a 870970 record - this is the common record
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        String recordId = AssertActionsUtil.getRecordId(record);
+        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        // Load an enrichment record. Set the library to 191919 in 001*b
+        MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
+        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
+
+        // Load the updating record - set the library to 870970 in 001*b
+        MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        state.setMarcRecord(updateRecord);
+        MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
+        updWriter.addOrReplaceSubfield("001", "a", "206111600");
+        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+
+        // Existing littolk records that will be deleted
+        MarcRecord littolkCommon = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_COMMON);
+        MarcRecordWriter littCoWriter = new MarcRecordWriter(littolkCommon);
+        littCoWriter.markForDeletion();
+        MarcRecord littolkEnrichment = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
+        MarcRecordWriter littEnWriter = new MarcRecordWriter(littolkEnrichment);
+        littEnWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        littEnWriter.markForDeletion();
+        String littolkRecordId = AssertActionsUtil.getRecordId(littolkCommon);
+
+        state.setLibraryGroup(libraryGroupDBC);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        // Get existing record merged
+        when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
+        List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
+        when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()),
+                eq(libraryGroupDBC), eq(state.getMessages()))).thenReturn(rawRepoRecords);
+
+        when(state.getRawRepo().children(eq(mergedRecord))).thenReturn(AssertActionsUtil.createRecordSet(littolkCommon));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkCommon, MarcXChangeMimeType.MARCXCHANGE));
+
+        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        List<ServiceAction> children = updateOperationAction.children();
+        assertThat(children.size(), is(5));
+
+        ListIterator<ServiceAction> iterator = children.listIterator();
+        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
+                state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), littolkEnrichment, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), littolkCommon, state.getLibraryRecordsHandler(), state.getHoldingsItems(),
+                settings.getProperty(state.getRawRepoProviderId()));
+        AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
+        assertThat(iterator.hasNext(), is(false));
+
     }
 
 }

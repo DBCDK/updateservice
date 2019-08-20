@@ -270,7 +270,7 @@ public class AssertActionsUtil {
         assertThat(deleteRecordAction.getMimetype(), equalTo(mimetype));
     }
 
-    public static void assertCommonDeleteRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId) throws UpdateException {
+    public static void assertDeleteCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DeleteCommonRecordAction.class.getName()));
 
