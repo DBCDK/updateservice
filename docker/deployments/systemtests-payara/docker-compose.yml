@@ -1,4 +1,8 @@
 version: '3.2'
+networks:
+  default:
+    external:
+      name: update-compose-network
 
 services:
 
@@ -12,8 +16,6 @@ services:
       - "5432"
     ports:
       - "13132:5432"
-    networks:
-      - update-compose-network
 
   update-systemtests-holdingsitems-db:
     image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
@@ -25,15 +27,11 @@ services:
       - "5432"
     ports:
       - "13232:5432"
-    networks:
-      - update-compose-network
 
   update-systemtests-fake-smtp:
     image: docker-i.dbc.dk/fakesmtp:latest
     volumes:
       - "./logs/fakesmtp:/output"
-    networks:
-      - update-compose-network
 
   update-systemtests-update-db:
     image: docker-i.dbc.dk/update-postgres:${SUBST_IMAGE_NAME}
@@ -45,8 +43,6 @@ services:
       - "5432"
     ports:
       - "14332:5432"
-    networks:
-      - update-compose-network
 
   update-systemtests-updateservice:
     image: docker-i.dbc.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
@@ -71,8 +67,6 @@ services:
     ports:
       - "18180:8080"
       - "18148:4848"
-    networks:
-      - update-compose-network
 
   ocb-tools-systemtests:
     image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
@@ -92,10 +86,4 @@ services:
       - "8080"
     ports:
       - "18082:8080"
-    networks:
-      - update-compose-network
     entrypoint: run-update-tests.sh
-
-
-networks:
-  update-compose-network:
