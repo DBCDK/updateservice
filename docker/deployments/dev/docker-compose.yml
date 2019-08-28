@@ -1,4 +1,8 @@
 version: '3.2'
+networks:
+  default:
+    external:
+      name: update-compose-network
 
 services:
 
@@ -10,9 +14,6 @@ services:
       - POSTGRES_PASSWORD=thePassword
     ports:
       - "5432"
-    networks:
-      - update-compose-network
-
 
   holdingsitemsDb:
     image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
@@ -22,8 +23,6 @@ services:
       - POSTGRES_PASSWORD=thePassword
     ports:
       - "5432"
-    networks:
-      - update-compose-network
 
   updateserviceDb:
     image: docker-i.dbc.dk/update-postgres:latest
@@ -33,15 +32,11 @@ services:
       - POSTGRES_PASSWORD=thePassword
     ports:
       - "5432"
-    networks:
-      - update-compose-network
 
   fakeSmtp:
     image: docker-i.dbc.dk/fakesmtp
     volumes:
       - "../../../docker/logs/fakesmtp:/output"
-    networks:
-      - update-compose-network
 
   updateservice:
     image: docker-i.dbc.dk/update-payara-dev:latest
@@ -68,8 +63,3 @@ services:
       - "8080"
       - "8686"
       - "4848"
-    networks:
-      - update-compose-network
-
-networks:
-  update-compose-network:
