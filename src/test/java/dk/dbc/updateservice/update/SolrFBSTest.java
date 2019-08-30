@@ -21,15 +21,17 @@ import static org.junit.Assert.assertThat;
 
 public class SolrFBSTest {
     private WireMockServer solrServer;
+    private String solrUrl;
 
     @Before
     public void startSolrServer() {
         WireMockConfiguration wireMockConfiguration = wireMockConfig().
-                port(9091).
+                dynamicPort().
                 withRootDirectory("src/test/resources/wiremock/solr");
 
         solrServer = new WireMockServer(wireMockConfiguration);
         solrServer.start();
+        solrUrl = String.format("http://localhost:%s/solr/raw-repo-index", solrServer.port());
     }
 
     @After
@@ -40,7 +42,7 @@ public class SolrFBSTest {
     @Test
     public void getOwnerOf002List() throws Exception {
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:9091/solr/raw-repo-index");
+        settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605141"), is("2 041 237 2"));
@@ -49,7 +51,7 @@ public class SolrFBSTest {
     @Test
     public void getOwnerOf002String() throws Exception {
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:9091/solr/raw-repo-index");
+        settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605142"), is("20412372"));
@@ -58,7 +60,7 @@ public class SolrFBSTest {
     @Test
     public void getOwnerOf002NoHits() throws Exception {
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:9091/solr/raw-repo-index");
+        settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.getOwnerOf002("marc.002a:06605143"), is(""));
@@ -67,7 +69,7 @@ public class SolrFBSTest {
     @Test
     public void hasDocuments() throws Exception {
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:9091/solr/raw-repo-index");
+        settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.hasDocuments("marc.002a:76605141"), is(false));
@@ -78,7 +80,7 @@ public class SolrFBSTest {
     public void testHits() throws Exception {
 
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:9091/solr/raw-repo-index");
+        settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
         assertThat(instance.hits("marc.002a:06605141"), equalTo(1L));
@@ -90,7 +92,7 @@ public class SolrFBSTest {
     @Test(expected = SolrException.class)
     public void testHits_UnknownHost() throws Exception {
         Properties settings = new Properties();
-        settings.put("SOLR_URL", "http://localhost:19091/solr/raw-repo-index");
+        settings.put("SOLR_URL", "http://testHits_UnknownHost/solr/raw-repo-index");
 
         SolrFBS instance = new SolrFBS(settings);
         instance.hits("marc.002a:06605141");
