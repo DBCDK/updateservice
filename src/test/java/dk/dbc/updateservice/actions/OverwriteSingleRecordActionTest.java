@@ -78,6 +78,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -134,6 +135,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -193,6 +195,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -256,6 +259,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -320,6 +324,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -382,6 +387,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -447,6 +453,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
@@ -514,6 +521,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
@@ -594,14 +602,13 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-//        when(state.getRecordSorter().sortRecord(record, settings)).thenReturn(record);
-//        when(state.getRecordSorter().sortRecord(enrichmentRecord, settings)).thenReturn(enrichmentRecord);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
         when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
@@ -676,6 +683,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
@@ -760,6 +768,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
@@ -843,6 +852,7 @@ public class OverwriteSingleRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
@@ -928,6 +938,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
@@ -1012,6 +1023,7 @@ public class OverwriteSingleRecordActionTest {
         String e1RecordId = AssertActionsUtil.getRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
@@ -1090,6 +1102,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
@@ -1168,6 +1181,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
@@ -1247,6 +1261,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
@@ -1324,6 +1339,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
@@ -1402,6 +1418,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
@@ -1481,6 +1498,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
@@ -1565,6 +1583,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c2RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(e1RecordId), eq(e1AgencyId))).thenReturn(true);
@@ -1627,6 +1646,7 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
@@ -1883,4 +1903,51 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
     }
 
+    @Test
+    public void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT\n" +
+                "z98 00 *a minus korrekturprint\n" +
+                "z98 00 *a minus paahaeng";
+
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT";
+
+        state.setMarcRecord(MarcRecordFactory.readRecord(record));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
+
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (true));
+    }
+
+    @Test
+    public void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() throws Exception {
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT\n" +
+                "z98 00 *a minus korrekturprint";
+
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT";
+
+        state.setMarcRecord(MarcRecordFactory.readRecord(record));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
+
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (false));
+    }
+
+    @Test
+    public void testHasMinusEnrichmentHasNoz98() throws Exception {
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT";
+
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "996 00 *a DBCAUT";
+
+        state.setMarcRecord(MarcRecordFactory.readRecord(record));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
+
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (false));
+    }
 }
