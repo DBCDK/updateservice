@@ -132,7 +132,7 @@ pipeline {
                                     "--build-arg PARENT_IMAGE=docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION} " +
                                     "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} " +
                                     "--build-arg BRANCH_NAME=${env.BRANCH_NAME} " +
-                                    "--pull --no-cache docker/update-payara-deployer/")
+                                    "--no-cache docker/update-payara-deployer/")
 
                     docker.build("docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
