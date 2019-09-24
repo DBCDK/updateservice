@@ -115,14 +115,14 @@ pipeline {
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
-                                    "docker/update-postgres/")
+                                    "--pull --no-cache docker/update-postgres/")
 
                     docker.build("docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
-                                    "docker/update-payara/")
+                                    "--pull --no-cache docker/update-payara/")
 
                     docker.build("docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
@@ -132,7 +132,7 @@ pipeline {
                                     "--build-arg PARENT_IMAGE=docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION} " +
                                     "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} " +
                                     "--build-arg BRANCH_NAME=${env.BRANCH_NAME} " +
-                                    "docker/update-payara-deployer/")
+                                    "--pull --no-cache docker/update-payara-deployer/")
 
                     docker.build("docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
@@ -141,7 +141,7 @@ pipeline {
                                     "--label user=isworker " +
                                     "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} " +
                                     "--build-arg BRANCH_NAME=${env.BRANCH_NAME} " +
-                                    "docker/ocb-tools-deployer/")
+                                    "--pull --no-cache docker/ocb-tools-deployer/")
                 }
             }
         }
