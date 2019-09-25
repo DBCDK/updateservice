@@ -20,6 +20,8 @@ HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
 
 cd ${IDEA_ROOT}/docker
 
+docker build -t docker-i.dbc.dk/update-payara:latest update-payara
+
 res=$?
 if [ ${res} -ne 0 ]
 then
