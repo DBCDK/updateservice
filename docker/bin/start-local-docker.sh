@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#set -x
+
+function die() {
+  echo "systest ---> Error: $@ failed"
+  exit 1
+}
 
 if [[ -e ${HOME}/.ocb-tools/testrun.properties ]]
 then
@@ -85,6 +91,9 @@ export DEV_SOLR_BASIS_URL="http://${DEV_SOLR_BASIS_ADDR}:${DEV_SOLR_BASIS_PORT}/
 export DEV_RAWREPO_DB_URL=$(grep rawrepo.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_HOLDINGS_ITEMS_DB_URL=$(grep holdings.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_UPDATE_DB_URL=$(grep updateservice.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
+echo -e "Rawrepo db : ${DEV_RAWREPO_DB_URL}"
+echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
+echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
 
 docker-compose stop updateservice
 docker-compose up -d updateservice
