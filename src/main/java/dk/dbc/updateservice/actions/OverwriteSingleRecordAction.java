@@ -281,6 +281,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     }
 
+    boolean hasMinusEnrichment() {
+        MarcRecord inputRecord = state.getMarcRecord();
+        MarcRecordReader inputRecordReader = new MarcRecordReader(inputRecord);
+
+        return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
+    }
+
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord record, MarcRecord currentRecord) throws UpdateException, UnsupportedEncodingException {
         logger.entry(record);
         List<ServiceAction> result = new ArrayList<>();
@@ -289,7 +296,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
 
-            if (state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
+            if (!hasMinusEnrichment() && state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                     state.getLibraryRecordsHandler().hasClassificationData(record) &&
                     state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, record)) {
                 logger.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);

@@ -79,6 +79,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -141,6 +142,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -206,6 +208,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -276,6 +279,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -350,6 +354,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -438,6 +443,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(volumeRecordId, volumeRecord);
 
+        state.setMarcRecord(volumeRecord);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -535,6 +541,7 @@ public class OverwriteVolumeRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(v1RecordId, record);
 
+        state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(v1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(v2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
