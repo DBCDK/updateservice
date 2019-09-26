@@ -285,7 +285,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         MarcRecord inputRecord = state.getMarcRecord();
         MarcRecordReader inputRecordReader = new MarcRecordReader(inputRecord);
 
-        return inputRecordReader.hasValue("z98", "a", "minus paahaeng");
+        return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
     }
 
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord record, MarcRecord currentRecord) throws UpdateException, UnsupportedEncodingException {

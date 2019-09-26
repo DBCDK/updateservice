@@ -1907,8 +1907,8 @@ public class OverwriteSingleRecordActionTest {
     public void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
-                "z98 00 *a minus korrekturprint\n" +
-                "z98 00 *a minus paahaeng";
+                "z98 00 *a Minus korrekturprint\n" +
+                "z98 00 *b Minus påhængspost";
 
         String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT";
