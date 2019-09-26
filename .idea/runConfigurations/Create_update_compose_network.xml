@@ -1,13 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Create update compose network" type="BashConfigurationType" factoryName="Bash">
-    <option name="INTERPRETER_OPTIONS" value="" />
+  <configuration default="false" name="Create update compose network" type="ShConfigurationType">
+    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/docker/bin/create_update_network.sh" />
+    <option name="SCRIPT_OPTIONS" value="" />
     <option name="INTERPRETER_PATH" value="/bin/bash" />
-    <option name="WORKING_DIRECTORY" value="" />
-    <option name="PARENT_ENVS" value="true" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docker/bin/create_update_network.sh" />
-    <option name="PARAMETERS" value="" />
-    <module name="" />
-    <envs />
-    <method />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <method v="2" />
   </configuration>
 </component>

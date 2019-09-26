@@ -1,15 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Start updateservice" type="BashConfigurationType" factoryName="Bash">
-    <option name="INTERPRETER_OPTIONS" value="" />
+  <configuration default="false" name="Start updateservice" type="ShConfigurationType">
+    <option name="SCRIPT_PATH" value="$PROJECT_DIR$/docker/bin/start-local-docker.sh" />
+    <option name="SCRIPT_OPTIONS" value="" />
     <option name="INTERPRETER_PATH" value="/bin/bash" />
-    <option name="PROJECT_INTERPRETER" value="false" />
-    <option name="WORKING_DIRECTORY" value="" />
-    <option name="PARENT_ENVS" value="true" />
-    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docker/bin/start-local-docker.sh" />
-    <option name="PARAMETERS" value="" />
-    <module name="" />
-    <method v="2">
-      <option name="Make" enabled="true" />
-    </method>
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <method v="2" />
   </configuration>
 </component>
