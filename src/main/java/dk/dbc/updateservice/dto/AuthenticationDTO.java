@@ -60,7 +60,7 @@ public class AuthenticationDTO {
         return "AuthenticationDTO{" +
                 "userId='" + userId + '\'' +
                 ", groupId='" + groupId + '\'' +
-                ", password='" + password + '\'' +
+                ", password='****'" +
                 '}';
     }
 }
