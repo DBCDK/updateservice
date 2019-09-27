@@ -446,19 +446,26 @@ public class PreProcessingAction extends AbstractRawRepoAction {
                 if (reader.hasValue("990", "&", "1")) {
                     writer.removeSubfield("990", "&");
                 } else {
-                    MarcField field990Original = findField990(reader);
-                    if (field990Original != null) {
-                        // Add new d08 field
-                        MarcField fieldd90 = new MarcField(field990Original); // Clone field
+                    List<MarcSubField> newSubfields = new ArrayList<>();
 
+                    // Combine all 990 fields without *r into one single 990 field with all *b subfields
+                    for (MarcField field990Original : findField990(reader)) {
+                        // Add new d90 field
+                        MarcField fieldd90 = new MarcField(field990Original); // Clone field
                         fieldd90.setName("d90");
                         record.getFields().add(fieldd90);
 
-                        // Remove subfield *b l and all other non-*b subfields
-                        field990Original.getSubfields().removeIf(marcSubField -> "b".equals(marcSubField.getName()) && "l".equals(marcSubField.getValue()));
-                        field990Original.getSubfields().removeIf(marcSubField -> !"b".equals(marcSubField.getName()));
-                        field990Original.getSubfields().add(new MarcSubField("u", "op"));
+                        for (MarcSubField subField : field990Original.getSubfields()) {
+                            if ("b".equals(subField.getName()) && !newSubfields.contains(subField)) {
+                                newSubfields.add(new MarcSubField(subField));
+                            }
+                        }
+
+                        record.getFields().remove(field990Original);
                     }
+
+                    newSubfields.add(new MarcSubField("u", "op"));
+                    record.getFields().add(new MarcField("990", "00", newSubfields));
                 }
             }
         }
@@ -472,15 +479,15 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @param reader MarcRecordReader object
      * @return MarcField if conditions are met otherwise null
      */
-    private MarcField findField990(MarcRecordReader reader) {
+    private List<MarcField> findField990(MarcRecordReader reader) {
+        List<MarcField> result = new ArrayList<>();
         for (MarcField field : reader.getFieldAll("990")) {
             MarcFieldReader fieldReader = new MarcFieldReader(field);
             if (!fieldReader.hasSubfield("r")) {
-                return field;
+                result.add(new MarcField(field));
             }
         }
 
-        // This should really never happen as the first/original 990 field will not contain *r
-        return null;
+        return result;
     }
 }
