@@ -854,6 +854,13 @@ public class LibraryRecordsHandler {
 
         List<MarcRecord> result = new ArrayList<>();
         try {
+            MarcRecordReader reader = new MarcRecordReader(record);
+            if (reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
+                    rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
+                MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                record = UpdateOwnership.mergeRecord(record, existingRecord);
+            }
+
             if (libraryGroup.isFBS()) {
                 result = recordDataForRawRepoFBS(record, groupId, messages);
             } else { // Assuming DataIO mode
@@ -935,18 +942,6 @@ public class LibraryRecordsHandler {
             MarcRecord dbcEnrichmentRecord;
 
             String recId = correctedRecordReader.getRecordId();
-            int agencyId = RawRepo.COMMON_AGENCY;
-
-            MarcRecord curRecord;
-
-            if (rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
-                curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, agencyId).getContent());
-                correctedRecord = UpdateOwnership.mergeRecord(correctedRecord, curRecord);
-                logger.info("correctedRecord after mergeRecord\n{}", correctedRecord);
-            } else {
-                logger.info("Common record [{}:{}] does not exist", recId, RawRepo.COMMON_AGENCY);
-            }
-
             String owner = correctedRecordReader.getValue("996", "a");
 
             if (owner == null) {
