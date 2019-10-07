@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
@@ -114,6 +115,9 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
+
+            removeMinusEnrichment(enrichmentRecord);
+
             return performSaveRecord(enrichmentRecord);
         } catch (UnsupportedEncodingException | ScripterException ex) {
             logger.error("Update error: " + ex.getMessage(), ex);
@@ -199,5 +203,11 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     protected int getParentAgencyId() {
         return parentAgencyId;
+    }
+
+    void removeMinusEnrichment(MarcRecord record) {
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+
+        writer.removeSubfield("z98", "b");
     }
 }
