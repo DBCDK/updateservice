@@ -108,7 +108,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), businessException.getMessage());
             logger.error(message);
             logger.warn("Exception doing authentication: ", businessException);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
             logger.exit(result);
         }

@@ -170,27 +170,27 @@ public class ServiceResult {
         return serviceResult;
     }
 
-    public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState) {
-        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, "Authentication error", globalActionState);
+    public static ServiceResult newAuthErrorResult() {
+        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, "Authentication error");
     }
 
-    public static ServiceResult newAuthErrorResult(GlobalActionState globalActionState, String message) {
-        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, message, globalActionState);
+    public static ServiceResult newAuthErrorResult(String message) {
+        return newEntryResult(UpdateStatusEnumDTO.FAILED, TypeEnumDTO.ERROR, message);
     }
 
-    public static ServiceResult newErrorResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDTO.ERROR, message, globalActionState);
+    public static ServiceResult newErrorResult(UpdateStatusEnumDTO status, String message) {
+        return newEntryResult(status, TypeEnumDTO.ERROR, message);
     }
 
-    public static ServiceResult newFatalResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDTO.FATAL, message, globalActionState);
+    public static ServiceResult newFatalResult(UpdateStatusEnumDTO status, String message) {
+        return newEntryResult(status, TypeEnumDTO.FATAL, message);
     }
 
-    public static ServiceResult newWarningResult(UpdateStatusEnumDTO status, String message, GlobalActionState globalActionState) {
-        return newEntryResult(status, TypeEnumDTO.WARNING, message, globalActionState);
+    public static ServiceResult newWarningResult(UpdateStatusEnumDTO status, String message) {
+        return newEntryResult(status, TypeEnumDTO.WARNING, message);
     }
 
-    public static ServiceResult newEntryResult(UpdateStatusEnumDTO status, TypeEnumDTO type, String message, GlobalActionState globalActionState) {
+    public static ServiceResult newEntryResult(UpdateStatusEnumDTO status, TypeEnumDTO type, String message) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
         MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
@@ -200,7 +200,7 @@ public class ServiceResult {
         return serviceResult;
     }
 
-    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDTO status, DoubleRecordFrontendDTO doubleRecordFrontendDTO, GlobalActionState globalActionState) {
+    public static ServiceResult newDoubleRecordErrorResult(UpdateStatusEnumDTO status, DoubleRecordFrontendDTO doubleRecordFrontendDTO) {
         ServiceResult serviceResult = new ServiceResult();
         serviceResult.setStatus(status);
         serviceResult.addDoubleRecordFrontendDto(doubleRecordFrontendDTO);

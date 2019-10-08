@@ -66,7 +66,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = new ServiceResult();
             for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
-                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO, state));
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO));
             }
             result.setDoubleRecordKey(state.getUpdateStore().getNewDoubleRecordKey());
         } else {
@@ -74,7 +74,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
             if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
                 msg = doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().get(0).getMessage();
             }
-            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
         }
         return result;
     }

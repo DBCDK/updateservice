@@ -77,7 +77,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                             String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), recordId, agencyId);
 
                             logger.info("Record can't be changed from head or section record single record. Returning error: {}", message);
-                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                         }
                     }
                 }
@@ -99,7 +99,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                                 String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, agencyWithHoldings);
 
                                 logger.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.getAgencyId(), message);
-                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                             }
                         } else {
                             logger.info("Agency '{}' does not have feature '{}'. Accepting deletion.", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
@@ -113,7 +113,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             children.add(createOverwriteRecordAction());
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | ScripterException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } catch (OpenAgencyException e) {
             throw new UpdateException(e.getMessage(), e);
         } finally {

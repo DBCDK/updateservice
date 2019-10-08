@@ -41,7 +41,7 @@ public class LinkAuthorityRecordsAction extends AbstractRawRepoAction {
                     int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
-                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                     RecordId authRecordIdObj = new RecordId(authRecordId, authAgencyId);
                     logger.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, authRecordId, authAgencyId);

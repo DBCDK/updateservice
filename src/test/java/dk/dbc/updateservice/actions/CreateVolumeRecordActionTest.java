@@ -132,7 +132,7 @@ public class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -175,7 +175,7 @@ public class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -216,7 +216,7 @@ public class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), volumeRecordId, agencyId);
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -257,7 +257,7 @@ public class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), volumeRecordId, agencyId, mainRecordId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(instance.children().isEmpty(), is(true));
     }
 }

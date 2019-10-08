@@ -59,7 +59,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             RecordId recordIdObj = new RecordId(recordId, agencyId);
             if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             logger.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
             rawRepo.linkRecord(recordIdObj, linkToRecordId);

@@ -118,7 +118,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if (RawRepo.COMMON_AGENCY == updAgencyId) {
                 String validatePreviousFaustMessage = validatePreviousFaust(updReader);
                 if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage);
                 }
             }
 
@@ -129,7 +129,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     MetakompasHandler.createMetakompasSubjectRecords(children, state, record, settings);
                 } catch (UpdateException ex) {
                     String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
 
@@ -147,7 +147,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
                     String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
 
                 if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
@@ -155,7 +155,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
                         String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
                 } else if (agencyId == RawRepo.SCHOOL_COMMON_AGENCY) {
@@ -179,7 +179,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         } else {
                             if (checkForExistingCommonFaust(recordId)) {
                                 String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                             } else {
                                 children.add(new UpdateLocalRecordAction(state, settings, rec));
                             }
@@ -197,7 +197,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
                     } else {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, record));
@@ -205,7 +205,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             return result = ServiceResult.newOkResult();
         } catch (OpenAgencyException | UnsupportedEncodingException e) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
         } finally {
             logger.exit(result);
         }
@@ -382,7 +382,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     // The littolk children will be marked for deletion later in the flow
                     if (childRecordId.getAgencyId() != 870974) {
                         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 }
             }

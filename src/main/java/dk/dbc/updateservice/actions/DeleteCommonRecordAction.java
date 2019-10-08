@@ -61,7 +61,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                     String errorMessage = String.format(message, recordId);
 
                     LOGGER.error("Unable to create sub actions due to an error: {}", errorMessage);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage);
                 }
             }
 
@@ -84,7 +84,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             LOGGER.exit();
         }

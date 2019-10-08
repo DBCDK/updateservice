@@ -69,7 +69,7 @@ public class EnqueueRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         EnqueueRecordAction instance = new EnqueueRecordAction(state, new Properties(), record);
         String message = state.getMessages().getString("provider.id.not.set");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).changedRecord(anyString(), any(RecordId.class));
     }
 

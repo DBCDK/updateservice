@@ -56,7 +56,7 @@ public class ValidateSchemaActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName(null);
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(new AuthenticationDTO());
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty", state)));
+        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty")));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class ValidateSchemaActionTest {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         ScripterException ex = new ScripterException("message");
         when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"),anyString(), eq(settings))).thenThrow(ex);
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state)));
+        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage())));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class ValidateSchemaActionTest {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"), anyString(), eq(settings))).thenReturn(27);
         String message = "The JavaScript function checkTemplate must return a boolean value.";
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -87,6 +87,6 @@ public class ValidateSchemaActionTest {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"), anyString(), eq(settings))).thenReturn(false);
         String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 }

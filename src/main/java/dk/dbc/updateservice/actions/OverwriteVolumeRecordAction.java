@@ -53,7 +53,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             return result;
 
         } catch (RawRepoException | UnsupportedEncodingException ex) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             logger.exit(result);
         }
@@ -73,13 +73,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             }
             String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
             logger.error("Unable to create sub actions due to an error: {}", message);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!rawRepo.recordExists(parentId, parentAgencyId)) {
             String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
             logger.error("Unable to create sub actions due to an error: {}", message);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         MarcRecord currentExpandedRecord = loadCurrentRecord();

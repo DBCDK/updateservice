@@ -67,7 +67,7 @@ public class UpdateRequestActionTest {
         state.setMarcRecord(new MarcRecord());
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("request.record.is.missing");
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("131010");
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**

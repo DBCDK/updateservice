@@ -118,7 +118,7 @@ public class UpdateCommonRecordActionTest {
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
