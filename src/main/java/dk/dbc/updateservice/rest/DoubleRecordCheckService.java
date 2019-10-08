@@ -3,7 +3,6 @@ package dk.dbc.updateservice.rest;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.jsonb.JSONBContext;
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
@@ -12,22 +11,23 @@ import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.service.api.BibliographicRecord;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.ws.UpdateRequestReader;
+import dk.dbc.updateservice.ws.UpdateResponseWriter;
 import dk.dbc.util.Timed;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
 import java.util.List;
@@ -39,19 +39,17 @@ public class DoubleRecordCheckService {
     private static final String ENTRY_POINT = "checkDoubleRecordFrontend";
     private final JSONBContext jsonbContext = new JSONBContext();
 
-    @EJB
-    private ScripterPool scripterPool;
-
     @POST
     @Path("v1/doublerecordcheck")
     @Consumes({MediaType.APPLICATION_XML})
-    @Produces({MediaType.APPLICATION_XML})
+    @Produces(MediaType.APPLICATION_XML)
     @Timed
-    public Response doubleRecordCheck(String request) {
-        String res;
+    public UpdateRecordResult doubleRecordCheck(BibliographicRecord bibliographicRecord) {
+        UpdateResponseWriter updateResponseWriter;
+        UpdateRecordResult updateRecordResult;
 
         try {
-            final BibliographicRecordDTO bibliographicRecordDTO = jsonbContext.unmarshall(request, BibliographicRecordDTO.class);
+            BibliographicRecordDTO bibliographicRecordDTO = UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord);
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
             MarcRecord record = null;
 
@@ -68,23 +66,34 @@ public class DoubleRecordCheckService {
             if (record != null) {
                 final Scripter scripter = new Scripter();
                 final Object jsResult = scripter.callMethod(ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
-                final ServiceResult serviceResult = parseJavascript(jsResult);
+                ServiceResult serviceResult = parseJavascript(jsResult);
 
-                res = jsonbContext.marshall(serviceResult);
+                updateResponseWriter = new UpdateResponseWriter();
+                updateResponseWriter.setServiceResult(serviceResult);
+                updateRecordResult = updateResponseWriter.getResponse();
 
-                return Response.ok(res, MediaType.APPLICATION_JSON).build();
+                return updateRecordResult;
             } else {
+                ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
+
+                updateResponseWriter = new UpdateResponseWriter();
+                updateResponseWriter.setServiceResult(serviceResult);
+                updateRecordResult = updateResponseWriter.getResponse();
+
+                return updateRecordResult;
             }
-
-
-        } catch (IOException | ScripterException | JSONBException | InterruptedException ex) {
+        } catch (IOException | ScripterException ex) {
             LOGGER.error("Exception during doubleRecordCheck", ex);
-            res = jsonbContext.marshall();
 
-            return Response.ok(res, MediaType.APPLICATION_JSON).build();
+            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Unknown error");
+
+            updateResponseWriter = new UpdateResponseWriter();
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+
+            return updateRecordResult;
         }
     }
-
 
     private ServiceResult parseJavascript(Object o) throws IOException {
         ServiceResult result;
@@ -94,15 +103,14 @@ public class DoubleRecordCheckService {
         } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = new ServiceResult();
             for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
-                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO, state));
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO));
             }
-            result.setDoubleRecordKey(state.getUpdateStore().getNewDoubleRecordKey());
         } else {
             String msg = "Unknown error";
             if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
                 msg = doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().get(0).getMessage();
             }
-            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
         }
         return result;
     }
