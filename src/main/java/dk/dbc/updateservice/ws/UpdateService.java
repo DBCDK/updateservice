@@ -172,7 +172,7 @@ public class UpdateService {
             throw new SolrException(ex.getMessage());
         } catch (Throwable ex) {
             logger.catching(ex);
-            serviceResult = convertUpdateErrorToResponse(ex, state);
+            serviceResult = convertUpdateErrorToResponse(ex);
             return serviceResult;
         } finally {
             logger.exit(serviceResult);
@@ -310,7 +310,7 @@ public class UpdateService {
         return throwable;
     }
 
-    private ServiceResult convertUpdateErrorToResponse(Throwable ex, GlobalActionState globalActionState) {
+    private ServiceResult convertUpdateErrorToResponse(Throwable ex) {
         Throwable throwable = findServiceException(ex);
         return ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage());
     }
