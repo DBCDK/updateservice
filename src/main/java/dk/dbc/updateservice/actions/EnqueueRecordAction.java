@@ -79,7 +79,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             }
 
             if (providerId == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"), state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
             }
 
             logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);

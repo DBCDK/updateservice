@@ -64,7 +64,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             }
             return result;
         } catch (UnsupportedEncodingException | RawRepoException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             logger.exit(result);
         }

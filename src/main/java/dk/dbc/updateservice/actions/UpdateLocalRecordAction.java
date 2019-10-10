@@ -133,11 +133,11 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             int agencyId = reader.getAgencyIdAsInt();
             if (recordId.equals(parentId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!rawRepo.recordExists(parentId, agencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -177,13 +177,13 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 MarcRecordReader reader = new MarcRecordReader(this.record);
                 String recordId = reader.getRecordId();
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
                 AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).getAgencyId());
                 if (state.getOpenAgencyService().hasFeature(agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)) {
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
             children.add(new RemoveLinksAction(state, record));

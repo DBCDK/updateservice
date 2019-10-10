@@ -111,7 +111,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -152,7 +152,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -201,7 +201,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -222,7 +222,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 

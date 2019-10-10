@@ -174,7 +174,7 @@ public class DeleteCommonRecordActionTest {
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(deleteCommonRecordAction.children().isEmpty(), is(true));
     }
 
@@ -212,7 +212,7 @@ public class DeleteCommonRecordActionTest {
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(deleteCommonRecordAction.children().isEmpty(), is(true));
     }
 

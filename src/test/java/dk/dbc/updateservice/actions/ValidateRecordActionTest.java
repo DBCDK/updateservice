@@ -164,7 +164,7 @@ public class ValidateRecordActionTest {
         when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenThrow(ex);
 
         String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
-        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
 

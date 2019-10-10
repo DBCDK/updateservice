@@ -52,13 +52,13 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             if (!checkIfRecordCanBeRestored(state, record)) {
                 String message = state.getMessages().getString("create.record.with.locals");
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));

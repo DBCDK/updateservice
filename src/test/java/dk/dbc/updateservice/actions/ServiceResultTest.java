@@ -43,7 +43,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg);
         String pid = "3 158 076 1:870970";
         doubleRecordFrontendContent.setPid(pid);
-        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         String dpkKey = "35bcb78b-7309-4aee-800a-8a62930309b6";
         dpkServiceResult.setDoubleRecordKey(dpkKey);
@@ -70,7 +70,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg1);
         String pid1 = "3 158 076 1:870970";
         doubleRecordFrontendContent.setPid(pid1);
-        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 
@@ -79,7 +79,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg2);
         String pid2 = "3 158 076 2:870970";
         doubleRecordFrontendContent.setPid(pid2);
-        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 
@@ -88,7 +88,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg3);
         String pid3 = "3 158 076 3:870970";
         doubleRecordFrontendContent.setPid(pid3);
-        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 
@@ -218,7 +218,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsgDpk);
         String pid = "3 158 076 1:870970";
         doubleRecordFrontendContent.setPid(pid);
-        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         String dpkKey = "35bcb78b-7309-4aee-800a-8a62930309b6";
         dpkServiceResult.setDoubleRecordKey(dpkKey);
         result.addServiceResult(dpkServiceResult);
@@ -282,7 +282,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg1);
         String pid1 = "3 158 076 1:870970";
         doubleRecordFrontendContent.setPid(pid1);
-        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        ServiceResult dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 
@@ -291,7 +291,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg2);
         String pid2 = "3 158 076 2:870970";
         doubleRecordFrontendContent.setPid(pid2);
-        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 
@@ -300,7 +300,7 @@ public class ServiceResultTest {
         doubleRecordFrontendContent.setMessage(errMsg3);
         String pid3 = "3 158 076 3:870970";
         doubleRecordFrontendContent.setPid(pid3);
-        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent, null);
+        dpkServiceResult = ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendContent);
         dpkServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         result.addServiceResult(dpkServiceResult);
 

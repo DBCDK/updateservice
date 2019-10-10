@@ -107,7 +107,7 @@ public class LinkRecordActionTest {
         LinkRecordAction instance = new LinkRecordAction(state, record);
         instance.setLinkToRecordId(new RecordId(parentId, agencyId));
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
 
         ArgumentCaptor<String> argRecordId = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> argAgencyId = ArgumentCaptor.forClass(Integer.class);

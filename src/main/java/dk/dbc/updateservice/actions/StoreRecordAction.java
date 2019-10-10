@@ -107,7 +107,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             return result = ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {
             logger.error("Error when trying to save record. ", ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             logger.exit(result);
         }

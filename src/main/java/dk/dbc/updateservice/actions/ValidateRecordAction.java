@@ -104,7 +104,7 @@ public class ValidateRecordAction extends AbstractAction {
         } catch (IOException | ScripterException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
             logger.exit(result);
         }

@@ -161,7 +161,7 @@ public class UpdateService {
                 ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
-                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg, state);
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
                 logger.error("Updateservice blev kaldt med tom record DTO");
             }
             return serviceResult;
@@ -172,7 +172,7 @@ public class UpdateService {
             throw new SolrException(ex.getMessage());
         } catch (Throwable ex) {
             logger.catching(ex);
-            serviceResult = convertUpdateErrorToResponse(ex, state);
+            serviceResult = convertUpdateErrorToResponse(ex);
             return serviceResult;
         } finally {
             logger.exit(serviceResult);
@@ -310,9 +310,9 @@ public class UpdateService {
         return throwable;
     }
 
-    private ServiceResult convertUpdateErrorToResponse(Throwable ex, GlobalActionState globalActionState) {
+    private ServiceResult convertUpdateErrorToResponse(Throwable ex) {
         Throwable throwable = findServiceException(ex);
-        return ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage(), globalActionState);
+        return ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage());
     }
 
     private void validateRequiredSettings() {

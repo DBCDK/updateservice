@@ -69,10 +69,10 @@ public class UpdateRequestAction extends AbstractAction {
     private ServiceResult verifyData() throws UpdateException {
         if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
             String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
         if (state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() == null) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"));
         }
         if (!state.isRecordSchemaValid()) {
             logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
@@ -84,7 +84,7 @@ public class UpdateRequestAction extends AbstractAction {
         }
         if (!sanityCheckRecord()) {
             String message = state.getMessages().getString("sanity.check.failed");
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
         return null;
     }

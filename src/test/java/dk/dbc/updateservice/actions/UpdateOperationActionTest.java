@@ -442,7 +442,7 @@ public class UpdateOperationActionTest {
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -546,7 +546,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("operation.delete.non.existing.record");
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -701,7 +701,7 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -728,7 +728,7 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -782,7 +782,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -803,7 +803,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -827,7 +827,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -850,7 +850,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -906,7 +906,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -956,7 +956,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -987,7 +987,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test

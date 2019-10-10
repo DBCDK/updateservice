@@ -59,7 +59,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             return ServiceResult.newOkResult();
         } catch (UpdateException ex) {
             LOGGER.error("Error during pre-processing", ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException("Caught unexpected exception: " + ex.toString());
         } finally {

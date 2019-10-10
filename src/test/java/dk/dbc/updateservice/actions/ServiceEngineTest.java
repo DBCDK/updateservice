@@ -52,8 +52,8 @@ public class ServiceEngineTest {
     public void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException  {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
-        when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state));
-        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
+        when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error"));
+        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
     }
 
     @Test
@@ -105,7 +105,7 @@ public class ServiceEngineTest {
         when(c3.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c3.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error");
         when(root.performAction()).thenReturn(err);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
@@ -138,7 +138,7 @@ public class ServiceEngineTest {
         when(c3.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c3.children()).thenReturn(null);
 
-        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning", state);
+        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning");
         when(root.performAction()).thenReturn(warn);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
         assertThat(instance.executeAction(root), equalTo(warn));
@@ -161,7 +161,7 @@ public class ServiceEngineTest {
         when(c1.performAction()).thenReturn(ServiceResult.newOkResult());
         when(c1.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error");
         ServiceAction c2 = mock(ServiceAction.class);
         when(c2.performAction()).thenReturn(err);
         when(c2.children()).thenReturn(null);
@@ -190,12 +190,12 @@ public class ServiceEngineTest {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
-        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning", state);
+        ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning");
         ServiceAction c1 = mock(ServiceAction.class);
         when(c1.performAction()).thenReturn(warn);
         when(c1.children()).thenReturn(null);
 
-        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state);
+        ServiceResult err = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error");
         ServiceAction c2 = mock(ServiceAction.class);
         when(c2.performAction()).thenReturn(err);
         when(c2.children()).thenReturn(null);

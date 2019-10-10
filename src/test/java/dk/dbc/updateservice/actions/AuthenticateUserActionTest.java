@@ -33,7 +33,7 @@ public class AuthenticateUserActionTest {
     @Test
     public void testAuthenticationIsNull() throws Exception {
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state)));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setPassword("passwd");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Brugernavn mangler i autentificeringsparameterne")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult("Brugernavn mangler i autentificeringsparameterne")));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setPassword("passwd");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Gruppenavn mangler i autentificeringsparameterne")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult("Gruppenavn mangler i autentificeringsparameterne")));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class AuthenticateUserActionTest {
         AuthenticationDTO.setGroupId("group");
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(AuthenticationDTO);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state, "Kodeord mangler i autentificeringsparameterne")));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult("Kodeord mangler i autentificeringsparameterne")));
     }
 
     @Test
@@ -77,13 +77,13 @@ public class AuthenticateUserActionTest {
     public void testAuthentication_AuthFailure() throws Exception {
         when(state.getAuthenticator().authenticateUser(state)).thenReturn(false);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state)));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));
     }
 
     @Test
     public void testAuthentication_AuthThrowsException() throws Exception {
         when(state.getAuthenticator().authenticateUser(state)).thenThrow(new AuthenticatorException("message", null));
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
-        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult(state)));
+        assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));
     }
 }

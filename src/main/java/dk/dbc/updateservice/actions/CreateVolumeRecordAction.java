@@ -55,26 +55,26 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!rawRepo.recordExists(parentRecordId, parentAgencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentRecordId, parentAgencyId);
 
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record)) {
                 String message = state.getMessages().getString("create.record.with.locals");
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
                 logger.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(new RemoveLinksAction(state, record));

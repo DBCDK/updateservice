@@ -88,13 +88,13 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             return updateRecordResult;
         } catch (IOException e) {
             LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
         } catch (SolrException e) {
             LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage(), globalActionState);
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             MessageContext ctx = wsContext.getMessageContext();

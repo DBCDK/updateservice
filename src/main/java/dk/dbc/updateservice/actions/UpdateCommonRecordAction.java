@@ -61,7 +61,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
                     logger.error("Unable to create sub actions due to an error: {}", message);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
 
@@ -94,7 +94,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
                         logger.error(message);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 }
             }

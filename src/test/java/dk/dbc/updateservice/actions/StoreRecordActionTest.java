@@ -125,7 +125,7 @@ public class StoreRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -169,7 +169,7 @@ public class StoreRecordActionTest {
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
         ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error", state)));
+        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 

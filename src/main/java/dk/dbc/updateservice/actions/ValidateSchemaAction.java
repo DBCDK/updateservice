@@ -44,10 +44,10 @@ public class ValidateSchemaAction extends AbstractAction {
         validateData();
         try {
             if (state.getSchemaName() == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty", state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty");
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty", state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
             Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getTemplateGroup(), settings);
             logger.debug("Result from checkTemplate JS ({}): {}", jsResult.getClass().getName(), jsResult);
@@ -59,14 +59,14 @@ public class ValidateSchemaAction extends AbstractAction {
                 }
                 logger.error("Validating schema '{}' failed", state.getSchemaName());
                 String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             String message = String.format("The JavaScript function %s must return a boolean value.", "checkTemplate");
             logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), message);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } catch (ScripterException ex) {
             logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage(), state);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             logger.exit(result);
         }

@@ -250,7 +250,7 @@ public class UpdateSingleRecordTest {
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, "710100");
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message, state)));
+        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertTrue(updateSingleRecord.children().isEmpty());
     }
 
