@@ -70,7 +70,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         String recordId = reader.getRecordId();
         String agencyId = reader.getAgencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
 
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(commonRecord);
@@ -137,7 +137,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         String recordId = reader.getRecordId();
         String agencyId = reader.getAgencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(), eq(commonRecord), eq(agencyId))).thenReturn(enrichmentRecord);
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
@@ -204,7 +204,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String agencyId = reader.getAgencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(agencyId))).thenThrow(new ScripterException("Script error"));
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(), eq(commonRecord), eq(agencyId))).thenThrow(new ScripterException("Script error"));
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
