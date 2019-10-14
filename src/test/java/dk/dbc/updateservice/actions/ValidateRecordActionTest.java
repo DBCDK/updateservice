@@ -6,12 +6,12 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
@@ -24,7 +24,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.StringStartsWith.startsWith;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;

@@ -9,8 +9,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +22,10 @@ import java.util.ResourceBundle;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class LinkAuthorityRecordsActionTest {
     private GlobalActionState state;

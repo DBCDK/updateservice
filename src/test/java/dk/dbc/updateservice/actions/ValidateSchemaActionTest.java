@@ -63,7 +63,7 @@ public class ValidateSchemaActionTest {
     public void testScripterException() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         ScripterException ex = new ScripterException("message");
-        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"),anyString(), eq(settings))).thenThrow(ex);
+        when(state.getScripter().callMethod(anyString(), anyString(), eq("400700"), anyString(), eq(settings))).thenThrow(ex);
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage())));
     }
 
@@ -78,7 +78,7 @@ public class ValidateSchemaActionTest {
     @Test
     public void testSchemaFound() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"),anyString(), eq(settings))).thenReturn(true);
+        when(state.getScripter().callMethod(eq("checkTemplate"), eq("book"), eq("400700"), anyString(), eq(settings))).thenReturn(true);
         assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 

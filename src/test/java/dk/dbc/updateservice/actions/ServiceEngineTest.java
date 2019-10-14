@@ -16,7 +16,10 @@ import java.util.Arrays;
 
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ServiceEngineTest {
     private GlobalActionState state;
@@ -27,13 +30,13 @@ public class ServiceEngineTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionIsNull() throws UpdateException, SolrException  {
+    public void testExecuteAction_ActionIsNull() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         instance.executeAction(null);
     }
 
     @Test(expected = UpdateException.class)
-    public void testExecuteAction_ActionThrows() throws UpdateException, SolrException  {
+    public void testExecuteAction_ActionThrows() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenThrow(new UpdateException("error"));
@@ -41,7 +44,7 @@ public class ServiceEngineTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionReturnsNull() throws UpdateException, SolrException  {
+    public void testExecuteAction_ActionReturnsNull() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(null);
@@ -49,7 +52,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException  {
+    public void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error"));
@@ -57,7 +60,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException, SolrException  {
+    public void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -89,7 +92,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException, SolrException  {
+    public void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -122,7 +125,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException, SolrException  {
+    public void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -153,7 +156,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException, SolrException  {
+    public void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 
@@ -186,7 +189,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException, SolrException  {
+    public void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine();
         ServiceAction root = mock(ServiceAction.class);
 

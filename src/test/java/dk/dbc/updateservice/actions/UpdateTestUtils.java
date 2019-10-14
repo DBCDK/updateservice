@@ -7,8 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -16,6 +14,7 @@ import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
@@ -24,6 +23,7 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 

@@ -1917,7 +1917,7 @@ public class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
 
-        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (true));
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is(true));
     }
 
     @Test
@@ -1933,7 +1933,7 @@ public class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
 
-        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (false));
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is(false));
     }
 
     @Test
@@ -1948,6 +1948,6 @@ public class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, MarcRecordFactory.readRecord(commonRecord));
 
-        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is (false));
+        assertThat(overwriteSingleRecordAction.hasMinusEnrichment(), is(false));
     }
 }
