@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.utils;
 
 import org.junit.Test;
@@ -6,9 +11,7 @@ import java.util.ResourceBundle;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by stp on 09/04/15.
- */
+
 public class CharSetControlTest {
     @Test
     public void testResourceBundlesGetBundle() {
