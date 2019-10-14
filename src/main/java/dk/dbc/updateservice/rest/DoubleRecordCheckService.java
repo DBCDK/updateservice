@@ -13,6 +13,7 @@ import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
 import dk.dbc.updateservice.ws.UpdateResponseWriter;
@@ -50,6 +51,9 @@ public class DoubleRecordCheckService {
     @EJB
     private Scripter scripter;
 
+    @EJB
+    private UpdateStore updateStore;
+
     @POST
     @Path("v1/doublerecordcheck")
     @Consumes({MediaType.APPLICATION_XML})
@@ -74,24 +78,19 @@ public class DoubleRecordCheckService {
                 }
             }
 
+            ServiceResult serviceResult;
             if (record != null) {
                 final Object jsResult = scripter.callMethod(ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
-                ServiceResult serviceResult = parseJavascript(jsResult);
-
-                updateResponseWriter = new UpdateResponseWriter();
-                updateResponseWriter.setServiceResult(serviceResult);
-                updateRecordResult = updateResponseWriter.getResponse();
-
-                return Response.ok(marshal(updateRecordResult), MediaType.APPLICATION_XML).build();
+                serviceResult = parseJavascript(jsResult);
             } else {
-                ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
-
-                updateResponseWriter = new UpdateResponseWriter();
-                updateResponseWriter.setServiceResult(serviceResult);
-                updateRecordResult = updateResponseWriter.getResponse();
-
-                return Response.ok(marshal(updateRecordResult), MediaType.APPLICATION_XML).build();
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
+
+            updateResponseWriter = new UpdateResponseWriter();
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+
+            return Response.ok(marshal(updateRecordResult), MediaType.APPLICATION_XML).build();
         } catch (Exception ex) {
             LOGGER.error("Exception during doubleRecordCheck", ex);
 
@@ -115,6 +114,7 @@ public class DoubleRecordCheckService {
             for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
                 result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO));
             }
+            result.setDoubleRecordKey(updateStore.getNewDoubleRecordKey());
         } else {
             String msg = "Unknown error";
             if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
