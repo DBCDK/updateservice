@@ -4,7 +4,9 @@ import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.ws.UpdateResponseWriter;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -12,10 +14,17 @@ import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DoubleRecordCheckServiceTest {
 
     private final DoubleRecordCheckService service = new DoubleRecordCheckService();
+
+    @Before
+    public void init() {
+        service.updateStore = mock(UpdateStore.class);
+    }
 
     @Test
     public void parseJavascriptTest_Ok() throws Exception {
@@ -56,6 +65,8 @@ public class DoubleRecordCheckServiceTest {
                 "  ]\n" +
                 "}";
 
+        when(service.updateStore.getNewDoubleRecordKey()).thenReturn("abc123");
+
         final ServiceResult expectedServiceResult = new ServiceResult();
         expectedServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
         final DoubleRecordFrontendDTO doubleRecordFrontendDTO = new DoubleRecordFrontendDTO();
@@ -63,11 +74,9 @@ public class DoubleRecordCheckServiceTest {
         doubleRecordFrontendDTO.setPid("333:444");
         final List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOs = Arrays.asList(doubleRecordFrontendDTO);
         expectedServiceResult.setDoubleRecordFrontendDTOS(doubleRecordFrontendDTOs);
+        expectedServiceResult.setDoubleRecordKey("abc123");
 
-        final String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                "<updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
-                "<updateStatus>failed</updateStatus>" +
-                "</updateRecordResult>";
+        final String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\"><updateStatus>failed</updateStatus><doubleRecordKey>abc123</doubleRecordKey><doubleRecordEntries><doubleRecordEntry><pid>333:444</pid><message>Double records for record {111:222}: 333:444</message></doubleRecordEntry></doubleRecordEntries></updateRecordResult>";
 
         final ServiceResult actualServiceResult = service.parseJavascript(json);
 
