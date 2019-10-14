@@ -52,7 +52,7 @@ public class DoubleRecordCheckService {
     private Scripter scripter;
 
     @EJB
-    private UpdateStore updateStore;
+    UpdateStore updateStore;
 
     @POST
     @Path("v1/doublerecordcheck")
