@@ -149,7 +149,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("504", "a", "Ny Note");
 
-        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
+        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
@@ -171,7 +171,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         y08.getSubfields().add(new MarcSubField("a", "UPDATE opstillingsændring"));
         expected.getFields().add(y08);
 
-        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(MarcRecord.class), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
+        when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
 
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
