@@ -849,13 +849,13 @@ public class LibraryRecordsHandler {
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
         logger.entry(record, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
-            if (reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
+            if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
                     rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                 MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 record = UpdateOwnership.mergeRecord(record, existingRecord);
