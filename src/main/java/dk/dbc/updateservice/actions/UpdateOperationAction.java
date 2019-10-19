@@ -137,7 +137,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages(), state.isAdmin());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
