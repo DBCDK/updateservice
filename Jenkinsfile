@@ -45,7 +45,7 @@ pipeline {
         MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
         DOCKER_IMAGE_VERSION = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         DOCKER_IMAGE_DIT_VERSION = "DIT-${env.BUILD_NUMBER}"
-        GITOPS_DEPLOY_TAG = "master-3"
+        GITOPS_DEPLOY_TAG = "master-5"
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
     }
 
