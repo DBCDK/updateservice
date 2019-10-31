@@ -7,6 +7,7 @@ package dk.dbc.updateservice.rest;
 
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
@@ -18,6 +19,7 @@ import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.ws.JNDIResources;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
@@ -59,6 +61,9 @@ public class DoubleRecordCheckService {
     @EJB
     UpdateStore updateStore;
 
+    @EJB
+    RawRepo rawRepo;
+
     @POST
     @Path("v1/doublerecordcheck")
     @Consumes({MediaType.APPLICATION_XML})
@@ -85,8 +90,15 @@ public class DoubleRecordCheckService {
 
             ServiceResult serviceResult;
             if (record != null) {
-                final Object jsResult = scripter.callMethod(ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
-                serviceResult = parseJavascript(jsResult);
+                MarcRecordReader reader = new MarcRecordReader(record);
+
+                // Perform double record check only if the record doesn't already exist
+                if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    final Object jsResult = scripter.callMethod(ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
+                    serviceResult = parseJavascript(jsResult);
+                } else {
+                    serviceResult = ServiceResult.newOkResult();
+                }
             } else {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
