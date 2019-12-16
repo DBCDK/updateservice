@@ -109,5 +109,13 @@ echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
 sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
 sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
 
+# Config of rest services - please call them <restservice>.url where <restservice> are copied from rest/api/v?/<restservice>
+# same foldername (<restservice>) are expected to be found in the opencat-business/rest directory where testcases for a service is placed
+# TODO DIE
+sed -i -e "/^roublerecordcheck.url/s/^.*$/roublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/roublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
+sed -i -e "/^doublerecordcheck.url/s/^.*$/doublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/doublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
+sed -i -e "/^classificationcheck.url/s/^.*$/classificationcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/classificationcheck/" ${HOME}/.ocb-tools/testrun.properties
+# TODO DIE END
+
 ../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 '[updateservice]' || die "could not start updateservice"
 cd -
