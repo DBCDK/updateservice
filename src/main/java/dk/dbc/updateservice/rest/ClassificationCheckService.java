@@ -23,6 +23,7 @@ import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
 import dk.dbc.updateservice.ws.UpdateResponseWriter;
 import dk.dbc.updateservice.ws.UpdateService;
@@ -49,7 +50,6 @@ import javax.xml.transform.dom.DOMSource;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -58,6 +58,7 @@ import java.util.Set;
 @Path("/api")
 public class ClassificationCheckService {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ClassificationCheckService.class);
+    private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
@@ -67,9 +68,6 @@ public class ClassificationCheckService {
 
     @EJB
     private HoldingsItems holdingsItems;
-
-    @EJB
-    private ResourceBundle messages;
 
     @POST
     @Path("v1/classificationcheck")
@@ -106,15 +104,22 @@ public class ClassificationCheckService {
                     if (holdingAgencies.size() > 0) {
                         List<String> classificationsChangedMessages = new ArrayList<>();
                         if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, record, classificationsChangedMessages)) {
-                            serviceResult = new ServiceResult();
-                            serviceResult.setStatus(UpdateStatusEnumDTO.OK);
-                            final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
-                            messageEntryDTO.setType(TypeEnumDTO.WARNING);
+                            final List<MessageEntryDTO> messageEntryDTOs = new ArrayList<>();
+
+                            final MessageEntryDTO holdingsMessageEntryDTO = new MessageEntryDTO();
+                            holdingsMessageEntryDTO.setType(TypeEnumDTO.WARNING);
+                            holdingsMessageEntryDTO.setMessage("Count: " + holdingAgencies.size());
+                            messageEntryDTOs.add(holdingsMessageEntryDTO);
+
                             for (String classificationsChangedMessage : classificationsChangedMessages) {
-                                messageEntryDTO.setMessage(classificationsChangedMessage);
+                                final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+                                messageEntryDTO.setType(TypeEnumDTO.WARNING);
+                                messageEntryDTO.setMessage("Reason: " + resourceBundle.getString(classificationsChangedMessage));
+                                messageEntryDTOs.add(messageEntryDTO);
                             }
 
-                            final List<MessageEntryDTO> messageEntryDTOs = Collections.singletonList(messageEntryDTO);
+                            serviceResult = new ServiceResult();
+                            serviceResult.setStatus(UpdateStatusEnumDTO.FAILED);
                             serviceResult.setEntries(messageEntryDTOs);
                         }
                     }
