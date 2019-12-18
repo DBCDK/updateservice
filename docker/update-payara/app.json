@@ -1,5 +1,8 @@
 {
   "appName": "updateservice",
+  "profiles": [
+    "long-running-requests"
+  ],
   "jdbc": {
     "jdbc/rawrepo": {
       "url": "${RAWREPO_DB_URL}"
