@@ -12,7 +12,9 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ObjectFactory;
@@ -46,6 +48,8 @@ import javax.xml.bind.Marshaller;
 import javax.xml.transform.dom.DOMSource;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -91,29 +95,29 @@ public class ClassificationCheckService {
                 }
             }
 
-            ServiceResult serviceResult;
+            ServiceResult serviceResult = ServiceResult.newOkResult();
             if (record != null) {
-                MarcRecordReader recordReader = new MarcRecordReader(record);
-                String recordId = recordReader.getValue("001", "a");
-                Integer agencyId = Integer.valueOf(recordReader.getValue("001", "b"));
-                Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId(recordId);
-                if (holdingAgencies.size() > 0) {
-                    if (rawRepo.recordExists(recordId, agencyId)) {
-                        MarcRecord oldRecord = loadRecord(recordId, agencyId);
-                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, record)) {
-                            // TODO YADAYADA der mangler antal biblioteker med beholdning
-                            // hvad vil vi egentlig ? Vi er her og x antal (>0) har ex. og der er klassifikation ændret. Vi har kun en ændring - den i getClass.... da hasClass...
-                            // returnerer på første. Vi returnerer altså første forekomst og siger verden er ond hvis
-                            serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, messages.getString(libraryRecordsHandler.getClassificationsChangedMessage()));
+                final MarcRecordReader recordReader = new MarcRecordReader(record);
+                final String recordId = recordReader.getValue("001", "a");
+                final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
+                if (rawRepo.recordExists(recordId, agencyId)) {
+                    final MarcRecord oldRecord = loadRecord(recordId, agencyId);
+                    final Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId(recordId);
+                    if (holdingAgencies.size() > 0) {
+                        List<String> classificationsChangedMessages = new ArrayList<>();
+                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, record, classificationsChangedMessages)) {
+                            serviceResult = new ServiceResult();
+                            serviceResult.setStatus(UpdateStatusEnumDTO.OK);
+                            final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+                            messageEntryDTO.setType(TypeEnumDTO.WARNING);
+                            for (String classificationsChangedMessage : classificationsChangedMessages) {
+                                messageEntryDTO.setMessage(classificationsChangedMessage);
+                            }
 
-                        } else {
-                            serviceResult = ServiceResult.newOkResult();
+                            final List<MessageEntryDTO> messageEntryDTOs = Collections.singletonList(messageEntryDTO);
+                            serviceResult.setEntries(messageEntryDTOs);
                         }
-                    } else {
-                        serviceResult = ServiceResult.newOkResult();
                     }
-                } else {
-                    serviceResult = ServiceResult.newOkResult();
                 }
             } else {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
@@ -137,8 +141,7 @@ public class ClassificationCheckService {
         }
     }
 
-    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException
-    {
+    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
         LOGGER.entry(recordId, agencyId);
         MarcRecord result = null;
         try {
