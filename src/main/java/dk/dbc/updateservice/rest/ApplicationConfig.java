@@ -15,7 +15,13 @@ import java.util.Set;
  */
 @javax.ws.rs.ApplicationPath("rest")
 public class ApplicationConfig extends Application {
-    private static final Set<Class<?>> classes = new HashSet<>(Arrays.asList(StatusService.class, HowruService.class, DoubleRecordCheckService.class));
+    private static final Set<Class<?>> classes = new HashSet<>(
+            Arrays.asList(
+                    StatusService.class,
+                    HowruService.class,
+                    DoubleRecordCheckService.class,
+                    ClassificationCheckService.class)
+    );
 
     @Override
     public Set<Class<?>> getClasses() {

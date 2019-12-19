@@ -81,7 +81,17 @@ public class DoubleRecordCheckServiceTest {
         expectedServiceResult.setDoubleRecordFrontendDTOS(doubleRecordFrontendDTOs);
         expectedServiceResult.setDoubleRecordKey("abc123");
 
-        final String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\"><updateStatus>failed</updateStatus><doubleRecordKey>abc123</doubleRecordKey><doubleRecordEntries><doubleRecordEntry><pid>333:444</pid><message>Double records for record {111:222}: 333:444</message></doubleRecordEntry></doubleRecordEntries></updateRecordResult>";
+        final String expectedXML = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                "<updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
+                    "<updateStatus>failed</updateStatus>" +
+                    "<doubleRecordKey>abc123</doubleRecordKey>" +
+                    "<doubleRecordEntries>" +
+                        "<doubleRecordEntry>" +
+                            "<pid>333:444</pid>" +
+                            "<message>Double records for record {111:222}: 333:444</message>" +
+                        "</doubleRecordEntry>" +
+                    "</doubleRecordEntries>" +
+                "</updateRecordResult>";
 
         final ServiceResult actualServiceResult = service.parseJavascript(json);
 

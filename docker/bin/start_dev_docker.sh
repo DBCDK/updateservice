@@ -122,5 +122,13 @@ echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/t
 echo "rawrepo.provider.name.ph = fbs-ph-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.ocb-tools/testrun.properties
 
+#Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+
+# TODO DIE
+# Please look in start-local-docker.sh for further information
+echo "roublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+echo "doublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+echo "classificationcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+# TODO DIE END
