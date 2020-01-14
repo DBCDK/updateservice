@@ -236,12 +236,9 @@ pipeline {
             }
             steps {
                 script {
-                    dir("deploy") {
-                        sh """
-                            set-new-version services/update-database.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
-                            set-new-version services/update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
-						"""
-                    }
+                    sh """
+                        set-new-version services/updateservice ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
+                    """
                 }
             }
         }
