@@ -215,30 +215,10 @@ pipeline {
 							set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b basismig
                             set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b fbstest
                             set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b metascrum-staging
+
+                            set-new-version services/updateservice ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
 						"""
                     }
-                }
-            }
-        }
-
-        stage("Update DIT") {
-            agent {
-                docker {
-                    label workerNode
-                    image "docker.dbc.dk/build-env:latest"
-                    alwaysPull true
-                }
-            }
-            when {
-                expression {
-                    (currentBuild.result == null || currentBuild.result == 'SUCCESS') && env.BRANCH_NAME == 'master'
-                }
-            }
-            steps {
-                script {
-                    sh """
-                        set-new-version services/updateservice ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
-                    """
                 }
             }
         }
