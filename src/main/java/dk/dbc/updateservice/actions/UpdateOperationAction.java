@@ -126,7 +126,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                 try {
                     record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
-                    MetakompasHandler.createMetakompasSubjectRecords(children, state, record, settings);
+                    MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, record, settings);
                 } catch (UpdateException ex) {
                     String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -216,8 +216,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param recordId The recordId to check for
      * @return true if the recordId exists as common record
-     * @throws UpdateException
-     * @throws SolrException
+     * @throws UpdateException Update error
+     * @throws SolrException Solr error
      */
     private boolean checkForExistingCommonFaust(String recordId) throws UpdateException, SolrException {
         if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
@@ -237,8 +237,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * Only applicable for agencies which uses enrichments (i.e. FFU and lokbib are ignored)
      *
      * @param reader MarcRecordReader of the record to be checked
-     * @throws UpdateException
-     * @throws UnsupportedEncodingException
+     * @throws UpdateException Update error
+     * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
     void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
         logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));

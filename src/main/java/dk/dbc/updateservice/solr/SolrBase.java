@@ -7,9 +7,7 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
+import javax.json.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -88,6 +86,44 @@ public abstract class SolrBase {
             JsonObject response = callSolr(solrUrl);
             if (response.containsKey("numFound")) {
                 return response.getInt("numFound");
+            }
+            String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
+            logger.warn(s);
+            throw new UpdateException(s);
+        } finally {
+            watch.stop();
+            logger.exit();
+        }
+    }
+    public String getSubjectIdNumber(String query) throws UpdateException, SolrException {
+        logger.entry(query);
+        StopWatch watch = new Log4JStopWatch("service.solr.hits");
+        URL solrUrl;
+
+        try {
+            solrUrl = setUrl(query, "&fl=marc.001a");
+            JsonObject response = callSolr(solrUrl);
+            if (response.containsKey("numFound")) {
+                if (response.getInt("numFound") == 0) return "";
+                else {
+                    // Message from LJL - if more than one records, then treat the first
+                    if (response.containsKey("docs")) {
+                        JsonArray docsArray = response.getJsonArray("docs");
+                        for (JsonObject jObj : docsArray.getValuesAs(JsonObject.class)) {
+                            // Sometimes the value is an array and sometimes a string, so we need to check the type first
+                            JsonValue jsonValue = jObj.get("marc.001a");
+                            if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
+                                JsonArray marc001aArray = (JsonArray) jsonValue;
+                                return marc001aArray.getString(0);
+                            } else if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
+                                JsonString marc001aString = (JsonString) jsonValue;
+                                return marc001aString.getString();
+                            } else {
+                                throw new SolrException("Expected type of marc.001a to be ARRAY or STRING but it was " + jsonValue.getValueType());
+                            }
+                        }
+                    }
+                }
             }
             String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
             logger.warn(s);
