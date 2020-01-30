@@ -10,7 +10,7 @@ package dk.dbc.updateservice.update;
  * lookup with the SolrService EJB.
  */
 public class SolrServiceIndexer {
-    private static String GET_SUBJECT_HITS_QUERY = "%s:\"%s\" AND marc.001b:190004";
+    private static String GET_SUBJECT_ID_QUERY = "%s:\"%s\" AND marc.001b:190004";
 
     private static String GET_OWNER_OF_002_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
 
@@ -20,8 +20,8 @@ public class SolrServiceIndexer {
     private static String SUBFIELD_QUERY_DUAL = "marc.%s:\"%s\" AND marc.%s:\"%s\" AND marc.001b:870970";
     private static String SUBFIELD_QUERY_DUAL_WITH_EXCLUDE = "marc.%s:\"%s\" AND marc.%s:\"%s\" AND -marc.%s:\"%s\" AND marc.001b:870970";
 
-    public static String createGetSubjectHits(String validIndex, String value) {
-        return String.format(GET_SUBJECT_HITS_QUERY, validIndex, value);
+    public static String createGetSubjectId(String validIndex, String value) {
+        return String.format(GET_SUBJECT_ID_QUERY, validIndex, value);
     }
 
     public static String createGetOwnerOf002QueryDBCOnly(String fieldAndSubfield, String value) {
