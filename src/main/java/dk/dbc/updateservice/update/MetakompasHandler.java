@@ -158,9 +158,7 @@ public class MetakompasHandler {
                 if (field.getName().equals("670")) {
                     List<MarcSubField> subFields = field.getSubfields();
                     for (MarcSubField subField : subFields) {
-                        if (subField.getName().equals("a")) {
-                            if (subField.getValue().equals(id)) makeCommon = false;
-                        }
+                        if (subField.getName().equals("a") && subField.getValue().equals(id)) makeCommon = false;
                     }
                 }
             }
@@ -186,9 +184,7 @@ public class MetakompasHandler {
                 if (field.getName().equals("x09")) {
                     List<MarcSubField> subFields = field.getSubfields();
                     for (MarcSubField subField : subFields) {
-                        if (subField.getName().equals("p")) {
-                            if (subField.getValue().equals(shortValue)) makeEnrich = false;
-                        }
+                        if (subField.getName().equals("p") && subField.getValue().equals(shortValue)) makeEnrich = false;
                     }
 
                 }
