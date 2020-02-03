@@ -148,8 +148,9 @@ public class MetakompasHandler {
             throws UpdateException, UnsupportedEncodingException {
         boolean makeCommon = true;
         boolean makeEnrich = true;
-        String shortValue = "";
+        String shortValue;
         List<MarcField> fields;
+
         try {
             MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
             fields = mainRecord.getFields();
