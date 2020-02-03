@@ -146,36 +146,66 @@ public class MetakompasHandler {
 
     private static void doUpdateMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, RawRepo rawRepo, String id, String subFieldName, String category, Properties properties, String subjectId)
             throws UpdateException, UnsupportedEncodingException {
+        boolean makeCommon = true;
+        boolean makeEnrich = true;
+        String shortValue = "";
+        List<MarcField> fields;
         try {
             MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
-            MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
-            mWriter.setChangedTimestamp();
-            mWriter.addFieldSubfield("670", "a", id);
-            children.add(new UpdateCommonRecordAction(state, properties, mainRecord));
+            fields = mainRecord.getFields();
+            for (MarcField field : fields) {
+                if (field.getName().equals("670")) {
+                    List<MarcSubField> subFields = field.getSubfields();
+                    for (MarcSubField subField : subFields) {
+                        if (subField.getName().equals("a")) {
+                            if (subField.getValue().equals(id)) makeCommon = false;
+                        }
+                    }
+                }
+            }
+            if (makeCommon) {
+                MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
+                mWriter.setChangedTimestamp();
+                mWriter.addFieldSubfield("670", "a", id);
+                children.add(new UpdateCommonRecordAction(state, properties, mainRecord));
+            }
+
             MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 191919).getContent());
-            List<MarcField> fields = enrichmentRecord.getFields();
+            if (subFieldName.equals("n")) {
+                shortValue = getMoodCategoryCode(category);
+            } else {
+                shortValue = subFieldName;
+            }
+           fields = enrichmentRecord.getFields();
             for (MarcField field : fields) {
                 if (field.getName().equals("d09")) {
                     List<MarcSubField> subFields = field.getSubfields();
                     subFields.add(new MarcSubField("z", "EMK" + getWeekCode()));
                 }
+                if (field.getName().equals("x09")) {
+                    List<MarcSubField> subFields = field.getSubfields();
+                    for (MarcSubField subField : subFields) {
+                        if (subField.getName().equals("p")) {
+                            if (subField.getValue().equals(shortValue)) makeEnrich = false;
+                        }
+                    }
+
+                }
             }
-            MarcField x09Field = new MarcField();
-            x09Field.setName("x09");
-            x09Field.setIndicator("00");
-            List<MarcSubField> x09subFields = x09Field.getSubfields();
-            if (subFieldName.equals("n")) {
-                String shortValue = getMoodCategoryCode(category);
-                x09subFields.add( new MarcSubField("p", shortValue));
-            } else
-                x09subFields.add( new MarcSubField("p", subFieldName));
-            String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
-            x09subFields.add(new MarcSubField("q", metaCompassId));
-            fields.add(x09Field);
-            enrichmentRecord.setFields(fields);
-            MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-            writer.setChangedTimestamp();
-            children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
+            if (makeEnrich) {
+                MarcField x09Field = new MarcField();
+                x09Field.setName("x09");
+                x09Field.setIndicator("00");
+                List<MarcSubField> x09subFields = x09Field.getSubfields();
+                x09subFields.add(new MarcSubField("p", shortValue));
+                String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+                x09subFields.add(new MarcSubField("q", metaCompassId));
+                fields.add(x09Field);
+                enrichmentRecord.setFields(fields);
+                MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+                writer.setChangedTimestamp();
+                children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
+            }
         } catch (UpdateException | UnsupportedEncodingException e) {
             logger.info("Updating subject record(s) failed {}", e.getMessage());
             throw e;
