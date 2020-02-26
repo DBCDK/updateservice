@@ -5,9 +5,19 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.CatalogExtractionCode;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordFactory;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.updateservice.actions.*;
+import dk.dbc.updateservice.actions.CreateSingleRecordAction;
+import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.updateservice.actions.ServiceAction;
+import dk.dbc.updateservice.actions.UpdateCommonRecordAction;
+import dk.dbc.updateservice.actions.UpdateEnrichmentRecordAction;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -156,10 +166,8 @@ public class MetakompasHandler {
             fields = mainRecord.getFields();
             for (MarcField field : fields) {
                 if (field.getName().equals("670")) {
-                    List<MarcSubField> subFields = field.getSubfields();
-                    for (MarcSubField subField : subFields) {
-                        if (subField.getName().equals("a") && subField.getValue().equals(id)) makeCommon = false;
-                    }
+                    makeCommon = false;
+                    break;
                 }
             }
             if (makeCommon) {
