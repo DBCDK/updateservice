@@ -19,9 +19,9 @@ public class UpdateServiceClient {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceClient.class);
     private static final OpenUpdateServiceConnector openUpdateServiceConnector = new OpenUpdateServiceConnector();
     private static DocumentBuilder documentBuilder;
+    private static boolean isReady;
 
     public UpdateServiceClient() {
-        LOGGER.info("Creating UpdateServiceClient");
         final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
         try {
@@ -33,9 +33,15 @@ public class UpdateServiceClient {
 
     public boolean isReady() {
         try {
-            final UpdateRecordResult updateRecordResult = callUpdate();
+            // This function will be called constantly by we only need to call updateservice once. In order to limit the
+            // amount of webservice requests we use a static variable to prevent more calls after the first one
+            if (!isReady) {
+                final UpdateRecordResult updateRecordResult = callUpdate();
 
-            return updateRecordResult.getUpdateStatus() == UpdateStatusEnum.OK;
+                isReady = updateRecordResult.getUpdateStatus() == UpdateStatusEnum.OK;
+            }
+
+            return isReady;
         } catch (Exception e) {
             LOGGER.error("Caught exception during UpdateServiceClient", e);
             return false;
