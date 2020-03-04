@@ -109,7 +109,7 @@ public class UpdateServiceClient {
         recordData.getContent().add(document.getDocumentElement());
         bibliographicRecord.setRecordData(recordData);
 
-        return openUpdateServiceConnector.updateRecord("010100", "bog", bibliographicRecord, "k8s-warm-up");
+        return openUpdateServiceConnector.updateRecord("710100", "bog", bibliographicRecord, "k8s-warm-up");
     }
 
 }
