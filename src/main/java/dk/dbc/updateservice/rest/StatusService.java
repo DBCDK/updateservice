@@ -36,7 +36,7 @@ public class StatusService {
     @GET
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getStatus() throws Exception {
+    public Response getStatus() {
         logger.entry();
         String res = null;
         try {
@@ -50,28 +50,29 @@ public class StatusService {
     @GET
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response isReady() throws Exception {
+    public Response isReady() {
         logger.entry();
-        boolean res = false;
         try {
-            res = scripterPool.isAllEnviromentsLoaded();
-            if (res) {
-                return Response.ok("All environments are initialized").build();
+            final boolean scripterPoolReady = scripterPool.isAllEnviromentsLoaded();
+            final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
+            final boolean updateServiceClientReady = updateServiceClient.isReady();
+            if (scripterPoolReady && updateServiceClientReady) {
+                return Response.ok("UpdateService is initialized").build();
             }
             return Response.status(SERVICE_UNAVAILABLE).build();
         } finally {
-            logger.exit(res);
+            logger.exit();
         }
     }
 
     @GET
     @Path("/getrevision")
     @Produces(MediaType.TEXT_PLAIN)
-    public Response getRevision() throws Exception {
+    public Response getRevision() {
         logger.entry();
         try {
-            URL path = StatusService.class.getClassLoader().getResource("build.properties");
-            Properties properties = new Properties();
+            final URL path = StatusService.class.getClassLoader().getResource("build.properties");
+            final Properties properties = new Properties();
             properties.load(path.openStream());
             if (properties.containsKey("revision")) {
                 return Response.ok("Svn revision nr is " + properties.getProperty("revision"), MediaType.TEXT_PLAIN).build();
