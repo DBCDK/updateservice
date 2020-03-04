@@ -54,58 +54,54 @@ public class UpdateServiceClient {
         bibliographicRecord.setRecordPacking("xml");
 
         final String recordString = "<record xmlns=\"info:lc/xmlns/marcxchange-v1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
-                "    <leader>00000n    2200000   4500</leader>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                "        <subfield code=\"a\">47814898</subfield>" +
-                "        <subfield code=\"b\">870970</subfield>" +
-                "        <subfield code=\"c\">20200218153024</subfield>" +
-                "        <subfield code=\"d\">20200218</subfield>" +
-                "        <subfield code=\"f\">a</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
-                "        <subfield code=\"r\">n</subfield>" +
-                "        <subfield code=\"a\">e</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"008\">" +
-                "        <subfield code=\"t\">m</subfield>" +
-                "        <subfield code=\"u\">u</subfield>" +
-                "        <subfield code=\"a\">2020</subfield>" +
-                "        <subfield code=\"b\">xx</subfield>" +
-                "        <subfield code=\"d\">x</subfield>" +
-                "        <subfield code=\"l\">eng</subfield>" +
-                "        <subfield code=\"v\">4</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"009\">" +
-                "        <subfield code=\"a\">a</subfield>" +
-                "        <subfield code=\"g\">xx</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"021\">" +
-                "        <subfield code=\"e\">9781524767143</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"100\">" +
-                "        <subfield code=\"a\">Laura Sebastian</subfield>" +
-                "        <subfield code=\"h\">Tove</subfield>" +
-                "        <subfield code=\"4\">aut</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "        <subfield code=\"a\">Ember Queen</subfield>" +
-                "        <subfield code=\"c\">(Ash Princess)</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"260\">" +
-                "        <subfield code=\"a\">[S.l.]</subfield>" +
-                "        <subfield code=\"b\">Penguin Random House</subfield>" +
-                "        <subfield code=\"c\">2020</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"300\">" +
-                "        <subfield code=\"a\">480 sider</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"652\">" +
-                "        <subfield code=\"m\">Uden klassemærke</subfield>" +
-                "    </datafield>" +
-                "    <datafield ind1=\"0\" ind2=\"0\" tag=\"996\">" +
-                "        <subfield code=\"a\">710100</subfield>" +
-                "    </datafield>" +
-                "</record>";
+                "                <leader>00000n    2200000   4500</leader>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                "                    <subfield code=\"a\">44304937</subfield>" +
+                "                    <subfield code=\"b\">870970</subfield>" +
+                "                    <subfield code=\"c\">20170607113521</subfield>" +
+                "                    <subfield code=\"d\">20090618</subfield>" +
+                "                    <subfield code=\"f\">a</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"002\">" +
+                "                    <subfield code=\"b\">725900</subfield>" +
+                "                    <subfield code=\"c\">92686132</subfield>" +
+                "                    <subfield code=\"x\">71010092686132</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                "                    <subfield code=\"r\">c</subfield>" +
+                "                    <subfield code=\"a\">h</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"008\">" +
+                "                    <subfield code=\"b\">us</subfield>" +
+                "                    <subfield code=\"d\">1</subfield>" +
+                "                    <subfield code=\"l\">eng</subfield>" +
+                "                    <subfield code=\"v\">0</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"009\">" +
+                "                    <subfield code=\"a\">a</subfield>" +
+                "                    <subfield code=\"g\">xx</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "                    <subfield code=\"a\">Bleach</subfield>" +
+                "                    <subfield code=\"e\">story and art by Tite Kubo</subfield>" +
+                "                    <subfield code=\"e\">English adaptation Lance Caselman</subfield>" +
+                "                    <subfield code=\"f\">translation Joe Yamazaki</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"260\">" +
+                "                    <subfield code=\"a\">San Francisco, Calif.</subfield>" +
+                "                    <subfield code=\"b\">VIZ Media</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"300\">" +
+                "                    <subfield code=\"a\">bind</subfield>" +
+                "                    <subfield code=\"b\">alle ill.</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"652\">" +
+                "                    <subfield code=\"m\">83</subfield>" +
+                "                </datafield>" +
+                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"996\">" +
+                "                    <subfield code=\"a\">725900</subfield>" +
+                "                </datafield>" +
+                "            </record>";
 
         final RecordData recordData = new RecordData();
         final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(recordString.getBytes());
@@ -115,7 +111,7 @@ public class UpdateServiceClient {
         recordData.getContent().add(document.getDocumentElement());
         bibliographicRecord.setRecordData(recordData);
 
-        return openUpdateServiceConnector.updateRecord("710100", "bog", bibliographicRecord, "k8s-warm-up");
+        return openUpdateServiceConnector.updateRecord("725900", "boghoved", bibliographicRecord, "k8s-warm-up");
     }
 
 }
