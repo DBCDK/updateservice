@@ -214,6 +214,8 @@ pipeline {
                         sh """
                             set-new-version services/updateservice-project ${env.GITLAB_PRIVATE_TOKEN} metascrum/dit-gitops-secrets ${DOCKER_IMAGE_DIT_VERSION} -b master
 
+                            set-new-version k8s/services/update-service ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-performance-test ${DOCKER_IMAGE_DIT_VERSION} -b master
+
 							set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b basismig
                             set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b fbstest
                             set-new-version update-service.yml ${env.GITLAB_PRIVATE_TOKEN} metascrum/updateservice-deploy ${DOCKER_IMAGE_DIT_VERSION} -b metascrum-staging
