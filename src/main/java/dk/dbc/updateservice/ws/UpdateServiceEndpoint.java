@@ -65,7 +65,6 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
-        UpdateRecordResult updateRecordResult;
         ServiceResult serviceResult;
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
 
