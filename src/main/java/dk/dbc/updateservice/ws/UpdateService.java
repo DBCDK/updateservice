@@ -20,6 +20,10 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
+import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.service.api.ObjectFactory;
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -43,8 +47,13 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -135,36 +144,50 @@ public class UpdateService {
      * </ol>
      * The actual operation is specified in the request by Options object
      *
-     * @param updateServiceRequestDTO The request.
+     * @param updateRecordRequest The request.
      * @return Returns an instance of UpdateRecordResult with the status of the
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public ServiceResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) throws SolrException {
+    public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) throws SolrException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
-        GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
+        UpdateRecordResult updateRecordResult = null;
+        final UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
+        final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
+        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
+        final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
-
             if (state.readRecord() != null) {
+                final UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
+                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+
                 updateRequestAction = new UpdateRequestAction(state, settings);
+
                 serviceEngine = new ServiceEngine();
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
+
+                updateResponseWriter.setServiceResult(serviceResult);
+
+                updateRecordResult = updateResponseWriter.getResponse();
+
+                logger.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
+                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             } else {
-                ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
+                final ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
                 logger.error("Updateservice blev kaldt med tom record DTO");
             }
-            return serviceResult;
+            return updateRecordResult;
         } catch (SolrException ex) {
             // have to catch and rethrow here, due to every throwable being caught below
             logger.error("catching and rethrowing SolrException");
@@ -173,7 +196,9 @@ public class UpdateService {
         } catch (Throwable ex) {
             logger.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
-            return serviceResult;
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+            return updateRecordResult;
         } finally {
             logger.exit(serviceResult);
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
@@ -323,6 +348,40 @@ public class UpdateService {
             if (!settings.containsKey(s)) {
                 throw new IllegalStateException("Required JNDI resource '" + s + "' not found");
             }
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(UpdateRecordRequest updateRecordRequest) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(updateRecordRequest);
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(UpdateRecordResult updateRecordResult) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<UpdateRecordResult> jAXBElement = objectFactory.createUpdateRecordResult(updateRecordResult);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(updateRecordResult);
         }
     }
 

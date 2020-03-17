@@ -6,12 +6,15 @@
 package dk.dbc.updateservice.ws;
 
 import com.sun.xml.ws.developer.SchemaValidation;
-import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.service.api.*;
+import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
+import dk.dbc.updateservice.service.api.GetSchemasRequest;
+import dk.dbc.updateservice.service.api.GetSchemasResult;
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.update.SolrException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -24,14 +27,9 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.io.StringWriter;
 
 @SchemaValidation(outbound = false)
 @WebService(
@@ -69,33 +67,19 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
         UpdateRecordResult updateRecordResult;
         ServiceResult serviceResult;
-        UpdateResponseWriter updateResponseWriter;
+        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
+
         try {
             if (!updateService.isServiceReady(globalActionState)) {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 watch.stop(UpdateService.UPDATE_WATCHTAG);
                 return null;
             }
-            UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
-            LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
-            UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
-            serviceResult = updateService.updateRecord(updateRequestReader.getUpdateServiceRequestDTO(), globalActionState);
-            updateResponseWriter = new UpdateResponseWriter();
-            updateResponseWriter.setServiceResult(serviceResult);
-            updateRecordResult = updateResponseWriter.getResponse();
-            LOGGER.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
-            LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
-            return updateRecordResult;
-        } catch (IOException e) {
-            LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
-            updateResponseWriter = new UpdateResponseWriter();
-            updateResponseWriter.setServiceResult(serviceResult);
-            return updateResponseWriter.getResponse();
+
+            return updateService.updateRecord(updateRecordRequest, globalActionState);
         } catch (SolrException e) {
             LOGGER.catching(e);
             serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
-            updateResponseWriter = new UpdateResponseWriter();
             updateResponseWriter.setServiceResult(serviceResult);
             MessageContext ctx = wsContext.getMessageContext();
             HttpServletResponse response = (HttpServletResponse)
@@ -106,6 +90,11 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
                 LOGGER.error("Send error encountered an exception : ");
                 LOGGER.catching(e1);
             }
+            return updateResponseWriter.getResponse();
+        } catch (Exception e) {
+            LOGGER.catching(e);
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
+            updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
         } finally {
             watch.stop(UPDATERECORD_STOPWATCH);
@@ -130,37 +119,5 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         }
     }
 
-    @SuppressWarnings("Duplicates")
-    private String marshal(UpdateRecordRequest updateRecordRequest) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            LOGGER.catching(e);
-            LOGGER.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return updateService.objectToStringReflection(updateRecordRequest);
-        }
-    }
 
-    @SuppressWarnings("Duplicates")
-    private String marshal(UpdateRecordResult updateRecordResult) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordResult> jAXBElement = objectFactory.createUpdateRecordResult(updateRecordResult);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            LOGGER.catching(e);
-            LOGGER.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return updateService.objectToStringReflection(updateRecordResult);
-        }
-    }
 }
