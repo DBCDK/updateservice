@@ -15,7 +15,6 @@ import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
-import dk.dbc.updateservice.update.SolrException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -26,10 +25,7 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.jws.WebService;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.ws.WebServiceContext;
-import javax.xml.ws.handler.MessageContext;
-import java.io.IOException;
 
 @SchemaValidation(outbound = false)
 @WebService(
@@ -76,23 +72,9 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             }
 
             return updateService.updateRecord(updateRecordRequest, globalActionState);
-        } catch (SolrException e) {
-            LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
-            updateResponseWriter.setServiceResult(serviceResult);
-            MessageContext ctx = wsContext.getMessageContext();
-            HttpServletResponse response = (HttpServletResponse)
-                    ctx.get(MessageContext.SERVLET_RESPONSE);
-            try {
-                response.sendError(500, "Solr connection failed");
-            } catch (IOException e1) {
-                LOGGER.error("Send error encountered an exception : ");
-                LOGGER.catching(e1);
-            }
-            return updateResponseWriter.getResponse();
-        } catch (Exception e) {
-            LOGGER.catching(e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
+        } catch (Throwable e) {
+            LOGGER.error("Caught unexpected exception during updateRecord", e);
+            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
             updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
         } finally {
@@ -104,14 +86,23 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     @Override
     public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
         LOGGER.entry();
-        GetSchemasResult getSchemasResult;
         StopWatch watch = new Log4JStopWatch();
+        SchemasResponseDTO schemasResponseDTO;
         try {
-            GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
-            SchemasResponseDTO schemasResponseDTO = updateService.getSchemas(getSchemasRequestReader.getSchemasRequestDTO());
-            GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
-            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
-            return getSchemasResult;
+            if (!updateService.isServiceReady(globalActionState)) {
+                LOGGER.info("Updateservice not ready yet, leaving");
+                return null;
+            }
+
+            return updateService.getSchemas(getSchemasRequest);
+        } catch (Throwable e) {
+            LOGGER.error("Caught unexpected exception during getSchemas", e);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setErrorMessage("Caught unexpected exception");
+            schemasResponseDTO.setError(true);
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            return getSchemasResponseWriter.getGetSchemasResult();
         } finally {
             watch.stop(GET_SCHEMAS_STOPWATCH);
             LOGGER.exit();

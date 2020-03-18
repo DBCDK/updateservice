@@ -21,6 +21,8 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.service.api.GetSchemasRequest;
+import dk.dbc.updateservice.service.api.GetSchemasResult;
 import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
@@ -189,10 +191,11 @@ public class UpdateService {
             }
             return updateRecordResult;
         } catch (SolrException ex) {
-            // have to catch and rethrow here, due to every throwable being caught below
-            logger.error("catching and rethrowing SolrException");
-            logger.catching(ex);
-            throw new SolrException(ex.getMessage());
+            logger.error("Caught solr exception", ex);
+            serviceResult = convertUpdateErrorToResponse(ex);
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+            return updateRecordResult;
         } catch (Throwable ex) {
             logger.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
@@ -272,16 +275,19 @@ public class UpdateService {
      * The actual lookup of validation schemes is done by the Validator EJB
      * ({@link Validator#getValidateSchemas ()})
      *
-     * @param schemasRequestDTO The request.
+     * @param getSchemasRequest The request.
      * @return Returns an instance of GetValidateSchemasResult with the list of
      * validation schemes.
      * @throws EJBException In case of an error.
      */
-    public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
+    public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
         logger.entry();
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO;
+        GetSchemasResult getSchemasResult;
+        final GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
+        final SchemasRequestDTO schemasRequestDTO = getSchemasRequestReader.getSchemasRequestDTO();
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
@@ -294,31 +300,42 @@ public class UpdateService {
                 }
             }
 
-            String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-            String templateGroup = openAgencyService.getTemplateGroup(groupId);
-            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+            final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+            final String templateGroup = openAgencyService.getTemplateGroup(groupId);
+            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
-            return schemasResponseDTO;
+
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (ScripterException ex) {
-            logger.error("Caught JavaScript exception: {}", ex.getCause().toString());
+            logger.error("Caught JavaScript exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            // TODO: sæt en korrekt message vedr. fejl
             schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (OpenAgencyException ex) {
-            logger.error("Caught OpenAgencyException exception: {}", ex.getCause().toString());
+            logger.error("Caught OpenAgencyException exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
-            // TODO: sæt en korrekt message vedr. fejl
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (RuntimeException ex) {
             // TODO: returner ordentlig fejl her
-            logger.error("Caught runtime exception: {}", ex.getCause().toString());
+            logger.error("Caught runtime exception", ex);
             throw ex;
         } finally {
             watch.stop(GET_SCHEMAS_WATCHTAG);
