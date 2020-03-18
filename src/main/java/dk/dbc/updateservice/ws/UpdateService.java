@@ -71,11 +71,11 @@ import java.util.UUID;
 public class UpdateService {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
+    private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
 
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
-    public static final String UPDATE_WATCHTAG = "request.updaterecord";
     public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
     public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
     public static final String MDC_REQUEST_PRIORITY = "priority";
@@ -151,7 +151,7 @@ public class UpdateService {
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) throws SolrException {
+    public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;

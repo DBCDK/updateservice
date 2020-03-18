@@ -43,7 +43,6 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
 
     private GlobalActionState globalActionState;
 
-    @SuppressWarnings("EjbEnvironmentInspection")
     @Resource
     private WebServiceContext wsContext;
 
@@ -61,20 +60,18 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest) {
         LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
-        ServiceResult serviceResult;
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
 
         try {
             if (!updateService.isServiceReady(globalActionState)) {
                 LOGGER.info("Updateservice not ready yet, leaving");
-                watch.stop(UpdateService.UPDATE_WATCHTAG);
                 return null;
             }
 
             return updateService.updateRecord(updateRecordRequest, globalActionState);
         } catch (Throwable e) {
             LOGGER.error("Caught unexpected exception during updateRecord", e);
-            serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
+            final ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
             updateResponseWriter.setServiceResult(serviceResult);
             return updateResponseWriter.getResponse();
         } finally {
@@ -87,7 +84,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
         LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
-        SchemasResponseDTO schemasResponseDTO;
+
         try {
             if (!updateService.isServiceReady(globalActionState)) {
                 LOGGER.info("Updateservice not ready yet, leaving");
@@ -97,7 +94,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             return updateService.getSchemas(getSchemasRequest);
         } catch (Throwable e) {
             LOGGER.error("Caught unexpected exception during getSchemas", e);
-            schemasResponseDTO = new SchemasResponseDTO();
+            final SchemasResponseDTO schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setErrorMessage("Caught unexpected exception");
             schemasResponseDTO.setError(true);
