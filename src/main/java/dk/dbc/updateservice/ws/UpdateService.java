@@ -20,6 +20,12 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
+import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.service.api.GetSchemasRequest;
+import dk.dbc.updateservice.service.api.GetSchemasResult;
+import dk.dbc.updateservice.service.api.ObjectFactory;
+import dk.dbc.updateservice.service.api.UpdateRecordRequest;
+import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -43,8 +49,13 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -60,11 +71,11 @@ import java.util.UUID;
 public class UpdateService {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
+    private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
 
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
-    public static final String UPDATE_WATCHTAG = "request.updaterecord";
     public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
     public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
     public static final String MDC_REQUEST_PRIORITY = "priority";
@@ -135,45 +146,62 @@ public class UpdateService {
      * </ol>
      * The actual operation is specified in the request by Options object
      *
-     * @param updateServiceRequestDTO The request.
+     * @param updateRecordRequest The request.
      * @return Returns an instance of UpdateRecordResult with the status of the
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public ServiceResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) throws SolrException {
+    public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
-        GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
+        UpdateRecordResult updateRecordResult = null;
+        final UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
+        final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
+        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
+        final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
         try {
-
             if (state.readRecord() != null) {
+                final UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
+                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+
                 updateRequestAction = new UpdateRequestAction(state, settings);
+
                 serviceEngine = new ServiceEngine();
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
+
+                updateResponseWriter.setServiceResult(serviceResult);
+
+                updateRecordResult = updateResponseWriter.getResponse();
+
+                logger.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
+                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             } else {
-                ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
+                final ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
                 logger.error("Updateservice blev kaldt med tom record DTO");
             }
-            return serviceResult;
+            return updateRecordResult;
         } catch (SolrException ex) {
-            // have to catch and rethrow here, due to every throwable being caught below
-            logger.error("catching and rethrowing SolrException");
-            logger.catching(ex);
-            throw new SolrException(ex.getMessage());
+            logger.error("Caught solr exception", ex);
+            serviceResult = convertUpdateErrorToResponse(ex);
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+            return updateRecordResult;
         } catch (Throwable ex) {
             logger.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
-            return serviceResult;
+            updateResponseWriter.setServiceResult(serviceResult);
+            updateRecordResult = updateResponseWriter.getResponse();
+            return updateRecordResult;
         } finally {
             logger.exit(serviceResult);
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
@@ -247,16 +275,19 @@ public class UpdateService {
      * The actual lookup of validation schemes is done by the Validator EJB
      * ({@link Validator#getValidateSchemas ()})
      *
-     * @param schemasRequestDTO The request.
+     * @param getSchemasRequest The request.
      * @return Returns an instance of GetValidateSchemasResult with the list of
      * validation schemes.
      * @throws EJBException In case of an error.
      */
-    public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
+    public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
         logger.entry();
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO;
+        GetSchemasResult getSchemasResult;
+        final GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
+        final SchemasRequestDTO schemasRequestDTO = getSchemasRequestReader.getSchemasRequestDTO();
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
@@ -269,31 +300,42 @@ public class UpdateService {
                 }
             }
 
-            String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-            String templateGroup = openAgencyService.getTemplateGroup(groupId);
-            List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+            final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+            final String templateGroup = openAgencyService.getTemplateGroup(groupId);
+            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
-            return schemasResponseDTO;
+
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (ScripterException ex) {
-            logger.error("Caught JavaScript exception: {}", ex.getCause().toString());
+            logger.error("Caught JavaScript exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            // TODO: sæt en korrekt message vedr. fejl
             schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (OpenAgencyException ex) {
-            logger.error("Caught OpenAgencyException exception: {}", ex.getCause().toString());
+            logger.error("Caught OpenAgencyException exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
-            // TODO: sæt en korrekt message vedr. fejl
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } catch (RuntimeException ex) {
             // TODO: returner ordentlig fejl her
-            logger.error("Caught runtime exception: {}", ex.getCause().toString());
+            logger.error("Caught runtime exception", ex);
             throw ex;
         } finally {
             watch.stop(GET_SCHEMAS_WATCHTAG);
@@ -323,6 +365,40 @@ public class UpdateService {
             if (!settings.containsKey(s)) {
                 throw new IllegalStateException("Required JNDI resource '" + s + "' not found");
             }
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(UpdateRecordRequest updateRecordRequest) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(updateRecordRequest);
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(UpdateRecordResult updateRecordResult) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<UpdateRecordResult> jAXBElement = objectFactory.createUpdateRecordResult(updateRecordResult);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(updateRecordResult);
         }
     }
 
