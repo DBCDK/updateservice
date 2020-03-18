@@ -166,7 +166,7 @@ public class UpdateService {
         try {
             if (state.readRecord() != null) {
                 final UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
-                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
+                logger.info("Entering Updateservice.updateRecord, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
 
@@ -180,8 +180,8 @@ public class UpdateService {
 
                 updateRecordResult = updateResponseWriter.getResponse();
 
-                logger.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
-                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
+                logger.info("UpdateService.updateRecord returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
+                logger.info("Leaving UpdateService.updateRecord, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
@@ -291,6 +291,9 @@ public class UpdateService {
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
+            final GetSchemasRequest schemasRequestWithoutPassword = GetSchemasRequestReader.cloneWithoutPassword(getSchemasRequest);
+            logger.info("Entering Updateservice.getSchemas, marshal(schemasRequestDTO):\n" + marshal(schemasRequestWithoutPassword));
+
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 if (schemasRequestDTO.getTrackingId() != null) {
@@ -311,6 +314,9 @@ public class UpdateService {
 
             final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            logger.info("UpdateService.getSchemas returning getSchemasResult:\n" + JsonMapper.encodePretty(getSchemasResult));
+            logger.info("Leaving UpdateService.getSchemas, marshal(getSchemasResult):\n" + marshal(getSchemasResult));
 
             return getSchemasResult;
         } catch (ScripterException ex) {
@@ -333,10 +339,17 @@ public class UpdateService {
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
 
             return getSchemasResult;
-        } catch (RuntimeException ex) {
+        } catch (Throwable ex) {
             // TODO: returner ordentlig fejl her
-            logger.error("Caught runtime exception", ex);
-            throw ex;
+            logger.error("Caught Throwable", ex);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
+
+            return getSchemasResult;
         } finally {
             watch.stop(GET_SCHEMAS_WATCHTAG);
             logger.exit();
@@ -399,6 +412,40 @@ public class UpdateService {
             logger.catching(e);
             logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
             return objectToStringReflection(updateRecordResult);
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(GetSchemasRequest getSchemasRequest) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<GetSchemasRequest> jAXBElement = objectFactory.createGetSchemasRequest(getSchemasRequest);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(getSchemasRequest);
+        }
+    }
+
+    @SuppressWarnings("Duplicates")
+    private String marshal(GetSchemasResult getSchemasResult) {
+        try {
+            ObjectFactory objectFactory = new ObjectFactory();
+            JAXBElement<GetSchemasResult> jAXBElement = objectFactory.createGetSchemasResult(getSchemasResult);
+            StringWriter stringWriter = new StringWriter();
+            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
+            Marshaller marshaller = jaxbContext.createMarshaller();
+            marshaller.marshal(jAXBElement, stringWriter);
+            return stringWriter.toString();
+        } catch (JAXBException e) {
+            logger.catching(e);
+            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            return objectToStringReflection(getSchemasResult);
         }
     }
 
