@@ -31,7 +31,7 @@ import java.util.List;
  * complete valid response that can be returned thought the JavaEE container.
  */
 public class UpdateResponseWriter {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateResponseWriter.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateResponseWriter.class);
 
     private UpdateRecordResponseDTO updateRecordResponseDTO;
 
@@ -133,7 +133,7 @@ public class UpdateResponseWriter {
                     break;
             }
         }
-        logger.warn("Got messageEntryDTO without type, returning ERROR as type, messageEntryDTO: " + messageEntryDTO);
+        LOGGER.warn("Got messageEntryDTO without type, returning ERROR as type, messageEntryDTO: " + messageEntryDTO);
         return Type.ERROR;
     }
 

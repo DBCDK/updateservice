@@ -23,7 +23,6 @@ import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
-import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.solr.SolrBasis;
@@ -53,13 +52,8 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -73,7 +67,7 @@ import java.util.UUID;
  */
 @Stateless
 public class UpdateService {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateService.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateService.class);
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
@@ -158,7 +152,7 @@ public class UpdateService {
      * @throws EJBException in the case of an error.
      */
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) {
-        logger.entry();
+        LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
         UpdateRecordResult updateRecordResult = null;
@@ -172,9 +166,9 @@ public class UpdateService {
         try {
             if (state.readRecord() != null) {
                 final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
-                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
-                logger.info("MDC: " + MDC.getCopyOfContextMap());
-                logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+                LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
+                LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
+                LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
 
@@ -187,36 +181,36 @@ public class UpdateService {
                 updateRecordResult = updateResponseWriter.getResponse();
 
                 final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateRecordResult);
-                logger.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResult));
-                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);
+                LOGGER.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResult));
+                LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
 
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
-                logger.error("Updateservice blev kaldt med tom record DTO");
+                LOGGER.error("Updateservice blev kaldt med tom record DTO");
             }
             return updateRecordResult;
         } catch (SolrException ex) {
-            logger.error("Caught solr exception", ex);
+            LOGGER.error("Caught solr exception", ex);
             serviceResult = convertUpdateErrorToResponse(ex);
             updateResponseWriter.setServiceResult(serviceResult);
             updateRecordResult = updateResponseWriter.getResponse();
             return updateRecordResult;
         } catch (Throwable ex) {
-            logger.catching(ex);
+            LOGGER.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
             updateResponseWriter.setServiceResult(serviceResult);
             updateRecordResult = updateResponseWriter.getResponse();
             return updateRecordResult;
         } finally {
-            logger.exit(serviceResult);
+            LOGGER.exit(serviceResult);
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
         }
     }
 
     public boolean isServiceReady(GlobalActionState globalActionState) {
-        logger.entry();
+        LOGGER.entry();
         boolean res = true;
         try {
             if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
@@ -229,13 +223,13 @@ public class UpdateService {
                         String msg = bundle.getString(UPDATE_SERVICE_UNAVAIABLE);
                         httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), msg);
                     } catch (IOException e) {
-                        logger.catching(XLogger.Level.ERROR, e);
+                        LOGGER.catching(XLogger.Level.ERROR, e);
                     }
                 }
             }
             return res;
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
 
     }
@@ -262,10 +256,10 @@ public class UpdateService {
 
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {
-            logger.info("Executed action:");
+            LOGGER.info("Executed action:");
             engine.printActions(action);
         }
-        logger.info("");
+        LOGGER.info("");
         String watchTag;
         if (action != null && action.hasValidateOnlyOption()) {
             watchTag = UPDATE_WATCHTAG + ".validate";
@@ -288,7 +282,7 @@ public class UpdateService {
      * @throws EJBException In case of an error.
      */
     public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
-        logger.entry();
+        LOGGER.entry();
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO;
@@ -299,14 +293,14 @@ public class UpdateService {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
             final GetSchemasRequestMarshaller getSchemasRequestMarshaller = new GetSchemasRequestMarshaller(getSchemasRequest);
-            logger.info("Entering getSchemas, marshal(schemasRequestDTO):\n{}",getSchemasRequestMarshaller);
+            LOGGER.info("Entering getSchemas, marshal(schemasRequestDTO):\n{}",getSchemasRequestMarshaller);
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 if (schemasRequestDTO.getTrackingId() != null) {
-                    logger.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
+                    LOGGER.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
                 } else {
-                    logger.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
+                    LOGGER.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
                 }
             }
 
@@ -323,12 +317,12 @@ public class UpdateService {
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
 
             final GetSchemasResultMarshaller getSchemasResultMarshaller = new GetSchemasResultMarshaller(getSchemasResult);
-            logger.info("getSchemas returning getSchemasResult:\n{}", JsonMapper.encodePretty(getSchemasResult));
-            logger.info("Leaving getSchemas, marshal(getSchemasResult):\n{}", getSchemasResultMarshaller);
+            LOGGER.info("getSchemas returning getSchemasResult:\n{}", JsonMapper.encodePretty(getSchemasResult));
+            LOGGER.info("Leaving getSchemas, marshal(getSchemasResult):\n{}", getSchemasResultMarshaller);
 
             return getSchemasResult;
         } catch (ScripterException ex) {
-            logger.error("Caught JavaScript exception", ex);
+            LOGGER.error("Caught JavaScript exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
@@ -338,7 +332,7 @@ public class UpdateService {
 
             return getSchemasResult;
         } catch (OpenAgencyException ex) {
-            logger.error("Caught OpenAgencyException exception", ex);
+            LOGGER.error("Caught OpenAgencyException exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
@@ -349,7 +343,7 @@ public class UpdateService {
             return getSchemasResult;
         } catch (Throwable ex) {
             // TODO: returner ordentlig fejl her
-            logger.error("Caught Throwable", ex);
+            LOGGER.error("Caught Throwable", ex);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
@@ -360,7 +354,7 @@ public class UpdateService {
             return getSchemasResult;
         } finally {
             watch.stop(GET_SCHEMAS_WATCHTAG);
-            logger.exit();
+            LOGGER.exit();
             MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }

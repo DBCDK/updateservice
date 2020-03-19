@@ -62,7 +62,7 @@ import java.util.UUID;
         wsdlLocation = "WEB-INF/classes/META-INF/wsdl/build/catalogingBuild.wsdl")
 @Stateless
 public class OpenBuild implements BuildPortType {
-    private static final XLogger logger = XLoggerFactory.getXLogger(OpenBuild.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuild.class);
 
     @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
@@ -94,13 +94,13 @@ public class OpenBuild implements BuildPortType {
     @Override
     public BuildResult build(BuildRequest parameters) {
         new DBCTrackedLogContext(createTrackingId());
-        logger.entry();
+        LOGGER.entry();
         StopWatch watch = new Log4JStopWatch("OpenBuild.build");
-        logger.info("Build request: " + buildRequestToString(parameters));
+        LOGGER.info("Build request: " + buildRequestToString(parameters));
         BuildResult result = null;
         try {
             if (!checkValidateSchema(parameters.getSchemaName())) {
-                logger.warn("Wrong validate schema: {}", parameters.getSchemaName());
+                LOGGER.warn("Wrong validate schema: {}", parameters.getSchemaName());
                 BuildResult buildResult = new BuildResult();
                 buildResult.setBuildStatus(BuildStatusEnum.FAILED_INVALID_SCHEMA);
                 return buildResult;
@@ -109,7 +109,7 @@ public class OpenBuild implements BuildPortType {
             BibliographicRecord srcRecord = parameters.getBibliographicRecord();
             // Validate source record schema.
             if (srcRecord != null && !srcRecord.getRecordSchema().equals(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1)) {
-                logger.warn("Wrong record schema: {}", srcRecord.getRecordSchema());
+                LOGGER.warn("Wrong record schema: {}", srcRecord.getRecordSchema());
                 BuildResult buildResult = new BuildResult();
                 buildResult.setBuildStatus(BuildStatusEnum.FAILED_INVALID_RECORD_SCHEMA);
                 return buildResult;
@@ -117,7 +117,7 @@ public class OpenBuild implements BuildPortType {
 
             // Validate source record packing.
             if (srcRecord != null && !srcRecord.getRecordPacking().equals(JNDIResources.RECORD_PACKING_XML)) {
-                logger.warn("Wrong record packing: {}", srcRecord.getRecordPacking());
+                LOGGER.warn("Wrong record packing: {}", srcRecord.getRecordPacking());
                 BuildResult buildResult = new BuildResult();
                 buildResult.setBuildStatus(BuildStatusEnum.FAILED_INVALID_RECORD_PACKING);
                 return buildResult;
@@ -141,21 +141,21 @@ public class OpenBuild implements BuildPortType {
             watchBuildResult.stop();
             return result;
         } catch (Exception ex) {
-            logger.error("Caught exception", ex);
+            LOGGER.error("Caught exception", ex);
             BuildResult buildResult = new BuildResult();
             buildResult.setBuildStatus(BuildStatusEnum.FAILED_INTERNAL_ERROR);
             return buildResult;
         } finally {
             String resultOutput = buildResultToString(result);
-            logger.info("Build response: " + resultOutput);
+            LOGGER.info("Build response: " + resultOutput);
             watch.stop();
-            logger.exit();
+            LOGGER.exit();
             DBCTrackedLogContext.remove();
         }
     }
 
     private MarcRecord getMarcRecord(RecordData recordData) {
-        logger.entry(recordData);
+        LOGGER.entry(recordData);
         MarcRecord res = null;
         try {
             if (recordData != null) {
@@ -172,27 +172,27 @@ public class OpenBuild implements BuildPortType {
             }
             return res;
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
     }
 
     private String createTrackingId() {
-        logger.entry();
+        LOGGER.entry();
         String uuid = null;
         try {
             return uuid = UUID.randomUUID().toString();
         } finally {
-            logger.exit(uuid);
+            LOGGER.exit(uuid);
         }
     }
 
     private boolean checkValidateSchema(String name) throws ScripterException {
-        logger.entry(name);
+        LOGGER.entry(name);
         Boolean result = null;
         try {
             Object jsResult = scripter.callMethod("checkTemplateBuild", name, buildProperties);
 
-            logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            LOGGER.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
 
             if (jsResult instanceof Boolean) {
                 result = (Boolean) jsResult;
@@ -200,12 +200,12 @@ public class OpenBuild implements BuildPortType {
             }
             throw new ScripterException(String.format("The JavaScript function %s must return a boolean value.", "checkTemplate"));
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private MarcRecord buildRecord(String buildSchema, MarcRecord record) {
-        logger.entry(buildSchema, record);
+        LOGGER.entry(buildSchema, record);
         MarcRecord result = null;
         try {
             Object jsResult;
@@ -217,11 +217,11 @@ public class OpenBuild implements BuildPortType {
                     jsResult = scripter.callMethod("buildRecord", buildSchema, null, buildProperties);
                 }
             } catch (Exception ex) {
-                logger.error(ex.getLocalizedMessage());
+                LOGGER.error(ex.getLocalizedMessage());
                 throw new EJBException("Error calling JavaScript environment", ex);
             }
             if (jsResult != null) {
-                logger.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+                LOGGER.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
             }
 
             try {
@@ -232,12 +232,12 @@ public class OpenBuild implements BuildPortType {
 
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private Document convertMarcRecordToDomDocument(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
-        logger.entry(marcRecord);
+        LOGGER.entry(marcRecord);
         Document document = null;
         try {
             RecordType marcXhangeType = MarcXchangeFactory.createMarcXchangeFromMarc(marcRecord);
@@ -252,12 +252,12 @@ public class OpenBuild implements BuildPortType {
             marshaller.marshal(jAXBElement, document);
             return document;
         } finally {
-            logger.exit(document);
+            LOGGER.exit(document);
         }
     }
 
     private BuildResult buildResult(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
-        logger.entry(marcRecord);
+        LOGGER.entry(marcRecord);
         BuildResult buildResult = null;
         try {
             RecordData recordData = new RecordData();
@@ -272,24 +272,24 @@ public class OpenBuild implements BuildPortType {
             buildResult.setBuildStatus(BuildStatusEnum.OK);
             return buildResult;
         } finally {
-            logger.exit(buildResult);
+            LOGGER.exit(buildResult);
         }
     }
 
     private void addJacksonMixInAnnotations() {
-        logger.entry();
+        LOGGER.entry();
         // Initialize jackson with annotation classes
         try {
             for (Map.Entry<Class<?>, Class<?>> e : MixIns.getMixIns().entrySet()) {
                 jacksonObjectMapper.addMixIn(e.getKey(), e.getValue());
             }
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private void validateProperties(Properties properties) {
-        logger.entry(properties);
+        LOGGER.entry(properties);
         try {
             List<String> requiredProperties = new ArrayList<>();
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
@@ -302,7 +302,7 @@ public class OpenBuild implements BuildPortType {
                 }
             }
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -313,7 +313,7 @@ public class OpenBuild implements BuildPortType {
             build.setBuildRequest(br);
             res = marshal(build, Build.class);
         } catch (JAXBException e) {
-            logger.catching(e);
+            LOGGER.catching(e);
             res = "<could not read input>";
         }
         return res;
@@ -326,7 +326,7 @@ public class OpenBuild implements BuildPortType {
             buildResponse.setBuildResult(br);
             res = marshal(buildResponse, BuildResponse.class);
         } catch (JAXBException e) {
-            logger.catching(e);
+            LOGGER.catching(e);
             res = "<could not read output>";
         }
         return res;
