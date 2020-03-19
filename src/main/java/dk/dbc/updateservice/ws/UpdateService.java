@@ -166,7 +166,7 @@ public class UpdateService {
         try {
             if (state.readRecord() != null) {
                 final UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
-                logger.info("Entering Updateservice.updateRecord, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
+                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
 
@@ -180,8 +180,8 @@ public class UpdateService {
 
                 updateRecordResult = updateResponseWriter.getResponse();
 
-                logger.info("UpdateService.updateRecord returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
-                logger.info("Leaving UpdateService.updateRecord, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
+                logger.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
+                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
@@ -292,7 +292,7 @@ public class UpdateService {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
             final GetSchemasRequest schemasRequestWithoutPassword = GetSchemasRequestReader.cloneWithoutPassword(getSchemasRequest);
-            logger.info("Entering Updateservice.getSchemas, marshal(schemasRequestDTO):\n" + marshal(schemasRequestWithoutPassword));
+            logger.info("Entering getSchemas, marshal(schemasRequestDTO):\n" + marshal(schemasRequestWithoutPassword));
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
@@ -315,8 +315,8 @@ public class UpdateService {
             final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
 
-            logger.info("UpdateService.getSchemas returning getSchemasResult:\n" + JsonMapper.encodePretty(getSchemasResult));
-            logger.info("Leaving UpdateService.getSchemas, marshal(getSchemasResult):\n" + marshal(getSchemasResult));
+            logger.info("getSchemas returning getSchemasResult:\n" + JsonMapper.encodePretty(getSchemasResult));
+            logger.info("Leaving getSchemas, marshal(getSchemasResult):\n" + marshal(getSchemasResult));
 
             return getSchemasResult;
         } catch (ScripterException ex) {
