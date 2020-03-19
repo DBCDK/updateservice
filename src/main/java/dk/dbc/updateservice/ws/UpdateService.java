@@ -421,7 +421,7 @@ public class UpdateService {
             ObjectFactory objectFactory = new ObjectFactory();
             JAXBElement<GetSchemasRequest> jAXBElement = objectFactory.createGetSchemasRequest(getSchemasRequest);
             StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(GetSchemasRequest.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.marshal(jAXBElement, stringWriter);
             return stringWriter.toString();
@@ -438,7 +438,7 @@ public class UpdateService {
             ObjectFactory objectFactory = new ObjectFactory();
             JAXBElement<GetSchemasResult> jAXBElement = objectFactory.createGetSchemasResult(getSchemasResult);
             StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
+            JAXBContext jaxbContext = JAXBContext.newInstance(GetSchemasResult.class);
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.marshal(jAXBElement, stringWriter);
             return stringWriter.toString();
