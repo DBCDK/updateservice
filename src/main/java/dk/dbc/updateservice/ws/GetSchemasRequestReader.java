@@ -7,6 +7,7 @@ package dk.dbc.updateservice.ws;
 
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
+import dk.dbc.updateservice.service.api.Authentication;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 
 public class GetSchemasRequestReader extends CommonReader {
@@ -18,6 +19,21 @@ public class GetSchemasRequestReader extends CommonReader {
 
     public SchemasRequestDTO getSchemasRequestDTO() {
         return schemasRequestDTO;
+    }
+
+    public static GetSchemasRequest cloneWithoutPassword(GetSchemasRequest getSchemasRequest) {
+        GetSchemasRequest res = null;
+        if (getSchemasRequest != null) {
+            res = new GetSchemasRequest();
+            if (getSchemasRequest.getAuthentication() != null) {
+                res.setAuthentication(new Authentication());
+                res.getAuthentication().setGroupIdAut(getSchemasRequest.getAuthentication().getGroupIdAut());
+                res.getAuthentication().setPasswordAut("***");
+                res.getAuthentication().setUserIdAut(getSchemasRequest.getAuthentication().getUserIdAut());
+            }
+            res.setTrackingId(getSchemasRequest.getTrackingId());
+        }
+        return res;
     }
 
     @SuppressWarnings("Duplicates")
