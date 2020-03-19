@@ -36,6 +36,10 @@ import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
+import dk.dbc.updateservice.ws.marshall.GetSchemasRequestMarshaller;
+import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
+import dk.dbc.updateservice.ws.marshall.UpdateRecordRequestMarshaller;
+import dk.dbc.updateservice.ws.marshall.UpdateRecordResultMarshaller;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.perf4j.StopWatch;
@@ -136,6 +140,8 @@ public class UpdateService {
         return newGlobalActionStateObject;
     }
 
+
+
     /**
      * Update or validate a bibliographic record to the rawrepo.
      * <p>
@@ -165,8 +171,8 @@ public class UpdateService {
         ServiceEngine serviceEngine = null;
         try {
             if (state.readRecord() != null) {
-                final UpdateRecordRequest updateRecordRequestWithoutPassword = UpdateRequestReader.cloneWithoutPassword(updateRecordRequest);
-                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n" + marshal(updateRecordRequestWithoutPassword));
+                final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
+                logger.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
                 logger.info("MDC: " + MDC.getCopyOfContextMap());
                 logger.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
 
@@ -180,8 +186,9 @@ public class UpdateService {
 
                 updateRecordResult = updateResponseWriter.getResponse();
 
-                logger.info("UpdateService returning updateRecordResult:\n" + JsonMapper.encodePretty(updateRecordResult));
-                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n" + marshal(updateRecordResult));
+                final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateRecordResult);
+                logger.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResult));
+                logger.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
                 final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
@@ -291,8 +298,8 @@ public class UpdateService {
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
 
-            final GetSchemasRequest schemasRequestWithoutPassword = GetSchemasRequestReader.cloneWithoutPassword(getSchemasRequest);
-            logger.info("Entering getSchemas, marshal(schemasRequestDTO):\n" + marshal(schemasRequestWithoutPassword));
+            final GetSchemasRequestMarshaller getSchemasRequestMarshaller = new GetSchemasRequestMarshaller(getSchemasRequest);
+            logger.info("Entering getSchemas, marshal(schemasRequestDTO):\n{}",getSchemasRequestMarshaller);
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
@@ -315,8 +322,9 @@ public class UpdateService {
             final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
             getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
 
-            logger.info("getSchemas returning getSchemasResult:\n" + JsonMapper.encodePretty(getSchemasResult));
-            logger.info("Leaving getSchemas, marshal(getSchemasResult):\n" + marshal(getSchemasResult));
+            final GetSchemasResultMarshaller getSchemasResultMarshaller = new GetSchemasResultMarshaller(getSchemasResult);
+            logger.info("getSchemas returning getSchemasResult:\n{}", JsonMapper.encodePretty(getSchemasResult));
+            logger.info("Leaving getSchemas, marshal(getSchemasResult):\n{}", getSchemasResultMarshaller);
 
             return getSchemasResult;
         } catch (ScripterException ex) {
@@ -378,74 +386,6 @@ public class UpdateService {
             if (!settings.containsKey(s)) {
                 throw new IllegalStateException("Required JNDI resource '" + s + "' not found");
             }
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private String marshal(UpdateRecordRequest updateRecordRequest) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordRequest> jAXBElement = objectFactory.createUpdateRecordRequest(updateRecordRequest);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordRequest.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return objectToStringReflection(updateRecordRequest);
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private String marshal(UpdateRecordResult updateRecordResult) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<UpdateRecordResult> jAXBElement = objectFactory.createUpdateRecordResult(updateRecordResult);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(UpdateRecordResult.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return objectToStringReflection(updateRecordResult);
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private String marshal(GetSchemasRequest getSchemasRequest) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<GetSchemasRequest> jAXBElement = objectFactory.createGetSchemasRequest(getSchemasRequest);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(GetSchemasRequest.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return objectToStringReflection(getSchemasRequest);
-        }
-    }
-
-    @SuppressWarnings("Duplicates")
-    private String marshal(GetSchemasResult getSchemasResult) {
-        try {
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<GetSchemasResult> jAXBElement = objectFactory.createGetSchemasResult(getSchemasResult);
-            StringWriter stringWriter = new StringWriter();
-            JAXBContext jaxbContext = JAXBContext.newInstance(GetSchemasResult.class);
-            Marshaller marshaller = jaxbContext.createMarshaller();
-            marshaller.marshal(jAXBElement, stringWriter);
-            return stringWriter.toString();
-        } catch (JAXBException e) {
-            logger.catching(e);
-            logger.warn(UpdateService.MARSHALLING_ERROR_MSG);
-            return objectToStringReflection(getSchemasResult);
         }
     }
 
