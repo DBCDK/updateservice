@@ -19,7 +19,7 @@ ENV FORSRIGHTS_URL http://forsrights.addi.dk/1.2/
 ENV OPENAGENCY_URL http://openagency.addi.dk/test_2.34/
 ENV OPENAGENCY_CACHE_AGE 8
 
-ENV OPENNUMBERROLL_URL http://opennumberroll.addi.dk/1.0/
+ENV OPENNUMBERROLL_URL https://opennumberroll.addi.dk/1.1/
 ENV OPENNUMBERROLL_NAME_FAUST_8 faust
 ENV OPENNUMBERROLL_NAME_FAUST faust
 
