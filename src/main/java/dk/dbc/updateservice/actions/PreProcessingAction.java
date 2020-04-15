@@ -32,8 +32,7 @@ import java.util.stream.Collectors;
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
-    private static final String PATTERN = "^(For|for) ([0-9]+)-([0-9]+) (år)";
-    private static final Pattern P = Pattern.compile(PATTERN);
+    private static final Pattern AGE_INTERVAL_PATTERN = Pattern.compile("^(For|for) ([0-9]+)-([0-9]+) (år)");
     private static final List<String> LIST_OF_CATALOG_CODES_WITHOUT_DBF =
             CatalogExtractionCode.listOfCatalogCodes.stream().filter( v -> !v.equals("DBF")).collect(Collectors.toList());
 
@@ -84,7 +83,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @param reader Reader for record
      */
     private void processAgeInterval(MarcRecord record, MarcRecordReader reader) {
-        final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", P);
+        final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", AGE_INTERVAL_PATTERN);
 
         if (matchers.size() > 0) {
             // First remove all existing 666 *u subfields
