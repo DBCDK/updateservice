@@ -25,14 +25,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * This action is responsible for performing preprocessing of incoming records
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
-    private static final String pattern = "^(For|for) ([0-9]+)-([0-9]+) (år)";
-    private static final Pattern p = Pattern.compile(pattern);
+    private static final Pattern AGE_INTERVAL_PATTERN = Pattern.compile("^(For|for) ([0-9]+)-([0-9]+) (år)");
+    private static final List<String> LIST_OF_CATALOG_CODES_WITHOUT_DBF =
+            CatalogExtractionCode.listOfCatalogCodes.stream().filter( v -> !v.equals("DBF")).collect(Collectors.toList());
 
     public PreProcessingAction(GlobalActionState globalActionState) {
         super(PreProcessingAction.class.getSimpleName(), globalActionState);
@@ -81,7 +83,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
      * @param reader Reader for record
      */
     private void processAgeInterval(MarcRecord record, MarcRecordReader reader) {
-        final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", p);
+        final List<Matcher> matchers = reader.getSubfieldValueMatchers("666", "u", AGE_INTERVAL_PATTERN);
 
         if (matchers.size() > 0) {
             // First remove all existing 666 *u subfields
@@ -424,7 +426,8 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     }
 
     private void processSupplierRelations(MarcRecord record, MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException {
-        if (reader.hasSubfield("990", "b") && CatalogExtractionCode.isUnderProduction(record)) {
+        if (reader.hasSubfield("990", "b") &&
+                CatalogExtractionCode.isUnderProduction(record, LIST_OF_CATALOG_CODES_WITHOUT_DBF)) {
             MarcRecordWriter writer = new MarcRecordWriter(record);
             String subfield008u = reader.getValue("008", "u");
             // If this record doesn't have 008 *u then see if there is on the parent head volume
