@@ -139,6 +139,7 @@
             <groupId>dk.dbc</groupId>
             <artifactId>holdings-items-access</artifactId>
             <version>1.1.99-SNAPSHOT</version>
+            <classifier>no-persistence-unit</classifier>
         </dependency>
 
         <dependency>

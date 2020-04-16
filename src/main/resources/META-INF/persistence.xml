@@ -12,4 +12,11 @@
             <property name="eclipselink.logging.parameters" value="true"/>
         </properties>
     </persistence-unit>
+    <persistence-unit name="holdingsItems_PU" transaction-type="JTA">
+        <jta-data-source>jdbc/holdings-items</jta-data-source>
+        <shared-cache-mode>NONE</shared-cache-mode> <!-- until hazelcast communication/invalidation has been verified -->
+        <properties>
+            <property name="javax.persistence.schema-generation.database.action" value="none"/>
+        </properties>
+    </persistence-unit>
 </persistence>
