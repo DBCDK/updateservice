@@ -16,7 +16,7 @@ export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
 RAWREPO_VERSION=1.13-snapshot
 RAWREPO_DIT_TAG=DIT-5016
-HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
+HOLDINGS_ITEMS_VERSION=1.1.99
 
 cd ${IDEA_ROOT}/docker
 
@@ -82,8 +82,8 @@ docker-compose up -d fakeSmtp
 sleep 3
 docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
-docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
-docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest
+docker tag docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-content.${HOLDINGS_ITEMS_VERSION}:${USER}
+docker rmi docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_ITEMS_VERSION}:latest
 docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
 docker rmi docker-i.dbc.dk/update-postgres:latest
 

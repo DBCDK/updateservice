@@ -7,7 +7,7 @@
     "jdbc/rawrepo": {
       "url": "${RAWREPO_DB_URL}"
     },
-    "jdbc/holdingsitems": {
+    "jdbc/holdings-items": {
       "url": "${HOLDINGS_ITEMS_DB_URL}"
     },
     "jdbc/update": {

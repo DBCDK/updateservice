@@ -14,13 +14,11 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -33,15 +31,15 @@ import java.util.Set;
 public class HoldingsItems {
     private static XLogger logger = XLoggerFactory.getXLogger(HoldingsItems.class);
 
-    @Resource(lookup = "jdbc/holdingsitems")
-    private DataSource dataSource;
+    @PersistenceContext(unitName = "holdingsItems_PU")
+    private EntityManager em;
 
     public HoldingsItems() {
-        this.dataSource = null;
+        this.em = null;
     }
 
-    public HoldingsItems(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public HoldingsItems(EntityManager em) {
+        this.em = em;
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsFor(MarcRecord record) throws UpdateException {
@@ -67,11 +65,11 @@ public class HoldingsItems {
         logger.info("getAgenciesThatHasHoldingsForId : " + recordId);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = new HashSet<>();
-        try (Connection conn = dataSource.getConnection()) {
-            HoldingsItemsDAO dao = createDAO(conn);
+        try {
+            HoldingsItemsDAO dao = createDAO();
             result = dao.getAgenciesThatHasHoldingsFor(recordId);
             return result;
-        } catch (SQLException | HoldingsItemsException ex) {
+        } catch (HoldingsItemsException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
@@ -80,10 +78,10 @@ public class HoldingsItems {
         }
     }
 
-    protected HoldingsItemsDAO createDAO(Connection conn) throws HoldingsItemsException {
+    protected HoldingsItemsDAO createDAO() {
         StopWatch watch = new Log4JStopWatch();
         try {
-            return HoldingsItemsDAO.newInstance(conn);
+            return HoldingsItemsDAO.newInstance(em);
         } finally {
             watch.stop("holdingsItems.createDAO");
         }
