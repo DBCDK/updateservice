@@ -28,7 +28,7 @@ import java.util.UUID;
 public class UpdateStore {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateStore.class);
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "updatestore")
     private EntityManager entityManager;
 
     public String getNewDoubleRecordKey() {
