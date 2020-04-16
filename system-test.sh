@@ -38,8 +38,8 @@ function reTagAndRemove () {
   HOLDINGS_DB_VERION=1.1.99
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
-  docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}:latest
+  docker tag docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_DB_VERION}:latest docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_DB_VERION}:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_DB_VERION}:latest
 }
 
 function setupLogAndLogdir () {
