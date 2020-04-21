@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.rest;
 
-import dk.dbc.jsonb.JSONBException;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
@@ -37,10 +36,6 @@ public class UpdateServiceRest {
 
     @Context
     private HttpServletRequest request;
-
-    @Context
-    private ServletContext servletContext;
-
 
     @PostConstruct
     protected void init() {
@@ -79,6 +74,7 @@ public class UpdateServiceRest {
                 return null;
             }
             UpdateRecordResult updateRecordResult = updateService.updateRecord(updateRecordRequest, globalActionState);
+            LOGGER.info("UpdateRecordResult:{}", updateRecordResult);
             /* todo:
             Handle updaterecord result
              */
