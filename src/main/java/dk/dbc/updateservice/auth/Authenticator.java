@@ -52,7 +52,14 @@ public class Authenticator {
             ForsRights.RightSet rights;
             Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
             if (useIpSetting != null && Boolean.valueOf(useIpSetting.toString())) {
-                String ipAddress = getRemoteAddrFromMessage(state.getWsContext());
+                String ipAddress;
+                if (state.getRequest() != null) {
+                    ipAddress = getRemoteAddrFromMessage(state.getRequest());
+                    logger.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
+                } else {
+                    ipAddress = getRemoteAddrFromMessage(state.getWsContext());
+                    logger.info("Soap service. wsContext used. Ip is: {}", ipAddress);
+                }
                 rights = forsService.forsRightsWithIp(state, ipAddress);
             } else {
                 rights = forsService.forsRights(state);
@@ -68,16 +75,12 @@ public class Authenticator {
         }
     }
 
-    private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
-        logger.entry(wsContext);
+    private String getRemoteAddrFromMessage(HttpServletRequest request) {
         final String X_FORWARDED_FOR = "x-forwarded-for";
         String result = "";
         try {
-            MessageContext mc = wsContext.getMessageContext();
-            HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-
             String XForwaredForHeaderName = "";
-            Enumeration<String> headerNames = req.getHeaderNames();
+            Enumeration<String> headerNames = request.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
 
@@ -88,12 +91,12 @@ public class Authenticator {
                 }
             }
             if (XForwaredForHeaderName.isEmpty()) {
-                logger.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, req.getRemoteAddr());
+                logger.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
 
-                result = req.getRemoteAddr();
+                result = request.getRemoteAddr();
                 return result;
             }
-            String XForwardedForValue = req.getHeader(XForwaredForHeaderName);
+            String XForwardedForValue = request.getHeader(XForwaredForHeaderName);
             logger.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, XForwardedForValue);
             int index = XForwardedForValue.indexOf(",");
             if (index > -1) {
@@ -105,5 +108,12 @@ public class Authenticator {
         } finally {
             logger.exit(result);
         }
+    }
+
+    private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
+        logger.entry(wsContext);
+        MessageContext mc = wsContext.getMessageContext();
+        HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
+        return getRemoteAddrFromMessage(req);
     }
 }

@@ -134,10 +134,9 @@ public class UpdateService {
         return newGlobalActionStateObject;
     }
 
-
-
     /**
      * Update or validate a bibliographic record to the rawrepo.
+     * Request is in external from ws schema generated format
      * <p>
      * This operation has 2 uses:
      * <ol>
@@ -152,12 +151,34 @@ public class UpdateService {
      * @throws EJBException in the case of an error.
      */
     public UpdateRecordResult updateRecord(UpdateRecordRequest updateRecordRequest, GlobalActionState globalActionState) {
+        final UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
+        final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
+        final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
+        LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
+        return updateRecord(updateServiceRequestDTO, globalActionState);
+    }
+
+    /**
+     * Update or validate a bibliographic record to the rawrepo.
+     * Request is in internal DTO format.
+     * <p>
+     * This operation has 2 uses:
+     * <ol>
+     * <li>Validation of the record only.</li>
+     * <li>Validation and update of the record</li>
+     * </ol>
+     * The actual operation is specified in the request by Options object
+     *
+     * @param updateServiceRequestDTO The request (in internal format).
+     * @return Returns an instance of UpdateRecordResult with the status of the
+     * status and result of the update.
+     * @throws EJBException in the case of an error.
+     */
+    public UpdateRecordResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
         LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
         UpdateRecordResult updateRecordResult = null;
-        final UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
-        final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
         final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
@@ -165,8 +186,6 @@ public class UpdateService {
         ServiceEngine serviceEngine = null;
         try {
             if (state.readRecord() != null) {
-                final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
-                LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
                 LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
                 LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
 

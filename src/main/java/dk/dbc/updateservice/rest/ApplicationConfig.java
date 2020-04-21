@@ -20,7 +20,8 @@ public class ApplicationConfig extends Application {
                     StatusService.class,
                     HowruService.class,
                     DoubleRecordCheckService.class,
-                    ClassificationCheckService.class)
+                    ClassificationCheckService.class,
+                    UpdateServiceRest.class)
     );
 
     @Override
