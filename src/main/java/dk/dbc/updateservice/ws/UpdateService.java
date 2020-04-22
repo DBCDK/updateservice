@@ -15,6 +15,7 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
+import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
@@ -155,7 +156,8 @@ public class UpdateService {
         final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
         final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
         LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
-        return updateRecord(updateServiceRequestDTO, globalActionState);
+        UpdateRecordResponseDTO updateRecordResponseDTO = updateRecord(updateServiceRequestDTO, globalActionState);
+        return new UpdateResponseWriter(updateRecordResponseDTO).getResponse();
     }
 
     /**
@@ -174,11 +176,11 @@ public class UpdateService {
      * status and result of the update.
      * @throws EJBException in the case of an error.
      */
-    public UpdateRecordResult updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
+    public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
         LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         ServiceResult serviceResult = null;
-        UpdateRecordResult updateRecordResult = null;
+        UpdateRecordResponseDTO updateRecordResponseDTO = null;
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
         final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
@@ -197,10 +199,10 @@ public class UpdateService {
 
                 updateResponseWriter.setServiceResult(serviceResult);
 
-                updateRecordResult = updateResponseWriter.getResponse();
+                updateRecordResponseDTO = updateResponseWriter.getUpdateRecordResponseDTO();
 
-                final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateRecordResult);
-                LOGGER.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResult));
+                final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateResponseWriter.getResponse());
+                LOGGER.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResponseDTO));
                 LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
@@ -209,19 +211,19 @@ public class UpdateService {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
                 LOGGER.error("Updateservice blev kaldt med tom record DTO");
             }
-            return updateRecordResult;
+            return updateRecordResponseDTO;
         } catch (SolrException ex) {
             LOGGER.error("Caught solr exception", ex);
             serviceResult = convertUpdateErrorToResponse(ex);
             updateResponseWriter.setServiceResult(serviceResult);
-            updateRecordResult = updateResponseWriter.getResponse();
-            return updateRecordResult;
+            updateRecordResponseDTO = updateResponseWriter.getUpdateRecordResponseDTO();
+            return updateRecordResponseDTO;
         } catch (Throwable ex) {
             LOGGER.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
             updateResponseWriter.setServiceResult(serviceResult);
-            updateRecordResult = updateResponseWriter.getResponse();
-            return updateRecordResult;
+            updateRecordResponseDTO = updateResponseWriter.getUpdateRecordResponseDTO();
+            return updateRecordResponseDTO;
         } finally {
             LOGGER.exit(serviceResult);
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);

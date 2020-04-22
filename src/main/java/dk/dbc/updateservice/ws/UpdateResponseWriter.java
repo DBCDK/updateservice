@@ -40,8 +40,16 @@ public class UpdateResponseWriter {
         updateRecordResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
     }
 
+    public UpdateResponseWriter(UpdateRecordResponseDTO updateRecordResponseDTO) {
+        this.updateRecordResponseDTO = updateRecordResponseDTO;
+    }
+
     public UpdateRecordResult getResponse() {
         return convertResponseFromInternalFormatToExternalFormat(updateRecordResponseDTO);
+    }
+
+    public UpdateRecordResponseDTO getUpdateRecordResponseDTO() {
+        return updateRecordResponseDTO;
     }
 
     private void addMessageEntries(List<MessageEntryDTO> entries) {
