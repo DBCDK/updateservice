@@ -10,11 +10,10 @@ import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.service.api.*;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import java.util.List;
 
 /**
  * Class to generate a complete response.
@@ -48,33 +47,8 @@ public class UpdateResponseWriter {
         return convertResponseFromInternalFormatToExternalFormat(updateRecordResponseDTO);
     }
 
-    public UpdateRecordResponseDTO getUpdateRecordResponseDTO() {
-        return updateRecordResponseDTO;
-    }
-
-    private void addMessageEntries(List<MessageEntryDTO> entries) {
-        if (entries != null && entries.size() > 0) {
-            updateRecordResponseDTO.addMessageEntryDtos(entries);
-        }
-    }
-
-    private void addDoubleRecordFrontendDtos(List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOS) {
-        if (doubleRecordFrontendDTOS != null && !doubleRecordFrontendDTOS.isEmpty()) {
-            updateRecordResponseDTO.addDoubleRecordFrontendDtos(doubleRecordFrontendDTOS);
-        }
-    }
-
-    public void setUpdateStatus(UpdateStatusEnumDTO value) {
-        updateRecordResponseDTO.setUpdateStatusEnumDTO(value);
-    }
-
     public void setServiceResult(ServiceResult serviceResult) {
-        if (serviceResult != null) {
-            updateRecordResponseDTO.setUpdateStatusEnumDTO(serviceResult.getStatus());
-            updateRecordResponseDTO.setDoubleRecordKey(serviceResult.getDoubleRecordKey());
-            addMessageEntries(serviceResult.getEntries());
-            addDoubleRecordFrontendDtos(serviceResult.getDoubleRecordFrontendDTOS());
-        }
+        this.updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
     }
 
     private UpdateRecordResult convertResponseFromInternalFormatToExternalFormat(UpdateRecordResponseDTO updateRecordResponseDTO) {

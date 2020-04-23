@@ -27,7 +27,7 @@ public class UpdateServiceRest {
     private GlobalActionState globalActionState;
 
     @EJB
-    dk.dbc.updateservice.ws.UpdateService updateService;
+    UpdateServiceInternal updateServiceInternal;
 
     @Context
     private WebServiceContext wsContext;
@@ -63,12 +63,13 @@ public class UpdateServiceRest {
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateRecordRequest) {
         LOGGER.info("Incoming record is:{}",updateRecordRequest.getBibliographicRecordDTO().getRecordDataDTO().toString());
 
-        if (!updateService.isServiceReady(globalActionState)) {
+        if (!updateServiceInternal.isServiceReady(globalActionState)) {
             LOGGER.info("Updateservice not ready yet, leaving");
             return null;
         }
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateService.updateRecord(updateRecordRequest, globalActionState);
+        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceInternal.updateRecord(updateRecordRequest, globalActionState);
         LOGGER.info("UpdateRecordResult:{}", updateRecordResponseDTO);
         return updateRecordResponseDTO;
     }
+
 }

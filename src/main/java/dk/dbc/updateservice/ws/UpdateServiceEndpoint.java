@@ -10,6 +10,7 @@ import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.rest.UpdateServiceInternal;
 import dk.dbc.updateservice.service.api.CatalogingUpdatePortType;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
@@ -49,6 +50,9 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     @EJB
     UpdateService updateService;
 
+    @EJB
+    UpdateServiceInternal updateServiceInternal;
+
 
     @PostConstruct
     protected void init() {
@@ -63,7 +67,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
 
         try {
-            if (!updateService.isServiceReady(globalActionState)) {
+            if (!updateServiceInternal.isServiceReady(globalActionState)) {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 return null;
             }
@@ -86,7 +90,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
         StopWatch watch = new Log4JStopWatch();
 
         try {
-            if (!updateService.isServiceReady(globalActionState)) {
+            if (!updateServiceInternal.isServiceReady(globalActionState)) {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 return null;
             }
