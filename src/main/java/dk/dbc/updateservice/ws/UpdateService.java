@@ -15,7 +15,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.JsonMapper;
-import dk.dbc.updateservice.rest.UpdateServiceInternal;
+import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
@@ -58,7 +58,7 @@ public class UpdateService {
     private Validator validator;
 
     @EJB
-    private UpdateServiceInternal updateServiceInternal;
+    private UpdateServiceCore updateServiceCore;
 
     /**
      * Update or validate a bibliographic record to the rawrepo.
@@ -83,7 +83,7 @@ public class UpdateService {
         final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
         LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
 
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceInternal.updateRecord(updateServiceRequestDTO, globalActionState);
+        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.updateRecord(updateServiceRequestDTO, globalActionState);
 
         final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateResponseWriter.getResponse());
         LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);

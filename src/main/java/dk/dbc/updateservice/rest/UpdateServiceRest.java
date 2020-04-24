@@ -3,6 +3,7 @@ package dk.dbc.updateservice.rest;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
+import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.util.Timed;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -27,7 +28,7 @@ public class UpdateServiceRest {
     private GlobalActionState globalActionState;
 
     @EJB
-    UpdateServiceInternal updateServiceInternal;
+    UpdateServiceCore updateServiceCore;
 
     @Context
     private WebServiceContext wsContext;
@@ -63,11 +64,11 @@ public class UpdateServiceRest {
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateRecordRequest) {
         LOGGER.info("Incoming record is:{}",updateRecordRequest.getBibliographicRecordDTO().getRecordDataDTO().toString());
 
-        if (!updateServiceInternal.isServiceReady(globalActionState)) {
+        if (!updateServiceCore.isServiceReady(globalActionState)) {
             LOGGER.info("Updateservice not ready yet, leaving");
             return null;
         }
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceInternal.updateRecord(updateRecordRequest, globalActionState);
+        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.updateRecord(updateRecordRequest, globalActionState);
         LOGGER.info("UpdateRecordResult:{}", updateRecordResponseDTO);
         return updateRecordResponseDTO;
     }
