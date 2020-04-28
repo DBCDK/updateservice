@@ -39,6 +39,7 @@
         <buildnumber.maven.plugin.version>1.4</buildnumber.maven.plugin.version>
         <openagency.ws.client.version>2.32-SNAPSHOT</openagency.ws.client.version>
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
+        <dto.version>2.0-SNAPSHOT</dto.version>
     </properties>
 
     <repositories>
@@ -108,7 +109,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+   
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -309,6 +310,12 @@
             <version>${serviceutils.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>updateserviceDTO</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <build>
