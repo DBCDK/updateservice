@@ -5,15 +5,11 @@
 
 package dk.dbc.updateservice.ws;
 
-import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.service.api.GetSchemasRequest;
@@ -27,16 +23,12 @@ import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordResultMarshaller;
 import java.io.IOException;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import java.util.List;
 
 /**
  * UpdateService web service.
@@ -50,12 +42,6 @@ public class UpdateService {
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     public static final String UPDATE_SERVICE_VERSION = "2.0";
-
-    @EJB
-    private OpenAgencyService openAgencyService;
-
-    @EJB
-    private Validator validator;
 
     @EJB
     private UpdateServiceCore updateServiceCore;
