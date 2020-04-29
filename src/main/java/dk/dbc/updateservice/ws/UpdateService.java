@@ -26,6 +26,7 @@ import dk.dbc.updateservice.ws.marshall.GetSchemasRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordResultMarshaller;
+import java.io.IOException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -46,7 +47,6 @@ import java.util.List;
 @Stateless
 public class UpdateService {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateService.class);
-    private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     public static final String MARSHALLING_ERROR_MSG = "Got an error while marshalling input request, using reflection instead.";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     public static final String UPDATE_SERVICE_VERSION = "2.0";
@@ -101,82 +101,22 @@ public class UpdateService {
      * validation schemes.
      * @throws EJBException In case of an error.
      */
-    public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) {
-        LOGGER.entry();
-
-        StopWatch watch = new Log4JStopWatch();
-        SchemasResponseDTO schemasResponseDTO;
+    public GetSchemasResult getSchemas(GetSchemasRequest getSchemasRequest) throws IOException {
         GetSchemasResult getSchemasResult;
         final GetSchemasRequestReader getSchemasRequestReader = new GetSchemasRequestReader(getSchemasRequest);
         final SchemasRequestDTO schemasRequestDTO = getSchemasRequestReader.getSchemasRequestDTO();
-        try {
-            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
+        final GetSchemasRequestMarshaller getSchemasRequestMarshaller = new GetSchemasRequestMarshaller(getSchemasRequest);
+        LOGGER.info("Entering getSchemas, marshal(schemasRequestDTO):\n{}",getSchemasRequestMarshaller);
 
-            final GetSchemasRequestMarshaller getSchemasRequestMarshaller = new GetSchemasRequestMarshaller(getSchemasRequest);
-            LOGGER.info("Entering getSchemas, marshal(schemasRequestDTO):\n{}",getSchemasRequestMarshaller);
+        SchemasResponseDTO schemasResponseDTO = updateServiceCore.getSchemas(schemasRequestDTO);
 
-            if (schemasRequestDTO.getAuthenticationDTO() != null &&
-                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                if (schemasRequestDTO.getTrackingId() != null) {
-                    LOGGER.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
-                } else {
-                    LOGGER.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
-                }
-            }
+        final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
+        getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
 
-            final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-            final String templateGroup = openAgencyService.getTemplateGroup(groupId);
-            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+        final GetSchemasResultMarshaller getSchemasResultMarshaller = new GetSchemasResultMarshaller(getSchemasResult);
+        LOGGER.info("getSchemas returning getSchemasResult:\n{}", JsonMapper.encodePretty(getSchemasResult));
+        LOGGER.info("Leaving getSchemas, marshal(getSchemasResult):\n{}", getSchemasResultMarshaller);
 
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
-            schemasResponseDTO.setError(false);
-
-            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
-            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
-
-            final GetSchemasResultMarshaller getSchemasResultMarshaller = new GetSchemasResultMarshaller(getSchemasResult);
-            LOGGER.info("getSchemas returning getSchemasResult:\n{}", JsonMapper.encodePretty(getSchemasResult));
-            LOGGER.info("Leaving getSchemas, marshal(getSchemasResult):\n{}", getSchemasResultMarshaller);
-
-            return getSchemasResult;
-        } catch (ScripterException ex) {
-            LOGGER.error("Caught JavaScript exception", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
-            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
-            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
-
-            return getSchemasResult;
-        } catch (OpenAgencyException ex) {
-            LOGGER.error("Caught OpenAgencyException exception", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
-            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
-            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
-
-            return getSchemasResult;
-        } catch (Throwable ex) {
-            // TODO: returner ordentlig fejl her
-            LOGGER.error("Caught Throwable", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
-            final GetSchemasResponseWriter getSchemasResponseWriter = new GetSchemasResponseWriter(schemasResponseDTO);
-            getSchemasResult = getSchemasResponseWriter.getGetSchemasResult();
-
-            return getSchemasResult;
-        } finally {
-            watch.stop(GET_SCHEMAS_WATCHTAG);
-            LOGGER.exit();
-            MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
-        }
+        return getSchemasResult;
     }
-
 }
