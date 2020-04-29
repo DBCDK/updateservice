@@ -44,19 +44,6 @@ pipeline {
             }
         }
 
-        stage('Build DTO artifact') {
-            steps {
-                script {
-                    dir("updateserviceDTO") {
-                        sh """ 
-                            mvn install
-                            mvn jar:jar deploy:deploy
-                        """
-                    }
-                }
-            }
-        }
-
         stage('Build updateservice') {
             steps {
                 withMaven(maven: 'maven 3.5', options: [
