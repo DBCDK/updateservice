@@ -1,9 +1,12 @@
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.updateservice.dto.SchemasRequestDTO;
+import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.update.UpdateServiceCore;
+import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -73,4 +76,29 @@ public class UpdateServiceRest {
         return updateRecordResponseDTO;
     }
 
+    /**
+     * Returns a list of validation schemes.
+     * <p>
+     * The actual lookup of validation schemes is done by the Validator EJB
+     * ({@link Validator#getValidateSchemas ()})
+     *
+     * @param schemasRequestDTO The request.
+     * @return Returns an instance of SchemasResponseDTO with the list of
+     * validation schemes.
+     * @throws EJBException In case of an error.
+     */
+    @POST
+    @Path("v1/updateservice/getschemas")
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces ({MediaType.APPLICATION_JSON})
+    @Timed
+    public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
+        if (!updateServiceCore.isServiceReady(globalActionState)) {
+            LOGGER.info("Updateservice (getSchemas) not ready yet.");
+            return null;
+        }
+        SchemasResponseDTO schemasResponseDTO = updateServiceCore.getSchemas(schemasRequestDTO);
+        LOGGER.info("Getschemas result:{}", schemasRequestDTO);
+        return schemasResponseDTO;
+    }
 }

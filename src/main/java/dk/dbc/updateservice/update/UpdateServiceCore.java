@@ -1,16 +1,21 @@
 package dk.dbc.updateservice.update;
 
+import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.dto.SchemaDTO;
+import dk.dbc.updateservice.dto.SchemasRequestDTO;
+import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.javascript.Scripter;
+import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.solr.SolrBasis;
@@ -19,6 +24,7 @@ import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
@@ -74,6 +80,7 @@ public class UpdateServiceCore {
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
+    private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
     public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
     public static final String MDC_REQUEST_PRIORITY = "priority";
@@ -161,6 +168,74 @@ public class UpdateServiceCore {
         } finally {
             LOGGER.exit(serviceResult);
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
+        }
+    }
+
+    /**
+     * Returns a list of validation schemes.
+     * <p>
+     * The actual lookup of validation schemes is done by the Validator EJB
+     * ({@link Validator#getValidateSchemas ()})
+     *
+     * @param schemasRequestDTO The request.
+     * @return Returns an instance of SchemasResponseDTO with the list of
+     * validation schemes.
+     * @throws EJBException In case of an error.
+     */
+    public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
+        LOGGER.entry();
+
+        StopWatch watch = new Log4JStopWatch();
+        SchemasResponseDTO schemasResponseDTO;
+        try {
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
+
+            if (schemasRequestDTO.getAuthenticationDTO() != null &&
+                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
+                if (schemasRequestDTO.getTrackingId() != null) {
+                    LOGGER.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
+                } else {
+                    LOGGER.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
+                }
+            }
+
+            LOGGER.info("getSchemas request as json:{}", JsonMapper.encodePretty(schemasRequestDTO));
+
+            final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+            final String templateGroup = openAgencyService.getTemplateGroup(groupId);
+            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
+            schemasResponseDTO.setError(false);
+            return schemasResponseDTO;
+        } catch (ScripterException ex) {
+            LOGGER.error("Caught JavaScript exception", ex);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
+        } catch (OpenAgencyException ex) {
+            LOGGER.error("Caught OpenAgencyException exception", ex);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
+        } catch (Throwable ex) {
+            // TODO: returner ordentlig fejl her
+            LOGGER.error("Caught Throwable", ex);
+            schemasResponseDTO = new SchemasResponseDTO();
+            schemasResponseDTO.setErrorMessage(ex.getMessage());
+            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+            schemasResponseDTO.setError(true);
+            return schemasResponseDTO;
+        } finally {
+            watch.stop(GET_SCHEMAS_WATCHTAG);
+            LOGGER.exit();
+            MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }
 
