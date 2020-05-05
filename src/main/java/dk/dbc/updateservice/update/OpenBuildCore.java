@@ -15,7 +15,6 @@ import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
-import dk.dbc.updateservice.ws.DocumentFactory;
 import dk.dbc.updateservice.ws.JNDIResources;
 import java.io.IOException;
 import java.util.ArrayList;
