@@ -121,7 +121,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
             logger.info("Agency is 870976 - adding link actions for r01 and r02");
-            children.addAll(LinkRecordAction.newLinkMatVurdRecordAction(state, record));
+            // The links are not in the record passed to this action because the record has been split in a common part
+            // and an enrichment and r01 and r02 are in the enrichment.
+            // Instead we have to read the original record
+            children.addAll(LinkRecordAction.newLinkMatVurdRecordAction(state, state.readRecord()));
         }
 
         children.add(new LinkAuthorityRecordsAction(state, record));
