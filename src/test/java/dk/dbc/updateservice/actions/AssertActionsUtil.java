@@ -65,6 +65,12 @@ public class AssertActionsUtil {
     public static final String NATIONAL_COMMON_RECORD = "actions/national-common-record.marc";
     public static final String LITTOLK_COMMON = "actions/littolk-common.marc";
     public static final String LITTOLK_ENRICHMENT = "actions/littolk-enrichment.marc";
+    public static final String MATVURD_1 = "actions/matvurd1.marc";
+    public static final String MATVURD_2 = "actions/matvurd2.marc";
+    public static final String MATVURD_3 = "actions/matvurd3.marc";
+    public static final String MATVURD_4 = "actions/matvurd4.marc";
+    public static final String MATVURD_5 = "actions/matvurd5.marc";
+    public static final String MATVURD_6 = "actions/matvurd6.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
         InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
