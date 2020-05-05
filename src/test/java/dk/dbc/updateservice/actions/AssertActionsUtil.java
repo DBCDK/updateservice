@@ -266,6 +266,16 @@ public class AssertActionsUtil {
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MARCXCHANGE));
     }
 
+    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(StoreRecordAction.class.getName()));
+
+        StoreRecordAction storeRecordAction = (StoreRecordAction) action;
+        assertThat(storeRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(storeRecordAction.getRecord(), is(record));
+        assertThat(storeRecordAction.getMimetype(), equalTo(mimetype));
+    }
+
     public static void assertDeleteRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DeleteRecordAction.class.getName()));

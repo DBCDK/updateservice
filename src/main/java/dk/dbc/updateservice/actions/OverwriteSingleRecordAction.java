@@ -118,6 +118,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             }
         }
 
+        if (RawRepo.MATVURD_AGENCY  == reader.getAgencyIdAsInt()) {
+            children.addAll(LinkRecordAction.newLinkMatVurdRecordAction(state, record));
+        }
+
         children.add(new LinkAuthorityRecordsAction(state, record));
         children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
     }
