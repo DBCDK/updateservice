@@ -17,7 +17,6 @@ import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
 import dk.dbc.updateservice.ws.DocumentFactory;
 import dk.dbc.updateservice.ws.JNDIResources;
-import dk.dbc.updateservice.ws.OpenBuild;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -61,7 +60,7 @@ public class OpenBuildCore {
     }
 
 
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuild.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildCore.class);
     final private Properties buildProperties = JNDIResources.getProperties();
     final private ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
