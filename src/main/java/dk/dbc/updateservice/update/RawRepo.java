@@ -35,6 +35,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -53,6 +54,7 @@ public class RawRepo {
     public static final int COMMON_AGENCY = 870970;
     public static final int ARTICLE_AGENCY = 870971;
     public static final int LITTOLK_AGENCY = 870974;
+    public static final int MATVURD_AGENCY = 870976;
     public static final int AUTHORITY_AGENCY = 870979;
     public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
     public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "190004", "191919", "870970", "870971", "870974", "870979"); // More will probably be added later
@@ -745,7 +747,7 @@ public class RawRepo {
             marshaller.marshal(jAXBElement, recData);
 
             logger.info("Marshalled record: {}", recData.toString());
-            result = recData.toString().getBytes("UTF-8");
+            result = recData.toString().getBytes(StandardCharsets.UTF_8);
             return result;
         } finally {
             logger.exit(result);
