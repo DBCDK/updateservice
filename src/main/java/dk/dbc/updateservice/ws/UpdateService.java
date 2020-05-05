@@ -16,7 +16,6 @@ import dk.dbc.updateservice.service.api.GetSchemasRequest;
 import dk.dbc.updateservice.service.api.GetSchemasResult;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.marshall.GetSchemasRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
