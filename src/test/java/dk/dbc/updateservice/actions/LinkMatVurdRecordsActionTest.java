@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.ResourceBundle;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -28,17 +28,21 @@ public class LinkMatVurdRecordsActionTest {
     private GlobalActionState state;
 
     @Before
-    public void before() throws IOException {
+    public void before() throws Exception {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
+        when(state.getRawRepo().recordExists("11111111", 870970)).thenReturn(true);
+        when(state.getRawRepo().recordExists("22222222", 870970)).thenReturn(true);
+        when(state.getRawRepo().recordExists("33333333", 870970)).thenReturn(true);
+        when(state.getRawRepo().recordExists("44444444", 870970)).thenReturn(true);
+        when(state.getRawRepo().recordExists("99999999", 870970)).thenReturn(false);
+
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_1() throws Exception {
+    public void testNewLinkMatVurdRecordAction_r01_single() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
-
-        when(state.getRawRepo().recordExists("52919568", 870970)).thenReturn(true);
-
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
+
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
@@ -50,17 +54,14 @@ public class LinkMatVurdRecordsActionTest {
         assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
 
         assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("52919568"));
+        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("11111111"));
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_2() throws Exception {
+    public void testNewLinkMatVurdRecordAction_r01_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_2);
-
-        when(state.getRawRepo().recordExists("54486960", 870970)).thenReturn(true);
-        when(state.getRawRepo().recordExists("54486987", 870970)).thenReturn(true);
-
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
+
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
@@ -71,17 +72,16 @@ public class LinkMatVurdRecordsActionTest {
         assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
         assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("54486960"));
+        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+                new RecordId("11111111", 870970),
+                new RecordId("22222222", 870970))));
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_3() throws Exception {
+    public void testNewLinkMatVurdRecordAction_r02_single() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_3);
-
-        when(state.getRawRepo().recordExists("47791588", 870970)).thenReturn(true);
-
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
+
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
@@ -93,71 +93,60 @@ public class LinkMatVurdRecordsActionTest {
         assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
 
         assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("47791588"));
+        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("11111111"));
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_4() throws Exception {
+    public void testNewLinkMatVurdRecordAction_r02_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_4);
-
-        when(state.getRawRepo().recordExists("47909481", 870970)).thenReturn(true);
-
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
+
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
-        verify(state.getRawRepo(), times(1)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
+        verify(state.getRawRepo(), times(2)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
         assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
         assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("47909481"));
+        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+                new RecordId("11111111", 870970),
+                new RecordId("22222222", 870970))));
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_5() throws Exception {
+    public void testNewLinkMatVurdRecordAction_r01_r02_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_5);
-
-        when(state.getRawRepo().recordExists("21126209", 870970)).thenReturn(true);
-
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
+
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
-        verify(state.getRawRepo(), times(1)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
+        verify(state.getRawRepo(), times(4)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
         assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
         assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("21126209"));
+        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+                new RecordId("11111111", 870970),
+                new RecordId("22222222", 870970),
+                new RecordId("33333333", 870970),
+                new RecordId("44444444", 870970))));
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_6() throws Exception {
+    public void testNewLinkMatVurdRecordAction_NotFound() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_6);
 
-        when(state.getRawRepo().recordExists("55100594", 870970)).thenReturn(true);
-        when(state.getRawRepo().recordExists("54945124", 870970)).thenReturn(true);
+        ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
+        String message = String.format(resourceBundle.getString("ref.record.doesnt.exist"), "99999999", "870970");
 
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
-
-        ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
-        ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
-
-        verify(state.getRawRepo(), times(2)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
-
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
-
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("54945124"));
+        assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));
     }
 
     @Test
@@ -170,17 +159,4 @@ public class LinkMatVurdRecordsActionTest {
         verify(state.getRawRepo(), never()).linkRecordAppend(any(RecordId.class), any(RecordId.class));
     }
 
-
-    @Test
-    public void recordWithMatVurdFields_NotFound() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
-
-        when(state.getRawRepo().recordExists("52919568", 870970)).thenReturn(false);
-
-        ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
-        String message = String.format(resourceBundle.getString("ref.record.doesnt.exist"), "52919568", "870970");
-
-        final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));
-    }
 }
