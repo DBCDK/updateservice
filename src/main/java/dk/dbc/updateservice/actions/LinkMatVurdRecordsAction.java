@@ -39,7 +39,7 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
                 if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
                         if ("a".equals(subField.getName())) {
-                            final String refRecordId = fieldReader.getValue("a");
+                            final String refRecordId = subField.getValue();
                             final int refAgencyId = RawRepo.COMMON_AGENCY;
 
                             result = checkIfReferenceExists(refRecordId, refAgencyId);
