@@ -10,13 +10,9 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Action to link a record to another record.
@@ -85,30 +81,6 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             int agencyId = reader.getParentAgencyIdAsInt();
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
             return linkRecordAction;
-        } finally {
-            logger.exit();
-        }
-    }
-
-    public static List<LinkRecordAction> newLinkMatVurdRecordAction(GlobalActionState globalActionState, MarcRecord record) {
-        logger.entry();
-        try {
-            final List<LinkRecordAction> actionList = new ArrayList<>();
-            final MarcRecordReader reader = new MarcRecordReader(record);
-
-            for (String ref : reader.getValues("r01", "a")) {
-                final LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
-                linkRecordAction.setLinkToRecordId(new RecordId(ref, RawRepo.COMMON_AGENCY));
-                actionList.add(linkRecordAction);
-            }
-
-            for (String ref : reader.getValues("r02", "a")) {
-                final LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
-                linkRecordAction.setLinkToRecordId(new RecordId(ref, RawRepo.COMMON_AGENCY));
-                actionList.add(linkRecordAction);
-            }
-
-            return actionList;
         } finally {
             logger.exit();
         }

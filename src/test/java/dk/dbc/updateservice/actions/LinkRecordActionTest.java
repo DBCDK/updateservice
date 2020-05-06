@@ -11,15 +11,12 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
-import java.util.ListIterator;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -126,98 +123,4 @@ public class LinkRecordActionTest {
         verify(state.getRawRepo(), never()).linkRecord(any(RecordId.class), any(RecordId.class));
     }
 
-    @Test
-    public void testNewLinkMatVurdRecordAction_1() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(1));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("52919568", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_2() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_2);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(2));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("54486960", RawRepo.COMMON_AGENCY));
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("54486987", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_3() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_3);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(1));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("47791588", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_4() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_4);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(1));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("47909481", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_5() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_5);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(1));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("21126209", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_6() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_6);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(2));
-
-        final ListIterator<LinkRecordAction> iterator = linkRecordActionList.listIterator();
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("55100594", RawRepo.COMMON_AGENCY));
-        AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), record, constructMarcRecordWithId("54945124", RawRepo.COMMON_AGENCY));
-    }
-
-    @Test
-    public void testNewLinkMatVurdRecordAction_NoRelations() throws Exception {
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
-
-        final List<LinkRecordAction> linkRecordActionList = LinkRecordAction.newLinkMatVurdRecordAction(state, record);
-
-        assertThat(linkRecordActionList.size(), equalTo(0));
-    }
-
-    private MarcRecord constructMarcRecordWithId(String bibliographicRecordId, int agencyId) {
-        final MarcRecord marcRecord = new MarcRecord();
-        final MarcSubField marcSubFieldA = new MarcSubField("a", bibliographicRecordId);
-        final MarcSubField marcSubFieldB = new MarcSubField("b", Integer.toString(agencyId));
-        final MarcField marcField = new MarcField("001", "00");
-        marcField.getSubfields().addAll(Arrays.asList(marcSubFieldA, marcSubFieldB));
-
-        marcRecord.getFields().add(marcField);
-
-        return marcRecord;
-    }
 }

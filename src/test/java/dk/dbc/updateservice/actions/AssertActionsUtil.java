@@ -320,6 +320,15 @@ public class AssertActionsUtil {
         assertThat(linkAuthorityRecordsAction.getRecord(), is(record));
     }
 
+    public static void assertLinkMatVurdRecordsAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(LinkMatVurdRecordsAction.class.getName()));
+
+        LinkMatVurdRecordsAction linkAuthorityRecordsAction = (LinkMatVurdRecordsAction) action;
+        assertThat(linkAuthorityRecordsAction.getRawRepo(), is(rawRepo));
+        assertThat(linkAuthorityRecordsAction.getRecord(), is(record));
+    }
+
     public static void assertRemoveLinksAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(RemoveLinksAction.class.getName()));

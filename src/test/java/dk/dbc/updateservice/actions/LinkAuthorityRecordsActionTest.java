@@ -79,7 +79,7 @@ public class LinkAuthorityRecordsActionTest {
         when(state.getRawRepo().recordExists("22222222", 870979)).thenReturn(false);
 
         ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
-        String message = String.format(resourceBundle.getString("auth.record.doesnt.exist"), "22222222", "870979");
+        String message = String.format(resourceBundle.getString("ref.record.doesnt.exist"), "22222222", "870979");
 
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
         assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));

@@ -108,10 +108,6 @@ public class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
-        String ref = "001 00 *a 52919568 *b 870970";
-
-        MarcRecord refRecord = MarcRecordFactory.readRecord(ref);
-
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -129,7 +125,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record, MarcXChangeMimeType.MATVURD);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
-        AssertActionsUtil.assertLinkRecordAction(children.get(2), state.getRawRepo(), record, refRecord);
+        AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }

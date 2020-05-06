@@ -92,7 +92,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     String authRecordId = fieldReader.getValue("6");
                     int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
-                        String message = String.format(state.getMessages().getString("auth.record.doesnt.exist"), authRecordId, authAgencyId);
+                        String message = String.format(state.getMessages().getString("ref.record.doesnt.exist"), authRecordId, authAgencyId);
                         logger.error(message);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
