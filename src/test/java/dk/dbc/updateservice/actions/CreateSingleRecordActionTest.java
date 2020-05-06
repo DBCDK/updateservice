@@ -273,20 +273,7 @@ public class CreateSingleRecordActionTest {
         final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
         writer.removeFields(Arrays.asList("r01", "r02"));
 
-        final String recordId = AssertActionsUtil.getRecordId(record);
-        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
-
-        final Map<String, MarcRecord> recordCollection = new HashMap<>();
-        recordCollection.put(recordId, record);
-
         state.setMarcRecord(record); // <- Important! The original record is set on the state object
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
-        when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         final CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
