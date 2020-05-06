@@ -124,7 +124,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             // The links are not in the record passed to this action because the record has been split in a common part
             // and an enrichment and r01 and r02 are in the enrichment.
             // Instead we have to read the original record
-            children.add(new LinkMatVurdRecordsAction(state, record));
+            children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
         }
 
         children.add(new LinkAuthorityRecordsAction(state, record));

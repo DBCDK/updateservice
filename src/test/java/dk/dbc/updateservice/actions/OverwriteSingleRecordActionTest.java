@@ -18,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -101,11 +102,15 @@ public class OverwriteSingleRecordActionTest {
 
     @Test
     public void testPerformAction_MatVurd() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
-        String recordId = AssertActionsUtil.getRecordId(record);
-        int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
+        final MarcRecord recordWithoutEnrichmentFields = new MarcRecord(record);
+        final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
+        writer.removeFields(Arrays.asList("r01", "r02"));
 
-        Map<String, MarcRecord> recordCollection = new HashMap<>();
+        final String recordId = AssertActionsUtil.getRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        final Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
         state.setMarcRecord(record);
@@ -117,17 +122,17 @@ public class OverwriteSingleRecordActionTest {
         when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
-        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
+        final OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
-        List<ServiceAction> children = overwriteSingleRecordAction.children();
+        final List<ServiceAction> children = overwriteSingleRecordAction.children();
         Assert.assertThat(children.size(), is(5));
 
-        AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record, MarcXChangeMimeType.MATVURD);
-        AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
+        AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
+        AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields);
         AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record);
-        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), recordWithoutEnrichmentFields);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
