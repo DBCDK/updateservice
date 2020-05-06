@@ -103,6 +103,11 @@ public class OverwriteSingleRecordActionTest {
     @Test
     public void testPerformAction_MatVurd() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
+        // The MATVURD_1 record contains r01 and r02 fields.
+        // But when the record is send to updateservice the record is split into common part and enrichment part.
+        // Only the common part (without letter fields) are passed to the OverwriteSingleRecordAction.
+        // In order to test that the LinkMatVurdRecordsAction is given the original record we have to remove the letter
+        // fields from the original record first and use that record as input to OverwriteSingleRecordAction
         final MarcRecord recordWithoutEnrichmentFields = new MarcRecord(record);
         final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
         writer.removeFields(Arrays.asList("r01", "r02"));
@@ -113,7 +118,7 @@ public class OverwriteSingleRecordActionTest {
         final Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
 
-        state.setMarcRecord(record);
+        state.setMarcRecord(record); // <- Important! The original record is set on the state object
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
@@ -130,7 +135,7 @@ public class OverwriteSingleRecordActionTest {
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields);
-        AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record);
+        AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record); // <- Here we assert the correct record is used by LinkMatVurdRecordsAction
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), recordWithoutEnrichmentFields);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
