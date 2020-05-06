@@ -266,9 +266,9 @@ public class CreateSingleRecordActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         // The MATVURD_1 record contains r01 and r02 fields.
         // But when the record is send to updateservice the record is split into common part and enrichment part.
-        // Only the common part (without letter fields) are passed to the OverwriteSingleRecordAction.
+        // Only the common part (without letter fields) are passed to the CreateSingleRecordAction.
         // In order to test that the LinkMatVurdRecordsAction is given the original record we have to remove the letter
-        // fields from the original record first and use that record as input to OverwriteSingleRecordAction
+        // fields from the original record first and use that record as input to CreateSingleRecordAction
         final MarcRecord recordWithoutEnrichmentFields = new MarcRecord(record);
         final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
         writer.removeFields(Arrays.asList("r01", "r02"));
