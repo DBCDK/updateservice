@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcSubField;
@@ -35,7 +34,6 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
             final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
             for (MarcField field : record.getFields()) {
-                final MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
                         if ("a".equals(subField.getName())) {
