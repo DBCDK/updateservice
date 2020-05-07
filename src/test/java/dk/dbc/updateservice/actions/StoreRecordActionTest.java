@@ -7,6 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -22,6 +23,7 @@ import org.mockito.ArgumentCaptor;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -73,6 +75,31 @@ public class StoreRecordActionTest {
         state.setLibraryGroup(libraryGroup);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+
+        when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(record));
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+
+        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+
+        ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
+        verify(state.getRawRepo()).saveRecord(recordArgument.capture());
+        assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
+        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
+    }
+
+    @Test
+    public void testPerformAction_MatVurd() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
+        final String recordId = "12345678";
+        final int agencyId = 870976;
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.removeFields(Arrays.asList("r01", "r02")); // These fields will only be present on the enrichment record
+
+        StoreRecordAction storeRecordAction = StoreRecordAction.newStoreMarcXChangeAction(state, settings, record);
+
+        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MATVURD));
 
         when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));

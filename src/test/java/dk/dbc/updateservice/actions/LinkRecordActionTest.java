@@ -5,8 +5,10 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import org.junit.Before;
@@ -14,6 +16,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -119,4 +122,5 @@ public class LinkRecordActionTest {
         assertThat(argAgencyId.getValue(), equalTo(agencyId));
         verify(state.getRawRepo(), never()).linkRecord(any(RecordId.class), any(RecordId.class));
     }
+
 }
