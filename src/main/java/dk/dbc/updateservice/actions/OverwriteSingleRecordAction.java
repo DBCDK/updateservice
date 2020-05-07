@@ -71,6 +71,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException {
+        logger.info("Performing action for DBC record");
         final MarcRecordReader reader = new MarcRecordReader(record);
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
@@ -82,11 +83,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         // If this is an authority record being updated, then we need to see if any depending common records needs updating
         if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
+            logger.info("Agency is 870979 - handling actions for child records");
             final Set<RecordId> ids = state.getRawRepo().children(record);
             for (RecordId id : ids) {
                 logger.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
                 final Map<String, MarcRecord> currentRecordCollection = getRawRepo().fetchRecordCollection(id.getBibliographicRecordId(), id.getAgencyId());
-
 
                 if (authorityRecordHasProofPrintingDiff(record)) {
                     // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
@@ -116,6 +117,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     throw new UpdateException("Exception while expanding the records", e);
                 }
             }
+        }
+
+        if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+            logger.info("Agency is 870976 - adding link action for r01 and r02");
+            // The links are not in the record passed to this action because the record has been split in a common part
+            // and an enrichment and r01 and r02 are in the enrichment.
+            // Instead we have to read the original record
+            children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
         }
 
         children.add(new LinkAuthorityRecordsAction(state, record));
@@ -162,7 +171,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      */
     private void findChildrenAndHoldingsOnChildren(MarcRecord record, Set<Integer> librariesWithPosts) throws UpdateException, UnsupportedEncodingException {
         final MarcRecordReader reader = new MarcRecordReader(record);
-        final RecordId recordId = new RecordId(reader.getRecordId(),reader.getAgencyIdAsInt());
+        final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
 
         logger.info("Getting children for {}", recordId);
 
@@ -184,6 +193,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
+        logger.info("Performing default action ");
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
         children.add(new RemoveLinksAction(state, record));
 

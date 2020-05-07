@@ -65,6 +65,12 @@ public class AssertActionsUtil {
     public static final String NATIONAL_COMMON_RECORD = "actions/national-common-record.marc";
     public static final String LITTOLK_COMMON = "actions/littolk-common.marc";
     public static final String LITTOLK_ENRICHMENT = "actions/littolk-enrichment.marc";
+    public static final String MATVURD_1 = "actions/matvurd1.marc";
+    public static final String MATVURD_2 = "actions/matvurd2.marc";
+    public static final String MATVURD_3 = "actions/matvurd3.marc";
+    public static final String MATVURD_4 = "actions/matvurd4.marc";
+    public static final String MATVURD_5 = "actions/matvurd5.marc";
+    public static final String MATVURD_6 = "actions/matvurd6.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
         InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
@@ -260,6 +266,16 @@ public class AssertActionsUtil {
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MARCXCHANGE));
     }
 
+    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(StoreRecordAction.class.getName()));
+
+        StoreRecordAction storeRecordAction = (StoreRecordAction) action;
+        assertThat(storeRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(storeRecordAction.getRecord(), is(record));
+        assertThat(storeRecordAction.getMimetype(), equalTo(mimetype));
+    }
+
     public static void assertDeleteRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DeleteRecordAction.class.getName()));
@@ -302,6 +318,15 @@ public class AssertActionsUtil {
         LinkAuthorityRecordsAction linkAuthorityRecordsAction = (LinkAuthorityRecordsAction) action;
         assertThat(linkAuthorityRecordsAction.getRawRepo(), is(rawRepo));
         assertThat(linkAuthorityRecordsAction.getRecord(), is(record));
+    }
+
+    public static void assertLinkMatVurdRecordsAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) {
+        assertThat(action, notNullValue());
+        assertThat(action.getClass().getName(), equalTo(LinkMatVurdRecordsAction.class.getName()));
+
+        LinkMatVurdRecordsAction linkMatVurdRecordsAction = (LinkMatVurdRecordsAction) action;
+        assertThat(linkMatVurdRecordsAction.getRawRepo(), is(rawRepo));
+        assertThat(linkMatVurdRecordsAction.getRecord(), is(record));
     }
 
     public static void assertRemoveLinksAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) throws UpdateException {
