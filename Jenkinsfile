@@ -14,22 +14,6 @@ void notifyOfBuildStatus(final String buildStatus) {
     )
 }
 
-void deploy(String deployEnvironment) {
-	dir("deploy") {
-		git(url: "gitlab@git-platform.dbc.dk:metascrum/deploy.git", credentialsId: "gitlab-meta")
-	}
-	sh """
-        bash -c '
-            virtualenv -p python3 .
-            source bin/activate
-            pip3 install --upgrade pip
-            pip3 install -U -e \"git+https://github.com/DBCDK/mesos-tools.git#egg=mesos-tools\"
-            marathon-config-producer updateservice-${deployEnvironment} --root deploy/marathon --template-keys DOCKER_TAG=${DOCKER_IMAGE_VERSION} -o updateservice-${deployEnvironment}.json
-            marathon-deployer -a ${MARATHON_TOKEN} -b https://mcp1.dbc.dk:8443 deploy updateservice-${deployEnvironment}.json
-        '
-	"""
-}
-
 pipeline {
     agent {label workerNode}
 
@@ -42,7 +26,6 @@ pipeline {
     }
 
     environment {
-        MARATHON_TOKEN = credentials("METASCRUM_MARATHON_TOKEN")
         DOCKER_IMAGE_VERSION = "${env.BRANCH_NAME}-${env.BUILD_NUMBER}"
         DOCKER_IMAGE_DIT_VERSION = "DIT-${env.BUILD_NUMBER}"
         GITOPS_DEPLOY_TAG = "master-5"

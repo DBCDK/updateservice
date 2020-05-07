@@ -3,7 +3,7 @@
  *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
  */
 
-package dk.dbc.updateservice.ws;
+package dk.dbc.updateservice.update;
 
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;

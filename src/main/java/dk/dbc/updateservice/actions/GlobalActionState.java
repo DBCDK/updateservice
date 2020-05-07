@@ -26,6 +26,7 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
+import javax.servlet.http.HttpServletRequest;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
@@ -69,11 +70,21 @@ public class GlobalActionState {
     private Set<String> lokbibLibraries = null;
     private RecordSorter recordSorter = null;
     private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
+    private HttpServletRequest request;
+
+
+    public HttpServletRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
+    }
 
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, OpenAgencyService.LibraryGroup libraryGroup) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, HttpServletRequest request, OpenAgencyService.LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
@@ -88,10 +99,11 @@ public class GlobalActionState {
         this.libraryRecordsHandler = libraryRecordsHandler;
         this.messages = messages;
         this.libraryGroup = libraryGroup;
+        this.request = request;
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), null);
+        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getRequest(), null);
     }
 
     private void resetState() {
@@ -321,6 +333,13 @@ public class GlobalActionState {
                             marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
                             break;
                         }
+                        else if (o instanceof String) {
+                            String marcString = (String) o;
+                            if (! "".equals(marcString.trim())) {
+                                marcRecord = MarcConverter.convertFromMarcXChange(marcString);
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -436,6 +455,7 @@ public class GlobalActionState {
         if (updateServiceRequestDTO != null ? !updateServiceRequestDTO.equals(state.updateServiceRequestDTO) : state.updateServiceRequestDTO != null)
             return false;
         if (wsContext != null ? !wsContext.equals(state.wsContext) : state.wsContext != null) return false;
+        if (request != null ? !request.equals(state.request) : state.request != null) return false;
         if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
             return false;
         if (scripter != null ? !scripter.equals(state.scripter) : state.scripter != null) return false;
@@ -474,6 +494,7 @@ public class GlobalActionState {
         result = 31 * result + (marcRecord != null ? marcRecord.hashCode() : 0);
         result = 31 * result + (bibliographicRecordExtraData != null ? bibliographicRecordExtraData.hashCode() : 0);
         result = 31 * result + (recordPid != null ? recordPid.hashCode() : 0);
+        result = 31 * result + (request != null ? request.hashCode() : 0);
         return result;
     }
 
@@ -496,6 +517,7 @@ public class GlobalActionState {
                 ", bibliographicRecordExtraData=" + bibliographicRecordExtraData +
                 ", libraryGroup=" + libraryGroup +
                 ", recordPid='" + recordPid + '\'' +
+                ", request='" + request + '\'' +
                 '}';
     }
 
