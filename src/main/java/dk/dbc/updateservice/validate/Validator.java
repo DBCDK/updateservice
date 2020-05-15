@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 
 @Stateless
 public class Validator {
@@ -30,13 +31,13 @@ public class Validator {
 
     private Properties settings = JNDIResources.getProperties();
 
-    public List<SchemaDTO> getValidateSchemas(String groupId, String templateGroup) throws ScripterException {
+    public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws ScripterException {
         logger.entry();
         List<SchemaDTO> result = null;
         try {
             result = new ArrayList<>();
             ObjectMapper mapper = new ObjectMapper();
-            Object jsResult = scripter.callMethod("getValidateSchemas", groupId, templateGroup, settings);
+            Object jsResult = scripter.callMethod("getValidateSchemas", templateGroup, allowedLibraryRules, settings);
             logger.debug("Result from getValidateSchemas JS ({}): {}", jsResult.getClass().getName(), jsResult);
             SchemaDTO[] names = mapper.readValue(jsResult.toString(), SchemaDTO[].class);
             result.addAll(Arrays.asList(names));
