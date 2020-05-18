@@ -65,14 +65,14 @@ public class UpdateService {
         final UpdateRequestReader updateRequestReader = new UpdateRequestReader(updateRecordRequest);
         final UpdateServiceRequestDTO updateServiceRequestDTO = updateRequestReader.getUpdateServiceRequestDTO();
         final UpdateRecordRequestMarshaller updateRecordRequestMarshaller = new UpdateRecordRequestMarshaller(updateRecordRequest);
-        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter();
         LOGGER.info("Entering Updateservice, marshal(updateServiceRequestDto):\n{}", updateRecordRequestMarshaller);
 
         UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.updateRecord(updateServiceRequestDTO, globalActionState);
+        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter(updateRecordResponseDTO);
 
         final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller(updateResponseWriter.getResponse());
         LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", updateRecordResultMarshaller);
-        return new UpdateResponseWriter(updateRecordResponseDTO).getResponse();
+        return updateResponseWriter.getResponse();
     }
 
     /**

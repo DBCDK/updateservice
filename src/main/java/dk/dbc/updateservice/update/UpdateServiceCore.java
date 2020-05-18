@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.Set;
 import java.util.UUID;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
@@ -203,7 +204,8 @@ public class UpdateServiceCore {
 
             final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
             final String templateGroup = openAgencyService.getTemplateGroup(groupId);
-            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(groupId, templateGroup);
+            final Set<String> allowedLibraryRules = openAgencyService.getAllowedLibraryRules(groupId);
+            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(templateGroup, allowedLibraryRules);
 
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
