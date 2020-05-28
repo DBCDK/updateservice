@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.ws;
 
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oss.ns.catalogingbuild.Build;
 import dk.dbc.oss.ns.catalogingbuild.BuildPortType;
 import dk.dbc.oss.ns.catalogingbuild.BuildRequest;
@@ -12,6 +13,8 @@ import dk.dbc.oss.ns.catalogingbuild.BuildResponse;
 import dk.dbc.oss.ns.catalogingbuild.BuildResult;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.update.OpenBuildCore;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -49,14 +52,24 @@ public class OpenBuild implements BuildPortType {
      */
     @Override
     public BuildResult build(BuildRequest parameters) {
+        StopWatch watch = new Log4JStopWatch("OpenBuild.build");
+        new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
         LOGGER.entry();
-        LOGGER.info("Build request: " + buildRequestToString(parameters));
         BuildResult result = null;
-        BuildResponseDTO buildResponseDTO =  openBuildCore.build(OpenBuildRequestReader.getDTO(parameters));
-        String resultOutput = buildResultToString(result);
-        LOGGER.info("Build response: " + resultOutput);
-        LOGGER.exit();
-        return OpenBuildResultWriter.get(buildResponseDTO);
+        try {
+            LOGGER.info("Build request: {}", buildRequestToString(parameters));
+
+            final BuildResponseDTO buildResponseDTO = openBuildCore.build(OpenBuildRequestReader.getDTO(parameters));
+
+            result = OpenBuildResultWriter.get(buildResponseDTO);
+
+            return result;
+        } finally {
+            LOGGER.info("Build response: {}", buildResultToString(result));
+            watch.stop();
+            LOGGER.exit();
+            DBCTrackedLogContext.remove();
+        }
     }
 
     private String buildRequestToString(BuildRequest br) {

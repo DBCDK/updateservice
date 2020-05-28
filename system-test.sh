@@ -9,9 +9,6 @@ function die() {
 
 function collect_logs () {
   echo "systest ---> Collect log files"
-  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-rawrepo-db_1 > logs/pg-rawrepo.log
-  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-holdingsitems-db_1 > logs/pg-holdingsitems.log
-  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-update-db_1 > logs/pg-updatedb.log
   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice_1 > logs/gf-updateservice.log
   docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
 }

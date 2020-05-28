@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.update;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,7 +11,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
-import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
@@ -16,13 +20,13 @@ import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
 import dk.dbc.updateservice.ws.JNDIResources;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
@@ -33,41 +37,35 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 
 @Stateless
 public class OpenBuildCore {
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildCore.class);
+    private static final Properties buildProperties = JNDIResources.getProperties();
+    private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
-    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private Scripter scripter;
 
-    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private DocumentFactory documentFactory;
-
 
     @PostConstruct
     public void init() {
         addJacksonMixInAnnotations();
-        validateProperties(buildProperties);
+        validateProperties();
     }
 
-
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildCore.class);
-    final private Properties buildProperties = JNDIResources.getProperties();
-    final private ObjectMapper jacksonObjectMapper = new ObjectMapper();
-
-
     public BuildResponseDTO build(BuildRequestDTO parameters) {
-        new DBCTrackedLogContext(createTrackingId());
         LOGGER.entry();
-        StopWatch watch = new Log4JStopWatch("OpenBuild.build");
+        StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
         BuildResponseDTO buildResponseDTO = null;
         try {
             if (!checkValidateSchema(parameters.getSchemaName())) {
@@ -97,10 +95,11 @@ public class OpenBuildCore {
             MarcRecord record = null;
             if (srcRecord != null) {
                 record = getMarcRecord(srcRecord.getRecordDataDTO());
+                LOGGER.info("Building using record: {}", record);
             }
 
             MarcRecord marcRecord;
-            StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuild.buildRecord");
+            StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
             if (record != null) {
                 marcRecord = buildRecord(parameters.getSchemaName(), record);
             } else {
@@ -108,7 +107,7 @@ public class OpenBuildCore {
             }
             watchBuildRecord.stop();
 
-            StopWatch watchBuildResult = new Log4JStopWatch("OpenBuild.buildResult");
+            StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
             buildResponseDTO = buildResult(marcRecord);
             watchBuildResult.stop();
             return buildResponseDTO;
@@ -118,15 +117,13 @@ public class OpenBuildCore {
             buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INTERNAL_ERROR);
             return buildResponseDTO;
         } finally {
-            LOGGER.info("Build response: {}",buildResponseDTO);
+            LOGGER.info("BuildResponseDTO: {}", buildResponseDTO);
             watch.stop();
             LOGGER.exit();
-            DBCTrackedLogContext.remove();
         }
-
     }
 
-    private String createTrackingId() {
+    public static String createTrackingId() {
         LOGGER.entry();
         String uuid = null;
         try {
@@ -163,6 +160,9 @@ public class OpenBuildCore {
                 for (Object o : list) {
                     if (o instanceof Node) {
                         res = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                        break;
+                    } else if (o instanceof String && o.toString().startsWith("<")) {
+                        res = MarcConverter.convertFromMarcXChange((String) o);
                         break;
                     }
                 }
@@ -215,7 +215,7 @@ public class OpenBuildCore {
             RecordDataDTO recordDataDTO = new RecordDataDTO();
             buildResponseDTO = new BuildResponseDTO();
             Document document = convertMarcRecordToDomDocument(marcRecord);
-            recordDataDTO.setContent(Arrays.asList(document.getDocumentElement()));
+            recordDataDTO.setContent(Collections.singletonList(document.getDocumentElement()));
             BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
             bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
             bibliographicRecordDTO.setRecordPacking(JNDIResources.RECORD_PACKING_XML);
@@ -264,8 +264,7 @@ public class OpenBuildCore {
         }
     }
 
-    private void validateProperties(Properties properties) {
-        LOGGER.entry(properties);
+    private void validateProperties() {
         try {
             List<String> requiredProperties = new ArrayList<>();
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
@@ -273,7 +272,7 @@ public class OpenBuildCore {
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST);
             requiredProperties.add(JNDIResources.JAVASCRIPT_BASEDIR);
             for (String s : requiredProperties) {
-                if (!properties.containsKey(s)) {
+                if (!buildProperties.containsKey(s)) {
                     throw new IllegalArgumentException("Required Build property " + s + " not set");
                 }
             }
@@ -281,6 +280,5 @@ public class OpenBuildCore {
             LOGGER.exit();
         }
     }
-
 
 }

@@ -1,53 +1,38 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.jsonb.JSONBException;
-import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.update.OpenBuildCore;
-import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.util.Timed;
-import javax.annotation.PostConstruct;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.xml.ws.WebServiceContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Stateless
 @Path("/api")
 public class OpenBuildRest {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OpenBuildRest.class);
-    private GlobalActionState globalActionState;
-    JSONBContext jsonbContext = new JSONBContext();
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildRest.class);
+    private static final JSONBContext jsonbContext = new JSONBContext();
 
     @EJB
     OpenBuildCore openBuildCore;
-
-    @EJB
-    UpdateServiceCore updateServiceCore;
-
-    @Context
-    private WebServiceContext wsContext;
-
-    @Context
-    private HttpServletRequest request;
-
-    @PostConstruct
-    protected void init() {
-        globalActionState = new GlobalActionState();
-        globalActionState.setWsContext(wsContext);
-        globalActionState.setRequest(request);
-    }
-
 
     @POST
     @Path("v1/openbuildservice")
@@ -55,14 +40,22 @@ public class OpenBuildRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public String build(BuildRequestDTO buildRequestDTO) throws JSONBException {
-        LOGGER.info("Incoming request is: {}", buildRequestDTO);
-        if (!updateServiceCore.isServiceReady(globalActionState)) {
-            LOGGER.info("Updateservice not ready yet, leaving");
-            return null;
+        StopWatch watch = new Log4JStopWatch("OpenBuildRest.build");
+        new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
+        LOGGER.entry();
+        BuildResponseDTO buildResponseDTO = null;
+        try {
+            LOGGER.info("Build request: {}", buildRequestDTO);
+
+            buildResponseDTO = openBuildCore.build(buildRequestDTO);
+
+            return jsonbContext.marshall(buildResponseDTO);
+        } finally {
+            LOGGER.info("Build response: {}", buildResponseDTO);
+            watch.stop();
+            LOGGER.exit();
+            DBCTrackedLogContext.remove();
         }
-        BuildResponseDTO buildResponseDTO = openBuildCore.build(buildRequestDTO);
-        LOGGER.info("Build response is:{}", buildRequestDTO);
-        return jsonbContext.marshall(buildResponseDTO);
     }
 
 }
