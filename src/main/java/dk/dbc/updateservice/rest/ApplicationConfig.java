@@ -21,6 +21,7 @@ public class ApplicationConfig extends Application {
                     HowruService.class,
                     DoubleRecordCheckService.class,
                     ClassificationCheckService.class,
+                    ClassificationCheckServiceRest.class,
                     UpdateServiceRest.class,
                     OpenBuildRest.class)
     );

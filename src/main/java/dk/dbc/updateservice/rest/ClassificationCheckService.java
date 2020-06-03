@@ -5,8 +5,9 @@
 
 package dk.dbc.updateservice.rest;
 
-import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
@@ -44,17 +45,14 @@ public class ClassificationCheckService {
     @Consumes({MediaType.APPLICATION_XML})
     @Produces(MediaType.APPLICATION_XML)
     @Timed
-    public Response classificationCheck(BibliographicRecord bibliographicRecord) {
-        UpdateResponseWriter updateResponseWriter;
-        UpdateRecordResult updateRecordResult;
+    public Response classificationCheck(BibliographicRecord bibliographicRecord) throws JSONBException {
         BibliographicRecordDTO bibliographicRecordDTO = UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord);
 
-        ServiceResult serviceResult = classificationCheckServiceRest.classificationCheck(bibliographicRecordDTO);
-
-        updateResponseWriter = new UpdateResponseWriter();
-        updateResponseWriter.setServiceResult(serviceResult);
-        updateRecordResult = updateResponseWriter.getResponse();
-        return Response.ok(marshal(updateRecordResult), MediaType.APPLICATION_XML).build();
+        UpdateRecordResponseDTO updateRecordResponseDTO = classificationCheckServiceRest.classificationCheck(bibliographicRecordDTO);
+        final UpdateResponseWriter updateResponseWriter = new UpdateResponseWriter(updateRecordResponseDTO);
+        final String response = marshal(updateResponseWriter.getResponse());
+        LOGGER.info("Leaving UpdateService, marshal(updateRecordResult):\n{}", response);
+        return Response.ok(response, MediaType.APPLICATION_XML).build();
     }
 
     String marshal(UpdateRecordResult updateRecordResult) {
