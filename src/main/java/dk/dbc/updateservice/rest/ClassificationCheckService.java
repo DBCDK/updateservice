@@ -46,6 +46,7 @@ public class ClassificationCheckService {
     @Produces(MediaType.APPLICATION_XML)
     @Timed
     public Response classificationCheck(BibliographicRecord bibliographicRecord) throws JSONBException {
+        LOGGER.info("classificationCheck - webservice. Incoming request is:{}", bibliographicRecord.toString());
         BibliographicRecordDTO bibliographicRecordDTO = UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord);
 
         UpdateRecordResponseDTO updateRecordResponseDTO = classificationCheckServiceRest.classificationCheck(bibliographicRecordDTO);

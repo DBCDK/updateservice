@@ -35,7 +35,7 @@ public class ClassificationCheckServiceRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Timed
     public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) throws JSONBException {
-        LOGGER.info("REST Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
+        LOGGER.info("classificationCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
         UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.classificationCheck(bibliographicRecordDTO);
         LOGGER.info("classificationCheck result is: {}", updateRecordResponseDTO.toString());
         return updateRecordResponseDTO;

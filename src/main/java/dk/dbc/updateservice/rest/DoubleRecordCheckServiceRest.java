@@ -36,7 +36,7 @@ public class DoubleRecordCheckServiceRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Timed
     public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) throws JSONBException {
-        LOGGER.info("REST Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
+        LOGGER.info("doubleRecordCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
         UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
         LOGGER.info("doubleRecordCheck result is: {}", updateRecordResponseDTO.toString());
         return updateRecordResponseDTO;

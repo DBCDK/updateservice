@@ -48,6 +48,7 @@ public class DoubleRecordCheckService {
     @Produces(MediaType.APPLICATION_XML)
     @Timed
     public Response doubleRecordCheck(BibliographicRecord bibliographicRecord) throws JSONBException {
+        LOGGER.info("doubleRecordCheck - webservice. Incoming request is:{}", bibliographicRecord.toString());
         UpdateResponseWriter updateResponseWriter;
         UpdateRecordResult updateRecordResult;
         BibliographicRecordDTO bibliographicRecordDTO = UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord);
