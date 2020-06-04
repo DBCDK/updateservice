@@ -40,6 +40,7 @@
         <openagency.ws.client.version>2.34-SNAPSHOT</openagency.ws.client.version>
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
         <dto.version>2.0-SNAPSHOT</dto.version>
+        <system-rules>1.19.0</system-rules>
     </properties>
 
     <repositories>
@@ -315,6 +316,13 @@
             <artifactId>updateserviceDTO</artifactId>
             <version>${dto.version}</version>
             <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>${system-rules}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
