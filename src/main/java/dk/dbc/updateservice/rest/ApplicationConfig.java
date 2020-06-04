@@ -20,6 +20,7 @@ public class ApplicationConfig extends Application {
                     StatusService.class,
                     HowruService.class,
                     DoubleRecordCheckService.class,
+                    DoubleRecordCheckServiceRest.class,
                     ClassificationCheckService.class,
                     ClassificationCheckServiceRest.class,
                     UpdateServiceRest.class,

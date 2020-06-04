@@ -1,3 +1,8 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcConverter;
@@ -13,6 +18,8 @@ import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.SchemaDTO;
@@ -86,7 +93,7 @@ public class UpdateServiceCore {
     private Validator validator;
 
     @EJB
-    private UpdateStore updateStore;
+    public UpdateStore updateStore;
 
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
@@ -101,6 +108,7 @@ public class UpdateServiceCore {
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
+    private static final String DOUBLE_RECORD_CHECK_ENTRY_POINT = "checkDoubleRecordFrontend";
 
 
     private Properties settings = JNDIResources.getProperties();
@@ -260,20 +268,7 @@ public class UpdateServiceCore {
     public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) {
         try {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
-            MarcRecord record = null;
-
-            if (recordDataDTO != null) {
-                List<Object> list = recordDataDTO.getContent();
-                for (Object o : list) {
-                    if (o instanceof Node) {
-                        record = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
-                        break;
-                    } else if (o instanceof String && !((String) o).trim().isEmpty()) {
-                        record = MarcConverter.convertFromMarcXChange((String) o);
-                        break;
-                    }
-                }
-            }
+            MarcRecord record = getRecord(recordDataDTO);
 
             ServiceResult serviceResult = ServiceResult.newOkResult();
             if (record != null) {
@@ -312,6 +307,35 @@ public class UpdateServiceCore {
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } catch (Exception ex) {
             LOGGER.error("Exception during classificationCheck", ex);
+            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        }
+    }
+
+    public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) {
+        try {
+            final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
+            MarcRecord record = getRecord(recordDataDTO);
+
+
+            ServiceResult serviceResult;
+            if (record != null) {
+                MarcRecordReader reader = new MarcRecordReader(record);
+
+                // Perform double record check only if the record doesn't already exist
+                if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    final Object jsResult = scripter.callMethod(DOUBLE_RECORD_CHECK_ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
+                    serviceResult = parseJavascript(jsResult);
+                } else {
+                    serviceResult = ServiceResult.newOkResult();
+                }
+            } else {
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
+            }
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        }
+        catch (Exception ex) {
+            LOGGER.error("Exception during doubleRecordCheck", ex);
             ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         }
@@ -411,5 +435,43 @@ public class UpdateServiceCore {
         } finally {
             LOGGER.exit(result);
         }
+    }
+
+    public ServiceResult parseJavascript(Object o) throws IOException {
+        ServiceResult result;
+        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = JsonMapper.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
+        if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
+            result = ServiceResult.newOkResult();
+        } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {
+            result = new ServiceResult();
+            for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO));
+            }
+            result.setDoubleRecordKey(updateStore.getNewDoubleRecordKey());
+        } else {
+            String msg = "Unknown error";
+            if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
+                msg = doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().get(0).getMessage();
+            }
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
+        }
+        return result;
+    }
+
+    private MarcRecord getRecord(RecordDataDTO recordDataDTO) {
+        MarcRecord record = null;
+        if (recordDataDTO != null) {
+            List<Object> list = recordDataDTO.getContent();
+            for (Object o : list) {
+                if (o instanceof Node) {
+                    record = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                    break;
+                } else if (o instanceof String && !((String) o).trim().isEmpty()) {
+                    record = MarcConverter.convertFromMarcXChange((String) o);
+                    break;
+                }
+            }
+        }
+        return record;
     }
 }

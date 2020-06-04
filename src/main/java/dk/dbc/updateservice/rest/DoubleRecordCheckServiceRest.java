@@ -23,21 +23,22 @@ import org.slf4j.ext.XLoggerFactory;
 
 @Stateless
 @Path("/api")
-public class ClassificationCheckServiceRest {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ClassificationCheckService.class);
+public class DoubleRecordCheckServiceRest {
 
     @EJB
     UpdateServiceCore updateServiceCore;
 
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckService.class);
+
     @POST
-    @Path("v2/classificationcheck")
-    @Consumes({MediaType.APPLICATION_JSON})
+    @Path("v2/doublerecordcheck")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Timed
-    public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) throws JSONBException {
+    public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) throws JSONBException {
         LOGGER.info("REST Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.classificationCheck(bibliographicRecordDTO);
-        LOGGER.info("classificationCheck result is: {}", updateRecordResponseDTO.toString());
+        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
+        LOGGER.info("doubleRecordCheck result is: {}", updateRecordResponseDTO.toString());
         return updateRecordResponseDTO;
     }
 }
