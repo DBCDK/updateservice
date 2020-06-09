@@ -30,7 +30,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.xml.ws.WebServiceContext;
 
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 
 @Stateless

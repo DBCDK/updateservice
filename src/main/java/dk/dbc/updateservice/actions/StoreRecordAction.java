@@ -16,6 +16,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateServiceCore;
+import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -100,7 +101,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             if (state.getCreateOverwriteDate() != null) {
                 rawRepoRecord.setCreated(state.getCreateOverwriteDate());
             }
-            rawRepoRecord.setTrackingId(MDC.get(UpdateServiceCore.UPDATERECORD_STOPWATCH));
+            rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
             rawRepo.saveRecord(rawRepoRecord);
             logger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
             logger.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());

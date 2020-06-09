@@ -42,10 +42,10 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_REQUEST_PRIORITY;
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
 public class UpdateServiceCore {
@@ -298,6 +298,8 @@ public class UpdateServiceCore {
         }
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
+
+
 
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {

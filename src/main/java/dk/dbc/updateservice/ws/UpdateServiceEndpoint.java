@@ -8,6 +8,7 @@ package dk.dbc.updateservice.ws;
 import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
@@ -37,7 +38,7 @@ import javax.ejb.Stateless;
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceContext;
 
-import static dk.dbc.updateservice.ws.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @SchemaValidation(outbound = false)
 @WebService(
@@ -169,6 +170,5 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
             MDC.clear();
         }
     }
-
 
 }
