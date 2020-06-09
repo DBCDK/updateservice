@@ -14,7 +14,7 @@ ENV RAWREPO_PROVIDER_ID_PH_HOLDINGS empty
 
 ENV AUTH_PRODUCT_NAME netpunkt.dk
 ENV AUTH_USE_IP True
-ENV FORSRIGHTS_URL http://forsrights.addi.dk/1.2/
+ENV FORSRIGHTS_URL https://forsrights.addi.dk/2.0/
 
 ENV OPENAGENCY_URL http://openagency.addi.dk/test_2.34/
 ENV OPENAGENCY_CACHE_AGE 8
