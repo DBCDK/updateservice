@@ -23,23 +23,29 @@ import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
-import java.io.IOException;
-import java.util.List;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.UUID;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.ws.handler.MessageContext;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.UUID;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
 public class UpdateServiceCore {
@@ -78,16 +84,13 @@ public class UpdateServiceCore {
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
 
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
-    public static final String MDC_REQUEST_ID_LOG_CONTEXT = "requestId";
-    public static final String MDC_PREFIX_ID_LOG_CONTEXT = "prefixId";
-    public static final String MDC_REQUEST_PRIORITY = "priority";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
-    public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
+    public static final String UPDATERECORD_STOPWATCH = "UpdateService";
+    public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
 
     private Properties settings = JNDIResources.getProperties();
@@ -135,10 +138,12 @@ public class UpdateServiceCore {
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
         ServiceEngine serviceEngine = null;
+        UpdateRecordResponseDTO updateRecordResponseDTO = null;
         try {
             if (state.readRecord() != null) {
                 LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
                 LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+                LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
 
@@ -146,9 +151,8 @@ public class UpdateServiceCore {
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
 
-                UpdateRecordResponseDTO updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+                updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
 
-                LOGGER.info("UpdateService returning updateRecordResult:\n{}", JsonMapper.encodePretty(updateRecordResponseDTO));
                 return updateRecordResponseDTO;
             } else {
                 final ResourceBundle bundle = ResourceBundles.getBundle("messages");
@@ -161,14 +165,21 @@ public class UpdateServiceCore {
         } catch (SolrException ex) {
             LOGGER.error("Caught solr exception", ex);
             serviceResult = convertUpdateErrorToResponse(ex);
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            return updateRecordResponseDTO;
         } catch (Throwable ex) {
             LOGGER.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            updateRecordResponseDTO =  UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            return updateRecordResponseDTO;
         } finally {
-            LOGGER.exit(serviceResult);
+            try {
+                LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", JsonMapper.encodePretty(updateRecordResponseDTO));
+            } catch (IOException e) {
+                LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
+            }
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
+            LOGGER.exit(serviceResult);
         }
     }
 
@@ -187,9 +198,10 @@ public class UpdateServiceCore {
         LOGGER.entry();
 
         StopWatch watch = new Log4JStopWatch();
-        SchemasResponseDTO schemasResponseDTO;
+        SchemasResponseDTO schemasResponseDTO = null;
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
+            LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
@@ -199,8 +211,6 @@ public class UpdateServiceCore {
                     LOGGER.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
                 }
             }
-
-            LOGGER.info("getSchemas request as json:{}", JsonMapper.encodePretty(schemasRequestDTO));
 
             final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
             final String templateGroup = openAgencyService.getTemplateGroup(groupId);
@@ -235,9 +245,13 @@ public class UpdateServiceCore {
             schemasResponseDTO.setError(true);
             return schemasResponseDTO;
         } finally {
+            try {
+                LOGGER.info("getSchemas returning SchemasResponseDTO: {}", JsonMapper.encodePretty(schemasResponseDTO));
+            } catch (IOException e) {
+                LOGGER.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
+            }
             watch.stop(GET_SCHEMAS_WATCHTAG);
             LOGGER.exit();
-            MDC.remove(MDC_TRACKING_ID_LOG_CONTEXT);
         }
     }
 
@@ -263,7 +277,6 @@ public class UpdateServiceCore {
         } finally {
             LOGGER.exit(res);
         }
-
     }
 
     private void logMdcUpdateMethodEntry(GlobalActionState globalActionState) {
@@ -286,6 +299,8 @@ public class UpdateServiceCore {
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
 
+
+
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {
             LOGGER.info("Executed action:");
@@ -299,7 +314,6 @@ public class UpdateServiceCore {
             watchTag = UPDATE_WATCHTAG + ".update";
         }
         watch.stop(watchTag);
-        MDC.clear();
     }
 
     private void validateRequiredSettings() {

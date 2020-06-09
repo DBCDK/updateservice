@@ -8,7 +8,7 @@ package dk.dbc.updateservice.ws.marshall;
 import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordRequest;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
-import dk.dbc.updateservice.ws.UpdateService;
+import dk.dbc.updateservice.ws.UpdateServiceEndpoint;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.ext.XLogger;
@@ -51,7 +51,7 @@ public class UpdateRecordRequestMarshaller {
             return stringWriter.toString();
         } catch (JAXBException e) {
             LOGGER.catching(e);
-            LOGGER.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            LOGGER.warn(UpdateServiceEndpoint.MARSHALLING_ERROR_MSG);
             return new ReflectionToStringBuilder(updateRecordRequest, new RecursiveToStringStyle()).toString();
         }
     }
