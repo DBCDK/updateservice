@@ -15,7 +15,6 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;

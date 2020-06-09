@@ -8,7 +8,6 @@ package dk.dbc.updateservice.ws;
 import com.sun.xml.ws.developer.SchemaValidation;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
-import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
