@@ -10,7 +10,7 @@ import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 

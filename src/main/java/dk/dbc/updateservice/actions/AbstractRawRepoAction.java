@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
 
 
 /**

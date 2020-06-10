@@ -13,7 +13,7 @@ import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.ws.JNDIResources;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -97,7 +97,7 @@ public class UpdateRequestAction extends AbstractAction {
     /**
      * Checks if the request is a validate only request.
      * <p>
-     * It is declared public so {@link dk.dbc.updateservice.ws.UpdateService} can use it.
+     * It is declared public so {@link dk.dbc.updateservice.update.UpdateServiceCore} can use it.
      * </p>
      *
      * @return Boolean value.
@@ -181,7 +181,7 @@ public class UpdateRequestAction extends AbstractAction {
             if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
                 throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
             }
-            boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
+            boolean isProduction = Boolean.parseBoolean(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
             if (isProduction
                     && state.getUpdateServiceRequestDTO() != null
                     && state.getUpdateServiceRequestDTO().getAuthenticationDTO() != null

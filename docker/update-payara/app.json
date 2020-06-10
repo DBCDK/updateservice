@@ -1,7 +1,8 @@
 {
   "appName": "updateservice",
   "profiles": [
-    "long-running-requests"
+    "long-running-requests",
+    "nashorn"
   ],
   "jdbc": {
     "jdbc/rawrepo": {
@@ -21,6 +22,5 @@
     "dk.dbc": {
       "level": "DEBUG"
     }
-
   }
 }

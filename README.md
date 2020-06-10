@@ -19,6 +19,19 @@ Next you have to run transpile-templates in opencat-business. If you are running
 
 Now you are ready to start working on updateservice.
 
+Bootstrapping the environment (first ever run only):
+* docker/bin/create_update_network.sh
+* docker/bin/build-update-docker-parent.sh
+
+Then start work by doing:
+* docker/bin/start_dev_docker.sh
+
+And then, after each change in the code:
+* docker/bin/start-local-docker.sh
+
+When you are done, remove your test containers by running:
+* docker/bin/stop_dev_docker.sh
+
 ### Endpoint
 
 Når servicen er deployet kan den tilgås via følgende:

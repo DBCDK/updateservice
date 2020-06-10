@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
 
 import java.util.Properties;
 

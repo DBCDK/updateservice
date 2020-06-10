@@ -13,7 +13,7 @@ import dk.dbc.updateservice.service.api.ObjectFactory;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
 import dk.dbc.updateservice.ws.UpdateRequestReader;
 import dk.dbc.updateservice.ws.UpdateResponseWriter;
-import dk.dbc.updateservice.ws.UpdateService;
+import dk.dbc.updateservice.ws.UpdateServiceEndpoint;
 import dk.dbc.util.Timed;
 import org.apache.commons.lang3.builder.RecursiveToStringStyle;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -68,7 +68,7 @@ public class ClassificationCheckService {
             return stringWriter.toString();
         } catch (JAXBException e) {
             LOGGER.catching(e);
-            LOGGER.warn(UpdateService.MARSHALLING_ERROR_MSG);
+            LOGGER.warn(UpdateServiceEndpoint.MARSHALLING_ERROR_MSG);
             return new ReflectionToStringBuilder(updateRecordResult, new RecursiveToStringStyle()).toString();
         }
     }
