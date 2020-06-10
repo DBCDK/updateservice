@@ -1,15 +1,31 @@
+/*
+ * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
+ *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
+ */
+
 package dk.dbc.updateservice.update;
 
+import dk.dbc.common.records.MarcConverter;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
+import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -23,25 +39,27 @@ import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
-import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
-
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.Response;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.ws.handler.MessageContext;
+import org.w3c.dom.Node;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
@@ -79,7 +97,7 @@ public class UpdateServiceCore {
     private Validator validator;
 
     @EJB
-    private UpdateStore updateStore;
+    public UpdateStore updateStore;
 
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
@@ -89,11 +107,14 @@ public class UpdateServiceCore {
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
+    private static final String DOUBLE_RECORD_CHECK_ENTRY_POINT = "checkDoubleRecordFrontend";
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
-
     private Properties settings = JNDIResources.getProperties();
+
+    private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
+
 
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
@@ -255,6 +276,82 @@ public class UpdateServiceCore {
         }
     }
 
+    public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) {
+        try {
+            final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
+            MarcRecord record = getRecord(recordDataDTO);
+
+            ServiceResult serviceResult = ServiceResult.newOkResult();
+            if (record != null) {
+                final MarcRecordReader recordReader = new MarcRecordReader(record);
+                final String recordId = recordReader.getValue("001", "a");
+                final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
+                if (rawRepo.recordExists(recordId, agencyId)) {
+                    final MarcRecord oldRecord = loadRecord(recordId, agencyId);
+                    final Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId(recordId);
+                    if (holdingAgencies.size() > 0) {
+                        List<String> classificationsChangedMessages = new ArrayList<>();
+                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, record, classificationsChangedMessages)) {
+                            final List<MessageEntryDTO> messageEntryDTOs = new ArrayList<>();
+
+                            final MessageEntryDTO holdingsMessageEntryDTO = new MessageEntryDTO();
+                            holdingsMessageEntryDTO.setType(TypeEnumDTO.WARNING);
+                            holdingsMessageEntryDTO.setMessage("Count: " + holdingAgencies.size());
+                            messageEntryDTOs.add(holdingsMessageEntryDTO);
+
+                            for (String classificationsChangedMessage : classificationsChangedMessages) {
+                                final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+                                messageEntryDTO.setType(TypeEnumDTO.WARNING);
+                                messageEntryDTO.setMessage("Reason: " + resourceBundle.getString(classificationsChangedMessage));
+                                messageEntryDTOs.add(messageEntryDTO);
+                            }
+
+                            serviceResult = new ServiceResult();
+                            serviceResult.setStatus(UpdateStatusEnumDTO.FAILED);
+                            serviceResult.setEntries(messageEntryDTOs);
+                        }
+                    }
+                }
+            } else {
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
+            }
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        } catch (Exception ex) {
+            LOGGER.error("Exception during classificationCheck", ex);
+            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        }
+    }
+
+    public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) {
+        try {
+            final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
+            MarcRecord record = getRecord(recordDataDTO);
+
+
+            ServiceResult serviceResult;
+            if (record != null) {
+                MarcRecordReader reader = new MarcRecordReader(record);
+
+                // Perform double record check only if the record doesn't already exist
+                if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    final Object jsResult = scripter.callMethod(DOUBLE_RECORD_CHECK_ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
+                    serviceResult = parseJavascript(jsResult);
+                } else {
+                    serviceResult = ServiceResult.newOkResult();
+                }
+            } else {
+                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
+            }
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        }
+        catch (Exception ex) {
+            LOGGER.error("Exception during doubleRecordCheck", ex);
+            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
+            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+        }
+    }
+
     public boolean isServiceReady(GlobalActionState globalActionState) {
         LOGGER.entry();
         boolean res = true;
@@ -338,5 +435,54 @@ public class UpdateServiceCore {
             throwable = throwable.getCause();
         }
         return throwable;
+    }
+
+    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
+        LOGGER.entry(recordId, agencyId);
+        MarcRecord result = null;
+        try {
+            Record record = rawRepo.fetchRecord(recordId, agencyId);
+            return result = RecordContentTransformer.decodeRecord(record.getContent());
+        } finally {
+            LOGGER.exit(result);
+        }
+    }
+
+    public ServiceResult parseJavascript(Object o) throws IOException {
+        ServiceResult result;
+        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = JsonMapper.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
+        if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
+            result = ServiceResult.newOkResult();
+        } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {
+            result = new ServiceResult();
+            for (DoubleRecordFrontendDTO doubleRecordFrontendDTO : doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs()) {
+                result.addServiceResult(ServiceResult.newDoubleRecordErrorResult(UpdateStatusEnumDTO.FAILED, doubleRecordFrontendDTO));
+            }
+            result.setDoubleRecordKey(updateStore.getNewDoubleRecordKey());
+        } else {
+            String msg = "Unknown error";
+            if (doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs() != null && !doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().isEmpty()) {
+                msg = doubleRecordFrontendStatusDTO.getDoubleRecordFrontendDTOs().get(0).getMessage();
+            }
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
+        }
+        return result;
+    }
+
+    private MarcRecord getRecord(RecordDataDTO recordDataDTO) {
+        MarcRecord record = null;
+        if (recordDataDTO != null) {
+            List<Object> list = recordDataDTO.getContent();
+            for (Object o : list) {
+                if (o instanceof Node) {
+                    record = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                    break;
+                } else if (o instanceof String && !((String) o).trim().isEmpty()) {
+                    record = MarcConverter.convertFromMarcXChange((String) o);
+                    break;
+                }
+            }
+        }
+        return record;
     }
 }

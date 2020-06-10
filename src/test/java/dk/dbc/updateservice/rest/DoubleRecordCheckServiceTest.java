@@ -9,13 +9,16 @@ import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.service.api.UpdateRecordResult;
+import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.ws.UpdateResponseWriter;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -24,11 +27,17 @@ import static org.mockito.Mockito.when;
 
 public class DoubleRecordCheckServiceTest {
 
-    private final DoubleRecordCheckService service = new DoubleRecordCheckService();
+    private UpdateServiceCore updateServiceCore;
+    private final DoubleRecordCheckService doubleRecordCheckService = new DoubleRecordCheckService();
 
+    @Rule
+    public final EnvironmentVariables environmentVariables
+            = new EnvironmentVariables();
     @Before
     public void init() {
-        service.updateStore = mock(UpdateStore.class);
+        environmentVariables.set("JAVASCRIPT_BASEDIR", ".");
+        updateServiceCore = new UpdateServiceCore();
+        updateServiceCore.updateStore = mock(UpdateStore.class);
     }
 
     @Test
@@ -45,7 +54,7 @@ public class DoubleRecordCheckServiceTest {
                 "<updateStatus>ok</updateStatus>" +
                 "</updateRecordResult>";
 
-        final ServiceResult actualServiceResult = service.parseJavascript(json);
+        final ServiceResult actualServiceResult = updateServiceCore.parseJavascript(json);
 
         assertThat(actualServiceResult, is(expectedServiceResult));
 
@@ -55,7 +64,7 @@ public class DoubleRecordCheckServiceTest {
         updateResponseWriter.setServiceResult(actualServiceResult);
         updateRecordResult = updateResponseWriter.getResponse();
 
-        assertThat(service.marshal(updateRecordResult), is(expectedXML));
+        assertThat(doubleRecordCheckService.marshal(updateRecordResult), is(expectedXML));
     }
 
     @Test
@@ -70,7 +79,7 @@ public class DoubleRecordCheckServiceTest {
                 "  ]\n" +
                 "}";
 
-        when(service.updateStore.getNewDoubleRecordKey()).thenReturn("abc123");
+        when(updateServiceCore.updateStore.getNewDoubleRecordKey()).thenReturn("abc123");
 
         final ServiceResult expectedServiceResult = new ServiceResult();
         expectedServiceResult.setStatus(UpdateStatusEnumDTO.FAILED);
@@ -93,7 +102,7 @@ public class DoubleRecordCheckServiceTest {
                     "</doubleRecordEntries>" +
                 "</updateRecordResult>";
 
-        final ServiceResult actualServiceResult = service.parseJavascript(json);
+        final ServiceResult actualServiceResult = updateServiceCore.parseJavascript(json);
 
         assertThat(actualServiceResult, is(expectedServiceResult));
 
@@ -103,7 +112,7 @@ public class DoubleRecordCheckServiceTest {
         updateResponseWriter.setServiceResult(actualServiceResult);
         updateRecordResult = updateResponseWriter.getResponse();
 
-        assertThat(service.marshal(updateRecordResult), is(expectedXML));
+        assertThat(doubleRecordCheckService.marshal(updateRecordResult), is(expectedXML));
     }
 
 }
