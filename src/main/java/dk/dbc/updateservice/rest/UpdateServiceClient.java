@@ -10,9 +10,11 @@ import dk.dbc.httpclient.HttpClient;
 import dk.dbc.httpclient.HttpPost;
 import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.jsonb.JSONBContext;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
+import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.client.ClientConfig;
@@ -24,6 +26,7 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class UpdateServiceClient {
@@ -56,64 +59,39 @@ public class UpdateServiceClient {
     }
 
     private UpdateRecordResponseDTO callUpdate() {
+        final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+
+        final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setGroupId("010100");
+        authenticationDTO.setPassword("");
+        authenticationDTO.setUserId("");
+
+        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
+        updateServiceRequestDTO.setSchemaName("dbcautoritet");
+        updateServiceRequestDTO.setTrackingId("update-warmup");
+
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1");
         bibliographicRecordDTO.setRecordPacking("xml");
 
-        final String recordString = "<record xmlns=\"info:lc/xmlns/marcxchange-v1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
-                "                <leader>00000n    2200000   4500</leader>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
-                "                    <subfield code=\"a\">44304937</subfield>" +
-                "                    <subfield code=\"b\">870970</subfield>" +
-                "                    <subfield code=\"c\">20170607113521</subfield>" +
-                "                    <subfield code=\"d\">20090618</subfield>" +
-                "                    <subfield code=\"f\">a</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"002\">" +
-                "                    <subfield code=\"b\">725900</subfield>" +
-                "                    <subfield code=\"c\">92686132</subfield>" +
-                "                    <subfield code=\"x\">71010092686132</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
-                "                    <subfield code=\"r\">c</subfield>" +
-                "                    <subfield code=\"a\">h</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"008\">" +
-                "                    <subfield code=\"b\">us</subfield>" +
-                "                    <subfield code=\"d\">1</subfield>" +
-                "                    <subfield code=\"l\">eng</subfield>" +
-                "                    <subfield code=\"v\">0</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"009\">" +
-                "                    <subfield code=\"a\">a</subfield>" +
-                "                    <subfield code=\"g\">xx</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "                    <subfield code=\"a\">Bleach</subfield>" +
-                "                    <subfield code=\"e\">story and art by Tite Kubo</subfield>" +
-                "                    <subfield code=\"e\">English adaptation Lance Caselman</subfield>" +
-                "                    <subfield code=\"f\">translation Joe Yamazaki</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"260\">" +
-                "                    <subfield code=\"a\">San Francisco, Calif.</subfield>" +
-                "                    <subfield code=\"b\">VIZ Media</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"300\">" +
-                "                    <subfield code=\"a\">bind</subfield>" +
-                "                    <subfield code=\"b\">alle ill.</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"652\">" +
-                "                    <subfield code=\"m\">83</subfield>" +
-                "                </datafield>" +
-                "                <datafield ind1=\"0\" ind2=\"0\" tag=\"996\">" +
-                "                    <subfield code=\"a\">725900</subfield>" +
-                "                </datafield>" +
-                "            </record>";
-
         final RecordDataDTO recordDataDTO = new RecordDataDTO();
-        recordDataDTO.setContent(Collections.singletonList(recordString));
+        final List<Object> content = Collections.singletonList("<record xmlns=\"info:lc/xmlns/marcxchange-v1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
+                "<leader>00000n    2200000   4500</leader>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"001\"><subfield code=\"a\">44304937</subfield><subfield code=\"b\">870970</subfield><subfield code=\"c\">20170607113521</subfield><subfield code=\"d\">20090618</subfield><subfield code=\"f\">a</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"002\"><subfield code=\"b\">725900</subfield><subfield code=\"c\">92686132</subfield><subfield code=\"x\">71010092686132</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"004\"><subfield code=\"r\">c</subfield><subfield code=\"a\">h</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"008\"><subfield code=\"b\">us</subfield><subfield code=\"d\">1</subfield><subfield code=\"l\">eng</subfield><subfield code=\"v\">0</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"009\"><subfield code=\"a\">a</subfield><subfield code=\"g\">xx</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"245\"><subfield code=\"a\">Bleach</subfield><subfield code=\"e\">story and art by Tite Kubo</subfield><subfield code=\"e\">English adaptation Lance Caselman</subfield><subfield code=\"f\">translation Joe Yamazaki</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"260\"><subfield code=\"a\">San Francisco, Calif.</subfield><subfield code=\"b\">VIZ Media</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"300\"><subfield code=\"a\">bind</subfield><subfield code=\"b\">alle ill.</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"652\"><subfield code=\"m\">83</subfield></datafield>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"996\"><subfield code=\"a\">725900</subfield></datafield>" +
+                "</record>");
 
+        recordDataDTO.setContent(content);
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
+        updateServiceRequestDTO.setBibliographicRecordDTO(bibliographicRecordDTO);
 
         final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, RETRY_POLICY);
@@ -121,7 +99,7 @@ public class UpdateServiceClient {
         try {
             final HttpPost post = new HttpPost(failSafeHttpClient)
                     .withBaseUrl(BASE_URL)
-                    .withData(jsonbContext.marshall(bibliographicRecordDTO), "application/json")
+                    .withData(jsonbContext.marshall(updateServiceRequestDTO), "application/json")
                     .withHeader("Accept", "application/json")
                     .withPathElements(path.build());
 
