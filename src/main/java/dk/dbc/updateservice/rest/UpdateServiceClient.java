@@ -12,6 +12,8 @@ import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.OptionEnumDTO;
+import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
@@ -62,13 +64,13 @@ public class UpdateServiceClient {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
 
         final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
-        authenticationDTO.setGroupId("010100");
+        authenticationDTO.setGroupId("725900");
         authenticationDTO.setPassword("");
         authenticationDTO.setUserId("");
 
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
-        updateServiceRequestDTO.setSchemaName("dbcautoritet");
-        updateServiceRequestDTO.setTrackingId("update-warmup");
+        updateServiceRequestDTO.setSchemaName("boghoved");
+        updateServiceRequestDTO.setTrackingId("k8s-warm-up");
 
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1");
@@ -92,6 +94,10 @@ public class UpdateServiceClient {
         recordDataDTO.setContent(content);
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
         updateServiceRequestDTO.setBibliographicRecordDTO(bibliographicRecordDTO);
+
+        final OptionsDTO optionsDTO = new OptionsDTO();
+        optionsDTO.setOption(Collections.singletonList(OptionEnumDTO.VALIDATE_ONLY));
+        updateServiceRequestDTO.setOptionsDTO(optionsDTO);
 
         final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
         final FailSafeHttpClient failSafeHttpClient = FailSafeHttpClient.create(client, RETRY_POLICY);
