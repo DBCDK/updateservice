@@ -26,13 +26,15 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.WebServiceContext;
+import java.io.StringReader;
 import java.time.Instant;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -272,11 +274,11 @@ public class GlobalActionState {
             doubleRecordPossible = false;
 
             if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
-                Boolean markedForDeletion = marcRecordReader.markedForDeletion();
-                Boolean isDBCMode = getLibraryGroup().isDBC();
-                Boolean recordExists = recordExists();
+                boolean markedForDeletion = marcRecordReader.markedForDeletion();
+                boolean isDBCMode = getLibraryGroup().isDBC();
+                boolean recordExists = recordExists();
                 int agencyId = marcRecordReader.getAgencyIdAsInt();
-                Boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
+                boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
                 doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
@@ -332,10 +334,9 @@ public class GlobalActionState {
                         if (o instanceof Node) {
                             marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
                             break;
-                        }
-                        else if (o instanceof String) {
+                        } else if (o instanceof String) {
                             String marcString = (String) o;
-                            if (! "".equals(marcString.trim())) {
+                            if (!"".equals(marcString.trim())) {
                                 marcRecord = MarcConverter.convertFromMarcXChange(marcString);
                                 break;
                             }
@@ -419,6 +420,12 @@ public class GlobalActionState {
                         if (o instanceof Node) {
                             bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
                             break;
+                        } else if (o instanceof String) {
+                            String extraRecordDataString = (String) o;
+                            if (!"".equals(extraRecordDataString.trim())) {
+                                bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(extraRecordDataString)));
+                                break;
+                            }
                         }
                     }
                 }
