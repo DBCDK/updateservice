@@ -126,12 +126,9 @@ public class NoteAndSubjectExtensionsHandler {
             new MarcRecordWriter(result).sort();
 
             return result;
-        } finally
-
-        {
+        } finally {
             logger.exit();
         }
-
     }
 
     boolean canChangeClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
@@ -171,23 +168,38 @@ public class NoteAndSubjectExtensionsHandler {
      * @return Boolean True if the record has a field that matches field
      */
     Boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord record) {
-        MarcRecord clone = new MarcRecord(record);
-        MarcRecordReader reader = new MarcRecordReader(clone);
-        MarcRecordWriter writer = new MarcRecordWriter(clone);
-        MarcFieldReader fieldReader = new MarcFieldReader(field);
+        final MarcRecord cloneMarcRecord = new MarcRecord(record);
+        final MarcRecordReader cloneMarcRecordReader = new MarcRecordReader(cloneMarcRecord);
+        final MarcRecordWriter cloneMarcRecordWriter = new MarcRecordWriter(cloneMarcRecord);
+        final MarcFieldReader fieldReader = new MarcFieldReader(field);
 
         if (field.getName().equals("001")) {
             if (fieldReader.hasSubfield("c")) {
-                writer.addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
+                cloneMarcRecordWriter.addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
             }
 
             if (fieldReader.hasSubfield("d")) {
-                writer.addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
+                cloneMarcRecordWriter.addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
             }
         }
 
-        for (MarcField cf : reader.getFieldAll(field.getName())) {
-            if (cf.getName().equals(field.getName()) && cf.equals(field)) {
+        // Handle field which has subfields from expanded authority records which is not allowed in the template
+        if (Arrays.asList("900", "910", "945", "952").contains(field.getName())) {
+            for (MarcField cloneField : cloneMarcRecordReader.getFieldAll(field.getName())) {
+                final MarcFieldWriter cloneFieldWriter = new MarcFieldWriter(cloneField);
+
+                for (String subfieldName : Arrays.asList("w", "x", "z")) {
+                    if (fieldReader.hasSubfield(subfieldName)) {
+                        cloneFieldWriter.addOrReplaceSubfield(subfieldName, fieldReader.getValue(subfieldName));
+                    } else {
+                        cloneFieldWriter.removeSubfield(subfieldName);
+                    }
+                }
+            }
+        }
+
+        for (MarcField cf : cloneMarcRecordReader.getFieldAll(field.getName())) {
+            if (cf.equals(field)) {
                 return false;
             }
         }
@@ -331,12 +343,14 @@ public class NoteAndSubjectExtensionsHandler {
                 extendableFieldsRx += "|";
             }
             extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
+            // Check if all fields in the incoming record are in the existing record
             for (MarcField field : record.getFields()) {
                 if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, curRecord)) {
                     String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                     result.add(createMessageDTO(message));
                 }
             }
+            // Check if all fields in the existing record are in the incoming record
             for (MarcField field : curRecord.getFields()) {
                 if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, record)) {
                     String fieldName = field.getName();
@@ -348,7 +362,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
             return result;
         } finally {
-            logger.trace("Exit - NoteAndSubjectExtensionsHandler.authenticateExtensions(): ", result);
+            logger.trace("Exit - NoteAndSubjectExtensionsHandler.authenticateExtensions(): {}", result);
         }
     }
 

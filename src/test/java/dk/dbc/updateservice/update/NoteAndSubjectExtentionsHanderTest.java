@@ -304,6 +304,60 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
+    public void  testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
+
+        final MarcField field = new MarcField("900", "00");
+        field.getSubfields().add(new MarcSubField("a", "Møllgaard"));
+        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
+        field.getSubfields().add(new MarcSubField("x", "se"));
+        field.getSubfields().add(new MarcSubField("w", "Møllgaard, Peter (f. 1964-02-23)"));
+        field.getSubfields().add(new MarcSubField("z", "700/1"));
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+    }
+
+    @Test
+    public void  testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
+
+        final MarcField field = new MarcField("900", "00");
+        field.getSubfields().add(new MarcSubField("a", "Kastberg"));
+        field.getSubfields().add(new MarcSubField("h", "Claus"));
+        field.getSubfields().add(new MarcSubField("x", "se også under det senere navn"));
+        field.getSubfields().add(new MarcSubField("w", "Kastberg Nielsen, Claus"));
+        field.getSubfields().add(new MarcSubField("z", "700/2"));
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+    }
+
+    @Test
+    public void  testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
+
+        final MarcField field = new MarcField("900", "00");
+        field.getSubfields().add(new MarcSubField("a", "Møllgaard"));
+        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+    }
+
+    @Test
+    public void  testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
+
+        final MarcField field = new MarcField("900", "00");
+        field.getSubfields().add(new MarcSubField("a", "Møllegaard")); // Added 'e'
+        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
+    }
+
+    @Test
     public void testrecordDataForRawRepo_recordNotExists() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);

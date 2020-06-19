@@ -71,6 +71,7 @@ public class AssertActionsUtil {
     public static final String MATVURD_4 = "actions/matvurd4.marc";
     public static final String MATVURD_5 = "actions/matvurd5.marc";
     public static final String MATVURD_6 = "actions/matvurd6.marc";
+    public static final String EXPANDED_VOLUME = "actions/expanded-volume.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
         InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
