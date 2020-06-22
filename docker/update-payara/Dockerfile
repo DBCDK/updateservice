@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/payara5-full:java11-6
+FROM docker.dbc.dk/payara5-full:latest
 
 LABEL RAWREPO_DB_URL="Full connection string for the rawrepo database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 LABEL HOLDINGS_ITEMS_DB_URL="Full connection string for the holdings items database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
