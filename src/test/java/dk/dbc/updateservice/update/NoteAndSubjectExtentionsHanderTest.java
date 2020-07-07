@@ -14,8 +14,6 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
-import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.actions.UpdateTestUtils;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,12 +32,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 public class NoteAndSubjectExtentionsHanderTest {
-    private GlobalActionState state;
 
     @Before
     public void before() throws IOException {
-        state = new UpdateTestUtils().getGlobalActionStateMockObject();
-
         MockitoAnnotations.initMocks(this);
     }
 
@@ -121,7 +116,6 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(false));
     }
-
 
     @Test
     public void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
