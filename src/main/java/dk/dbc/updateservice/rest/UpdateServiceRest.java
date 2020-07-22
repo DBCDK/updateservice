@@ -2,6 +2,7 @@ package dk.dbc.updateservice.rest;
 
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
@@ -11,6 +12,14 @@ import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -47,6 +56,22 @@ public class UpdateServiceRest {
 
     @Context
     private HttpServletRequest request;
+
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata updateRecordCounterMetaData = Metadata.builder()
+            .withName("update_updaterecord_requests_counter")
+            .withDescription("Number of requests to updaterecord")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build();
+
+    static final Metadata updateRecordDurationMetaData = Metadata.builder()
+            .withName("update_updaterecord_requests_timer")
+            .withDescription("Duration of updaterecord in milliseconds")
+            .withType(MetricType.TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
 
     @PostConstruct
     protected void init() {
@@ -95,8 +120,23 @@ public class UpdateServiceRest {
             final ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } finally {
+            final String validateOnly = updateRecordRequest.getOptionsDTO() != null &&
+                    updateRecordRequest.getOptionsDTO().getOption().contains(OptionEnumDTO.VALIDATE_ONLY)?"yes":"no";
             watch.stop(UpdateServiceCore.UPDATERECORD_STOPWATCH);
             LOGGER.info("updateRecord REST returns: {}", updateRecordResponseDTO);
+
+            metricRegistry.counter(updateRecordCounterMetaData,
+                    new Tag("authAgency", updateRecordRequest.getAuthenticationDTO().getGroupId()),
+                    new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                    new Tag("validateOnly", validateOnly))
+                    .inc();
+
+            metricRegistry.timer(updateRecordDurationMetaData,
+                    new Tag("authAgency", updateRecordRequest.getAuthenticationDTO().getGroupId()),
+                    new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                    new Tag("validateOnly", validateOnly))
+                    .update(watch.getElapsedTime(), TimeUnit.MILLISECONDS);
+
             LOGGER.exit();
             MDC.clear();
         }
