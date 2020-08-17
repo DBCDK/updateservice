@@ -70,7 +70,7 @@ public class UpdateServiceRest {
     static final Metadata updateRecordDurationMetaData = Metadata.builder()
             .withName("update_updaterecord_requests_timer")
             .withDescription("Duration of updaterecord in milliseconds")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
     @PostConstruct
