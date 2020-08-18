@@ -25,6 +25,7 @@ import dk.dbc.updateservice.ws.marshall.GetSchemasRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordResultMarshaller;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -89,7 +90,7 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
     static final Metadata updateRecordDurationMetaData = Metadata.builder()
             .withName("update_soap_updaterecord_requests_timer")
             .withDescription("Duration of soap version of updaterecord in milliseconds")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
 
@@ -139,11 +140,11 @@ public class UpdateServiceEndpoint implements CatalogingUpdatePortType {
                     new Tag("validateOnly", validateOnly))
                     .inc();
 
-            metricRegistry.timer(updateRecordDurationMetaData,
+            metricRegistry.simpleTimer(updateRecordDurationMetaData,
                     new Tag("authAgency", updateServiceRequestDTO.getAuthenticationDTO().getGroupId()),
                     new Tag("schemaName", updateServiceRequestDTO.getSchemaName()),
                     new Tag("validateOnly", validateOnly))
-                    .update(watch.getElapsedTime(), TimeUnit.MILLISECONDS);
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
 
             return updateRecordResult;
         } catch (Throwable e) {
