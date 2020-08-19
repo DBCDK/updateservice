@@ -12,6 +12,7 @@ import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -70,7 +71,7 @@ public class UpdateServiceRest {
     static final Metadata updateRecordDurationMetaData = Metadata.builder()
             .withName("update_updaterecord_requests_timer")
             .withDescription("Duration of updaterecord in milliseconds")
-            .withType(MetricType.TIMER)
+            .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
     @PostConstruct
@@ -131,11 +132,11 @@ public class UpdateServiceRest {
                     new Tag("validateOnly", validateOnly))
                     .inc();
 
-            metricRegistry.timer(updateRecordDurationMetaData,
+            metricRegistry.simpleTimer(updateRecordDurationMetaData,
                     new Tag("authAgency", updateRecordRequest.getAuthenticationDTO().getGroupId()),
                     new Tag("schemaName", updateRecordRequest.getSchemaName()),
                     new Tag("validateOnly", validateOnly))
-                    .update(watch.getElapsedTime(), TimeUnit.MILLISECONDS);
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
 
             LOGGER.exit();
             MDC.clear();
