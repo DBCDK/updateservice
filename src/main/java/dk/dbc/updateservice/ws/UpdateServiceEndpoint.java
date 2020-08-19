@@ -26,7 +26,6 @@ import dk.dbc.updateservice.ws.marshall.GetSchemasResultMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordRequestMarshaller;
 import dk.dbc.updateservice.ws.marshall.UpdateRecordResultMarshaller;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;

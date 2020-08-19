@@ -13,7 +13,6 @@ import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
