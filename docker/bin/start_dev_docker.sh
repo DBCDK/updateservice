@@ -115,20 +115,40 @@ echo "updateservice.db.url = updateservice:thePassword@${HOST_IP}:${UPDATESERVIC
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
-echo "request.headers.x.forwarded.for = ${HOST_IP}" >> ${HOME}/.ocb-tools/testrun.properties
+#Set x.forwarded.for to the ip of devel8. This way it is possible to run the test behind the vpn
+echo "request.headers.x.forwarded.for = 172.17.20.165" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "rawrepo.provider.name.dbc = dataio-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph = fbs-ph-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.ocb-tools/testrun.properties
 
+export DEV_OPENAGENCY_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+export DEV_RAWREPO_DB_URL="rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo"
+export DEV_HOLDINGS_ITEMS_DB_URL="holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems"
+
+#opencat-business-service
+docker-compose up -d rawrepo-record-service
+sleep 3
+
+RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
+export RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
+echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
+echo "rawrepo.record.service.url = http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
+
+export DEV_RAWREPO_RECORD_SERVICE_URL="http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}"
+export DEV_SOLR_URL="http://solrserver:${SOLR_PORT_NR}/solr/raapost-index"
+export DEV_SOLR_BASIS_URL="http://solrbasis:${SOLR_PORT_NR}/solr/basis-index"
+
+docker-compose up -d opencat-business-service
+sleep 3
+OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
+export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
+echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
+echo "opencat.business.service.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
+
+
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-
-# TODO DIE
-# Please look in start-local-docker.sh for further information
-echo "roublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "doublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "classificationcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-# TODO DIE END
