@@ -22,11 +22,14 @@ function removeImages() {
 
 function startContainers () {
   echo "systest ---> Starting containers"
-  docker-compose up -d update-systemtests-rawrepo-db       || die "docker-compose up -d update-systemtests-rawrepo-db"
-  docker-compose up -d update-systemtests-holdingsitems-db || die "docker-compose up -d update-systemtests-holdingsitems-db"
-  docker-compose up -d update-systemtests-update-db        || die "docker-compose up -d update-systemtests-update-db"
-  docker-compose up -d update-systemtests-fake-smtp        || die "docker-compose up -d update-systemtests-fake-smtp"
-  docker-compose up -d update-systemtests-updateservice    || die "docker-compose up -d update-systemtests-updateservice"
+  docker-compose up -d update-systemtests-rawrepo-db                  || die "docker-compose up -d update-systemtests-rawrepo-db"
+  docker-compose up -d update-systemtests-holdingsitems-db            || die "docker-compose up -d update-systemtests-holdingsitems-db"
+  docker-compose up -d update-systemtests-update-db                   || die "docker-compose up -d update-systemtests-update-db"
+  docker-compose up -d update-systemtests-fake-smtp                   || die "docker-compose up -d update-systemtests-fake-smtp"
+  docker-compose up -d update-systemtests-updateservice               || die "docker-compose up -d update-systemtests-updateservice"
+  docker-compose up -d update-systemtests-updateservice-facade        || die "docker-compose up -d update-systemtests-updateservice-facade"
+  docker-compose up -d update-systemtests-rawrepo-record-service      || die "docker-compose up -d update-systemtests-rawrepo-record-service"
+  docker-compose up -d update-systemtests-opencat-business-service    || die "docker-compose up -d update-systemtests-opencat-business-service"
 }
 
 function reTagAndRemove () {
