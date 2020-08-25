@@ -17,6 +17,8 @@ export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 RAWREPO_VERSION=1.13-snapshot
 RAWREPO_DIT_TAG=DIT-5016
 HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
+OPENCAT_BUSINESS_SERVICE_TAG=DIT-459
+RAWREPO_RECORD_SERVICE_TAG=DIT-253
 
 cd ${IDEA_ROOT}/docker
 
@@ -70,6 +72,8 @@ echo "docker ps : $?"
 docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
+docker rmi docker-io.dbc.dk/opencat-business:${USER}
+docker rmi docker-io.dbc.dk/rawrepo-record-service:${USER}
 if [ "$USE_LOCAL_PAYARA" = "N" ]
 then
     docker rmi -f docker-i.dbc.dk/update-payara:${USER}
@@ -148,6 +152,10 @@ export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .
 echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
 echo "opencat.business.service.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
 
+docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${USER}
+docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${USER}
+docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties

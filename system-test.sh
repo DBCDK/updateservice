@@ -15,9 +15,12 @@ function collect_logs () {
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi 'docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:'${COMPOSE_PROJECT_NAME}
-  docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.4:'${COMPOSE_PROJECT_NAME}
-  docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
+  docker rmi docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.4:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-i.dbc.dk/fakesmtp:latest
 }
 
 function startContainers () {
@@ -36,10 +39,19 @@ function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
   RAWREPO_DB_VERSION=1.12
   HOLDINGS_DB_VERION=1.1.4
+  UPDATESERVICE_FACADE_TAG=master-29
+  OPENCAT_BUSINESS_SERVICE_TAG=DIT-459
+  RAWREPO_RECORD_SERVICE_TAG=DIT-253
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
+  docker tag docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
+  docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+  docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 }
 
 function setupLogAndLogdir () {
