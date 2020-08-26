@@ -69,7 +69,7 @@ services:
       - "18148:4848"
 
   update-systemtests-updateservice-facade:
-    image: docker-io.dbc.dk/updateservice-facade:master-29
+    image: docker-io.dbc.dk/updateservice-facade:master-31
     environment:
       - UPDATE_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
       - BUILD_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
