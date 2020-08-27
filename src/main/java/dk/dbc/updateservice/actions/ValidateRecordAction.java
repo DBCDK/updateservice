@@ -7,16 +7,15 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
-import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
@@ -81,10 +80,8 @@ public class ValidateRecordAction extends AbstractAction {
         try {
             logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             logger.info("state.getLibraryGroup().toString()");
-            Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings);
-            logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
+            final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.readRecord());
 
-            List<MessageEntryDTO> errors = JsonMapper.decodeArray(jsResult.toString(), MessageEntryDTO.class);
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
@@ -101,7 +98,7 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (IOException | ScripterException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
