@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -81,6 +82,7 @@ public class UpdateTestUtils {
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
         globalActionState.setScripter(mock(Scripter.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
+        globalActionState.setOpencatBusiness(mock(OpencatBusinessConnector.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));
         globalActionState.setOpenAgencyService(mock(OpenAgencyService.class));
