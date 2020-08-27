@@ -9,6 +9,7 @@ import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
@@ -50,6 +51,7 @@ public class GlobalActionState {
     private Authenticator authenticator = null;
     private Scripter scripter = null;
     private RawRepo rawRepo = null;
+    private OpencatBusinessConnector opencatBusiness = null;
     private HoldingsItems holdingsItems = null;
     private OpenAgencyService openAgencyService = null;
     private SolrFBS solrService = null;
@@ -156,6 +158,14 @@ public class GlobalActionState {
 
     public void setRawRepo(RawRepo rawRepo) {
         this.rawRepo = rawRepo;
+    }
+
+    public OpencatBusinessConnector getOpencatBusiness() {
+        return opencatBusiness;
+    }
+
+    public void setOpencatBusiness(OpencatBusinessConnector opencatBusiness) {
+        this.opencatBusiness = opencatBusiness;
     }
 
     public HoldingsItems getHoldingsItems() {
@@ -491,9 +501,11 @@ public class GlobalActionState {
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
         result = 31 * result + (scripter != null ? scripter.hashCode() : 0);
         result = 31 * result + (rawRepo != null ? rawRepo.hashCode() : 0);
+        result = 31 * result + (opencatBusiness != null ? opencatBusiness.hashCode() : 0);
         result = 31 * result + (holdingsItems != null ? holdingsItems.hashCode() : 0);
         result = 31 * result + (openAgencyService != null ? openAgencyService.hashCode() : 0);
         result = 31 * result + (solrService != null ? solrService.hashCode() : 0);
+        result = 31 * result + (solrBasis != null ? solrBasis.hashCode() : 0);
         result = 31 * result + (validator != null ? validator.hashCode() : 0);
         result = 31 * result + (updateStore != null ? updateStore.hashCode() : 0);
         result = 31 * result + (libraryRecordsHandler != null ? libraryRecordsHandler.hashCode() : 0);
@@ -513,9 +525,11 @@ public class GlobalActionState {
                 ", authenticator=" + authenticator +
                 ", scripter=" + scripter +
                 ", rawRepo=" + rawRepo +
+                ", opencatBusinessConnector=" + opencatBusiness +
                 ", holdingsItems=" + holdingsItems +
                 ", openAgencyService=" + openAgencyService +
                 ", solrService=" + solrService +
+                ", solrBasis=" + solrBasis +
                 ", validator=" + validator +
                 ", updateStore=" + updateStore +
                 ", libraryRecordsHandler=" + libraryRecordsHandler +

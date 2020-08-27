@@ -10,6 +10,7 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
@@ -82,6 +83,9 @@ public class UpdateServiceCore {
     private RawRepo rawRepo;
 
     @EJB
+    private OpencatBusinessConnector opencatBusiness;
+
+    @EJB
     private HoldingsItems holdingsItems;
 
     @EJB
@@ -122,6 +126,7 @@ public class UpdateServiceCore {
         newGlobalActionStateObject.setAuthenticator(authenticator);
         newGlobalActionStateObject.setScripter(scripter);
         newGlobalActionStateObject.setRawRepo(rawRepo);
+        newGlobalActionStateObject.setOpencatBusiness(opencatBusiness);
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
         newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
         newGlobalActionStateObject.setSolrService(solrService);
