@@ -39,7 +39,7 @@ function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
   RAWREPO_DB_VERSION=1.12
   HOLDINGS_DB_VERION=1.1.4
-  UPDATESERVICE_FACADE_TAG=master-29
+  UPDATESERVICE_FACADE_TAG=master-31
   OPENCAT_BUSINESS_SERVICE_TAG=DIT-459
   RAWREPO_RECORD_SERVICE_TAG=DIT-253
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
