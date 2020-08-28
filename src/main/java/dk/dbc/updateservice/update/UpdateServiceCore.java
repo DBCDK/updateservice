@@ -56,6 +56,7 @@ import org.slf4j.ext.XLoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.transform.dom.DOMSource;
@@ -78,11 +79,10 @@ public class UpdateServiceCore {
     @EJB
     private ScripterPool scripterPool;
 
-
     @EJB
     private RawRepo rawRepo;
 
-    @EJB
+    @Inject
     private OpencatBusinessConnector opencatBusiness;
 
     @EJB
