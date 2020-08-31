@@ -6,8 +6,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.opencat.connector.OpencatBusinessConnector;
-import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -23,7 +21,6 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -76,7 +73,7 @@ public class ValidateRecordActionTest {
     @Test
     public void testPerformAction_Ok() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(new ArrayList<>());
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn("[]");
         assertThat(validateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -104,7 +101,8 @@ public class ValidateRecordActionTest {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
+
         ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
@@ -134,7 +132,7 @@ public class ValidateRecordActionTest {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
 
         ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
@@ -164,13 +162,45 @@ public class ValidateRecordActionTest {
     public void testPerformAction_JavaScriptException() throws Exception {
         ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("error");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenThrow(ex);
+        ScripterException ex = new ScripterException("error");
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenThrow(ex);
 
         String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
 
+    /**
+     * Test ValidateRecordAction.performAction() for validation of a record with an
+     * invalid datatype returned by the JavaScript environment.
+     * <p>
+     * <dl>
+     * <dt>Given</dt>
+     * <dd>
+     * A record and a JavaScript environment with settings.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Call JavaScript to validate the record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Return ServiceResult with status FAILED_VALIDATION_INTERNAL_ERROR.
+     * </dd>
+     * </dl>
+     */
+    @Test
+    public void testPerformAction_JavaScriptWrongReturnType() throws Exception {
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(27);
+
+        ServiceResult serviceResult = validateRecordAction.performAction();
+        assertThat(serviceResult.getStatus(), equalTo(UpdateStatusEnumDTO.FAILED));
+        assertThat(serviceResult.getEntries(), notNullValue());
+        assertThat(serviceResult.getEntries().size(), is(1));
+        String message = String.format(state.getMessages().getString("internal.validate.record.error"), "");
+        String actualMessage = serviceResult.getServiceErrorList().get(0).getMessage();
+        assertThat(actualMessage, startsWith(message));
+    }
 }
