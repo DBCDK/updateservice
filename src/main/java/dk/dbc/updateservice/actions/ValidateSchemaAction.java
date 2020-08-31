@@ -5,8 +5,9 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -49,22 +50,15 @@ public class ValidateSchemaAction extends AbstractAction {
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
-            Object jsResult = state.getScripter().callMethod("checkTemplate", state.getSchemaName(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getTemplateGroup(), settings);
-            logger.debug("Result from checkTemplate JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof Boolean) {
-                Boolean validateSchemaFound = (Boolean) jsResult;
-                if (validateSchemaFound) {
-                    logger.info("Validating schema '{}' successfully", state.getSchemaName());
-                    return result = ServiceResult.newOkResult();
-                }
-                logger.error("Validating schema '{}' failed", state.getSchemaName());
-                String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getTemplateGroup());
+            if (validateSchemaFound) {
+                logger.info("Validating schema '{}' successfully", state.getSchemaName());
+                return result = ServiceResult.newOkResult();
             }
-            String message = String.format("The JavaScript function %s must return a boolean value.", "checkTemplate");
-            logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), message);
+            logger.error("Validating schema '{}' failed", state.getSchemaName());
+            String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        } catch (ScripterException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException ex) {
             logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
