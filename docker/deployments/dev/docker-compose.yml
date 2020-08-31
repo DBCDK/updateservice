@@ -54,7 +54,7 @@ services:
       - UPDATE_DB_URL=${DEV_UPDATE_DB_URL}
       - SOLR_URL=${DEV_SOLR_URL}
       - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
-      - OPENCAT_BUSINESS_SERVICE_URL=${DEV_OPENCAT_BUSINESS_SERVICE_URL}
+      - OPENCAT_BUSINESS_URL=${DEV_OPENCAT_BUSINESS_URL}
     extra_hosts:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"
