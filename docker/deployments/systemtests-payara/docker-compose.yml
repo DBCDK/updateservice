@@ -61,6 +61,7 @@ services:
       - UPDATE_DB_URL=updateservice:thePassword@update-systemtests-update-db:5432/updateservice
       - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
       - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
+      - OPENCAT_BUSINESS_URL=http://update-systemtests-opencat-business-service:8080
     expose:
       - "8080"
       - "4848"
