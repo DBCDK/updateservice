@@ -10,6 +10,8 @@ function die() {
 function collect_logs () {
   echo "systest ---> Collect log files"
   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice_1 > logs/gf-updateservice.log
+  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice-facade_1 > logs/gf-updateservice-facade.log
+  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-opencat-business-service_1 > logs/gf-opencat-business-service.log
   docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
 }
 
