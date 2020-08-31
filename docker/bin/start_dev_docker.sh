@@ -142,15 +142,15 @@ echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
 echo "rawrepo.record.service.url = http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
 
 export DEV_RAWREPO_RECORD_SERVICE_URL="http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}"
-export DEV_SOLR_URL="http://solrserver:${SOLR_PORT_NR}/solr/raapost-index"
-export DEV_SOLR_BASIS_URL="http://solrbasis:${SOLR_PORT_NR}/solr/basis-index"
+export DEV_SOLR_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/raapost-index"
+export DEV_SOLR_BASIS_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/basis-index"
 
 docker-compose up -d opencat-business-service
 sleep 3
 OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
 export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
 echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
-echo "opencat.business.service.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
+echo "opencat.business.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
 
 docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${USER}
 docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
