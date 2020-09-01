@@ -32,14 +32,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class MetakompasHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
     private static final String indexName = "phrase.vla";
-    private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "g", "p");
+    private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "p");
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
     private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t");
     private static final String commonRecordTemplate =
@@ -183,7 +187,7 @@ public class MetakompasHandler {
             } else {
                 shortValue = subFieldName;
             }
-           fields = enrichmentRecord.getFields();
+            fields = enrichmentRecord.getFields();
             for (MarcField field : fields) {
                 if (field.getName().equals("d09")) {
                     List<MarcSubField> subFields = field.getSubfields();
@@ -192,7 +196,8 @@ public class MetakompasHandler {
                 if (field.getName().equals("x09")) {
                     List<MarcSubField> subFields = field.getSubfields();
                     for (MarcSubField subField : subFields) {
-                        if (subField.getName().equals("p") && subField.getValue().equals(shortValue)) makeEnrich = false;
+                        if (subField.getName().equals("p") && subField.getValue().equals(shortValue))
+                            makeEnrich = false;
                     }
 
                 }
@@ -257,7 +262,8 @@ public class MetakompasHandler {
 
     private static void identifyAction(List<ServiceAction> children, GlobalActionState state, String id, String subFieldName, String subfieldContent, String category, Properties properties, RawRepo rawRepo)
             throws UpdateException, SolrException, UnsupportedEncodingException {
-        if (!(atmosphereSubjectSubFields.contains(subFieldName) || nonAtmosphereSubjectSubFields.contains(subFieldName)) ) return;
+        if (!(atmosphereSubjectSubFields.contains(subFieldName) || nonAtmosphereSubjectSubFields.contains(subFieldName)))
+            return;
         String solrQuery = SolrServiceIndexer.createGetSubjectId(indexName, subfieldContent);
         String subjectId = state.getSolrBasis().getSubjectIdNumber(solrQuery);
         if (subjectId.equals("")) {
@@ -380,9 +386,14 @@ public class MetakompasHandler {
                         }
                     }
 
-                    // 665 *e/*g/*p -> 666 *s
+                    // 665 *e/*p -> 666 *s
                     if (metakompasSubFieldsToCopy.contains(subfield.getName())) {
                         subfieldsToCopy.add(new MarcSubField("s", subfield.getValue()));
+                    }
+
+                    // 665 *g -> 666 *o
+                    if ("g".equals(subfield.getName())) {
+                        subfieldsToCopy.add(new MarcSubField("o", subfield.getValue()));
                     }
                 }
             }
