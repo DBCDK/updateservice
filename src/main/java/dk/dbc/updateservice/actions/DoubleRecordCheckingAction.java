@@ -14,6 +14,8 @@ import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -45,7 +47,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
             state.getOpencatBusiness().checkDoubleRecord(record);
             return result = ServiceResult.newOkResult();
-        } catch (OpencatBusinessConnectorException | JSONBException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
             String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
             logger.error(message, ex);
             return result = ServiceResult.newOkResult();

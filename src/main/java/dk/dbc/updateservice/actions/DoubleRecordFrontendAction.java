@@ -16,6 +16,8 @@ import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -46,7 +48,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
             final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord());
             result = doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
             return result;
-        } catch (OpencatBusinessConnectorException | JSONBException e) {
+        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
             String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
             logger.error(message, e);
             return result = ServiceResult.newOkResult();
