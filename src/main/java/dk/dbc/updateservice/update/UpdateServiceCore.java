@@ -113,7 +113,6 @@ public class UpdateServiceCore {
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
     private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
-    private static final String DOUBLE_RECORD_CHECK_ENTRY_POINT = "checkDoubleRecordFrontend";
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
