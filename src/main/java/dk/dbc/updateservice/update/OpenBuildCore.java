@@ -11,13 +11,14 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.MixIns;
 import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
@@ -31,13 +32,14 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.dom.DOMSource;
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,8 +53,8 @@ public class OpenBuildCore {
     private static final Properties buildProperties = JNDIResources.getProperties();
     private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
-    @EJB
-    private Scripter scripter;
+    @Inject
+    private OpencatBusinessConnector opencatBusinessConnector;
 
     @EJB
     private DocumentFactory documentFactory;
@@ -133,19 +135,15 @@ public class OpenBuildCore {
         }
     }
 
-    private boolean checkValidateSchema(String name) throws ScripterException {
+    private boolean checkValidateSchema(String name) throws JSONBException, OpencatBusinessConnectorException {
         LOGGER.entry(name);
         Boolean result = null;
         try {
-            Object jsResult = scripter.callMethod("checkTemplateBuild", name, buildProperties);
+            result = opencatBusinessConnector.checkTemplateBuild(name);
 
-            LOGGER.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            LOGGER.trace("Result checkTemplateBuild({}): {}", name, result);
 
-            if (jsResult instanceof Boolean) {
-                result = (Boolean) jsResult;
-                return result;
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a boolean value.", "checkTemplate"));
+            return result;
         } finally {
             LOGGER.exit(result);
         }
@@ -180,26 +178,15 @@ public class OpenBuildCore {
         LOGGER.entry(buildSchema, record);
         MarcRecord result = null;
         try {
-            Object jsResult;
-
             try {
                 if (record != null) {
-                    jsResult = scripter.callMethod("buildRecord", buildSchema, jacksonObjectMapper.writeValueAsString(record), buildProperties);
+                    result = opencatBusinessConnector.buildRecord(buildSchema, record);
                 } else {
-                    jsResult = scripter.callMethod("buildRecord", buildSchema, null, buildProperties);
+                    result = opencatBusinessConnector.buildRecord(buildSchema);
                 }
-            } catch (Exception ex) {
+            } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
                 LOGGER.error(ex.getLocalizedMessage());
-                throw new EJBException("Error calling JavaScript environment", ex);
-            }
-            if (jsResult != null) {
-                LOGGER.trace("Result from JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            }
-
-            try {
-                result = jacksonObjectMapper.readValue((String) jsResult, MarcRecord.class);
-            } catch (IOException e) {
-                throw new EJBException("Error while creating MarcRecord from JSON", e);
+                throw new EJBException("Error calling opencatBusinessConnector", ex);
             }
 
             return result;
