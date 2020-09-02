@@ -81,7 +81,7 @@ services:
       - "4848"
 
   update-systemtests-opencat-business-service:
-    image: docker-io.dbc.dk/opencat-business:MS-3080-update-test-setup-8
+    image: docker-io.dbc.dk/opencat-business:MS-3080-update-test-setup-9
     environment:
       - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
