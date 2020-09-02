@@ -40,19 +40,13 @@ import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.Set;
-import java.util.UUID;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
+import org.w3c.dom.Node;
+
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
@@ -61,7 +55,15 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.handler.MessageContext;
-import org.w3c.dom.Node;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.UUID;
+
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
@@ -196,7 +198,7 @@ public class UpdateServiceCore {
         } catch (Throwable ex) {
             LOGGER.catching(ex);
             serviceResult = convertUpdateErrorToResponse(ex);
-            updateRecordResponseDTO =  UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
             return updateRecordResponseDTO;
         } finally {
             try {
@@ -340,8 +342,8 @@ public class UpdateServiceCore {
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    final Object jsResult = scripter.callMethod(DOUBLE_RECORD_CHECK_ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
-                    serviceResult = parseJavascript(jsResult);
+                    final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(record);
+                    serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
                 } else {
                     serviceResult = ServiceResult.newOkResult();
                 }
@@ -349,8 +351,7 @@ public class UpdateServiceCore {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Exception during doubleRecordCheck", ex);
             ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
@@ -400,7 +401,6 @@ public class UpdateServiceCore {
         }
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
-
 
 
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
@@ -453,9 +453,8 @@ public class UpdateServiceCore {
         }
     }
 
-    public ServiceResult parseJavascript(Object o) throws IOException {
+    public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) throws IOException {
         ServiceResult result;
-        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = JsonMapper.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
         if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = ServiceResult.newOkResult();
         } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {

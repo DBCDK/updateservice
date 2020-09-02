@@ -5,7 +5,11 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
@@ -103,9 +107,6 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
-        } catch (ScripterException ex) {
-            logger.error("Update error: " + ex.getMessage(), ex);
-            throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit();
         }
@@ -129,7 +130,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         }
     }
 
-    private MarcRecord createEnrichmentRecord() throws ScripterException, UpdateException {
+    private MarcRecord createEnrichmentRecord() throws UpdateException {
         logger.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
