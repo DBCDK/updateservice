@@ -448,7 +448,7 @@ public class GlobalActionState {
 
     public RecordSorter getRecordSorter() {
         if (this.recordSorter == null) {
-            this.recordSorter = new RecordSorter(getScripter(), getSchemaName());
+            this.recordSorter = new RecordSorter(getOpencatBusiness(), getSchemaName());
         }
 
         return this.recordSorter;
