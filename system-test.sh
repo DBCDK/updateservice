@@ -66,7 +66,7 @@ function setupLogAndLogdir () {
 
 function waitForOk () {
   echo "systest ---> waiting on containers"
-  UPDATE_SERVICE_IMAGE=`docker-compose ps -q update-systemtests-updateservice-facade`
+  UPDATE_SERVICE_IMAGE=`docker-compose ps -q update-systemtests-updateservice`
   UPDATESERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATE_SERVICE_IMAGE} `
   echo -e "systest ---> UPDATESERVICE_PORT_8080 is $UPDATESERVICE_PORT_8080\n"
   echo "systest ---> Wait for glassfish containers"
