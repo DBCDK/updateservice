@@ -81,7 +81,7 @@ services:
       - "4848"
 
   update-systemtests-opencat-business-service:
-    image: docker-io.dbc.dk/opencat-business:DIT-459
+    image: docker-io.dbc.dk/opencat-business:MS-3080-update-test-setup-8
     environment:
       - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
       - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
@@ -90,6 +90,7 @@ services:
       - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
       - INSTANCE_NAME=${USER}_systemtest
       - JAVA_MAX_HEAP_SIZE=2G
+      - JAVASCRIPT_POOL_SIZE=1
     ports:
       - "8080"
       - "8686"
