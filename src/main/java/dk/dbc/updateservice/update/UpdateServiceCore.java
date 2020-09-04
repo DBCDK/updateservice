@@ -41,12 +41,21 @@ import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.ws.JNDIResources;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Counter;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -114,6 +123,21 @@ public class UpdateServiceCore {
     private Properties settings = JNDIResources.getProperties();
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
+
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata getSchemasTimerMetadata = Metadata.builder()
+            .withName("update_getschemas_timer")
+            .withDescription("Duration of getschemas")
+            .withType(MetricType.SIMPLE_TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+    static final Metadata getSchemasErrorCounterMetadata = Metadata.builder()
+            .withName("update_getschemas_error_counter")
+            .withDescription("Number of errors caught in method getSchemas")
+            .withType(MetricType.COUNTER)
+            .withUnit("errors").build();
 
 
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
@@ -220,6 +244,9 @@ public class UpdateServiceCore {
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO = null;
+        final SimpleTimer getSchemasTimer = metricRegistry.simpleTimer(getSchemasTimerMetadata);
+        final Counter getSchemasErrorCounter = metricRegistry.counter(getSchemasErrorCounterMetadata);
+
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
@@ -242,6 +269,7 @@ public class UpdateServiceCore {
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
+            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (ScripterException ex) {
             LOGGER.error("Caught JavaScript exception", ex);
@@ -249,6 +277,7 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
+            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (OpenAgencyException ex) {
             LOGGER.error("Caught OpenAgencyException exception", ex);
@@ -256,6 +285,7 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
+            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (Throwable ex) {
             // TODO: returner ordentlig fejl her
@@ -264,6 +294,7 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
+            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } finally {
             try {
@@ -273,6 +304,7 @@ public class UpdateServiceCore {
             }
             watch.stop(GET_SCHEMAS_WATCHTAG);
             LOGGER.exit();
+            getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
