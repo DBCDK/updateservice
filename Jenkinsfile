@@ -141,6 +141,7 @@ pipeline {
                     sh "./system-test.sh payara"
 
                     junit "docker/deployments/systemtests-payara/logs/ocb-tools/TEST-*.xml"
+                    archiveArtifacts(artifacts: "docker/deployments/systemtests-payara/logs/*.log", onlyIfSuccessful: false, fingerprint: true)
                 }
             }
         }
