@@ -14,10 +14,12 @@ import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
 import java.time.Duration;
 import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.SimpleTimer;
 import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
@@ -60,6 +62,18 @@ public class UpdateServiceRest {
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
+
+    static final Metadata getSchemasTimerMetadata = Metadata.builder()
+            .withName("update_getschemas_timer")
+            .withDescription("Duration of getschemas")
+            .withType(MetricType.SIMPLE_TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+
+    static final Metadata getSchemasErrorCounterMetadata = Metadata.builder()
+            .withName("update_getschemas_error_counter")
+            .withDescription("Number of errors caught in method getSchemas")
+            .withType(MetricType.COUNTER)
+            .withUnit("errors").build();
 
     static final Metadata updateRecordCounterMetaData = Metadata.builder()
             .withName("update_updaterecord_requests_counter")
@@ -163,6 +177,8 @@ public class UpdateServiceRest {
         StopWatch watch = new Log4JStopWatch();
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
         SchemasResponseDTO schemasResponseDTO = null;
+        final SimpleTimer getSchemasTimer = metricRegistry.simpleTimer(getSchemasTimerMetadata);
+        final Counter getSchemasErrorCounter = metricRegistry.counter(getSchemasErrorCounterMetadata);
 
         try {
             LOGGER.info("getSchemas REST received: {}", schemasRequestDTO);
@@ -179,6 +195,7 @@ public class UpdateServiceRest {
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setErrorMessage("Caught unexpected exception");
             schemasResponseDTO.setError(true);
+            getSchemasErrorCounter.inc();
 
             return schemasResponseDTO;
         } finally {
@@ -186,6 +203,7 @@ public class UpdateServiceRest {
             watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
             LOGGER.exit();
             MDC.clear();
+            getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 }

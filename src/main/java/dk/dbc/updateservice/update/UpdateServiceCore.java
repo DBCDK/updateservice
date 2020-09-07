@@ -124,21 +124,6 @@ public class UpdateServiceCore {
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
-    @Inject
-    @RegistryType(type = MetricRegistry.Type.APPLICATION)
-    MetricRegistry metricRegistry;
-
-    static final Metadata getSchemasTimerMetadata = Metadata.builder()
-            .withName("update_getschemas_timer")
-            .withDescription("Duration of getschemas")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
-    static final Metadata getSchemasErrorCounterMetadata = Metadata.builder()
-            .withName("update_getschemas_error_counter")
-            .withDescription("Number of errors caught in method getSchemas")
-            .withType(MetricType.COUNTER)
-            .withUnit("errors").build();
-
 
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
@@ -244,8 +229,6 @@ public class UpdateServiceCore {
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO = null;
-        final SimpleTimer getSchemasTimer = metricRegistry.simpleTimer(getSchemasTimerMetadata);
-        final Counter getSchemasErrorCounter = metricRegistry.counter(getSchemasErrorCounterMetadata);
 
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
@@ -276,7 +259,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
-            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (OpenAgencyException ex) {
             LOGGER.error("Caught OpenAgencyException exception", ex);
@@ -284,7 +266,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
-            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (Throwable ex) {
             // TODO: returner ordentlig fejl her
@@ -293,7 +274,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
             schemasResponseDTO.setError(true);
-            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } finally {
             try {
@@ -303,7 +283,6 @@ public class UpdateServiceCore {
             }
             watch.stop(GET_SCHEMAS_WATCHTAG);
             LOGGER.exit();
-            getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
