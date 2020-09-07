@@ -115,7 +115,8 @@ echo "updateservice.db.url = updateservice:thePassword@${HOST_IP}:${UPDATESERVIC
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
-echo "request.headers.x.forwarded.for = ${HOST_IP}" >> ${HOME}/.ocb-tools/testrun.properties
+#Set x.forwarded.for to the ip of devel8. This way it is possible to run the test behind the vpn
+echo "request.headers.x.forwarded.for = 172.17.20.165" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "rawrepo.provider.name.dbc = dataio-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/testrun.properties
@@ -125,10 +126,3 @@ echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-
-# TODO DIE
-# Please look in start-local-docker.sh for further information
-echo "roublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "doublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "classificationcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-# TODO DIE END

@@ -10,33 +10,39 @@ function die() {
 function collect_logs () {
   echo "systest ---> Collect log files"
   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice_1 > logs/gf-updateservice.log
+  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice-facade_1 > logs/gf-updateservice-facade.log
   docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
 }
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi 'docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:'${COMPOSE_PROJECT_NAME}
-  docker rmi 'docker-os.dbc.dk/holdings-items-postgres-1.1.4:'${COMPOSE_PROJECT_NAME}
-  docker rmi 'docker-i.dbc.dk/fakesmtp:latest'
+  docker rmi docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.4:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-i.dbc.dk/fakesmtp:latest
 }
 
 function startContainers () {
   echo "systest ---> Starting containers"
-  docker-compose up -d update-systemtests-rawrepo-db       || die "docker-compose up -d update-systemtests-rawrepo-db"
-  docker-compose up -d update-systemtests-holdingsitems-db || die "docker-compose up -d update-systemtests-holdingsitems-db"
-  docker-compose up -d update-systemtests-update-db        || die "docker-compose up -d update-systemtests-update-db"
-  docker-compose up -d update-systemtests-fake-smtp        || die "docker-compose up -d update-systemtests-fake-smtp"
-  docker-compose up -d update-systemtests-updateservice    || die "docker-compose up -d update-systemtests-updateservice"
+  docker-compose up -d update-systemtests-rawrepo-db                  || die "docker-compose up -d update-systemtests-rawrepo-db"
+  docker-compose up -d update-systemtests-holdingsitems-db            || die "docker-compose up -d update-systemtests-holdingsitems-db"
+  docker-compose up -d update-systemtests-update-db                   || die "docker-compose up -d update-systemtests-update-db"
+  docker-compose up -d update-systemtests-fake-smtp                   || die "docker-compose up -d update-systemtests-fake-smtp"
+  docker-compose up -d update-systemtests-updateservice               || die "docker-compose up -d update-systemtests-updateservice"
+  docker-compose up -d update-systemtests-updateservice-facade        || die "docker-compose up -d update-systemtests-updateservice-facade"
 }
 
 function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
   RAWREPO_DB_VERSION=1.12
   HOLDINGS_DB_VERION=1.1.4
+  UPDATESERVICE_FACADE_TAG=master-31
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
+  docker tag docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
 }
 
 function setupLogAndLogdir () {

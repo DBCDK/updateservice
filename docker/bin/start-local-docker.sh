@@ -96,6 +96,7 @@ echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
 
 docker-compose stop updateservice
+docker-compose stop updateservice-facade
 docker-compose up -d updateservice
 
 UPDATESERVICE_IMAGE=`docker-compose ps -q updateservice`
@@ -106,16 +107,23 @@ echo -e "UPDATESERVICE_PORT_8686 is ${UPDATESERVICE_PORT_8686}\n"
 UPDATESERVICE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
 echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
 
-sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
+../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start updateservice"
 
-# Config of rest services - please call them <restservice>.url where <restservice> are copied from rest/api/v?/<restservice>
-# same foldername (<restservice>) are expected to be found in the opencat-business/rest directory where testcases for a service is placed
-# TODO DIE
-sed -i -e "/^roublerecordcheck.url/s/^.*$/roublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/roublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^doublerecordcheck.url/s/^.*$/doublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/doublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^classificationcheck.url/s/^.*$/classificationcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/classificationcheck/" ${HOME}/.ocb-tools/testrun.properties
-# TODO DIE END
+export UPDATE_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
+export BUILD_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
 
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 '[updateservice]' || die "could not start updateservice"
+docker-compose up -d updateservice-facade
+
+UPDATESERVICE_FACADE_IMAGE=`docker-compose ps -q updateservice-facade`
+UPDATESERVICE_FACADE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_8080 is ${UPDATESERVICE_FACADE_PORT_8080}\n"
+UPDATESERVICE_FACADE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8686/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_8686 is ${UPDATESERVICE_FACADE_PORT_8686}\n"
+UPDATESERVICE_FACADE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_4848 is ${UPDATESERVICE_FACADE_PORT_4848}\n"
+
+../../bin/return-when-status-ok-facade.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start updateservice-facade"
 cd -
+
+sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
+sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
