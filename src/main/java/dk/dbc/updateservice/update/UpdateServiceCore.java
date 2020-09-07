@@ -269,7 +269,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
-            getSchemasErrorCounter.inc();
             return schemasResponseDTO;
         } catch (ScripterException ex) {
             LOGGER.error("Caught JavaScript exception", ex);
