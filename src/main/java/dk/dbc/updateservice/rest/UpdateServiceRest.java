@@ -196,13 +196,16 @@ public class UpdateServiceRest {
             schemasResponseDTO.setErrorMessage("Caught unexpected exception");
             schemasResponseDTO.setError(true);
             getSchemasErrorCounter.inc();
-
             return schemasResponseDTO;
         } finally {
             LOGGER.info("getSchemas REST returns: {}", schemasResponseDTO);
             watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
             LOGGER.exit();
             MDC.clear();
+            if (schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
+                getSchemasErrorCounter.inc();
+            }
+
             getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }

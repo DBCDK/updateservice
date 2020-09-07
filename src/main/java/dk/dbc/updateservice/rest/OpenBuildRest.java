@@ -10,6 +10,7 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
+import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenBuildCore;
 import dk.dbc.util.Timed;
 import java.time.Duration;
@@ -76,7 +77,9 @@ public class OpenBuildRest {
             LOGGER.info("Build request: {}", buildRequestDTO);
 
             buildResponseDTO = openBuildCore.build(buildRequestDTO);
-            buildErrorCounter.inc();
+            if (buildResponseDTO.getBuildStatusEnumDTO() != BuildStatusEnumDTO.OK) {
+                buildErrorCounter.inc();
+            }
 
             return jsonbContext.marshall(buildResponseDTO);
         } finally {
@@ -87,5 +90,4 @@ public class OpenBuildRest {
             buildTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
-
 }
