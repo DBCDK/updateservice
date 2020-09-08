@@ -21,6 +21,7 @@ import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Tag;
 import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
@@ -77,10 +78,10 @@ public class OpenBuildRest {
             LOGGER.info("Build request: {}", buildRequestDTO);
 
             buildResponseDTO = openBuildCore.build(buildRequestDTO);
-            if (buildResponseDTO.getBuildStatusEnumDTO() != BuildStatusEnumDTO.OK) {
-                buildErrorCounter.inc();
+            if (buildResponseDTO != null && buildResponseDTO.getBuildStatusEnumDTO() != BuildStatusEnumDTO.OK) {
+                metricRegistry.counter(builErrorCounterMetadata,
+                        new Tag("status", buildResponseDTO.getBuildStatusEnumDTO().toString())).inc();
             }
-
             return jsonbContext.marshall(buildResponseDTO);
         } finally {
             LOGGER.info("Build response: {}", buildResponseDTO);
