@@ -15,7 +15,6 @@ import dk.dbc.updateservice.update.OpenBuildCore;
 import dk.dbc.util.Timed;
 import java.time.Duration;
 import javax.inject.Inject;
-import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
