@@ -140,13 +140,11 @@ public class UpdateServiceRest {
             LOGGER.info("updateRecord REST returns: {}", updateRecordResponseDTO);
 
             metricRegistry.counter(updateRecordCounterMetaData,
-                    new Tag("authAgency", updateRecordRequest.getAuthenticationDTO().getGroupId()),
                     new Tag("schemaName", updateRecordRequest.getSchemaName()),
                     new Tag("validateOnly", validateOnly))
                     .inc();
 
             metricRegistry.simpleTimer(updateRecordDurationMetaData,
-                    new Tag("authAgency", updateRecordRequest.getAuthenticationDTO().getGroupId()),
                     new Tag("schemaName", updateRecordRequest.getSchemaName()),
                     new Tag("validateOnly", validateOnly))
                     .update(Duration.ofMillis(watch.getElapsedTime()));
@@ -202,7 +200,7 @@ public class UpdateServiceRest {
             watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
             LOGGER.exit();
             MDC.clear();
-            if (schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
+            if (schemasResponseDTO != null && schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
                 getSchemasErrorCounter.inc();
             }
 
