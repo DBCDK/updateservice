@@ -69,7 +69,6 @@ public class OpenBuildRest {
     public String build(BuildRequestDTO buildRequestDTO) throws JSONBException {
         StopWatch watch = new Log4JStopWatch("OpenBuildRest.build");
         final SimpleTimer buildTimer = metricRegistry.simpleTimer(buildTimerMetadata);
-        final Counter buildErrorCounter = metricRegistry.counter(builErrorCounterMetadata);
 
         new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
         LOGGER.entry();
