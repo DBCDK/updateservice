@@ -220,6 +220,7 @@ public class UpdateServiceCore {
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO = null;
+
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
