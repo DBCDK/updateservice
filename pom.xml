@@ -41,6 +41,7 @@
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
         <dto.version>2.0-SNAPSHOT</dto.version>
         <system-rules>1.19.0</system-rules>
+        <jersey.version>2.22.2</jersey.version>
     </properties>
 
     <repositories>
