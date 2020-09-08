@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #set -x
 
 # If this is set different from N then also change
@@ -59,9 +59,13 @@ export COMPOSE_PROJECT_NAME=${USER}
 if [ "$(uname)" == "Darwin" ]
 then
     export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1' | head -1)
+elif [ "$(uname -v | grep Ubuntu | cut -d- -f2 | cut -d' ' -f1)x" == "Ubuntux" ]; then
+    export HOST_IP=$(ip -o addr show | grep inet\ | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1'  | grep 172 | head -1)
 else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
+
+echo "HOST_IP: $HOST_IP"
 
 docker-compose down
 docker-compose ps
@@ -115,8 +119,7 @@ echo "updateservice.db.url = updateservice:thePassword@${HOST_IP}:${UPDATESERVIC
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
-#Set x.forwarded.for to the ip of devel8. This way it is possible to run the test behind the vpn
-echo "request.headers.x.forwarded.for = 172.17.20.165" >> ${HOME}/.ocb-tools/testrun.properties
+echo "request.headers.x.forwarded.for = 172.17.20.26" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "rawrepo.provider.name.dbc = dataio-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/testrun.properties

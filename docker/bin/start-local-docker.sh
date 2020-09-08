@@ -23,9 +23,13 @@ DOCKER_FOLDER=${IDEA_ROOT}/docker/update-payara-dev
 if [ "$(uname)" == "Darwin" ]
 then
     export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1' | head -1)
+elif [ "$(uname -v | grep Ubuntu | cut -d- -f2 | cut -d' ' -f1)x" == "Ubuntux" ]; then
+    export HOST_IP=$(ip -o addr show | grep inet\ | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1'  | grep 172 | head -1)
 else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
+
+echo "HOST_IP: $HOST_IP"
 
 cd ${IDEA_ROOT}
 mvn verify install -Dmaven.test.skip=true
