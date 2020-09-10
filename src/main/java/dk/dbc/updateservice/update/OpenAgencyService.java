@@ -10,6 +10,14 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.updateservice.ws.JNDIResources;
+import java.time.Duration;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -26,6 +34,22 @@ import java.util.Set;
  */
 @Singleton
 public class OpenAgencyService {
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata hasFeatureTimerMetadata = Metadata.builder()
+            .withName("update_openagencyservice_hasfeature_timer")
+            .withDescription("Duration of hasfeature")
+            .withType(MetricType.SIMPLE_TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+
+    static final Metadata hasFeatureErrorCounterMetadata = Metadata.builder()
+            .withName("update_openagencyservice_hasfeature_error_counter")
+            .withDescription("Number of errors caught in hasfeature")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build();
+
     private static final XLogger logger = XLoggerFactory.getXLogger(OpenAgencyService.class);
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
@@ -110,11 +134,16 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
+            metricRegistry.counter(hasFeatureErrorCounterMetadata, new Tag("context", "hasfeature")).inc();
 
             throw ex;
+        } catch (Throwable e) {
+            metricRegistry.counter(hasFeatureErrorCounterMetadata, new Tag("context", "failed_internal_server_error")).inc();
+            throw e;
         } finally {
             watch.stop();
             logger.exit(result);
+            metricRegistry.simpleTimer(hasFeatureTimerMetadata).update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
