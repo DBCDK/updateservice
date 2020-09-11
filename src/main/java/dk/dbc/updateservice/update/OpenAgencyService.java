@@ -38,15 +38,15 @@ public class OpenAgencyService {
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
     MetricRegistry metricRegistry;
 
-    static final Metadata hasFeatureTimerMetadata = Metadata.builder()
-            .withName("update_openagencyservice_hasfeature_timer")
-            .withDescription("Duration of hasfeature")
+    static final Metadata openAgencyTimerMetadata = Metadata.builder()
+            .withName("update_openagencyservice_timer")
+            .withDescription("Duration of various openagency calls")
             .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
-    static final Metadata hasFeatureErrorCounterMetadata = Metadata.builder()
-            .withName("update_openagencyservice_hasfeature_error_counter")
-            .withDescription("Number of errors caught in hasfeature")
+    static final Metadata openAgencyErrorCounterMetadata = Metadata.builder()
+            .withName("update_openagencyservice_error_counter")
+            .withDescription("Number of errors caught in openagency calls")
             .withType(MetricType.COUNTER)
             .withUnit("requests").build();
 
@@ -134,16 +134,17 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
-            metricRegistry.counter(hasFeatureErrorCounterMetadata, new Tag("context", "hasfeature")).inc();
-
             throw ex;
+
         } catch (Throwable e) {
-            metricRegistry.counter(hasFeatureErrorCounterMetadata, new Tag("context", "failed_internal_server_error")).inc();
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    new Tag("method", "hasfeature")).inc();
             throw e;
         } finally {
             watch.stop();
             logger.exit(result);
-            metricRegistry.simpleTimer(hasFeatureTimerMetadata).update(Duration.ofMillis(watch.getElapsedTime()));
+            metricRegistry.simpleTimer(openAgencyTimerMetadata,
+                    new Tag("method", "hasfeature")).update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
