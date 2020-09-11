@@ -50,6 +50,8 @@ public class OpenAgencyService {
             .withType(MetricType.COUNTER)
             .withUnit("requests").build();
 
+    private static final String METHOD_NAME_KEY = "method";
+
     private static final XLogger logger = XLoggerFactory.getXLogger(OpenAgencyService.class);
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
@@ -138,13 +140,13 @@ public class OpenAgencyService {
 
         } catch (Throwable e) {
             metricRegistry.counter(openAgencyErrorCounterMetadata,
-                    new Tag("method", "hasfeature")).inc();
+                    new Tag(METHOD_NAME_KEY, "hasfeature")).inc();
             throw e;
         } finally {
             watch.stop();
             logger.exit(result);
             metricRegistry.simpleTimer(openAgencyTimerMetadata,
-                    new Tag("method", "hasfeature")).update(Duration.ofMillis(watch.getElapsedTime()));
+                    new Tag(METHOD_NAME_KEY, "hasfeature")).update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
@@ -179,6 +181,8 @@ public class OpenAgencyService {
             }
 
             logger.info("Agency '{}' has LibraryGroup {}", agencyId, result.toString());
+            metricRegistry.simpleTimer(openAgencyTimerMetadata,
+                    new Tag(METHOD_NAME_KEY, "getlibrarygroup")).update(Duration.ofMillis(watch.getElapsedTime()));
             return result;
         } catch (OpenAgencyException ex) {
             logger.error("Failed to read CatalogingTemplate for ['{}']: {}", agencyId, ex.getMessage());
@@ -194,6 +198,10 @@ public class OpenAgencyService {
             }
 
             throw ex;
+        } catch (Throwable e) {
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    new Tag(METHOD_NAME_KEY, "getlibrarygroup")).inc();
+            throw e;
         } finally {
             watch.stop();
             logger.exit(result);
