@@ -51,12 +51,14 @@ public class OpenAgencyService {
             .withUnit("requests").build();
 
     private static final String METHOD_NAME_KEY = "method";
+    private static final String ERROR_TYPE = "errortype";
+    private static final Tag INTERNAL_SERVER_ERROR_TAG = new Tag(ERROR_TYPE, "internalservererror");
 
     private static final XLogger logger = XLoggerFactory.getXLogger(OpenAgencyService.class);
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    private Properties settings = JNDIResources.getProperties();
+    private final Properties settings = JNDIResources.getProperties();
 
     private OpenAgencyServiceFromURL service;
 
@@ -117,6 +119,7 @@ public class OpenAgencyService {
     public boolean hasFeature(String agencyId, LibraryRuleHandler.Rule feature) throws OpenAgencyException {
         logger.entry(agencyId, feature);
         StopWatch watch = new Log4JStopWatch("service.openagency.hasFeature");
+        final Tag methodNameTag = new Tag(METHOD_NAME_KEY, "hasfeature");
 
         Boolean result = null;
         try {
@@ -136,23 +139,28 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    new Tag(ERROR_TYPE, ex.getError().value().toLowerCase())).inc();
             throw ex;
 
         } catch (Throwable e) {
             metricRegistry.counter(openAgencyErrorCounterMetadata,
-                    new Tag(METHOD_NAME_KEY, "hasfeature")).inc();
+                    methodNameTag,
+                    INTERNAL_SERVER_ERROR_TAG).inc();
             throw e;
         } finally {
             watch.stop();
             logger.exit(result);
             metricRegistry.simpleTimer(openAgencyTimerMetadata,
-                    new Tag(METHOD_NAME_KEY, "hasfeature")).update(Duration.ofMillis(watch.getElapsedTime()));
+                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
     public LibraryGroup getLibraryGroup(String agencyId) throws OpenAgencyException, UpdateException {
         logger.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.openagency.getCatalogingTemplate");
+        final Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getLibraryGroup");
 
         LibraryGroup result = null;
         try {
@@ -181,8 +189,6 @@ public class OpenAgencyService {
             }
 
             logger.info("Agency '{}' has LibraryGroup {}", agencyId, result.toString());
-            metricRegistry.simpleTimer(openAgencyTimerMetadata,
-                    new Tag(METHOD_NAME_KEY, "getlibrarygroup")).update(Duration.ofMillis(watch.getElapsedTime()));
             return result;
         } catch (OpenAgencyException ex) {
             logger.error("Failed to read CatalogingTemplate for ['{}']: {}", agencyId, ex.getMessage());
@@ -196,21 +202,28 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
-
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    new Tag(ERROR_TYPE, ex.getError().value().toLowerCase()));
             throw ex;
         } catch (Throwable e) {
             metricRegistry.counter(openAgencyErrorCounterMetadata,
-                    new Tag(METHOD_NAME_KEY, "getlibrarygroup")).inc();
+                    methodNameTag,
+                    INTERNAL_SERVER_ERROR_TAG).inc();
             throw e;
+
         } finally {
             watch.stop();
             logger.exit(result);
+            metricRegistry.simpleTimer(openAgencyTimerMetadata,
+                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
     public String getTemplateGroup(String agencyId) throws OpenAgencyException {
         logger.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.openagency.getCatalogingTemplate");
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getTemplateGroup");
 
         String result = null;
         try {
@@ -230,10 +243,19 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
-
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    new Tag(ERROR_TYPE, ex.getError().value().toLowerCase()));
             throw ex;
+        } catch (Throwable e) {
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    INTERNAL_SERVER_ERROR_TAG).inc();
+            throw e;
         } finally {
             watch.stop();
+            metricRegistry.simpleTimer(openAgencyTimerMetadata, methodNameTag)
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
             logger.exit(result);
         }
     }
@@ -273,13 +295,12 @@ public class OpenAgencyService {
 
     public Set<String> getAllowedLibraryRules(String agencyId) throws OpenAgencyException {
         logger.entry(agencyId);
-
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getAllowedLibraryRules");
         StopWatch watch = new Log4JStopWatch("service.openagency.getAllowedLibraryRules");
 
         Set<String> result = null;
         try {
             result = service.libraryRules().getAllowedLibraryRules(agencyId);
-
             return result;
         } catch (OpenAgencyException ex) {
             logger.error("Failed to read set from OpenAgency: {}", ex.getMessage());
@@ -293,10 +314,21 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    new Tag(ERROR_TYPE, ex.getError().value().toLowerCase())).inc();
 
             throw ex;
+        } catch (Throwable e) {
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    INTERNAL_SERVER_ERROR_TAG).inc();
+            throw e;
+
         } finally {
             watch.stop();
+            metricRegistry.simpleTimer(openAgencyTimerMetadata, methodNameTag)
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
             logger.exit(result);
         }
     }
@@ -304,6 +336,7 @@ public class OpenAgencyService {
         logger.entry(catalogingTemplateSet);
 
         StopWatch watch = new Log4JStopWatch("service.openagency.getLibrariesByCatalogingTemplateSet");
+        final Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getLibrariesByCatalogingTemplateSet");
 
         Set<String> result = null;
         try {
@@ -322,11 +355,22 @@ public class OpenAgencyService {
             } catch (IOException ioError) {
                 logger.error("Error with encoding request/response from OpenAgency: " + ioError.getMessage(), ioError);
             }
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    new Tag(ERROR_TYPE, ex.getError().value().toLowerCase())).inc();
 
             throw ex;
+        } catch (Throwable e) {
+            metricRegistry.counter(openAgencyErrorCounterMetadata,
+                    methodNameTag,
+                    INTERNAL_SERVER_ERROR_TAG).inc();
+            throw e;
+
         } finally {
             watch.stop();
             logger.exit(result);
+            metricRegistry.simpleTimer(openAgencyTimerMetadata, methodNameTag)
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
 
