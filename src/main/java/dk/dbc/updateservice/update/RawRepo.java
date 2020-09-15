@@ -217,7 +217,7 @@ public class RawRepo {
         logger.entry(recordId);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = null;
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "allAgenciesForBibliographicRecordId");
+        String methodName = "allAgenciesForBibliographicRecordId";
 
         try {
             if (recordId == null) {
@@ -235,24 +235,20 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
+                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, e.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
             watch.stop("rawrepo.agenciesForRecord.String");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -277,7 +273,7 @@ public class RawRepo {
     public Set<RecordId> children(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getRelationsChildren");
+        String methodNameTag = "getRelationsChildren";
 
         try {
             if (recordId == null) {
@@ -291,27 +287,20 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                            methodNameTag,
-                            new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                    incrementErrorCounterMetric(methodNameTag, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.children.RecordId");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit();
         }
     }
@@ -336,7 +325,7 @@ public class RawRepo {
     public Set<RecordId> enrichments(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getRelationsSiblingsToMe");
+        String methodNameTag = "getRelationsSiblingsToMe";
 
         try {
             if (recordId == null) {
@@ -351,27 +340,20 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                            methodNameTag,
-                            new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                    incrementErrorCounterMetric(methodNameTag, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.enrichments.RecordId");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit();
         }
     }
@@ -390,7 +372,7 @@ public class RawRepo {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
         Record result = null;
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "fetchRecord");
+        String methodNameTag =  "fetchRecord";
 
         try {
             if (recId == null) {
@@ -405,27 +387,20 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                            methodNameTag,
-                            new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                    incrementErrorCounterMetric(methodNameTag, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit(result);
         }
     }
@@ -433,7 +408,7 @@ public class RawRepo {
     public Map<String, MarcRecord> fetchRecordCollection(String recId, int agencyId) throws UpdateException {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNamTag = new Tag(METHOD_NAME_KEY, "fetchRecordCollection");
+        String methodNamTag = "fetchRecordCollection";
         Map<String, MarcRecord> result = null;
         Map<String, Record> recordMap;
         try (Connection conn = dataSource.getConnection()) {
@@ -455,26 +430,19 @@ public class RawRepo {
             } catch (RawRepoException | MarcXMergerException | UnsupportedEncodingException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNamTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNamTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNamTag,
-                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+            incrementErrorCounterMetric(methodNamTag, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNamTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNamTag);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecordCollection");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNamTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNamTag, watch);
             logger.exit();
         }
     }
@@ -491,7 +459,7 @@ public class RawRepo {
     public Record fetchMergedDBCRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
         logger.entry(bibliographicRecordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "fetchMergedRecord");
+        String methodNameTag = "fetchMergedRecord";
         Record result = null;
         try {
             if (bibliographicRecordId == null) {
@@ -512,27 +480,20 @@ public class RawRepo {
                 } catch (RawRepoException | MarcXMergerException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                            methodNameTag,
-                            new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                    incrementErrorCounterMetric(methodNameTag, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit(result);
         }
     }
@@ -549,7 +510,7 @@ public class RawRepo {
         logger.entry(recordId, agencyId);
         logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "recordExists");
+        String methodNameTag = "recordExists";
         boolean result = false;
         if (dataSource == null) {
             logger.info("RawRepo.recordExists, dataSourceReader == NULL");
@@ -569,27 +530,20 @@ public class RawRepo {
                 if (conn != null) {
                     conn.rollback();
                 }
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, e.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, e);
                 logger.error(e.getMessage(), e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+            incrementErrorCounterMetric(methodNameTag, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.recordExists");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit(result);
         }
     }
@@ -605,7 +559,7 @@ public class RawRepo {
     public boolean recordExistsMaybeDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "recordExistsMaybeDeleted");
+        String  methodNameTag = "recordExistsMaybeDeleted";
 
         boolean result = false;
         try (Connection conn = dataSource.getConnection()) {
@@ -617,27 +571,20 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+            incrementErrorCounterMetric(methodNameTag, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
 
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit(result);
         }
     }
@@ -653,7 +600,7 @@ public class RawRepo {
     public boolean recordDoesNotExistOrIsDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "recordExistsMaybeDeleted");
+        String methodNameTag = "recordExistsMaybeDeleted";
 
         boolean result = false;
         try (Connection conn = dataSource.getConnection()) {
@@ -670,25 +617,19 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+                incrementErrorCounterMetric(methodNameTag, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+            incrementErrorCounterMetric(methodNameTag, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit(result);
         }
     }
@@ -696,7 +637,7 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "saveRecord");
+        String  methodNameTag = "saveRecord";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -707,26 +648,19 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
-                metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                        methodNameTag,
-                        new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
+                incrementErrorCounterMetric(methodNameTag, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase())).inc();
+            incrementErrorCounterMetric(methodNameTag, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Throwable e) {
-            metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                    methodNameTag,
-                    INTERNAL_SERVER_ERROR_TAG).inc();
+            incrementInternalServerErrorCounterMetric(methodNameTag);
             throw e;
         } finally {
             watch.stop("rawrepo.saveRecord.Record");
-            metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                    methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+            updateSimpleTimerMetric(methodNameTag, watch);
             logger.exit();
         }
     }
@@ -964,4 +898,23 @@ public class RawRepo {
         }
     }
 
+    private void incrementErrorCounterMetric(String methodName, Exception e) {
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
+        metricRegistry.counter(rawrepodaoErrorCounterMetadata,
+                methodNameTag,
+                new Tag(ERROR_TYPE, e.getMessage().toLowerCase())).inc();
+    }
+
+    private void incrementInternalServerErrorCounterMetric(String methodName) {
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
+        metricRegistry.counter(rawrepodaoErrorCounterMetadata,
+                methodNameTag,
+                INTERNAL_SERVER_ERROR_TAG).inc();
+    }
+
+    private void updateSimpleTimerMetric(String methodName, StopWatch watch) {
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
+        metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
+                methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+    }
 }
