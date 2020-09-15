@@ -217,7 +217,7 @@ public class RawRepo {
         logger.entry(recordId);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = null;
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "agenciesForRecordAll");
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "allAgenciesForBibliographicRecordId");
 
         try {
             if (recordId == null) {
@@ -277,7 +277,7 @@ public class RawRepo {
     public Set<RecordId> children(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "children");
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getRelationsChildren");
 
         try {
             if (recordId == null) {
@@ -336,7 +336,7 @@ public class RawRepo {
     public Set<RecordId> enrichments(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "enrichments");
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "getRelationsSiblingsToMe");
 
         try {
             if (recordId == null) {
@@ -491,7 +491,7 @@ public class RawRepo {
     public Record fetchMergedDBCRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
         logger.entry(bibliographicRecordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "fetchMergedDBCRecord");
+        Tag methodNameTag = new Tag(METHOD_NAME_KEY, "fetchMergedRecord");
         Record result = null;
         try {
             if (bibliographicRecordId == null) {
