@@ -12,6 +12,9 @@ import dk.dbc.common.records.marcxchange.CollectionType;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.marcxmerge.FieldRules;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
@@ -23,11 +26,9 @@ import dk.dbc.rawrepo.RelationHintsOpenAgency;
 import java.time.Duration;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
-import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.Tag;
-import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -60,24 +61,51 @@ import java.util.Set;
 public class RawRepo {
 
     @Inject
-    @RegistryType(type = MetricRegistry.Type.APPLICATION)
-    MetricRegistry metricRegistry;
+    MetricsHandlerBean metricsHandler;
+
+    private static class RawrepoErrorCounterMetrics implements CounterMetric {
+        private final Metadata metadata;
+
+        RawrepoErrorCounterMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    private static class RawrepoDaoTimingMetrics implements SimpleTimerMetric {
+        private final Metadata metadata;
+
+        public RawrepoDaoTimingMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
 
     private static final String METHOD_NAME_KEY = "method";
     private static final String ERROR_TYPE = "errortype";
     private static final Tag INTERNAL_SERVER_ERROR_TAG = new Tag(ERROR_TYPE, "internalservererror");
 
-    static final Metadata rawrepoDaoTimerMetadata = Metadata.builder()
+    static final RawrepoDaoTimingMetrics rawrepoDaoTimingMetrics =
+            new RawrepoDaoTimingMetrics(Metadata.builder()
             .withName("update_rawrepodao_timer")
             .withDescription("Duration of various rawrepodao calls")
             .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build();
+            .withUnit(MetricUnits.MILLISECONDS).build());
 
-    static final Metadata rawrepodaoErrorCounterMetadata = Metadata.builder()
+    static final RawrepoErrorCounterMetrics rawrepoErrorCounterMetrics = new RawrepoErrorCounterMetrics(Metadata.builder()
             .withName("update_rawrepodao_error_counter")
             .withDescription("Number of errors caught in rawrepodao calls")
             .withType(MetricType.COUNTER)
-            .withUnit("requests").build();
+            .withUnit("requests").build());
+
 
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     public static final int COMMON_AGENCY = 870970;
@@ -668,6 +696,7 @@ public class RawRepo {
     public void removeLinks(RecordId recId) throws UpdateException {
         logger.entry(recId);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -676,13 +705,19 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
+                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
         } finally {
             watch.stop("rawrepo.removeLinks");
+            updateSimpleTimerMetric(methodName,watch);
             logger.exit();
         }
     }
@@ -698,6 +733,7 @@ public class RawRepo {
     public void linkRecord(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -707,13 +743,19 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
+                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -729,6 +771,7 @@ public class RawRepo {
     public void linkRecordAppend(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "linkRecordAppend";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -738,13 +781,19 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
+                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -756,6 +805,7 @@ public class RawRepo {
     public void changedRecord(String provider, RecordId recId, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "changedRecord";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -764,13 +814,19 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
+                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
         } finally {
             watch.stop("rawrepo.changedRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -778,6 +834,7 @@ public class RawRepo {
     public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "enqueue";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -786,13 +843,20 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
+                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
+
         } finally {
             watch.stop("rawrepo.enqueue");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -801,6 +865,7 @@ public class RawRepo {
         logger.entry(provider);
         boolean result = false;
         final StopWatch watch = new Log4JStopWatch();
+        String methodName = "checkProvider";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
@@ -811,13 +876,19 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
+                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
+            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Throwable e) {
+            incrementInternalServerErrorCounterMetric(methodName);
+            throw e;
         } finally {
             watch.stop("rawrepo.checkProvider");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -899,22 +970,20 @@ public class RawRepo {
     }
 
     private void incrementErrorCounterMetric(String methodName, Exception e) {
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
-        metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                methodNameTag,
-                new Tag(ERROR_TYPE, e.getMessage().toLowerCase())).inc();
+        metricsHandler.increment(rawrepoErrorCounterMetrics,
+                new Tag(METHOD_NAME_KEY, methodName),
+                new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
     }
 
     private void incrementInternalServerErrorCounterMetric(String methodName) {
-        Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
-        metricRegistry.counter(rawrepodaoErrorCounterMetadata,
-                methodNameTag,
-                INTERNAL_SERVER_ERROR_TAG).inc();
+        metricsHandler.increment(rawrepoErrorCounterMetrics,
+                new Tag(METHOD_NAME_KEY, methodName),
+                INTERNAL_SERVER_ERROR_TAG);
     }
 
     private void updateSimpleTimerMetric(String methodName, StopWatch watch) {
         Tag methodNameTag = new Tag(METHOD_NAME_KEY, methodName);
-        metricRegistry.simpleTimer(rawrepoDaoTimerMetadata,
-                methodNameTag).update(Duration.ofMillis(watch.getElapsedTime()));
+        metricsHandler.update(rawrepoDaoTimingMetrics,
+                Duration.ofMillis(watch.getElapsedTime()), methodNameTag);
     }
 }
