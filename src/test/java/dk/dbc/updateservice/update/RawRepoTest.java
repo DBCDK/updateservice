@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static dk.dbc.updateservice.update.RawRepo.ERROR_TYPE;
-import static dk.dbc.updateservice.update.RawRepo.INTERNAL_SERVER_ERROR_TAG;
 import static dk.dbc.updateservice.update.RawRepo.METHOD_NAME_KEY;
 import static dk.dbc.updateservice.update.RawRepo.rawrepoErrorCounterMetrics;
 import static org.hamcrest.CoreMatchers.equalTo;

@@ -91,7 +91,6 @@ public class RawRepo {
 
     protected static final String METHOD_NAME_KEY = "method";
     protected static final String ERROR_TYPE = "errortype";
-    protected static final Tag INTERNAL_SERVER_ERROR_TAG = new Tag(ERROR_TYPE, "internalservererror");
 
     static final RawrepoDaoTimingMetrics rawrepoDaoTimingMetrics =
             new RawrepoDaoTimingMetrics(Metadata.builder()
