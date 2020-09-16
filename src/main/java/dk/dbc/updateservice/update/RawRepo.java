@@ -271,7 +271,7 @@ public class RawRepo {
                 incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -323,7 +323,7 @@ public class RawRepo {
                 incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -376,7 +376,7 @@ public class RawRepo {
                 incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -423,7 +423,7 @@ public class RawRepo {
                 incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -465,7 +465,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -516,7 +516,7 @@ public class RawRepo {
                 incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -566,7 +566,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -606,7 +606,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
 
@@ -652,7 +652,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -665,7 +665,7 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-        String  methodName = "saveRecord";
+        final String  methodName = "saveRecord";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -683,7 +683,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -712,7 +712,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -750,7 +750,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -788,7 +788,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -821,7 +821,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
@@ -850,7 +850,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
 
@@ -883,7 +883,7 @@ public class RawRepo {
             logger.error(ex.getMessage(), ex);
             incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } catch (Throwable e) {
+        } catch (Exception e) {
             incrementInternalServerErrorCounterMetric(methodName);
             throw e;
         } finally {
