@@ -263,16 +263,14 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException e) {
                 logger.error(e.getMessage(), e);
-                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.agenciesForRecord.String");
@@ -315,16 +313,14 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.children.RecordId");
@@ -368,16 +364,14 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.enrichments.RecordId");
@@ -415,16 +409,14 @@ public class RawRepo {
                 } catch (RawRepoException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
@@ -458,15 +450,13 @@ public class RawRepo {
             } catch (RawRepoException | MarcXMergerException | UnsupportedEncodingException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecordCollection");
@@ -508,16 +498,14 @@ public class RawRepo {
                 } catch (RawRepoException | MarcXMergerException ex) {
                     conn.rollback();
                     logger.error(ex.getMessage(), ex);
-                    incrementErrorCounterMetric(methodName, ex);
                     throw new UpdateException(ex.getMessage(), ex);
                 }
             } catch (SQLException ex) {
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
@@ -558,16 +546,14 @@ public class RawRepo {
                 if (conn != null) {
                     conn.rollback();
                 }
-                incrementErrorCounterMetric(methodName, e);
                 logger.error(e.getMessage(), e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.recordExists");
@@ -599,15 +585,13 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
 
         } finally {
@@ -645,15 +629,13 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
@@ -676,15 +658,13 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
-                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.saveRecord.Record");
@@ -705,15 +685,13 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
-                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.removeLinks");
@@ -743,15 +721,13 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
-                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
@@ -781,15 +757,13 @@ public class RawRepo {
             } catch (RawRepoException e) {
                 conn.rollback();
                 logger.error(e.getMessage(), e);
-                incrementErrorCounterMetric(methodName, e);
                 throw new UpdateException(e.getMessage(), e);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
@@ -814,15 +788,13 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.changedRecord");
@@ -843,15 +815,13 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
 
         } finally {
@@ -876,15 +846,13 @@ public class RawRepo {
             } catch (RawRepoException ex) {
                 conn.rollback();
                 logger.error(ex.getMessage(), ex);
-                incrementErrorCounterMetric(methodName, ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
-            incrementErrorCounterMetric(methodName, ex);
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
-            incrementInternalServerErrorCounterMetric(methodName);
+            incrementErrorCounterMetric(methodName, e);
             throw e;
         } finally {
             watch.stop("rawrepo.checkProvider");
@@ -973,12 +941,6 @@ public class RawRepo {
         metricsHandler.increment(rawrepoErrorCounterMetrics,
                 new Tag(METHOD_NAME_KEY, methodName),
                 new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
-    }
-
-    private void incrementInternalServerErrorCounterMetric(String methodName) {
-        metricsHandler.increment(rawrepoErrorCounterMetrics,
-                new Tag(METHOD_NAME_KEY, methodName),
-                INTERNAL_SERVER_ERROR_TAG);
     }
 
     private void updateSimpleTimerMetric(String methodName, StopWatch watch) {

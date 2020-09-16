@@ -12,10 +12,12 @@ import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
+import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import javax.sql.DataSource;
@@ -23,6 +25,10 @@ import java.sql.Connection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static dk.dbc.updateservice.update.RawRepo.ERROR_TYPE;
+import static dk.dbc.updateservice.update.RawRepo.INTERNAL_SERVER_ERROR_TAG;
+import static dk.dbc.updateservice.update.RawRepo.METHOD_NAME_KEY;
+import static dk.dbc.updateservice.update.RawRepo.rawrepoErrorCounterMetrics;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -34,8 +40,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RawRepoTest {
-    @Mock
-    MetricsHandlerBean mockedMetricsHandlerBean;
 
     @Mock
     DataSource dataSource;
@@ -51,7 +55,7 @@ public class RawRepoTest {
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
             super(dataSource);
-            metricsHandler = mockedMetricsHandlerBean;
+            metricsHandler = Mockito.mock(MetricsHandlerBean.class);
         }
 
         @Override
@@ -66,12 +70,29 @@ public class RawRepoTest {
         rawRepo.agenciesForRecord((MarcRecord) (null));
     }
 
+
     @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_MarcRecord_RecordIsNotFound() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
         rawRepo.agenciesForRecord(new MarcRecord());
     }
 
+    @Test
+    public void test_errormetrics_and_invocation_timers() throws Exception {
+        RawRepo rawRepo = new MockRawRepo();
+        try {
+            rawRepo.agenciesForRecord(new MarcRecord());
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage().toLowerCase());
+        }
+        finally {
+            verify(rawRepo.metricsHandler, times(1))
+                    .increment(rawrepoErrorCounterMetrics,
+                            new Tag(METHOD_NAME_KEY, "allAgenciesForBibliographicRecordId"),
+                            new Tag(ERROR_TYPE, "recordid can not be null"));
+        }
+    }
     @Test
     public void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
         String recId = "12346578";
