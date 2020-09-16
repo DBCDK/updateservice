@@ -346,6 +346,12 @@
             <type>pom</type>
         </dependency>
 
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dbc-commons-metrics-handler</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
     </dependencies>
 
     <build>
