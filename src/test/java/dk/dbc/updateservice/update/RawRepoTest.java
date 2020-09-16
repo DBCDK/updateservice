@@ -8,6 +8,7 @@ package dk.dbc.updateservice.update;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
@@ -33,6 +34,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RawRepoTest {
+    @Mock
+    MetricsHandlerBean mockedMetricsHandlerBean;
 
     @Mock
     DataSource dataSource;
@@ -48,6 +51,7 @@ public class RawRepoTest {
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
             super(dataSource);
+            metricsHandler = mockedMetricsHandlerBean;
         }
 
         @Override
