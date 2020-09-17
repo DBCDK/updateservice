@@ -81,17 +81,16 @@ public class RawRepoTest {
         RawRepo rawRepo = new MockRawRepo();
         try {
             rawRepo.agenciesForRecord(new MarcRecord());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage().toLowerCase());
-        }
-        finally {
+        } finally {
             verify(rawRepo.metricsHandler, times(1))
                     .increment(rawrepoErrorCounterMetrics,
                             new Tag(METHOD_NAME_KEY, "allAgenciesForBibliographicRecordId"),
                             new Tag(ERROR_TYPE, "recordid can not be null"));
         }
     }
+
     @Test
     public void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
         String recId = "12346578";

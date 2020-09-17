@@ -8,8 +8,12 @@ package dk.dbc.updateservice.update;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
+import java.time.Duration;
+import org.eclipse.microprofile.metrics.Tag;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -23,13 +27,19 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * Created by stp on 18/12/14.
  */
 public class HoldingsItemsTest {
+    @Mock
+    MetricsHandlerBean mockedMetricsHandlerBean;
+
     @Mock
     DataSource dataSource;
 
@@ -44,6 +54,7 @@ public class HoldingsItemsTest {
     private class MockHoldingsItems extends HoldingsItems {
         public MockHoldingsItems() {
             super(dataSource);
+            metricsHandlerBean = mockedMetricsHandlerBean;
         }
 
         @Override
@@ -58,6 +69,25 @@ public class HoldingsItemsTest {
 
         HoldingsItems items = new MockHoldingsItems();
         items.getAgenciesThatHasHoldingsForId("12345678");
+    }
+
+    @Test(expected = UpdateException.class)
+    public void test_that_metrics_for_timer_and_error_counter_are_set_properly() throws Exception {
+        when(dataSource.getConnection()).thenThrow(new SQLException("message"));
+        HoldingsItems items = new MockHoldingsItems();
+
+        try {
+            items.getAgenciesThatHasHoldingsForId("12345678");
+        } finally {
+            verify(items.metricsHandlerBean, times(1))
+                    .increment(HoldingsItems.holdingsItemsErrorCounterMetrics,
+                            new Tag(HoldingsItems.METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId"),
+                            new Tag(HoldingsItems.ERROR_TYPE, "message"));
+            verify(items.metricsHandlerBean, times(1))
+                    .update(eq(HoldingsItems.holdingsItemsTimingMetrics),
+                            any(Duration.class),
+                            eq(new Tag(HoldingsItems.METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId")));
+        }
     }
 
     @Test(expected = UpdateException.class)
