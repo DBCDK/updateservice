@@ -100,6 +100,9 @@ public class UpdateServiceCore {
     public UpdateStore updateStore;
 
     @EJB
+    ServiceEngine serviceEngine;
+
+    @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
 
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
@@ -158,7 +161,6 @@ public class UpdateServiceCore {
         final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
-        ServiceEngine serviceEngine = null;
         UpdateRecordResponseDTO updateRecordResponseDTO = null;
         try {
             if (state.readRecord() != null) {
@@ -168,7 +170,6 @@ public class UpdateServiceCore {
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
 
-                serviceEngine = new ServiceEngine();
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
 
@@ -199,7 +200,7 @@ public class UpdateServiceCore {
             } catch (IOException e) {
                 LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
             }
-            updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
+            updateServiceFinallyCleanUp(watch, updateRequestAction);
             LOGGER.exit(serviceResult);
         }
     }
@@ -399,11 +400,10 @@ public class UpdateServiceCore {
 
 
 
-    private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
-        if (engine != null) {
-            LOGGER.info("Executed action:");
-            engine.printActions(action);
-        }
+    private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action) {
+        LOGGER.info("Executed action:");
+        serviceEngine.printActions(action);
+
         LOGGER.info("");
         String watchTag;
         if (action != null && action.hasValidateOnlyOption()) {
