@@ -8,13 +8,16 @@ package dk.dbc.updateservice.update;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
+import org.eclipse.microprofile.metrics.Tag;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import javax.sql.DataSource;
@@ -22,6 +25,9 @@ import java.sql.Connection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static dk.dbc.updateservice.update.RawRepo.ERROR_TYPE;
+import static dk.dbc.updateservice.update.RawRepo.METHOD_NAME_KEY;
+import static dk.dbc.updateservice.update.RawRepo.rawrepoErrorCounterMetrics;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -48,6 +54,7 @@ public class RawRepoTest {
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
             super(dataSource);
+            metricsHandler = Mockito.mock(MetricsHandlerBean.class);
         }
 
         @Override
@@ -62,10 +69,26 @@ public class RawRepoTest {
         rawRepo.agenciesForRecord((MarcRecord) (null));
     }
 
+
     @Test(expected = IllegalArgumentException.class)
     public void test_agenciesForRecord_MarcRecord_RecordIsNotFound() throws Exception {
         RawRepo rawRepo = new MockRawRepo();
         rawRepo.agenciesForRecord(new MarcRecord());
+    }
+
+    @Test
+    public void test_errormetrics_and_invocation_timers() throws Exception {
+        RawRepo rawRepo = new MockRawRepo();
+        try {
+            rawRepo.agenciesForRecord(new MarcRecord());
+        } catch (Exception e) {
+            System.out.println(e.getMessage().toLowerCase());
+        } finally {
+            verify(rawRepo.metricsHandler, times(1))
+                    .increment(rawrepoErrorCounterMetrics,
+                            new Tag(METHOD_NAME_KEY, "allAgenciesForBibliographicRecordId"),
+                            new Tag(ERROR_TYPE, "recordid can not be null"));
+        }
     }
 
     @Test
