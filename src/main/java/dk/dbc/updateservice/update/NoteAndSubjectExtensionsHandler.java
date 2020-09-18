@@ -37,7 +37,7 @@ public class NoteAndSubjectExtensionsHandler {
     private RawRepo rawRepo;
     private ResourceBundle messages;
 
-    static final String EXTENDABLE_NOTE_FIELDS = "504|530|534";
+    static final String EXTENDABLE_NOTE_FIELDS = "504|530";
     static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
     private static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
@@ -305,7 +305,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @return List of validation errors (ok returns empty list)
      * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
-    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException {
+    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException, OpenAgencyException {
         logger.entry(record, groupId);
         List<MessageEntryDTO> result = new ArrayList<>();
         try {
@@ -333,30 +333,44 @@ public class NoteAndSubjectExtensionsHandler {
                 return result;
             }
 
-            String extendableFieldsRx;
-            try {
-                extendableFieldsRx = createExtendableFieldsRx(groupId);
-            } catch (OpenAgencyException e) {
-                throw new UpdateException("Caught OpenAgencyException", e);
-            }
-            if (!extendableFieldsRx.isEmpty()) {
-                extendableFieldsRx += "|";
-            }
-            extendableFieldsRx += EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
-            // Check if all fields in the incoming record are in the existing record
-            for (MarcField field : record.getFields()) {
-                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, curRecord)) {
-                    String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
-                    result.add(createMessageDTO(message));
+            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_NOTES)) {
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in openagency - checking for changed note fields", groupId);
+                // Check if all fields in the incoming record are in the existing record
+                for (MarcField field : record.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                        String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                        result.add(createMessageDTO(message));
+                    }
+                }
+                // Check if all fields in the existing record are in the incoming record
+                for (MarcField field : curRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, record)) {
+                        String fieldName = field.getName();
+                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                            String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                            result.add(createMessageDTO(message));
+                        }
+                    }
                 }
             }
-            // Check if all fields in the existing record are in the incoming record
-            for (MarcField field : curRecord.getFields()) {
-                if (!(!extendableFieldsRx.isEmpty() && field.getName().matches(extendableFieldsRx)) && isFieldChangedInOtherRecord(field, record)) {
-                    String fieldName = field.getName();
-                    if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
-                        String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+
+            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in openagency - checking for changed note fields", groupId);
+                // Check if all fields in the incoming record are in the existing record
+                for (MarcField field : record.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                        String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                         result.add(createMessageDTO(message));
+                    }
+                }
+                // Check if all fields in the existing record are in the incoming record
+                for (MarcField field : curRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, record)) {
+                        String fieldName = field.getName();
+                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                            String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                            result.add(createMessageDTO(message));
+                        }
                     }
                 }
             }

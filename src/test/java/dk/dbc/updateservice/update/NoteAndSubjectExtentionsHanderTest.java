@@ -14,6 +14,8 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,8 +23,12 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -298,7 +304,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void  testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
+    public void testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -313,7 +319,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void  testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
+    public void testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -328,7 +334,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void  testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
+    public void testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -340,7 +346,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Test
-    public void  testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
+    public void testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -574,6 +580,229 @@ public class NoteAndSubjectExtentionsHanderTest {
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expectedRecord));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("530", "a", "a Note");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddSubjectField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("666", "a", "a subject");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField_AddSubjectField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("530", "a", "a Note");
+        recordWriter.addFieldSubfield("666", "a", "a subject");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddNoteField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("530", "a", "a Note");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddSubjectField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("666", "a", "a subject");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddNoteField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("530", "a", "a Note");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+        messageEntryDTO.setType(TypeEnumDTO.ERROR);
+        messageEntryDTO.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '530' i posten '20611529'");
+        expected.add(messageEntryDTO);
+
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddSubjectField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("666", "a", "a subject");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
+        messageEntryDTO.setType(TypeEnumDTO.ERROR);
+        messageEntryDTO.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '666' i posten '20611529'");
+        expected.add(messageEntryDTO);
+
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
+    }
+
+    @Test
+    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_NotAllowedSubject_AddNoteField_AddSubjectField() throws Exception {
+        final String groupId = "830010";
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
+        recordWriter.addFieldSubfield("530", "a", "a Note");
+        recordWriter.addFieldSubfield("666", "a", "a subject");
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+
+        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+
+        final List<MessageEntryDTO> expected = new ArrayList<>();
+        final MessageEntryDTO messageEntryDTO530 = new MessageEntryDTO();
+        messageEntryDTO530.setType(TypeEnumDTO.ERROR);
+        messageEntryDTO530.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '530' i posten '20611529'");
+        expected.add(messageEntryDTO530);
+        final MessageEntryDTO messageEntryDTO666 = new MessageEntryDTO();
+        messageEntryDTO666.setType(TypeEnumDTO.ERROR);
+        messageEntryDTO666.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '666' i posten '20611529'");
+        expected.add(messageEntryDTO666);
+
+
+        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
+
+        assertThat(actual, equalTo(expected));
     }
 
     private MarcRecord sortRecord(MarcRecord record) {
