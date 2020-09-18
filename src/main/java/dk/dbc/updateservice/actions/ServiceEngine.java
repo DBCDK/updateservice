@@ -36,17 +36,16 @@ import java.util.Map;
  * Engine to execute a single ServiceAction including all of its children.
  * </p>
  */
-@Stateless
 public class ServiceEngine {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceEngine.class);
 
     private Map<String, String> loggerKeys = new HashMap<>();
+    MetricsHandlerBean metricsHandlerBean;
 
-    public ServiceEngine() {
+    public ServiceEngine(MetricsHandlerBean metricsHandlerBean) {
+        this.metricsHandlerBean = metricsHandlerBean;
     }
 
-    @Inject
-    MetricsHandlerBean metricsHandlerBean;
 
     private static class ServiceEngineErrorCounterMetrics implements CounterMetric {
         private Metadata metadata;
@@ -115,7 +114,12 @@ public class ServiceEngine {
     public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
-        Tag methodTag = new Tag(METHOD_NAME_KEY, action.name());
+        final Tag methodTag;
+        if (action != null && action.name() != null) {
+            methodTag = new Tag(METHOD_NAME_KEY, action.name());
+        } else {
+            methodTag = new Tag(METHOD_NAME_KEY, "nullvalue");
+        }
 
         try {
             if (action == null) {
