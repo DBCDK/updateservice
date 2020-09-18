@@ -431,6 +431,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             } else {
+                // No matter if it's a new record or updating an existing, none of eventual 002a may contain the records id
+                for (String aValue : reader.getValues("002", "a")) {
+                    if (aValue.equals(readerRecordId)) {
+                        return state.getMessages().getString("update.record.with.001.equals.002a.links");
+                    }
+                }
                 // Handle either new record or update of existing record
                 Boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
