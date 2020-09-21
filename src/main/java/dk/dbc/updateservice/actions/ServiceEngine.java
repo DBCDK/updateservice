@@ -118,7 +118,7 @@ public class ServiceEngine {
         if (action != null && action.name() != null) {
             methodTag = new Tag(METHOD_NAME_KEY, action.name());
         } else {
-            methodTag = new Tag(METHOD_NAME_KEY, "nullvalue");
+            methodTag = new Tag(METHOD_NAME_KEY, "unknown");
         }
 
         try {
