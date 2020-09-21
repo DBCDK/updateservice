@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.serviceutils.ServiceStatus;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 
 import javax.ejb.Stateless;
 import javax.ws.rs.Path;

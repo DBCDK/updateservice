@@ -25,7 +25,7 @@ import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;

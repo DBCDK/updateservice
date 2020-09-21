@@ -8,7 +8,7 @@ package dk.dbc.updateservice.validate;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;

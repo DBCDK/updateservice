@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.javascript;
 
 import dk.dbc.jslib.*;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
