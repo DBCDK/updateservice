@@ -6,14 +6,11 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.updateservice.client.BibliographicRecordFactory;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.json.JsonMapper;
-import dk.dbc.updateservice.service.api.BibliographicRecord;
-import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -36,7 +33,7 @@ public class ValidateRecordActionTest {
     private Properties settings;
     private static final String GROUP_ID = "700000";
     private static final String SCHEMA_NAME = "bog";
-    private MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+    private final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
 
     public ValidateRecordActionTest() throws IOException {
     }
@@ -45,8 +42,7 @@ public class ValidateRecordActionTest {
     public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
-        BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         state.getUpdateServiceRequestDTO().setSchemaName(SCHEMA_NAME);
         settings = new UpdateTestUtils().getSettings();
     }
