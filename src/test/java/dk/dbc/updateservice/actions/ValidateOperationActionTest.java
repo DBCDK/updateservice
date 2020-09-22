@@ -7,10 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.updateservice.client.BibliographicRecordFactory;
-import dk.dbc.updateservice.service.api.BibliographicRecord;
 import dk.dbc.updateservice.update.OpenAgencyService;
-import dk.dbc.updateservice.ws.UpdateRequestReader;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +18,6 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 public class ValidateOperationActionTest {
     private GlobalActionState state;
@@ -36,8 +32,7 @@ public class ValidateOperationActionTest {
     @Test
     public void testPerformAction_fbs_noDoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
         OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
@@ -51,21 +46,21 @@ public class ValidateOperationActionTest {
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertTrue(child.getClass() == AuthenticateUserAction.class);
+        assertThat(child.getClass(), equalTo(AuthenticateUserAction.class));
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
-        assertTrue(child.getClass() == ValidateSchemaAction.class);
+        assertThat(child.getClass(), equalTo(ValidateSchemaAction.class));
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
         assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
         assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
-        assertTrue(child.getClass() == ValidateRecordAction.class);
+        assertThat(child.getClass(), equalTo(ValidateRecordAction.class));
         ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
         assertThat(validateRecordAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
@@ -78,8 +73,7 @@ public class ValidateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
 
-        BibliographicRecord bibliographicRecord = BibliographicRecordFactory.newMarcRecord(record);
-        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(UpdateRequestReader.convertExternalBibliographicRecordToInternalBibliographicRecordDto(bibliographicRecord));
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
         OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
@@ -93,21 +87,21 @@ public class ValidateOperationActionTest {
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertTrue(child.getClass() == AuthenticateUserAction.class);
+        assertThat(child.getClass(), equalTo(AuthenticateUserAction.class));
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
-        assertTrue(child.getClass() == ValidateSchemaAction.class);
+        assertThat(child.getClass(), equalTo(ValidateSchemaAction.class));
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
         assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
         assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
-        assertTrue(child.getClass() == DoubleRecordFrontendAndValidateAction.class);
+        assertThat(child.getClass(), equalTo(DoubleRecordFrontendAndValidateAction.class));
         DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = (DoubleRecordFrontendAndValidateAction) child;
         assertThat(doubleRecordFrontendAndValidateAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(doubleRecordFrontendAndValidateAction.state.readRecord(), is(validateOperationAction.state.readRecord()));

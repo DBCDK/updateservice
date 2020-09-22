@@ -9,7 +9,7 @@ import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
-import dk.dbc.updateservice.ws.JNDIResources;
+
 import java.time.Duration;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;

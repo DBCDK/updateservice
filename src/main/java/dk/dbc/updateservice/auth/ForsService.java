@@ -12,7 +12,7 @@ import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
 import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 import java.time.Duration;
 import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
