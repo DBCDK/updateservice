@@ -101,7 +101,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 logger.info("Article children: {}", articleChildren);
                 if (articleChildren.size() > 0) {
                     logger.info("Found more than 0 children for article record, so enqueue that record explict");
-                    rawRepo.enqueue(new RecordId(recId, agencyId), providerId, true, true, priority);
+                    rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
                 }
             }
 
