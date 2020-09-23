@@ -16,7 +16,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
-import java.util.Set;
 
 
 /**
@@ -94,15 +93,9 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // However there is a hole when it comes to article records as articles does not retrieve their parent
             // article record during queue processing. Until this case is handled by changedRecord we have to explicit
             // enqueue the parent article
-            logger.info("reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY? {}", reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY);
-            logger.info("rawRepo.children(new RecordId(recId, agencyId)).size()? {}", rawRepo.children(new RecordId(recId, agencyId)).size());
-            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY) {
-                Set<RecordId> articleChildren = rawRepo.children(new RecordId(recId, agencyId));
-                logger.info("Article children: {}", articleChildren);
-                if (articleChildren.size() > 0) {
-                    logger.info("Found more than 0 children for article record, so enqueue that record explict");
-                    rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
-                }
+            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && state.getRawRepo().children(record).size() > 0) {
+                logger.info("Found more than 0 children for article record, so enqueue that record explict");
+                rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
             }
 
             return result = ServiceResult.newOkResult();
