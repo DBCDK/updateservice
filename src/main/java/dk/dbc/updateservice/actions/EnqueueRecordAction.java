@@ -85,6 +85,18 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
             rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
 
+            // Hack for handling missing enqueue of article (870971) records with child articles.
+            // The way changedRecord enqueues records with children in general is that if there are any children then
+            // the record itself is enqueued with leaf = false which means the record isn't queued for certain workers.
+            // That normally isn't a problem because of the way the records are dequeued by the different workers as the
+            // workers retrieve the necessary hierarchy for the child record.
+            // However there is a hole when it comes to article records as articles does not retrieve their parent
+            // article record during queue processing. Until this case is handled by changedRecord we have to explicit
+            // enqueue the parent article
+            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && rawRepo.children(record).size() > 0) {
+                rawRepo.enqueue(new RecordId(recId, agencyId), providerId, true, true, priority);
+            }
+
             return result = ServiceResult.newOkResult();
         } finally {
             logger.exit(result);
