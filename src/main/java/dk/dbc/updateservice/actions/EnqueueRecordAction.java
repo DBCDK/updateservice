@@ -9,13 +9,14 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+import java.util.Set;
 
 
 /**
@@ -93,8 +94,15 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // However there is a hole when it comes to article records as articles does not retrieve their parent
             // article record during queue processing. Until this case is handled by changedRecord we have to explicit
             // enqueue the parent article
-            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && rawRepo.children(record).size() > 0) {
-                rawRepo.enqueue(new RecordId(recId, agencyId), providerId, true, true, priority);
+            logger.info("reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY? {}", reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY);
+            logger.info("rawRepo.children(new RecordId(recId, agencyId)).size()? {}", rawRepo.children(new RecordId(recId, agencyId)).size());
+            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY) {
+                Set<RecordId> articleChildren = rawRepo.children(new RecordId(recId, agencyId));
+                logger.info("Article children: {}", articleChildren);
+                if (articleChildren.size() > 0) {
+                    logger.info("Found more than 0 children for article record, so enqueue that record explict");
+                    rawRepo.enqueue(new RecordId(recId, agencyId), providerId, true, true, priority);
+                }
             }
 
             return result = ServiceResult.newOkResult();
