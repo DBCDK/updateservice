@@ -5,11 +5,20 @@
 
 package dk.dbc.updateservice.auth;
 
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.forsrights.client.ForsRights;
 import dk.dbc.forsrights.client.ForsRightsException;
 import dk.dbc.forsrights.client.ForsRightsServiceFromURL;
 import dk.dbc.updateservice.actions.GlobalActionState;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
+import java.time.Duration;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -29,6 +38,52 @@ import java.util.Properties;
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.BEAN)
 public class ForsService {
+
+    @Inject
+    MetricsHandlerBean metricsHandlerBean;
+
+    private static class ForsServiceErrorCounterMetrics implements CounterMetric {
+        private final Metadata metadata;
+
+        public ForsServiceErrorCounterMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    private static final class ForsServiceTimingMetrics implements SimpleTimerMetric {
+        private final Metadata metadata;
+
+        public ForsServiceTimingMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    static final ForsServiceTimingMetrics forsServiceTimingMetrics =
+            new ForsServiceTimingMetrics(Metadata.builder()
+                    .withName("update_forsservice_timer")
+                    .withDescription("Duration of various forsservice calls")
+                    .withType(MetricType.SIMPLE_TIMER)
+                    .withUnit(MetricUnits.MILLISECONDS).build());
+
+    static final ForsServiceErrorCounterMetrics forsServiceErrorCounterMetrics = new ForsServiceErrorCounterMetrics(Metadata.builder()
+            .withName("update_forsservice_error_counter")
+            .withDescription("Number of errors caught in forsservice calls")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build());
+
+    private static final String METHOD_NAME_KEY = "method";
+    protected static final String ERROR_TYPE = "errortype";
+
     private static final XLogger logger = XLoggerFactory.getXLogger(ForsService.class);
     private static final long CACHE_ENTRY_TIMEOUT = 10 * 60 * 1000;
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
@@ -61,11 +116,21 @@ public class ForsService {
     public ForsRights.RightSet forsRights(GlobalActionState globalActionState) throws ForsRightsException {
         logger.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
         StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
+        Tag methodTag = new Tag(METHOD_NAME_KEY, "lookupRight");
+
         try {
             logger.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL));
             return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword(), null);
+        } catch (Exception e) {
+            metricsHandlerBean.increment(forsServiceErrorCounterMetrics,
+                    methodTag,
+                    new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
+            throw e;
         } finally {
             watch.stop();
+            metricsHandlerBean.update(forsServiceTimingMetrics,
+                    Duration.ofMillis(watch.getElapsedTime()),
+                    methodTag);
             logger.exit();
         }
     }
@@ -80,11 +145,19 @@ public class ForsService {
     public ForsRights.RightSet forsRightsWithIp(GlobalActionState globalActionState, String ipAddress) throws ForsRightsException {
         logger.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****", ipAddress);
         StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
+        Tag methodTag = new Tag(METHOD_NAME_KEY, "forsRightsWithIp");
         try {
             logger.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL));
             return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword(), ipAddress);
+        } catch (Exception e) {
+            metricsHandlerBean.increment(forsServiceErrorCounterMetrics,
+                    methodTag,
+                    new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
+            throw e;
         } finally {
             watch.stop();
+            metricsHandlerBean.update(forsServiceTimingMetrics,
+                     Duration.ofMillis(watch.getElapsedTime()), methodTag);
             logger.exit();
         }
     }

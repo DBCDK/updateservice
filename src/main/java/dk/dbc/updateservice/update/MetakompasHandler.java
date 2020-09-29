@@ -18,7 +18,6 @@ import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceAction;
 import dk.dbc.updateservice.actions.UpdateCommonRecordAction;
 import dk.dbc.updateservice.actions.UpdateEnrichmentRecordAction;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 

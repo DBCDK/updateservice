@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordFactory;
@@ -16,7 +17,12 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.auth.Authenticator;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
+import dk.dbc.updateservice.client.BibliographicRecordExtraDataEncoder;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
+import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -31,10 +37,12 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -112,6 +120,26 @@ public class AssertActionsUtil {
         } finally {
             logger.exit(record);
         }
+    }
+
+    public static BibliographicRecordDTO constructBibliographicRecordDTO(MarcRecord record, BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException {
+        final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
+        bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1");
+        bibliographicRecordDTO.setRecordPacking("xml");
+
+        final ExtraRecordDataDTO extraRecordDataDTO = new ExtraRecordDataDTO();
+        if (data != null) {
+            extraRecordDataDTO.setContent(Arrays.asList("\n", BibliographicRecordExtraDataEncoder.toXmlDocument(data), "\n"));
+        } else {
+            extraRecordDataDTO.setContent(Collections.singletonList("\n"));
+        }
+        bibliographicRecordDTO.setExtraRecordDataDTO(extraRecordDataDTO);
+
+        final RecordDataDTO recordDataDTO = new RecordDataDTO();
+        recordDataDTO.setContent(Arrays.asList("\n", MarcConverter.convertToMarcXChangeAsDocument(record).getDocumentElement(), "\n"));
+        bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
+
+        return bibliographicRecordDTO;
     }
 
     public static Set<RecordId> createRecordSet(MarcRecord... records) {

@@ -9,6 +9,7 @@ import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
@@ -39,7 +40,6 @@ import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -108,6 +108,10 @@ public class UpdateServiceCore {
     @EJB
     private LibraryRecordsHandler libraryRecordsHandler;
 
+    @Inject
+    MetricsHandlerBean metricsHandlerBean;
+
+
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
@@ -174,7 +178,7 @@ public class UpdateServiceCore {
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
 
-                serviceEngine = new ServiceEngine();
+                serviceEngine = new ServiceEngine(metricsHandlerBean);
                 serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
                 serviceResult = serviceEngine.executeAction(updateRequestAction);
 
@@ -226,6 +230,7 @@ public class UpdateServiceCore {
 
         StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO = null;
+
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));

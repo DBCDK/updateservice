@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;

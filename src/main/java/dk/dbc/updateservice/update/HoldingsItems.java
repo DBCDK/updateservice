@@ -7,8 +7,17 @@ package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
+import java.time.Duration;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -33,8 +42,55 @@ import java.util.Set;
 public class HoldingsItems {
     private static XLogger logger = XLoggerFactory.getXLogger(HoldingsItems.class);
 
+    @Inject
+    MetricsHandlerBean metricsHandlerBean;
+
     @Resource(lookup = "jdbc/holdingsitems")
     private DataSource dataSource;
+
+    private static final class HoldingsItemsErrorCounterMetrics implements CounterMetric {
+        private final Metadata metadata;
+
+        public HoldingsItemsErrorCounterMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+
+    private static final class HoldingsItemsTimingMetrics implements SimpleTimerMetric {
+        private Metadata metadata;
+
+        public HoldingsItemsTimingMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    protected static final HoldingsItemsErrorCounterMetrics holdingsItemsErrorCounterMetrics =
+            new HoldingsItemsErrorCounterMetrics(Metadata.builder()
+                    .withName("update_holdingsitems_error_counter")
+                    .withDescription("Number of errors caught in various holdingsitems calls")
+                    .withType(MetricType.COUNTER)
+                    .withUnit("requests").build());
+
+    static final HoldingsItemsTimingMetrics holdingsItemsTimingMetrics =
+            new HoldingsItemsTimingMetrics(Metadata.builder()
+                    .withName("update_holdingsitems_timer")
+                    .withDescription("Duration of various various holdingsitems calls")
+                    .withUnit(MetricUnits.MILLISECONDS)
+                    .withType(MetricType.SIMPLE_TIMER).build());
+
+    protected static final String METHOD_NAME_KEY = "method";
+    protected static final String ERROR_TYPE = "errortype";
 
     public HoldingsItems() {
         this.dataSource = null;
@@ -63,6 +119,7 @@ public class HoldingsItems {
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsForId(String recordId) throws UpdateException {
+        Tag methodTag = new Tag(METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId");
         logger.entry(recordId);
         logger.info("getAgenciesThatHasHoldingsForId : " + recordId);
         StopWatch watch = new Log4JStopWatch();
@@ -73,9 +130,21 @@ public class HoldingsItems {
             return result;
         } catch (SQLException | HoldingsItemsException ex) {
             logger.error(ex.getMessage(), ex);
+            metricsHandlerBean.increment(holdingsItemsErrorCounterMetrics,
+                    methodTag,
+                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase()));
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            metricsHandlerBean.increment(holdingsItemsErrorCounterMetrics,
+                    methodTag,
+                    new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
+            throw e;
         } finally {
             watch.stop("holdingsItems.getAgenciesThatHasHoldingsForId.String");
+            metricsHandlerBean.update(holdingsItemsTimingMetrics,
+                Duration.ofMillis(watch.getElapsedTime()),
+                methodTag);
+
             logger.exit(result);
         }
     }

@@ -24,7 +24,7 @@ import org.slf4j.ext.XLoggerFactory;
 @Stateless
 @Path("/api")
 public class ClassificationCheckServiceRest {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ClassificationCheckService.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ClassificationCheckServiceRest.class);
 
     @EJB
     UpdateServiceCore updateServiceCore;

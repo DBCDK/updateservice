@@ -24,7 +24,7 @@ import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.updateservice.update.JNDIResources;
 
 import java.io.IOException;
 import java.util.ArrayList;

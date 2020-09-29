@@ -3,7 +3,7 @@
  *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
  */
 
-package dk.dbc.updateservice.ws;
+package dk.dbc.updateservice.update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +16,6 @@ import java.util.Properties;
  * This also includes keys from Properties resources.
  */
 public class JNDIResources {
-    // Managed Executor Service Resources
-    public static final String RAWREPO_CACHE_EXECUTOR_SERVICE = "concurrent/rawrepo";
-
     public static final String SOLR_URL = "SOLR_URL";
     public static final String SOLR_BASIS_URL = "SOLR_BASIS_URL";
     public static final String FORSRIGHTS_URL = "FORSRIGHTS_URL";

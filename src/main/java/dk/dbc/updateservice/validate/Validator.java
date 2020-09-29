@@ -10,6 +10,8 @@ import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.update.JNDIResources;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 

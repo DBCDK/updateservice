@@ -10,8 +10,18 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
+import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenBuildCore;
 import dk.dbc.util.Timed;
+import java.time.Duration;
+import javax.inject.Inject;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricRegistry;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.SimpleTimer;
+import org.eclipse.microprofile.metrics.Tag;
+import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -34,6 +44,22 @@ public class OpenBuildRest {
     @EJB
     OpenBuildCore openBuildCore;
 
+    @Inject
+    @RegistryType(type = MetricRegistry.Type.APPLICATION)
+    MetricRegistry metricRegistry;
+
+    static final Metadata buildTimerMetadata = Metadata.builder()
+            .withName("update_build_timer")
+            .withDescription("Duration of build")
+            .withType(MetricType.SIMPLE_TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
+
+    static final Metadata builErrorCounterMetadata = Metadata.builder()
+            .withName("update_build_error_counter")
+            .withDescription("Number of errors caught in method build")
+            .withType(MetricType.COUNTER)
+            .withUnit("errors").build();
+
     @POST
     @Path("v1/openbuildservice")
     @Consumes({MediaType.APPLICATION_JSON})
@@ -41,6 +67,8 @@ public class OpenBuildRest {
     @Timed
     public String build(BuildRequestDTO buildRequestDTO) throws JSONBException {
         StopWatch watch = new Log4JStopWatch("OpenBuildRest.build");
+        final SimpleTimer buildTimer = metricRegistry.simpleTimer(buildTimerMetadata);
+
         new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
         LOGGER.entry();
         BuildResponseDTO buildResponseDTO = null;
@@ -48,14 +76,17 @@ public class OpenBuildRest {
             LOGGER.info("Build request: {}", buildRequestDTO);
 
             buildResponseDTO = openBuildCore.build(buildRequestDTO);
-
+            if (buildResponseDTO != null && buildResponseDTO.getBuildStatusEnumDTO() != BuildStatusEnumDTO.OK) {
+                metricRegistry.counter(builErrorCounterMetadata,
+                        new Tag("status", buildResponseDTO.getBuildStatusEnumDTO().toString())).inc();
+            }
             return jsonbContext.marshall(buildResponseDTO);
         } finally {
             LOGGER.info("Build response: {}", buildResponseDTO);
             watch.stop();
             LOGGER.exit();
             DBCTrackedLogContext.remove();
+            buildTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }
-
 }

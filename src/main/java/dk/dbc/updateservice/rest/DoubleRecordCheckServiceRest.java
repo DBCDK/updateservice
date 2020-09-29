@@ -28,7 +28,7 @@ public class DoubleRecordCheckServiceRest {
     @EJB
     UpdateServiceCore updateServiceCore;
 
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckService.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckServiceRest.class);
 
     @POST
     @Path("v2/doublerecordcheck")

@@ -20,7 +20,6 @@ import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.json.MixIns;
-import dk.dbc.updateservice.ws.JNDIResources;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
