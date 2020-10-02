@@ -66,11 +66,23 @@ function setupLogAndLogdir () {
 
 function waitForOk () {
   echo "systest ---> waiting on containers"
-  UPDATE_SERVICE_IMAGE=`docker-compose ps -q update-systemtests-updateservice`
-  UPDATESERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATE_SERVICE_IMAGE} `
-  echo -e "systest ---> UPDATESERVICE_PORT_8080 is $UPDATESERVICE_PORT_8080\n"
+  RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
+  RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
+  echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
+  OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
+  OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
+  echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
+  UPDATE_SERVICE_CONTAINER=`docker-compose ps -q update-systemtests-updateservice`
+  UPDATE_SERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATE_SERVICE_CONTAINER} `
+  echo -e "systest ---> UPDATE_SERVICE_PORT_8080 is $UPDATE_SERVICE_PORT_8080\n"
+  UPDATESERVICE_FACADE_CONTAINER=`docker-compose ps -q updateservice-facade`
+  UPDATESERVICE_FACADE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_CONTAINER} `
+  echo -e "UPDATESERVICE_FACADE_PORT_8080 is ${UPDATESERVICE_FACADE_PORT_8080}\n"
   echo "systest ---> Wait for glassfish containers"
-  ../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 '[updateservice]' || die "could not start updateservice"
+  ../../bin/healthcheck-rawrepo-record-service.sh ${HOST_IP} ${RAWREPO_RECORD_SERVICE_PORT} 220 || die "could not start rawrepo-record-service"
+  ../../bin/healthcheck-opencat-business-service.sh ${HOST_IP} ${OPENCAT_BUSINESS_SERVICE_PORT} 220 || die "could not start opencat-business-service"
+  ../../bin/healthcheck-update-service.sh ${HOST_IP} ${UPDATE_SERVICE_PORT_8080} 220 || die "could not start update-service"
+  ../../bin/healthcheck-update-facade-service.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start update-facade-service"
   echo "systest ---> Sleeping 3"
   sleep 3 || die "sleep 3"
 }

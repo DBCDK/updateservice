@@ -126,8 +126,8 @@ echo -e "UPDATESERVICE_FACADE_PORT_8686 is ${UPDATESERVICE_FACADE_PORT_8686}\n"
 UPDATESERVICE_FACADE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
 echo -e "UPDATESERVICE_FACADE_PORT_4848 is ${UPDATESERVICE_FACADE_PORT_4848}\n"
 
-../../bin/healthcheck-update-service.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start updateservice"
-../../bin/healthcheck-update-facade-service.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start updateservice-facade"
+../../bin/healthcheck-update-service.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start update-service"
+../../bin/healthcheck-update-facade-service.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start update-facade-service"
 cd -
 
 sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties

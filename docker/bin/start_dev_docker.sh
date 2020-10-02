@@ -162,5 +162,5 @@ docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 
-../../bin/healthcheck-rawrepo-record-service.sh ${HOST_IP} ${RAWREPO_RECORD_SERVICE_PORT} 220 || die "could not start updateservice-facade"
-../../bin/healthcheck-opencat-business-service.sh ${HOST_IP} ${OPENCAT_BUSINESS_SERVICE_PORT} 220 || die "could not start updateservice-facade"
+../../bin/healthcheck-rawrepo-record-service.sh ${HOST_IP} ${RAWREPO_RECORD_SERVICE_PORT} 220 || die "could not start rawrepo-record-service"
+../../bin/healthcheck-opencat-business-service.sh ${HOST_IP} ${OPENCAT_BUSINESS_SERVICE_PORT} 220 || die "could not start opencat-business-service"
