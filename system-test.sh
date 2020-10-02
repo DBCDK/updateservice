@@ -66,16 +66,16 @@ function setupLogAndLogdir () {
 
 function waitForOk () {
   echo "systest ---> waiting on containers"
-  RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
+  RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q update-systemtests-rawrepo-record-service`
   RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
   echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
-  OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
+  OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q update-systemtests-opencat-business-service`
   OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
   echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
   UPDATE_SERVICE_CONTAINER=`docker-compose ps -q update-systemtests-updateservice`
   UPDATE_SERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATE_SERVICE_CONTAINER} `
   echo -e "systest ---> UPDATE_SERVICE_PORT_8080 is $UPDATE_SERVICE_PORT_8080\n"
-  UPDATESERVICE_FACADE_CONTAINER=`docker-compose ps -q updateservice-facade`
+  UPDATESERVICE_FACADE_CONTAINER=`docker-compose ps -q update-systemtests-updateservice-facade`
   UPDATESERVICE_FACADE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_CONTAINER} `
   echo -e "UPDATESERVICE_FACADE_PORT_8080 is ${UPDATESERVICE_FACADE_PORT_8080}\n"
   echo "systest ---> Wait for glassfish containers"
