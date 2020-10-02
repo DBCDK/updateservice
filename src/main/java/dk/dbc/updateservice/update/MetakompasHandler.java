@@ -39,7 +39,6 @@ public class MetakompasHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
     private static final String indexName = "phrase.vla";
-    private static final List<String> metakompasSubFieldsToCopy = Arrays.asList("e", "p");
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
     private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t");
     private static final String commonRecordTemplate =

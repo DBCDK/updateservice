@@ -11,7 +11,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
-import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
@@ -31,7 +30,6 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -55,8 +53,6 @@ public class OpenBuildCore {
     @EJB
     private Scripter scripter;
 
-    @Inject
-    private OpencatBusinessConnector opencatBusinessConnector;
 
     @EJB
     private DocumentFactory documentFactory;
