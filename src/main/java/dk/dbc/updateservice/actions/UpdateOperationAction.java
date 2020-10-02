@@ -10,8 +10,10 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -24,13 +26,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -123,13 +129,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
 
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
-            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
+            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && record.getFields().size() > 0) {
                 try {
-                    record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
+                    record = state.getOpencatBusiness().metacompass(record);
                     MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, record, settings);
-                } catch (UpdateException ex) {
-                    String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                } catch (UpdateException | OpencatBusinessConnectorException ex) {
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
                 }
             }
 
@@ -204,7 +209,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
             return result = ServiceResult.newOkResult();
-        } catch (OpenAgencyException | UnsupportedEncodingException e) {
+        } catch (OpenAgencyException | UnsupportedEncodingException | JAXBException | JSONBException e) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
         } finally {
             logger.exit(result);
@@ -217,7 +222,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @param recordId The recordId to check for
      * @return true if the recordId exists as common record
      * @throws UpdateException Update error
-     * @throws SolrException Solr error
+     * @throws SolrException   Solr error
      */
     private boolean checkForExistingCommonFaust(String recordId) throws UpdateException, SolrException {
         if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
@@ -237,7 +242,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * Only applicable for agencies which uses enrichments (i.e. FFU and lokbib are ignored)
      *
      * @param reader MarcRecordReader of the record to be checked
-     * @throws UpdateException Update error
+     * @throws UpdateException              Update error
      * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
     void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
@@ -253,7 +258,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     // For specifically 870974 (literature analysis) must have a creation date equal to the parent
                     // record creation date
                     if ("870974".equals(reader.getAgencyId())) {
-                     setCreationDateToParentCreationDate(record);
+                        setCreationDateToParentCreationDate(record);
                     } else {
                         setCreationDateToToday(record);
                     }
@@ -377,7 +382,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
             logger.debug("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: " + recordIdSet);
             if (!recordIdSet.isEmpty()) {
-                for (RecordId childRecordId: recordIdSet) {
+                for (RecordId childRecordId : recordIdSet) {
                     // If all child records are 870974 littolk then the record can be deleted anyway
                     // The littolk children will be marked for deletion later in the flow
                     if (childRecordId.getAgencyId() != 870974) {

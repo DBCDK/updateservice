@@ -11,6 +11,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
@@ -79,9 +80,11 @@ public class UpdateServiceCore {
     @EJB
     private ScripterPool scripterPool;
 
-
     @EJB
     private RawRepo rawRepo;
+
+    @Inject
+    private OpencatBusinessConnector opencatBusiness;
 
     @EJB
     private HoldingsItems holdingsItems;
@@ -128,6 +131,7 @@ public class UpdateServiceCore {
         newGlobalActionStateObject.setAuthenticator(authenticator);
         newGlobalActionStateObject.setScripter(scripter);
         newGlobalActionStateObject.setRawRepo(rawRepo);
+        newGlobalActionStateObject.setOpencatBusiness(opencatBusiness);
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
         newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
         newGlobalActionStateObject.setSolrService(solrService);
@@ -402,8 +406,6 @@ public class UpdateServiceCore {
         }
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
-
-
 
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {

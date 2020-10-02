@@ -18,12 +18,12 @@ else
 fi
 
 START_TIME=`date '+%s'`
-echo -n "Waiting for updateservice-facade $3 to be ready ";
+echo -n "Waiting for update-service $3 to be ready ";
 
-echo "curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/api/status 2>/dev/null"
+echo "curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/status 2>/dev/null"
 for i in $(seq 1 ${TIMEOUT}) ; do
-    RES=$(curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/api/status 2>/dev/null)
-    if [ "$RES" == "{\"status\":200}" ] ; then
+    RES=$(curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/status 2>/dev/null)
+    if [ "$RES" == "$UPDATE_READYISH" ] || [ "$RES" == "$UPDATE_READY" ] ; then
         echo " Done Waiting -$RES- (" $(( `date '+%s'` - START_TIME)) ")";
         exit 0
     fi

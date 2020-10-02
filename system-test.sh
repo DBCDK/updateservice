@@ -11,6 +11,7 @@ function collect_logs () {
   echo "systest ---> Collect log files"
   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice_1 > logs/gf-updateservice.log
   docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-updateservice-facade_1 > logs/gf-updateservice-facade.log
+  docker logs ${COMPOSE_PROJECT_NAME}_update-systemtests-opencat-business-service_1 > logs/gf-opencat-business-service.log
   docker logs ${COMPOSE_PROJECT_NAME}_ocb-tools-systemtests_1 > logs/ocb-tools.log
 }
 
@@ -19,6 +20,8 @@ function removeImages() {
   docker rmi docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.4:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
   docker rmi docker-i.dbc.dk/fakesmtp:latest
 }
 
@@ -30,6 +33,8 @@ function startContainers () {
   docker-compose up -d update-systemtests-fake-smtp                   || die "docker-compose up -d update-systemtests-fake-smtp"
   docker-compose up -d update-systemtests-updateservice               || die "docker-compose up -d update-systemtests-updateservice"
   docker-compose up -d update-systemtests-updateservice-facade        || die "docker-compose up -d update-systemtests-updateservice-facade"
+  docker-compose up -d update-systemtests-rawrepo-record-service      || die "docker-compose up -d update-systemtests-rawrepo-record-service"
+  docker-compose up -d update-systemtests-opencat-business-service    || die "docker-compose up -d update-systemtests-opencat-business-service"
 }
 
 function reTagAndRemove () {
@@ -37,12 +42,18 @@ function reTagAndRemove () {
   RAWREPO_DB_VERSION=1.12
   HOLDINGS_DB_VERION=1.1.4
   UPDATESERVICE_FACADE_TAG=master-31
+  OPENCAT_BUSINESS_SERVICE_TAG=latest
+  RAWREPO_RECORD_SERVICE_TAG=DIT-264
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
   docker tag docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
+  docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+  docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 }
 
 function setupLogAndLogdir () {

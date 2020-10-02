@@ -95,9 +95,11 @@ export DEV_SOLR_BASIS_URL="http://${DEV_SOLR_BASIS_ADDR}:${DEV_SOLR_BASIS_PORT}/
 export DEV_RAWREPO_DB_URL=$(grep rawrepo.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_HOLDINGS_ITEMS_DB_URL=$(grep holdings.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_UPDATE_DB_URL=$(grep updateservice.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
+export DEV_OPENCAT_BUSINESS_URL=$(grep opencat.business.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 echo -e "Rawrepo db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
+echo -e "Opencat-business url : ${DEV_OPENCAT_BUSINESS_URL}"
 
 docker-compose stop updateservice
 docker-compose stop updateservice-facade
@@ -110,8 +112,6 @@ UPDATESERVICE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettin
 echo -e "UPDATESERVICE_PORT_8686 is ${UPDATESERVICE_PORT_8686}\n"
 UPDATESERVICE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
 echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
-
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start updateservice"
 
 export UPDATE_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
 export BUILD_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
@@ -126,7 +126,8 @@ echo -e "UPDATESERVICE_FACADE_PORT_8686 is ${UPDATESERVICE_FACADE_PORT_8686}\n"
 UPDATESERVICE_FACADE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
 echo -e "UPDATESERVICE_FACADE_PORT_4848 is ${UPDATESERVICE_FACADE_PORT_4848}\n"
 
-../../bin/return-when-status-ok-facade.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start updateservice-facade"
+../../bin/healthcheck-update-service.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start updateservice"
+../../bin/healthcheck-update-facade-service.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start updateservice-facade"
 cd -
 
 sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties

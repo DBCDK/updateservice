@@ -54,6 +54,7 @@ services:
       - UPDATE_DB_URL=${DEV_UPDATE_DB_URL}
       - SOLR_URL=${DEV_SOLR_URL}
       - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
+      - OPENCAT_BUSINESS_URL=${DEV_OPENCAT_BUSINESS_URL}
     extra_hosts:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"
@@ -70,6 +71,40 @@ services:
       - UPDATE_SERVICE_URL=${UPDATE_SERVICE_URL}
       - BUILD_SERVICE_URL=${BUILD_SERVICE_URL}
       - JAVA_MAX_HEAP_SIZE=2G
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+  opencat-business-service:
+    image: docker-io.dbc.dk/opencat-business:latest
+    environment:
+      - OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      - RAWREPO_RECORD_SERVICE_URL=${DEV_RAWREPO_RECORD_SERVICE_URL}
+      - OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
+      - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
+      - SOLR_URL=${DEV_SOLR_URL}
+      - INSTANCE_NAME=${USER}_dev
+      - JAVA_MAX_HEAP_SIZE=2G
+      - JAVASCRIPT_POOL_SIZE=1
+    volumes:
+      - "../../../../opencat-business:/opt/payara5/deployments/opencat-business"
+    extra_hosts:
+      - "solrserver:${HOST_IP}"
+      - "solrbasis:${HOST_IP}"
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+  rawrepo-record-service:
+    image: docker-io.dbc.dk/rawrepo-record-service:DIT-264
+    environment:
+      -  INSTANCE_NAME=${USER}_dev
+      -  OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      -  RAWREPO_URL=${DEV_RAWREPO_DB_URL}
+      -  HOLDINGS_URL=${DEV_HOLDINGS_ITEMS_DB_URL}
+      -  JAVA_MAX_HEAP_SIZE=2G
     ports:
       - "8080"
       - "8686"
