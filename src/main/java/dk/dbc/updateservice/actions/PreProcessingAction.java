@@ -5,12 +5,15 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.PreProcessingHandler;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -27,15 +30,18 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         LOGGER.entry();
         try {
-            final PreProcessingHandler preprocessingHandler = new PreProcessingHandler(state.getRawRepo(), state.getMessages());
-            preprocessingHandler.preProcess(state.getMarcRecord());
+            // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record
+            // so it is better to not send the record in the first place.
+            if (state.getMarcRecord().getFields().size() > 0) {
+                final MarcRecord marcRecord = state.getOpencatBusiness().preprocess(state.getMarcRecord());
+                // It doesn't work to reassign the object so instead we just overwrite the fields
+                state.getMarcRecord().setFields(marcRecord.getFields());
+            }
 
             return ServiceResult.newOkResult();
-        } catch (UpdateException ex) {
+        } catch (UnsupportedEncodingException | JAXBException | JSONBException | OpencatBusinessConnectorException ex) {
             LOGGER.error("Error during pre-processing", ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } catch (UnsupportedEncodingException ex) {
-            throw new UpdateException("Caught unexpected exception: " + ex.toString());
         } finally {
             LOGGER.exit();
         }

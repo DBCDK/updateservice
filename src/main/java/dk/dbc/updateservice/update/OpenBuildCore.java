@@ -53,6 +53,7 @@ public class OpenBuildCore {
     @EJB
     private Scripter scripter;
 
+
     @EJB
     private DocumentFactory documentFactory;
 

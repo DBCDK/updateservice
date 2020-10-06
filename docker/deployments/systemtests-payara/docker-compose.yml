@@ -61,6 +61,7 @@ services:
       - UPDATE_DB_URL=updateservice:thePassword@update-systemtests-update-db:5432/updateservice
       - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
       - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
+      - OPENCAT_BUSINESS_URL=http://update-systemtests-opencat-business-service:8080
     expose:
       - "8080"
       - "4848"
@@ -78,6 +79,36 @@ services:
       - "8080"
       - "8686"
       - "4848"
+
+  update-systemtests-opencat-business-service:
+    image: docker-io.dbc.dk/opencat-business:latest
+    environment:
+      - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
+      - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
+      - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
+      - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
+      - INSTANCE_NAME=${USER}_systemtest
+      - JAVA_MAX_HEAP_SIZE=2G
+      - JAVASCRIPT_POOL_SIZE=1
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+  update-systemtests-rawrepo-record-service:
+    image: docker-io.dbc.dk/rawrepo-record-service:DIT-264
+    environment:
+      -  INSTANCE_NAME=${USER}_systemtest
+      -  OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      -  RAWREPO_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
+      -  HOLDINGS_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
+      -  JAVA_MAX_HEAP_SIZE=2G
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
 
   ocb-tools-systemtests:
     image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
