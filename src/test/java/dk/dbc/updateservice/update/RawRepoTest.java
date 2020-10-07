@@ -30,7 +30,7 @@ import static dk.dbc.updateservice.update.RawRepo.METHOD_NAME_KEY;
 import static dk.dbc.updateservice.update.RawRepo.rawrepoErrorCounterMetrics;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
