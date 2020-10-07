@@ -55,6 +55,7 @@ public class OpenBuildCore {
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
 
+
     @EJB
     private DocumentFactory documentFactory;
 

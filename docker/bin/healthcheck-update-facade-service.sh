@@ -1,8 +1,5 @@
 #!/bin/bash
 
-UPDATE_READY="ST_OK"
-UPDATE_READYISH="ST_CREATE_ENVS"
-
 if [[ $# -ge 3 ]] ; then
     HOST=$1
     PORT=$2
@@ -18,12 +15,12 @@ else
 fi
 
 START_TIME=`date '+%s'`
-echo -n "Waiting for Updateservice $3 to be ready ";
+echo -n "Waiting for update-facade-service $3 to be ready ";
 
-echo "curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/status 2>/dev/null"
+echo "curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/api/status 2>/dev/null"
 for i in $(seq 1 ${TIMEOUT}) ; do
-    RES=$(curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/status 2>/dev/null)
-    if [ "$RES" == "$UPDATE_READYISH" ] || [ "$RES" == "$UPDATE_READY" ] ; then
+    RES=$(curl -m 5 http://${HOST}:${PORT}/UpdateService/rest/api/status 2>/dev/null)
+    if [ "$RES" == "{\"status\":200}" ] ; then
         echo " Done Waiting -$RES- (" $(( `date '+%s'` - START_TIME)) ")";
         exit 0
     fi

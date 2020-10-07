@@ -406,7 +406,6 @@ public class UpdateServiceCore {
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, trackingId);
     }
 
-
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
         if (engine != null) {
             LOGGER.info("Executed action:");

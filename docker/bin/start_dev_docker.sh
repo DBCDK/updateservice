@@ -17,8 +17,8 @@ export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 RAWREPO_VERSION=1.13-snapshot
 RAWREPO_DIT_TAG=DIT-5016
 HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
-OPENCAT_BUSINESS_SERVICE_TAG=DIT-459
-RAWREPO_RECORD_SERVICE_TAG=DIT-253
+OPENCAT_BUSINESS_SERVICE_TAG=latest
+RAWREPO_RECORD_SERVICE_TAG=DIT-264
 
 cd ${IDEA_ROOT}/docker
 
@@ -76,8 +76,8 @@ echo "docker ps : $?"
 docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
-docker rmi docker-io.dbc.dk/opencat-business:${USER}
-docker rmi docker-io.dbc.dk/rawrepo-record-service:${USER}
+docker rmi -f docker-io.dbc.dk/opencat-business:${USER}
+docker rmi -f docker-io.dbc.dk/rawrepo-record-service:${USER}
 if [ "$USE_LOCAL_PAYARA" = "N" ]
 then
     docker rmi -f docker-i.dbc.dk/update-payara:${USER}
@@ -87,7 +87,7 @@ docker-compose up -d rawrepoDb
 docker-compose up -d updateserviceDb
 docker-compose up -d holdingsitemsDb
 docker-compose up -d fakeSmtp
-sleep 3
+
 docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
 docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
@@ -138,8 +138,6 @@ export DEV_HOLDINGS_ITEMS_DB_URL="holdingsitems:thePassword@${HOST_IP}:${HOLDING
 
 #opencat-business-service
 docker-compose up -d rawrepo-record-service
-sleep 3
-
 RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
 export RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
 echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
@@ -150,7 +148,6 @@ export DEV_SOLR_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/raapost-index"
 export DEV_SOLR_BASIS_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/basis-index"
 
 docker-compose up -d opencat-business-service
-sleep 3
 OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
 export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
 echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
@@ -164,3 +161,6 @@ docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
+
+../../bin/healthcheck-rawrepo-record-service.sh ${HOST_IP} ${RAWREPO_RECORD_SERVICE_PORT} 220 || die "could not start rawrepo-record-service"
+../../bin/healthcheck-opencat-business-service.sh ${HOST_IP} ${OPENCAT_BUSINESS_SERVICE_PORT} 220 || die "could not start opencat-business-service"
