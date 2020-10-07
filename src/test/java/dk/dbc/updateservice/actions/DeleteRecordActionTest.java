@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 public class DeleteRecordActionTest {
     private GlobalActionState state;
     private Properties properties;
-    private String localSingleRecordId = "20611529";
-    private int localSingleAgencyId = 700400;
+    private final String localSingleRecordId = "20611529";
+    private final int localSingleAgencyId = 700400;
 
     @Before
     public void before() throws IOException {

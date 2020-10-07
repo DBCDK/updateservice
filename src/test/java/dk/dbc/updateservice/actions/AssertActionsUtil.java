@@ -32,7 +32,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.IOUtils;
-import org.junit.Assert;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -45,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -153,13 +151,7 @@ public class AssertActionsUtil {
     }
 
     public static Set<Integer> createAgenciesSet(Integer... agencies) {
-        Set<Integer> result = new HashSet<>();
-
-        for (Integer agencyId : agencies) {
-            result.add(agencyId);
-        }
-
-        return result;
+        return new HashSet<>(Arrays.asList(agencies));
     }
 
     public static Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
@@ -183,27 +175,27 @@ public class AssertActionsUtil {
         return new MarcRecordReader(record).getAgencyIdAsInt();
     }
 
-    public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) throws UpdateException {
+    public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(AuthenticateRecordAction.class.getName()));
 
         AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
-        Assert.assertThat(authenticateRecordAction.state.readRecord(), is(record));
-        Assert.assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
-        Assert.assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
+        assertThat(authenticateRecordAction.state.readRecord(), is(record));
+        assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
+        assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
     }
 
-    public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService) throws UpdateException {
+    public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(UpdateCommonRecordAction.class.getName()));
 
         UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction) action;
-        Assert.assertThat(updateCommonRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(updateCommonRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
-        Assert.assertThat(updateCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
-        Assert.assertThat(updateCommonRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        Assert.assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
+        assertThat(updateCommonRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(updateCommonRecordAction.getRecord(), is(record));
+        assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
+        assertThat(updateCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
+        assertThat(updateCommonRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
     }
 
     public static void assertCreateSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, SolrFBS solrService, String providerId) throws UpdateException {
@@ -211,10 +203,10 @@ public class AssertActionsUtil {
         assertThat(action.getClass().getName(), equalTo(CreateSingleRecordAction.class.getName()));
 
         CreateSingleRecordAction createSingleRecordAction = (CreateSingleRecordAction) action;
-        Assert.assertThat(createSingleRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(createSingleRecordAction.getRecord(), is(record));
-        Assert.assertThat(createSingleRecordAction.state.getSolrFBS(), is(solrService));
-        Assert.assertThat(createSingleRecordAction.settings.getProperty(createSingleRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
+        assertThat(createSingleRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(createSingleRecordAction.getRecord(), is(record));
+        assertThat(createSingleRecordAction.state.getSolrFBS(), is(solrService));
+        assertThat(createSingleRecordAction.settings.getProperty(createSingleRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
     public static void assertCreateVolumeRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems, SolrFBS solrService, String providerId) throws UpdateException {
@@ -222,14 +214,14 @@ public class AssertActionsUtil {
         assertThat(action.getClass().getName(), equalTo(CreateVolumeRecordAction.class.getName()));
 
         CreateVolumeRecordAction createVolumeRecordAction = (CreateVolumeRecordAction) action;
-        Assert.assertThat(createVolumeRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(createVolumeRecordAction.getRecord(), is(record));
-        Assert.assertThat(createVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        Assert.assertThat(createVolumeRecordAction.state.getSolrFBS(), is(solrService));
-        Assert.assertThat(createVolumeRecordAction.settings.getProperty(createVolumeRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
+        assertThat(createVolumeRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(createVolumeRecordAction.getRecord(), is(record));
+        assertThat(createVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(createVolumeRecordAction.state.getSolrFBS(), is(solrService));
+        assertThat(createVolumeRecordAction.settings.getProperty(createVolumeRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
-    public static void assertOverwriteVolumeRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems) throws UpdateException {
+    public static void assertOverwriteVolumeRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(OverwriteVolumeRecordAction.class.getName()));
 
@@ -241,25 +233,25 @@ public class AssertActionsUtil {
         assertThat(overwriteVolumeRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
     }
 
-    public static void assertUpdateLocalRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems) throws UpdateException {
+    public static void assertUpdateLocalRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, HoldingsItems holdingsItems) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(UpdateLocalRecordAction.class.getName()));
 
         UpdateLocalRecordAction updateLocalRecordAction = (UpdateLocalRecordAction) action;
-        Assert.assertThat(updateLocalRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(updateLocalRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateLocalRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(updateLocalRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(updateLocalRecordAction.getRecord(), is(record));
+        assertThat(updateLocalRecordAction.state.getHoldingsItems(), is(holdingsItems));
     }
 
-    public static void assertUpdateEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems) throws UpdateException {
+    public static void assertUpdateEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(UpdateEnrichmentRecordAction.class.getName()));
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction) action;
-        Assert.assertThat(updateEnrichmentRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(updateEnrichmentRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
-        Assert.assertThat(updateEnrichmentRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(updateEnrichmentRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(updateEnrichmentRecordAction.getRecord(), is(record));
+        assertThat(updateEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
+        assertThat(updateEnrichmentRecordAction.state.getHoldingsItems(), is(holdingsItems));
     }
 
     public static void assertSchoolCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId) throws UpdateException {
@@ -267,11 +259,11 @@ public class AssertActionsUtil {
         assertThat(action.getClass().getName(), equalTo(UpdateSchoolCommonRecord.class.getName()));
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = (UpdateSchoolCommonRecord) action;
-        Assert.assertThat(updateSchoolCommonRecord.getRawRepo(), is(rawRepo));
-        Assert.assertThat(updateSchoolCommonRecord.getRecord(), is(record));
-        Assert.assertThat(updateSchoolCommonRecord.state.getLibraryRecordsHandler(), is(recordsHandler));
-        Assert.assertThat(updateSchoolCommonRecord.state.getHoldingsItems(), is(holdingsItems));
-        Assert.assertThat(updateSchoolCommonRecord.settings.getProperty(updateSchoolCommonRecord.state.getRawRepoProviderId()), equalTo(providerId));
+        assertThat(updateSchoolCommonRecord.getRawRepo(), is(rawRepo));
+        assertThat(updateSchoolCommonRecord.getRecord(), is(record));
+        assertThat(updateSchoolCommonRecord.state.getLibraryRecordsHandler(), is(recordsHandler));
+        assertThat(updateSchoolCommonRecord.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(updateSchoolCommonRecord.settings.getProperty(updateSchoolCommonRecord.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
     public static void assertSchoolEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, String providerId) throws UpdateException {
@@ -279,14 +271,14 @@ public class AssertActionsUtil {
         assertThat(action.getClass().getName(), equalTo(UpdateSchoolEnrichmentRecordAction.class.getName()));
 
         UpdateSchoolEnrichmentRecordAction updateSchoolEnrichmentRecordAction = (UpdateSchoolEnrichmentRecordAction) action;
-        Assert.assertThat(updateSchoolEnrichmentRecordAction.getRawRepo(), is(rawRepo));
-        Assert.assertThat(updateSchoolEnrichmentRecordAction.getRecord(), is(record));
-        Assert.assertThat(updateSchoolEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
-        Assert.assertThat(updateSchoolEnrichmentRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        Assert.assertThat(updateSchoolEnrichmentRecordAction.settings.getProperty(updateSchoolEnrichmentRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
+        assertThat(updateSchoolEnrichmentRecordAction.getRawRepo(), is(rawRepo));
+        assertThat(updateSchoolEnrichmentRecordAction.getRecord(), is(record));
+        assertThat(updateSchoolEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
+        assertThat(updateSchoolEnrichmentRecordAction.state.getHoldingsItems(), is(holdingsItems));
+        assertThat(updateSchoolEnrichmentRecordAction.settings.getProperty(updateSchoolEnrichmentRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
-    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) throws UpdateException {
+    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(StoreRecordAction.class.getName()));
 
@@ -296,7 +288,7 @@ public class AssertActionsUtil {
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MARCXCHANGE));
     }
 
-    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
+    public static void assertStoreRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(StoreRecordAction.class.getName()));
 
@@ -306,7 +298,7 @@ public class AssertActionsUtil {
         assertThat(storeRecordAction.getMimetype(), equalTo(mimetype));
     }
 
-    public static void assertDeleteRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) throws UpdateException {
+    public static void assertDeleteRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String mimetype) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DeleteRecordAction.class.getName()));
 
@@ -328,7 +320,7 @@ public class AssertActionsUtil {
         assertThat(deleteCommonRecordAction.settings.getProperty(deleteCommonRecordAction.state.getRawRepoProviderId()), equalTo(providerId));
     }
 
-    public static void assertLinkRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord target) throws UpdateException {
+    public static void assertLinkRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, MarcRecord target) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(LinkRecordAction.class.getName()));
 
@@ -359,7 +351,7 @@ public class AssertActionsUtil {
         assertThat(linkMatVurdRecordsAction.getRecord(), is(record));
     }
 
-    public static void assertRemoveLinksAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) throws UpdateException {
+    public static void assertRemoveLinksAction(ServiceAction action, RawRepo rawRepo, MarcRecord record) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(RemoveLinksAction.class.getName()));
 
@@ -368,7 +360,7 @@ public class AssertActionsUtil {
         assertThat(removeLinksAction.getRecord(), is(record));
     }
 
-    public static void assertCreateEnrichmentAction(ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, String agencyId, String commonRecordId) throws UpdateException {
+    public static void assertCreateEnrichmentAction(ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, String agencyId, String commonRecordId) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(CreateEnrichmentRecordWithClassificationsAction.class.getName()));
 
@@ -391,7 +383,7 @@ public class AssertActionsUtil {
         assertThat(updateEnrichmentRecordAction.settings.getProperty(updateEnrichmentRecordAction.state.getRawRepoProviderId()), is(providerId));
     }
 
-    public static void assertUpdateClassificationsInEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, MarcRecord record) throws UpdateException {
+    public static void assertUpdateClassificationsInEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord commonRecord, MarcRecord record) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(UpdateClassificationsInEnrichmentRecordAction.class.getName()));
 
@@ -401,22 +393,22 @@ public class AssertActionsUtil {
         assertThat(updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), equalTo(record));
     }
 
-    public static void assertDoubleRecordFrontendAction(ServiceAction action, MarcRecord record, Scripter scripter) throws UpdateException {
+    public static void assertDoubleRecordFrontendAction(ServiceAction action, MarcRecord record, Scripter scripter) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DoubleRecordFrontendAction.class.getName()));
 
         DoubleRecordFrontendAction doubleRecordFrontendAction = (DoubleRecordFrontendAction) action;
-        Assert.assertThat(doubleRecordFrontendAction.state.getMarcRecord(), is(record));
-        Assert.assertThat(doubleRecordFrontendAction.state.getScripter(), is(scripter));
+        assertThat(doubleRecordFrontendAction.state.getMarcRecord(), is(record));
+        assertThat(doubleRecordFrontendAction.state.getScripter(), is(scripter));
     }
 
-    public static void assertDoubleRecordCheckingAction(ServiceAction action, MarcRecord record, Scripter scripter) throws UpdateException {
+    public static void assertDoubleRecordCheckingAction(ServiceAction action, MarcRecord record, Scripter scripter) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DoubleRecordCheckingAction.class.getName()));
 
         DoubleRecordCheckingAction doubleRecordCheckingAction = (DoubleRecordCheckingAction) action;
-        Assert.assertThat(doubleRecordCheckingAction.record, is(record));
-        Assert.assertThat(doubleRecordCheckingAction.state.getScripter(), is(scripter));
+        assertThat(doubleRecordCheckingAction.record, is(record));
+        assertThat(doubleRecordCheckingAction.state.getScripter(), is(scripter));
     }
 
     public static void assertEnqueueRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype) throws UpdateException {
@@ -427,17 +419,6 @@ public class AssertActionsUtil {
         assertThat(enqueueRecordAction.getRawRepo(), is(rawRepo));
         assertThat(enqueueRecordAction.getRecord(), is(record));
         assertThat(enqueueRecordAction.settings.getProperty(enqueueRecordAction.state.getRawRepoProviderId()), is(providerId));
-    }
-
-    public static void assertMoveEnrichmentRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String targetRecordId, Properties settings) throws UpdateException {
-        assertThat(action, notNullValue());
-        assertThat(action.getClass().getName(), equalTo(MoveEnrichmentRecordAction.class.getName()));
-
-        MoveEnrichmentRecordAction moveEnrichmentRecordAction = (MoveEnrichmentRecordAction) action;
-        assertThat(moveEnrichmentRecordAction.getRawRepo(), is(rawRepo));
-        assertThat(moveEnrichmentRecordAction.getRecord(), is(record));
-        assertThat(moveEnrichmentRecordAction.getTargetRecordId(), is(targetRecordId));
-        assertThat(moveEnrichmentRecordAction.settings, equalTo(settings));
     }
 
     public static void assertOverwriteSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, String groupId) {
@@ -458,9 +439,8 @@ public class AssertActionsUtil {
      *
      * @param actual   The actual record
      * @param expected The expected record
-     * @throws UpdateException
      */
-    public static void assertRecord(MarcRecord actual, MarcRecord expected) throws UpdateException {
+    public static void assertRecord(MarcRecord actual, MarcRecord expected) {
         assertThat(actual, notNullValue());
         assertThat(expected, notNullValue());
         assertThat(actual.getFields().size(), is(expected.getFields().size()));

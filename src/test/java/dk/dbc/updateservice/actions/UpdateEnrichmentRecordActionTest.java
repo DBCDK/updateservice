@@ -19,7 +19,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -109,17 +108,17 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateEnrichmentRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertTrue(child.getClass() == StoreRecordAction.class);
+        assertSame(child.getClass(), StoreRecordAction.class);
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        assertTrue(child.getClass() == LinkRecordAction.class);
+        assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
@@ -171,17 +170,17 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateEnrichmentRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertTrue(child.getClass() == StoreRecordAction.class);
+        assertSame(child.getClass(), StoreRecordAction.class);
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        assertTrue(child.getClass() == LinkRecordAction.class);
+        assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
@@ -233,17 +232,17 @@ public class UpdateEnrichmentRecordActionTest {
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertTrue(child.getClass() == StoreRecordAction.class);
+        assertSame(child.getClass(), StoreRecordAction.class);
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        assertTrue(child.getClass() == LinkRecordAction.class);
+        assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));

@@ -12,7 +12,6 @@ import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -93,7 +92,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -157,7 +156,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -223,7 +222,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -295,7 +294,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -372,7 +371,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -463,7 +462,7 @@ public class OverwriteVolumeRecordActionTest {
         assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(7));
+        assertThat(children.size(), is(7));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);

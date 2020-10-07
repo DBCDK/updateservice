@@ -13,8 +13,8 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.Properties;
 
-import static org.hamcrest.core.Is.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 

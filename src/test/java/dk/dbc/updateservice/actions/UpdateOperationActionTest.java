@@ -46,10 +46,9 @@ import static org.mockito.Mockito.when;
 // TODO da det kan virke ret forvirrende. Senest hvis det skal opensources.
 public class UpdateOperationActionTest {
     private GlobalActionState state;
-    private Properties settings = new UpdateTestUtils().getSettings();
-    private static final String GROUP_ID = "700000";
-    private OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
-    private OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
+    private final Properties settings = new UpdateTestUtils().getSettings();
+    private final OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
+    private final OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {

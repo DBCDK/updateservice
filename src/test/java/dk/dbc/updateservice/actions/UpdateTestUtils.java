@@ -16,6 +16,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.OpenAgencyService;
@@ -24,7 +25,6 @@ import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.update.JNDIResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,8 +65,8 @@ public class UpdateTestUtils {
     }
 
     public GlobalActionState getGlobalActionStateMockObject() throws IOException {
-        String marcRecordName = null; // If the object isn't initialized as a null string it can't figure out which of the overloaded functions to call
-        return getGlobalActionStateMockObject(marcRecordName);
+        // If the object isn't initialized as a null string it can't figure out which of the overloaded functions to call
+        return getGlobalActionStateMockObject((String) null);
     }
 
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {

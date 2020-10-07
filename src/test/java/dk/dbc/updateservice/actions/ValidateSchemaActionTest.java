@@ -23,13 +23,13 @@ import static org.mockito.Mockito.when;
 public class ValidateSchemaActionTest {
     private GlobalActionState state;
     private Properties settings;
-    private String templateGroup = "fbs";
 
     @Before
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().setSchemaName("book");
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("400700");
+        final String templateGroup = "fbs";
         state.setTemplateGroup(templateGroup);
         settings = new UpdateTestUtils().getSettings();
     }

@@ -43,13 +43,6 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testCleanupEnrichmentRecord() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        // assertThat(instance.splitRecordDataIO(record), equalTo(""));
-    }
-
-    @Test
     public void testSplitCompleteBasisRecord() throws Exception {
         // Prepare record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -110,7 +103,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testHasClassificationsChanged() throws Exception {
+    public void testHasClassificationsChanged() {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         logger.info("Enter testHasClassificationsChanged");

@@ -225,7 +225,7 @@ public class StoreRecordActionTest {
         assertThat(instance.recordToStore(), equalTo(record));
     }
 
-    private class StoreRecordActionMock extends StoreRecordAction {
+    private static class StoreRecordActionMock extends StoreRecordAction {
         public StoreRecordActionMock(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
             super(globalActionState, properties, record);
         }
@@ -260,9 +260,7 @@ public class StoreRecordActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
 
-        final String modified = "20181008151342";
-
-        instance.modified = modified;
+        instance.modified = "20181008151342";
         instance.updateModifiedDate(record);
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
