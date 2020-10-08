@@ -6,10 +6,11 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.updateservice.json.JsonMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.xml.sax.SAXException;
@@ -17,7 +18,6 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -65,10 +65,8 @@ public class ValidateRecordActionTest {
      */
     @Test
     public void testPerformAction_Ok() throws Exception {
-        final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(new ArrayList<>());
-
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn("[]");
         assertThat(validateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
@@ -93,12 +91,12 @@ public class ValidateRecordActionTest {
      */
     @Test
     public void testPerformAction_ValidationWarnings() throws Exception {
-        final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
 
-        final ServiceResult expected = ServiceResult.newOkResult();
+        ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
@@ -124,12 +122,12 @@ public class ValidateRecordActionTest {
      */
     @Test
     public void testPerformAction_ValidationErrors() throws Exception {
-        final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(jsReturnList));
 
-        final ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
+        ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
@@ -155,13 +153,13 @@ public class ValidateRecordActionTest {
      */
     @Test
     public void testPerformAction_JavaScriptException() throws Exception {
-        final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
-        final OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("error");
+        ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenThrow(ex);
+        ScripterException ex = new ScripterException("error");
+        when(state.getScripter().callMethod("validateRecord", SCHEMA_NAME, JsonMapper.encode(record), settings)).thenThrow(ex);
 
-        final String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
-        final ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         assertThat(validateRecordAction.performAction(), equalTo(expected));
     }
 
