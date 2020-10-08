@@ -9,9 +9,7 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.SchemaDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.update.JNDIResources;
-import org.codehaus.jackson.map.ObjectMapper;
+import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -28,7 +26,7 @@ public class Validator {
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
 
-    public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws ScripterException {
+    public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws UpdateException {
         logger.entry();
         List<SchemaDTO> result = null;
         try {
@@ -37,7 +35,7 @@ public class Validator {
             logger.trace("Number of templates: {}", result.size());
             return result;
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
-            throw new ScripterException("Error when executing JavaScript function: getValidateSchemas", ex);
+            throw new UpdateException("Error when executing OpencatBusinessConnector function: getValidateSchemas", ex);
         } finally {
             logger.exit(result);
         }

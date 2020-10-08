@@ -13,7 +13,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -370,41 +369,6 @@ public class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         updateEnrichmentRecordAction.decoder = decoder;
-        updateEnrichmentRecordAction.performAction();
-    }
-
-    /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record where
-     * the JavaScript engine throws a ScripterException.
-     * <p>
-     * <dl>
-     * <dt>Given</dt>
-     * <dd>
-     * A rawrepo with a common record.
-     * </dd>
-     * <dt>When</dt>
-     * <dd>
-     * Update an enrichment record.
-     * </dd>
-     * <dt>Then</dt>
-     * <dd>
-     * Throw UpdateException that encapsulates the ScripterException.
-     * </dd>
-     * </dl>
-     */
-    @Test(expected = UpdateException.class)
-    public void testPerformAction_UpdateRecord_ScripterException() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
-        MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-
-        Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenThrow(new ScripterException("error"));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-
-        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         updateEnrichmentRecordAction.performAction();
     }
 

@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Before;
@@ -203,7 +202,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
         String agencyId = reader.getAgencyId();
 
-        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(), eq(commonRecord), eq(agencyId))).thenThrow(new ScripterException("Script error"));
+        when(state.getLibraryRecordsHandler().createLibraryExtendedRecord(isNull(), eq(commonRecord), eq(agencyId))).thenThrow(new UpdateException("Script error"));
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);

@@ -186,7 +186,7 @@ public class OpenBuildCore {
                 }
             } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
                 LOGGER.error(ex.getLocalizedMessage());
-                throw new EJBException("Error calling opencatBusinessConnector", ex);
+                throw new EJBException("Error calling OpencatBusinessConnector", ex);
             }
 
             return result;

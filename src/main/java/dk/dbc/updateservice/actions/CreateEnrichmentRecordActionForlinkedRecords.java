@@ -15,7 +15,6 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
@@ -168,8 +167,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 }
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
                 return yNoteField;
-            } catch (ScripterException e) {
-                logger.error("Error : Scripter exception , probably due to malformed record \n", e);
+            } catch (UpdateException e) {
+                logger.error("Error : OpencatBusiness exception , probably due to malformed record \n", e);
                 yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
                 return yNoteField;
             }
@@ -178,7 +177,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         }
     }
 
-    private String getNoteFieldString(MarcField noteField) throws ScripterException {
+    private String getNoteFieldString(MarcField noteField) {
         logger.entry(noteField);
         String res = "";
         try {

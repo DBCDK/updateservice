@@ -33,7 +33,6 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.solr.SolrBasis;
@@ -253,13 +252,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
-            return schemasResponseDTO;
-        } catch (ScripterException ex) {
-            LOGGER.error("Caught JavaScript exception", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
             return schemasResponseDTO;
         } catch (OpenAgencyException ex) {
             LOGGER.error("Caught OpenAgencyException exception", ex);

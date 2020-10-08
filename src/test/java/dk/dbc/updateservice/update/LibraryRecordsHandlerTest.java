@@ -28,17 +28,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
 
-    @Before
-    public void before() throws IOException {
-
-    }
-
-    @Mock
-    private Scripter scripter;
-
-    private class MockLibraryRecordsHandler extends LibraryRecordsHandler {
+    private static class MockLibraryRecordsHandler extends LibraryRecordsHandler {
         MockLibraryRecordsHandler() {
-            super(scripter);
+            super();
         }
     }
 

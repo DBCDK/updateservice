@@ -13,7 +13,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
@@ -36,7 +35,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
     Decoder decoder = new Decoder();
     Properties settings;
-    private int parentAgencyId;
+    private final int parentAgencyId;
 
     public UpdateEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         this(globalActionState, properties, marcRecord, RawRepo.COMMON_AGENCY);
@@ -51,7 +50,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     /**
      * Class used for mocking during unit test
      */
-    class Decoder {
+    static class Decoder {
         MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
             return RecordContentTransformer.decodeRecord(bytes);
         }
@@ -119,7 +118,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             removeMinusEnrichment(enrichmentRecord);
 
             return performSaveRecord(enrichmentRecord);
-        } catch (UnsupportedEncodingException | ScripterException ex) {
+        } catch (UnsupportedEncodingException ex) {
             logger.error("Update error: " + ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
@@ -140,9 +139,8 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * </p>
      *
      * @return OK.
-     * @throws UpdateException In case of critical errors.
      */
-    private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) throws UpdateException {
+    private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
         logger.entry();
         try {
             String recordId = new MarcRecordReader(record).getRecordId();

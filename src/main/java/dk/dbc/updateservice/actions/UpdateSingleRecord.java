@@ -14,7 +14,6 @@ import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
@@ -112,7 +111,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             }
             children.add(createOverwriteRecordAction());
             return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException | ScripterException ex) {
+        } catch (UnsupportedEncodingException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } catch (OpenAgencyException e) {
             throw new UpdateException(e.getMessage(), e);
@@ -228,7 +227,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
     Produktion : Hvis 032*a/x har en kode ude i fremtiden så er posten under produktion - samme hvis den indeholder 999999
      */
-    private void performActionsFor002Links() throws ScripterException, UpdateException, SolrException, UnsupportedEncodingException, OpenAgencyException {
+    private void performActionsFor002Links() throws UpdateException, SolrException, UnsupportedEncodingException, OpenAgencyException {
         logger.entry("performActionsFor002Links");
         try {
             MarcRecordReader recordReader = new MarcRecordReader(record);
