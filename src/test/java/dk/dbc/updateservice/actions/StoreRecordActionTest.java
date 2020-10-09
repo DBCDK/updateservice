@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 public class StoreRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    private static final String ENTRY_POINT = "sortRecord";
     OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.DBC;
 
     @Before
@@ -76,7 +75,6 @@ public class StoreRecordActionTest {
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
-        //when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -101,7 +99,6 @@ public class StoreRecordActionTest {
 
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MATVURD));
 
-        //when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(record), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
         assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -148,7 +145,6 @@ public class StoreRecordActionTest {
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = mock(StoreRecordAction.Encoder.class);
 
-        //when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
@@ -191,7 +187,6 @@ public class StoreRecordActionTest {
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = encoder;
 
-        //when(state.getScripter().callMethod(ENTRY_POINT, state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings)).thenReturn(JsonMapper.encode(record));
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
