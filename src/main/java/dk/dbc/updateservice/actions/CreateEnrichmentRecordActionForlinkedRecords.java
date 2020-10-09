@@ -168,7 +168,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
                 return yNoteField;
             } catch (UpdateException e) {
-                logger.error("Error : OpencatBusiness exception , probably due to malformed record \n", e);
+                logger.error("Error : UpdateException, probably due to malformed record \n", e);
                 yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
                 return yNoteField;
             }
