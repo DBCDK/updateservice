@@ -200,6 +200,11 @@ public class UpdateServiceCore {
             return updateRecordResponseDTO;
         } catch (Throwable ex) {
             LOGGER.catching(ex);
+            try {
+                LOGGER.error("Exception while processing request: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
+            } catch (IOException e) {
+                LOGGER.error("IOException while pretty printing updateServiceRequestDTO: {}", updateServiceRequestDTO);
+            }
             serviceResult = convertUpdateErrorToResponse(ex);
             updateRecordResponseDTO =  UpdateRecordResponseDTOWriter.newInstance(serviceResult);
             return updateRecordResponseDTO;
