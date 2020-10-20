@@ -372,22 +372,6 @@
                 </includes>
             </resource>
             <resource>
-                <targetPath>META-INF/wsdl/update</targetPath>
-                <directory>src/wsdl/update</directory>
-                <includes>
-                    <include>catalogingUpdate.wsdl</include>
-                    <include>catalogingUpdate.xsd</include>
-                </includes>
-            </resource>
-            <resource>
-                <targetPath>META-INF/wsdl/build</targetPath>
-                <directory>src/wsdl/build</directory>
-                <includes>
-                    <include>catalogingBuild.wsdl</include>
-                    <include>catalogingBuild.xsd</include>
-                </includes>
-            </resource>
-            <resource>
                 <directory>src/main/resources</directory>
             </resource>
         </resources>
@@ -457,38 +441,6 @@
                             <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
                         </configuration>
                         <id>wsimport-generate-forsrights</id>
-                        <phase>generate-sources</phase>
-                    </execution>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlFiles>
-                                <wsdlFile>catalogingUpdate.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <wsdlLocation>META-INF/wsdl/update/catalogingUpdate.wsdl</wsdlLocation>
-                            <wsdlDirectory>${basedir}/src/wsdl/update</wsdlDirectory>
-                            <packageName>dk.dbc.updateservice.service.api</packageName>
-                            <staleFile>${project.build.directory}/jaxws/stale/catalogingUpdate.stale</staleFile>
-                        </configuration>
-                        <id>wsimport-generate-catalogingUpdate-internal</id>
-                        <phase>generate-sources</phase>
-                    </execution>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlFiles>
-                                <wsdlFile>catalogingBuild.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <wsdlLocation>META-INF/wsdl/build/catalogingBuild.wsdl</wsdlLocation>
-                            <wsdlDirectory>${basedir}/src/wsdl/build</wsdlDirectory>
-                            <packageName>dk.dbc.oss.ns.catalogingbuild</packageName>
-                            <staleFile>${project.build.directory}/jaxws/stale/catalogingBuild.stale</staleFile>
-                        </configuration>
-                        <id>wsimport-generate-openCatalogingBuild</id>
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>
