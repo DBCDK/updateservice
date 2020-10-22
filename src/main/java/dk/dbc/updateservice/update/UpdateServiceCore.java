@@ -48,10 +48,7 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.handler.MessageContext;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -102,19 +99,16 @@ public class UpdateServiceCore {
     @Inject
     MetricsHandlerBean metricsHandlerBean;
 
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
-    private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
     private Properties settings = JNDIResources.getProperties();
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
-
 
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
