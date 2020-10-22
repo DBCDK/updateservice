@@ -13,7 +13,6 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.JNDIResources;
@@ -80,7 +79,6 @@ public class UpdateTestUtils {
         globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
-        globalActionState.setScripter(mock(Scripter.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setOpencatBusiness(mock(OpencatBusinessConnector.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
@@ -104,7 +102,6 @@ public class UpdateTestUtils {
         globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
-        globalActionState.setScripter(mock(Scripter.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));

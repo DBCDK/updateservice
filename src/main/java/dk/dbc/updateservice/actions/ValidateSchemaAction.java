@@ -67,9 +67,6 @@ public class ValidateSchemaAction extends AbstractAction {
     }
 
     private void validateData() {
-        if (state.getScripter() == null) {
-            throw new IllegalArgumentException("scripter must not be null");
-        }
         if (settings == null) {
             throw new IllegalArgumentException("settings must not be null");
         }

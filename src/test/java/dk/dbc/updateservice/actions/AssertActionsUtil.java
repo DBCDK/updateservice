@@ -23,7 +23,6 @@ import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -393,22 +392,20 @@ public class AssertActionsUtil {
         assertThat(updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), equalTo(record));
     }
 
-    public static void assertDoubleRecordFrontendAction(ServiceAction action, MarcRecord record, Scripter scripter) {
+    public static void assertDoubleRecordFrontendAction(ServiceAction action, MarcRecord record) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DoubleRecordFrontendAction.class.getName()));
 
         DoubleRecordFrontendAction doubleRecordFrontendAction = (DoubleRecordFrontendAction) action;
         assertThat(doubleRecordFrontendAction.state.getMarcRecord(), is(record));
-        assertThat(doubleRecordFrontendAction.state.getScripter(), is(scripter));
     }
 
-    public static void assertDoubleRecordCheckingAction(ServiceAction action, MarcRecord record, Scripter scripter) {
+    public static void assertDoubleRecordCheckingAction(ServiceAction action, MarcRecord record) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(DoubleRecordCheckingAction.class.getName()));
 
         DoubleRecordCheckingAction doubleRecordCheckingAction = (DoubleRecordCheckingAction) action;
         assertThat(doubleRecordCheckingAction.record, is(record));
-        assertThat(doubleRecordCheckingAction.state.getScripter(), is(scripter));
     }
 
     public static void assertEnqueueRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype) throws UpdateException {

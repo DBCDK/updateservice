@@ -11,7 +11,6 @@ import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
-import dk.dbc.updateservice.javascript.Scripter;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

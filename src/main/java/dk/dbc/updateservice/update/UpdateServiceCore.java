@@ -32,8 +32,6 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
@@ -73,12 +71,6 @@ public class UpdateServiceCore {
 
     @EJB
     private Authenticator authenticator;
-
-    @EJB
-    private Scripter scripter;
-
-    @EJB
-    private ScripterPool scripterPool;
 
     @EJB
     private RawRepo rawRepo;
@@ -128,7 +120,6 @@ public class UpdateServiceCore {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
         newGlobalActionStateObject.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         newGlobalActionStateObject.setAuthenticator(authenticator);
-        newGlobalActionStateObject.setScripter(scripter);
         newGlobalActionStateObject.setRawRepo(rawRepo);
         newGlobalActionStateObject.setOpencatBusiness(opencatBusiness);
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
@@ -358,20 +349,6 @@ public class UpdateServiceCore {
         LOGGER.entry();
         boolean res = true;
         try {
-            if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
-                res = false;
-                if (globalActionState != null && globalActionState.getWsContext() != null) {
-                    MessageContext messageContext = globalActionState.getWsContext().getMessageContext();
-                    HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
-                    try {
-                        ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                        String msg = bundle.getString(UPDATE_SERVICE_UNAVAIABLE);
-                        httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), msg);
-                    } catch (IOException e) {
-                        LOGGER.catching(XLogger.Level.ERROR, e);
-                    }
-                }
-            }
             return res;
         } finally {
             LOGGER.exit(res);

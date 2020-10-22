@@ -423,7 +423,6 @@ public class UpdateRequestActionTest {
         assertThat(validateOperationAction.state.getWsContext(), is(state.getWsContext()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(state.getUpdateServiceRequestDTO().getSchemaName()));
         assertThat(validateOperationAction.state.readRecord(), equalTo(state.readRecord()));
-        assertThat(validateOperationAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateOperationAction.settings, equalTo(settings));
     }
 
@@ -434,7 +433,6 @@ public class UpdateRequestActionTest {
         assertThat(updateOperationAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateOperationAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
         assertThat(updateOperationAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
-        assertThat(updateOperationAction.state.getScripter(), is(state.getScripter()));
         assertThat(updateOperationAction.record, equalTo(state.readRecord()));
         assertThat(updateOperationAction.settings, equalTo(properties));
     }

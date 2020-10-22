@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.rest;
 
-import dk.dbc.updateservice.javascript.ScripterPool;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -29,18 +28,13 @@ import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 public class StatusService {
     private static final XLogger logger = XLoggerFactory.getXLogger(StatusService.class);
 
-    @SuppressWarnings("EjbEnvironmentInspection")
-    @EJB
-    ScripterPool scripterPool;
-
     @GET
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getStatus() {
         logger.entry();
-        String res = null;
+        String res = "ST_OK";
         try {
-            res = scripterPool.getStatus().toString();
             return Response.ok(res, MediaType.TEXT_PLAIN).build();
         } finally {
             logger.exit(res);
@@ -53,10 +47,9 @@ public class StatusService {
     public Response isReady() {
         logger.entry();
         try {
-            final boolean scripterPoolReady = scripterPool.isAllEnviromentsLoaded();
             final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
             final boolean updateServiceClientReady = updateServiceClient.isReady();
-            if (scripterPoolReady && updateServiceClientReady) {
+            if (updateServiceClientReady) {
                 return Response.ok("UpdateService is initialized").build();
             }
             return Response.status(SERVICE_UNAVAILABLE).build();
