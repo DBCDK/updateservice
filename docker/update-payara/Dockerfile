@@ -4,9 +4,6 @@ LABEL RAWREPO_DB_URL="Full connection string for the rawrepo database. Format is
 LABEL HOLDINGS_ITEMS_DB_URL="Full connection string for the holdings items database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 LABEL UPDATE_DB_URL="Full connection string for the update database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 
-ENV JAVASCRIPT_BASEDIR /opt/payara5/deployments/opencat-business
-ENV JAVASCRIPT_POOL_SIZE 1
-
 ENV RAWREPO_PROVIDER_ID_DBC empty
 ENV RAWREPO_PROVIDER_ID_FBS empty
 ENV RAWREPO_PROVIDER_ID_PH empty

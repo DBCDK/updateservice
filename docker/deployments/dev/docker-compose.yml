@@ -58,8 +58,6 @@ services:
     extra_hosts:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"
-    volumes:
-      - "../../../../opencat-business:/opt/payara5/deployments/opencat-business"
     ports:
       - "8080"
       - "8686"
