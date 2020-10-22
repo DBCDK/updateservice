@@ -11,18 +11,15 @@ import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
 public class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
