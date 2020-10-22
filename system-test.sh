@@ -43,7 +43,7 @@ function reTagAndRemove () {
   HOLDINGS_DB_VERION=1.1.4
   UPDATESERVICE_FACADE_TAG=master-31
   OPENCAT_BUSINESS_SERVICE_TAG=latest
-  RAWREPO_RECORD_SERVICE_TAG=DIT-264
+  RAWREPO_RECORD_SERVICE_TAG=DIT-271
   docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
   docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
