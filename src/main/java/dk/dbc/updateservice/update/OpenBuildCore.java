@@ -257,7 +257,6 @@ public class OpenBuildCore {
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
             requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST);
-            requiredProperties.add(JNDIResources.JAVASCRIPT_BASEDIR);
             for (String s : requiredProperties) {
                 if (!buildProperties.containsKey(s)) {
                     throw new IllegalArgumentException("Required Build property " + s + " not set");

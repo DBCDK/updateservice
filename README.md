@@ -86,16 +86,8 @@ at bruge denne webservice.
 * *auth.use.ip*: Angiver om klientens IP-adresse skal sendes videre til forsrights webservice ved authentikation af
 brugere. Angives værdien *True* sendes IP-adressen med. Hvis settingen indeholder en anden værdi eller hvis den er
 helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
-* *javascript.basedir*: Angiver rodkataloget hvor opencat-business distributionen ligger. Hvis man peger på sit projekt fra svn skal man
-pege hvor https://svn.dbc.dk/repos/opencat-business/trunk/ ligger.
-* *javascript.pool.size*: Heltal som angiver hvor mange Nashorn/Rhino engines som skal oprettes i det JavaScript Engine pool som Update anvender
- til JavaScript. Et udgangspunkt vil være intervallet mellem *thread-pool.size / 2* og *thread-pool.size*.
 * *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
 * *prod.state*: Angiver om update kører i produktion eller ej, og derfor om 13 biblioteker må sende poster ind. Kan være True/true eller False/false.
-
-Eksempler på hvordan ovenstående ressourcer sættes op via asadmin fra kommandolinien:
-asadmin set resources.custom-resource.updateservice/settings.property.javascript\\.basedir=/home/thl/NetBeansProjects/opencat-business/trunk
-asadmin set resources.custom-resource.updateservice/settings.property.javascript\\.install\\.name=fbs
 
 #### PostgreSQL
 
