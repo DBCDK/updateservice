@@ -1,8 +1,10 @@
-FROM docker.dbc.dk/payara5-micro:latest
+FROM docker.dbc.dk/payara5-full:latest
 
 LABEL RAWREPO_DB_URL="Full connection string for the rawrepo database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 LABEL HOLDINGS_ITEMS_DB_URL="Full connection string for the holdings items database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 LABEL UPDATE_DB_URL="Full connection string for the update database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
+
+RUN echo "set server-config.transaction-service.timeout-in-seconds=12000" >> scripts/prebootcommandfile.txt
 
 ENV RAWREPO_PROVIDER_ID_DBC empty
 ENV RAWREPO_PROVIDER_ID_FBS empty
