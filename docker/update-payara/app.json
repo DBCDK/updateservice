@@ -9,7 +9,8 @@
       "url": "${RAWREPO_DB_URL}"
     },
     "jdbc/holdingsitems": {
-      "url": "${HOLDINGS_ITEMS_DB_URL}"
+      "url": "${HOLDINGS_ITEMS_DB_URL}",
+      "maxSize": 4
     },
     "jdbc/update": {
       "url": "${UPDATE_DB_URL}"
