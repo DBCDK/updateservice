@@ -24,13 +24,6 @@ public class JNDIResources {
     public static final String AUTH_PRODUCT_NAME = "AUTH_PRODUCT_NAME";
     public static final String AUTH_USE_IP = "AUTH_USE_IP";
 
-    public static final String DOUBLE_RECORD_MAIL_HOST = "DOUBLE_RECORD_MAIL_HOST";
-    public static final String DOUBLE_RECORD_MAIL_PORT = "DOUBLE_RECORD_MAIL_PORT";
-    public static final String DOUBLE_RECORD_MAIL_USER = "DOUBLE_RECORD_MAIL_USER";
-    public static final String DOUBLE_RECORD_MAIL_PASSWORD = "DOUBLE_RECORD_MAIL_PASSWORD";
-    public static final String DOUBLE_RECORD_MAIL_FROM = "DOUBLE_RECORD_MAIL_FROM";
-    public static final String DOUBLE_RECORD_MAIL_RECIPIENT = "DOUBLE_RECORD_MAIL_RECIPIENT";
-
     public static final String RAWREPO_PROVIDER_ID_DBC = "RAWREPO_PROVIDER_ID_DBC";
     public static final String RAWREPO_PROVIDER_ID_FBS = "RAWREPO_PROVIDER_ID_FBS";
     public static final String RAWREPO_PROVIDER_ID_PH = "RAWREPO_PROVIDER_ID_PH";
