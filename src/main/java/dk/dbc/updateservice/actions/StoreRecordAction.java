@@ -150,6 +150,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.LITANALYSIS);
             } else if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.MATVURD);
+            } else if (RawRepo.HOSTPUB_AGENCY == reader.getAgencyIdAsInt()) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.HOSTPUB);
+            } else if (RawRepo.SIMPLE_AGENCIES.contains(reader.getAgencyIdAsInt())) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.SIMPLE);
             } else {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             }

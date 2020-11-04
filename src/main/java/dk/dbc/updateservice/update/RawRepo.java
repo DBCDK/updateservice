@@ -23,8 +23,6 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.RelationHintsOpenAgency;
-import java.time.Duration;
-import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
@@ -37,6 +35,7 @@ import org.slf4j.ext.XLoggerFactory;
 import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -47,12 +46,16 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * EJB to provide access to the RawRepo database.
@@ -94,10 +97,10 @@ public class RawRepo {
 
     static final RawrepoDaoTimingMetrics rawrepoDaoTimingMetrics =
             new RawrepoDaoTimingMetrics(Metadata.builder()
-            .withName("update_rawrepodao_timer")
-            .withDescription("Duration of various rawrepodao calls")
-            .withType(MetricType.SIMPLE_TIMER)
-            .withUnit(MetricUnits.MILLISECONDS).build());
+                    .withName("update_rawrepodao_timer")
+                    .withDescription("Duration of various rawrepodao calls")
+                    .withType(MetricType.SIMPLE_TIMER)
+                    .withUnit(MetricUnits.MILLISECONDS).build());
 
     static final RawrepoErrorCounterMetrics rawrepoErrorCounterMetrics = new RawrepoErrorCounterMetrics(Metadata.builder()
             .withName("update_rawrepodao_error_counter")
@@ -110,11 +113,13 @@ public class RawRepo {
     public static final int COMMON_AGENCY = 870970;
     public static final int ARTICLE_AGENCY = 870971;
     public static final int LITTOLK_AGENCY = 870974;
+    public static final int HOSTPUB_AGENCY = 870975;
     public static final int MATVURD_AGENCY = 870976;
     public static final int AUTHORITY_AGENCY = 870979;
-    public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
-    public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "190004", "191919", "870970", "870971", "870974", "870979"); // More will probably be added later
-    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
+    public static final List<Integer> SIMPLE_AGENCIES = Collections.singletonList(190007);
+    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870974", "870975", "870976", "870979", "190002", "190004", "190007");
+    public static final List<String> DBC_AGENCY_LIST = Stream.concat(Stream.of("870970"), DBC_PRIVATE_AGENCY_LIST.stream()).collect(Collectors.toList());
+    public static final List<String> DBC_AGENCY_ALL = Stream.concat(Stream.of("191919"), DBC_AGENCY_LIST.stream()).collect(Collectors.toList());
     public static final int DBC_ENRICHMENT = 191919;
     public static final int SCHOOL_COMMON_AGENCY = 300000;
     public static final int MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
@@ -393,7 +398,7 @@ public class RawRepo {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
         Record result = null;
-        final String methodName =  "fetchRecord";
+        final String methodName = "fetchRecord";
 
         try {
             if (recId == null) {
@@ -572,7 +577,7 @@ public class RawRepo {
     public boolean recordExistsMaybeDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
-        String  methodName = "recordExistsMaybeDeleted";
+        String methodName = "recordExistsMaybeDeleted";
 
         boolean result = false;
         try (Connection conn = dataSource.getConnection()) {
@@ -646,7 +651,7 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
-        final String  methodName = "saveRecord";
+        final String methodName = "saveRecord";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -694,7 +699,7 @@ public class RawRepo {
             throw e;
         } finally {
             watch.stop("rawrepo.removeLinks");
-            updateSimpleTimerMetric(methodName,watch);
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
