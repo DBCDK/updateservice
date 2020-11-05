@@ -11,6 +11,7 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.utils.MDCUtil;
@@ -58,6 +59,13 @@ public class UpdateRequestAction extends AbstractAction {
             children.add(new PreProcessingAction(state));
             children.add(new ValidateOperationAction(state, settings));
             if (!hasValidateOnlyOption()) {
+                final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+                if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+                    // Since this can result in writing/creating the common part of the matvurd record even when there is an error
+                    // in the r01/r02 fields, it has to be done before any kind of writing in the records table
+                    // Information that needs check is in the enrichment part so we have to look at the full request record
+                    children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
+                }
                 children.add(createUpdateOperation());
             }
             return ServiceResult.newOkResult();
