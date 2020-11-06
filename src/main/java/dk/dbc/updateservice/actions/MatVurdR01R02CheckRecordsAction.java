@@ -6,23 +6,21 @@
 package dk.dbc.updateservice.actions;
 
 import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.naming.NamingException;
 import java.util.List;
-
-import static dk.dbc.updateservice.javascript.UpdaterRawRepo.getRelationsChildren;
+import java.util.Set;
 
 public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
@@ -95,14 +93,16 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
      * If there isn't a LED code then only two records is allowed and precisely one of them must contain 700*f skole
      * Please note that the ids list may be long and that the list of matvurd records containing these numbers may be large.
      */
-    protected ServiceResult checkR01R02Content(List<String> ids, String thisId, int hasSchool, boolean hasLED) throws UpdateException {
+    private ServiceResult checkR01R02Content(List<String> ids, String thisId, int hasSchool, boolean hasLED) throws UpdateException {
         try {
             for (String id : ids) {
                 // for each id we get relations and look at content in those
                 int count = 1;
-                List<MarcRecord> records = getRelationsChildren(id, rawRepo.COMMON_AGENCY);
-                for (MarcRecord record : records) {
-                    MarcRecordReader reader = new MarcRecordReader(record);
+                final RecordId recordId = new RecordId(id, RawRepo.COMMON_AGENCY);
+                final Set<RecordId> childrenIds = state.getRawRepo().children(recordId);
+                for (RecordId recordId1 : childrenIds) {
+                    final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId1.getBibliographicRecordId(), recordId1.getAgencyId()).getContent());
+                    MarcRecordReader reader = new MarcRecordReader(curRecord);
                     if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt() && !thisId.equals(reader.getRecordId())) {
                         for (String content : reader.getValues("032", "x")) {
                             if (content.startsWith("LED")) {
@@ -153,7 +153,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                 }
 
             }
-        } catch (SQLException | UnsupportedEncodingException | RawRepoException | NamingException ex) {
+        } catch (UnsupportedEncodingException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         }
