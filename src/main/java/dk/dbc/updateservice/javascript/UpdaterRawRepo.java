@@ -102,14 +102,14 @@ public class UpdaterRawRepo {
      * @throws RawRepoException             RawRepoException
      * @throws UnsupportedEncodingException UnsupportedEncodingException
      */
-    public static List<MarcRecord> getRelationsChildren(String recordId, String libraryNo) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
+    public static List<MarcRecord> getRelationsChildren(String recordId, int libraryNo) throws SQLException, NamingException, RawRepoException, UnsupportedEncodingException {
         logger.entry(recordId, libraryNo);
         StopWatch watch = new Log4JStopWatch("rawrepo.getRelationsChildren");
         List<MarcRecord> result = null;
         try (Connection con = getConnection()) {
             result = new ArrayList<>();
             RawRepoDAO rawRepoDAO = RawRepoDAO.builder(con).build();
-            Set<RecordId> records = rawRepoDAO.getRelationsChildren(new RecordId(recordId, Integer.valueOf(libraryNo)));
+            Set<RecordId> records = rawRepoDAO.getRelationsChildren(new RecordId(recordId, libraryNo));
             for (RecordId rawRepoRecordId : records) {
                 result.add(fetchRecord(rawRepoRecordId.getBibliographicRecordId(), String.valueOf(rawRepoRecordId.getAgencyId())));
             }

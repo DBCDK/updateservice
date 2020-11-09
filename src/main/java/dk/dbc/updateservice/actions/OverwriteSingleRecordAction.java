@@ -123,7 +123,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             logger.info("Agency is 870976 - adding link action for r01 and r02");
             // The links are not in the record passed to this action because the record has been split in a common part
             // and an enrichment and r01 and r02 are in the enrichment.
-            // Instead we have to read the original record
+            // Instead we have to read the original request record
             children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
         }
 
