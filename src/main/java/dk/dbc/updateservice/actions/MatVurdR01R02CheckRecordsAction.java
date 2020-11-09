@@ -56,19 +56,17 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                 }
                 else if ("032".contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
-                        if ("x".equals(subField.getName())) {
-                            if (subField.getValue().startsWith("LED")) {
-                                hasLED = true;
-                            }
+                        if ("x".equals(subField.getName()) && subField.getValue().startsWith("LED")) {
+                            hasLED = true;
+                            break;
                         }
                     }
                 }
                 else if ("700".contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
-                        if ("f".equals(subField.getName())) {
-                            if ("skole".equals(subField.getValue())) {
-                                hasSchool = 1;
-                            }
+                        if ("f".equals(subField.getName()) && "skole".equals(subField.getValue())) {
+                            hasSchool = 1;
+                            break;
                         }
                     }
                 }
