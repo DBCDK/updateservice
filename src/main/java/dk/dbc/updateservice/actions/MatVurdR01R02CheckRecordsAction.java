@@ -126,12 +126,12 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                     Max two records and only one with skole
                  */
                 if (hasLED) {
-                    // Up to 3 records are allowed (excluding the current) but only one school
-                    if (count > 3) {
-                        final String message = String.format(state.getMessages().getString("more.than.three.matvurd.hits"), id);
+                    // Up to 4 records are allowed (excluding the current) but only one school
+                    if (count > 4) {
+                        final String message = String.format(state.getMessages().getString("more.than.four.matvurd.hits"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    if (count == 3 && hasSchool != 1) {
+                    if (count == 4 && hasSchool != 1) {
                         final String message = String.format(state.getMessages().getString("wrong.count.of.school.record"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
