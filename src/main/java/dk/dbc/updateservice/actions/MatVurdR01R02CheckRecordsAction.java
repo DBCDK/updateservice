@@ -54,6 +54,13 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                         }
                     }
                 }
+                else if ("004".contains(field.getName())) {
+                    for (MarcSubField subField : field.getSubfields()) {
+                        if ("r".equals(subField.getName()) && "d".equals(subField.getValue())) {
+                                return result = ServiceResult.newOkResult();
+                        }
+                    }
+                }
                 else if ("032".contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
                         if ("x".equals(subField.getName()) && subField.getValue().startsWith("LED")) {
