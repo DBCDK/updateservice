@@ -64,6 +64,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
             children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
             if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+                // Information that needs check is in the enrichment part so we have to look at the full request record
                 children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
             }
             children.add(new LinkAuthorityRecordsAction(state, record));
