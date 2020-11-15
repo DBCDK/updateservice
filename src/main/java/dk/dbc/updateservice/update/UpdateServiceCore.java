@@ -32,15 +32,23 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterException;
-import dk.dbc.updateservice.javascript.ScripterPool;
 import dk.dbc.updateservice.json.JsonMapper;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+import org.w3c.dom.Node;
 
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -49,20 +57,7 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
-import javax.inject.Inject;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.handler.MessageContext;
-import org.w3c.dom.Node;
+
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
@@ -73,12 +68,6 @@ public class UpdateServiceCore {
 
     @EJB
     private Authenticator authenticator;
-
-    @EJB
-    private Scripter scripter;
-
-    @EJB
-    private ScripterPool scripterPool;
 
     @EJB
     private RawRepo rawRepo;
@@ -110,13 +99,10 @@ public class UpdateServiceCore {
     @Inject
     MetricsHandlerBean metricsHandlerBean;
 
-
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
-    private static final String UPDATE_SERVICE_UNAVAIABLE = "update.service.unavailable";
-    private static final String DOUBLE_RECORD_CHECK_ENTRY_POINT = "checkDoubleRecordFrontend";
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
@@ -124,12 +110,10 @@ public class UpdateServiceCore {
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
-
     private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
         newGlobalActionStateObject.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         newGlobalActionStateObject.setAuthenticator(authenticator);
-        newGlobalActionStateObject.setScripter(scripter);
         newGlobalActionStateObject.setRawRepo(rawRepo);
         newGlobalActionStateObject.setOpencatBusiness(opencatBusiness);
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
@@ -206,7 +190,7 @@ public class UpdateServiceCore {
                 LOGGER.error("IOException while pretty printing updateServiceRequestDTO: {}", updateServiceRequestDTO);
             }
             serviceResult = convertUpdateErrorToResponse(ex);
-            updateRecordResponseDTO =  UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
             return updateRecordResponseDTO;
         } finally {
             try {
@@ -258,13 +242,6 @@ public class UpdateServiceCore {
             schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
-            return schemasResponseDTO;
-        } catch (ScripterException ex) {
-            LOGGER.error("Caught JavaScript exception", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
             return schemasResponseDTO;
         } catch (OpenAgencyException ex) {
             LOGGER.error("Caught OpenAgencyException exception", ex);
@@ -351,8 +328,8 @@ public class UpdateServiceCore {
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    final Object jsResult = scripter.callMethod(DOUBLE_RECORD_CHECK_ENTRY_POINT, JsonMapper.encode(record), JNDIResources.getProperties());
-                    serviceResult = parseJavascript(jsResult);
+                    final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(record);
+                    serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
                 } else {
                     serviceResult = ServiceResult.newOkResult();
                 }
@@ -360,8 +337,7 @@ public class UpdateServiceCore {
                 serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             LOGGER.error("Exception during doubleRecordCheck", ex);
             ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
@@ -372,20 +348,6 @@ public class UpdateServiceCore {
         LOGGER.entry();
         boolean res = true;
         try {
-            if (scripterPool.getStatus() == ScripterPool.Status.ST_NA) {
-                res = false;
-                if (globalActionState != null && globalActionState.getWsContext() != null) {
-                    MessageContext messageContext = globalActionState.getWsContext().getMessageContext();
-                    HttpServletResponse httpServletResponse = (HttpServletResponse) messageContext.get(MessageContext.SERVLET_RESPONSE);
-                    try {
-                        ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                        String msg = bundle.getString(UPDATE_SERVICE_UNAVAIABLE);
-                        httpServletResponse.sendError(Response.Status.SERVICE_UNAVAILABLE.getStatusCode(), msg);
-                    } catch (IOException e) {
-                        LOGGER.catching(XLogger.Level.ERROR, e);
-                    }
-                }
-            }
             return res;
         } finally {
             LOGGER.exit(res);
@@ -462,9 +424,8 @@ public class UpdateServiceCore {
         }
     }
 
-    public ServiceResult parseJavascript(Object o) throws IOException {
+    public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) throws IOException {
         ServiceResult result;
-        DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = JsonMapper.decode(o.toString(), DoubleRecordFrontendStatusDTO.class);
         if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = ServiceResult.newOkResult();
         } else if ("doublerecord".equals(doubleRecordFrontendStatusDTO.getStatus())) {

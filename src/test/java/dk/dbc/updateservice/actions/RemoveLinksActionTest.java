@@ -40,7 +40,7 @@ public class RemoveLinksActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
-        Integer agencyId = reader.getAgencyIdAsInt();
+        int agencyId = reader.getAgencyIdAsInt();
 
         RemoveLinksAction instance = new RemoveLinksAction(state, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));

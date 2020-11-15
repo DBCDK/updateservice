@@ -5,13 +5,16 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
@@ -103,9 +106,6 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
-        } catch (ScripterException ex) {
-            logger.error("Update error: " + ex.getMessage(), ex);
-            throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit();
         }
@@ -129,7 +129,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         }
     }
 
-    private MarcRecord createEnrichmentRecord() throws ScripterException, UpdateException {
+    private MarcRecord createEnrichmentRecord() throws UpdateException {
         logger.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
@@ -167,8 +167,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 }
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
                 return yNoteField;
-            } catch (ScripterException e) {
-                logger.error("Error : Scripter exception , probably due to malformed record \n", e);
+            } catch (UpdateException e) {
+                logger.error("Error : UpdateException, probably due to malformed record \n", e);
                 yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
                 return yNoteField;
             }
@@ -177,7 +177,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         }
     }
 
-    private String getNoteFieldString(MarcField noteField) throws ScripterException {
+    private String getNoteFieldString(MarcField noteField) {
         logger.entry(noteField);
         String res = "";
         try {

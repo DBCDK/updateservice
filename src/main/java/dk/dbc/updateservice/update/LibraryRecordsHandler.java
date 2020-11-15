@@ -15,17 +15,19 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.UpdateOwnership;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterException;
-import org.codehaus.jackson.map.ObjectMapper;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
@@ -52,10 +54,10 @@ public class LibraryRecordsHandler {
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
 
     @EJB
-    private Scripter scripter;
-
-    @EJB
     private OpenAgencyService openAgencyService;
+
+    @Inject
+    private OpencatBusinessConnector opencatBusinessConnector;
 
     @EJB
     private RawRepo rawRepo;
@@ -75,19 +77,14 @@ public class LibraryRecordsHandler {
     public LibraryRecordsHandler() {
     }
 
-    protected LibraryRecordsHandler(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
     /**
      * Tests if a record is published
      *
      * @param record The record.
      * @return <code>true</code> if published
      * <code>false</code> otherwise.
-     * @throws ScripterException in case of an error
      */
-    public boolean isRecordInProduction(MarcRecord record) throws ScripterException {
+    public boolean isRecordInProduction(MarcRecord record) {
         LOGGER.entry(record);
 
         try {
@@ -689,7 +686,7 @@ public class LibraryRecordsHandler {
         final String oldValue = oldReader.getValue(oldField, subfield);
         final String newValue = newReader.getValue(newField, subfield);
 
-        return oldValue != null && newValue != null && oldValue.equals(newValue);
+        return oldValue != null && oldValue.equals(newValue);
     }
 
 
@@ -734,9 +731,9 @@ public class LibraryRecordsHandler {
      *                            record will be created for.
      * @return Returns the library record after it has been updated.
      * <code>libraryRecord</code> may have changed.
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
-    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
+    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws UpdateException {
         MarcRecord result = new MarcRecord();
         final MarcRecordWriter writer = new MarcRecordWriter(result);
         final MarcRecordReader reader = new MarcRecordReader(updatingCommonRecord);
@@ -759,9 +756,9 @@ public class LibraryRecordsHandler {
      * @param enrichmentRecord     The library extended record.
      * @return Returns the library record after it has been updated.
      * <code>enrichmentRecord</code> may have changed.
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
-    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws UpdateException {
         MarcRecord result = updateClassificationsInRecord(currentCommonRecord, enrichmentRecord);
         result = recategorization(currentCommonRecord, updatingCommonRecord, result);
         final MarcRecordWriter writer = new MarcRecordWriter(result);
@@ -850,7 +847,7 @@ public class LibraryRecordsHandler {
         return newRecord;
     }
 
-    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) {
         LOGGER.entry(commonRecord, enrichmentRecord);
         MarcRecord result = null;
         if (hasClassificationData(commonRecord)) {
@@ -900,7 +897,7 @@ public class LibraryRecordsHandler {
             if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
                     rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                 final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                record = UpdateOwnership.mergeRecord(record, existingRecord);
+                UpdateOwnership.mergeRecord(record, existingRecord);
             }
 
             if (libraryGroup.isFBS()) {
@@ -947,7 +944,7 @@ public class LibraryRecordsHandler {
                 result = splitRecordDataIO(record, reader.getAgencyId());
             } else {
                 LOGGER.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
-                result = Arrays.asList(record);
+                result = Collections.singletonList(record);
             }
 
             return result;
@@ -975,7 +972,7 @@ public class LibraryRecordsHandler {
 
             if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
                 LOGGER.info("Agency id of record is not 870970 - returning same record");
-                return Arrays.asList(record);
+                return Collections.singletonList(record);
             }
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService, rawRepo, messages);
 
@@ -989,7 +986,7 @@ public class LibraryRecordsHandler {
             if (owner == null) {
                 LOGGER.debug("No owner in record.");
 
-                return Arrays.asList(correctedRecord);
+                return Collections.singletonList(correctedRecord);
             } else {
                 LOGGER.info("Owner of record is {}", owner);
             }
@@ -1087,24 +1084,15 @@ public class LibraryRecordsHandler {
      * @param updatingCommonRecord incoming record
      * @param extendedRecord       extended record in rr
      * @return record with notes about eventual recategorization
-     * @throws ScripterException Trouble calling js.
+     * @throws UpdateException Trouble calling js.
      */
-    private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws ScripterException {
+    private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws UpdateException {
         LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
         Object jsResult = null;
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            final String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
-            final String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-            final String jsonNewRecord = mapper.writeValueAsString(extendedRecord);
-            jsResult = scripter.callMethod("doRecategorizationThings", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonNewRecord);
-            LOGGER.debug("Result from doRecategorizationThings JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof String) {
-                return mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "doRecategorizationThings"));
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: doRecategorizationThings", ex);
+            return opencatBusinessConnector.doRecategorizationThings(currentCommonRecord, updatingCommonRecord, extendedRecord);
+        } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
+            throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
             LOGGER.exit(jsResult);
         }
@@ -1117,31 +1105,18 @@ public class LibraryRecordsHandler {
      *
      * @param record The record.
      * @return MarcField containing 512 data
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
 
-    public MarcField fetchNoteField(MarcRecord record) throws ScripterException {
+    public MarcField fetchNoteField(MarcRecord record) throws UpdateException {
         LOGGER.entry(record);
-
         MarcField mf = null;
-        Object jsResult;
-        final ObjectMapper mapper = new ObjectMapper();
         try {
-            try {
-                final String json = mapper.writeValueAsString(record);
-                jsResult = scripter.callMethod("recategorizationNoteFieldFactory", json);
-            } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: fetchNoteField", ex);
-            }
-            LOGGER.debug("Result from recategorizationNoteFieldFactory JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(record);
 
-            if (!(jsResult instanceof String)) {
-                throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
-            }
-            return mf = mapper.readValue((String) jsResult, MarcField.class);
-
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);
+            return mf;
+        } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
+            throw new UpdateException("Error when executing OpencatBusinessConnector function: changeUpdateRecordForUpdate", ex);
         } finally {
             LOGGER.exit(mf);
         }

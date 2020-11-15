@@ -17,7 +17,7 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class ValidateOperationActionTest {
     private GlobalActionState state;
@@ -56,7 +56,6 @@ public class ValidateOperationActionTest {
         assertThat(child.getClass(), equalTo(ValidateSchemaAction.class));
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
         assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
-        assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
@@ -64,7 +63,6 @@ public class ValidateOperationActionTest {
         ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
         assertThat(validateRecordAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
-        assertThat(validateRecordAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateRecordAction.settings, is(settings));
     }
 
@@ -97,7 +95,6 @@ public class ValidateOperationActionTest {
         assertThat(child.getClass(), equalTo(ValidateSchemaAction.class));
         ValidateSchemaAction validateSchemaAction = (ValidateSchemaAction) child;
         assertThat(validateSchemaAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(schemaName));
-        assertThat(validateSchemaAction.state.getScripter(), is(state.getScripter()));
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
@@ -105,7 +102,6 @@ public class ValidateOperationActionTest {
         DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = (DoubleRecordFrontendAndValidateAction) child;
         assertThat(doubleRecordFrontendAndValidateAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(validateOperationAction.state.getSchemaName()));
         assertThat(doubleRecordFrontendAndValidateAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
-        assertThat(doubleRecordFrontendAndValidateAction.state.getScripter(), is(state.getScripter()));
         assertThat(doubleRecordFrontendAndValidateAction.settings, is(settings));
     }
 }

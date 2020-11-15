@@ -11,42 +11,23 @@ import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
-import dk.dbc.updateservice.javascript.Scripter;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
 
-    @Before
-    public void before() throws IOException {
-
-    }
-
-    @Mock
-    private Scripter scripter;
-
-    private class MockLibraryRecordsHandler extends LibraryRecordsHandler {
+    private static class MockLibraryRecordsHandler extends LibraryRecordsHandler {
         MockLibraryRecordsHandler() {
-            super(scripter);
+            super();
         }
-    }
-
-    @Test
-    public void testCleanupEnrichmentRecord() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        // assertThat(instance.splitRecordDataIO(record), equalTo(""));
     }
 
     @Test
@@ -110,7 +91,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testHasClassificationsChanged() throws Exception {
+    public void testHasClassificationsChanged() {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         logger.info("Enter testHasClassificationsChanged");

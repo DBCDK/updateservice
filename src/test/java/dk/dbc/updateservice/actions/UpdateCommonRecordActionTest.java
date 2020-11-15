@@ -11,7 +11,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -75,7 +74,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(1));
+        assertThat(children.size(), is(1));
 
         UpdateSingleRecord updateSingleRecord = (UpdateSingleRecord) children.get(0);
         assertThat(updateSingleRecord, notNullValue());
@@ -160,7 +159,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(1));
+        assertThat(children.size(), is(1));
 
         UpdateSingleRecord updateSingleRecord = (UpdateSingleRecord) children.get(0);
         assertThat(updateSingleRecord, notNullValue());
@@ -212,7 +211,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(1));
+        assertThat(children.size(), is(1));
 
         UpdateVolumeRecord updateVolumeRecord = (UpdateVolumeRecord) children.get(0);
         assertThat(updateVolumeRecord, notNullValue());
@@ -244,7 +243,7 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(1));
+        assertThat(children.size(), is(1));
 
         UpdateSingleRecord updateSingleRecord = (UpdateSingleRecord) children.get(0);
         assertThat(updateSingleRecord, notNullValue());

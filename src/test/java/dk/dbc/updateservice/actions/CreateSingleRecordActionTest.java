@@ -8,22 +8,18 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -81,7 +77,7 @@ public class CreateSingleRecordActionTest {
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
@@ -179,7 +175,7 @@ public class CreateSingleRecordActionTest {
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
@@ -255,7 +251,7 @@ public class CreateSingleRecordActionTest {
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
@@ -279,7 +275,7 @@ public class CreateSingleRecordActionTest {
         assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         final List<ServiceAction> children = createSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);

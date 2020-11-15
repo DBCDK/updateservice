@@ -7,7 +7,7 @@ import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BibliographicRecordExtraDataDecoderTest {
     

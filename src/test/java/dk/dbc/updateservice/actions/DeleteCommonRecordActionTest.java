@@ -9,10 +9,9 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.JNDIResources;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -80,7 +79,7 @@ public class DeleteCommonRecordActionTest {
         assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = deleteCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(3));
+        assertThat(children.size(), is(3));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS), MarcXChangeMimeType.MARCXCHANGE);
@@ -133,7 +132,7 @@ public class DeleteCommonRecordActionTest {
 
         MarcRecord expectedEnrichmentRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         List<ServiceAction> children = deleteCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), expectedEnrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -244,7 +243,7 @@ public class DeleteCommonRecordActionTest {
         assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = deleteCommonRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), littolkEnrichmentRecordMarkedForDeletion, state.getLibraryRecordsHandler(), state.getHoldingsItems());

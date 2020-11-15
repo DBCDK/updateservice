@@ -29,7 +29,6 @@
         <perf4j.version>0.9.16</perf4j.version>
         <jackson.mapper.asl.version>1.9.13</jackson.mapper.asl.version>
         <webservices.api.version>2.0</webservices.api.version>
-        <javax.mail.version>1.5.0</javax.mail.version>
         <javax.json-api.version>1.1</javax.json-api.version>
         <javax.json.version>1.1</javax.json.version>
         <log4j.over.slj4j.version>1.7.7</log4j.over.slj4j.version>
@@ -122,7 +121,6 @@
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
             <version>2.3.2</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -216,12 +214,6 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>${javax.json.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-            <version>${javax.mail.version}</version>
         </dependency>
 
         <dependency>

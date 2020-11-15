@@ -37,7 +37,7 @@ import java.util.Set;
 import static junit.framework.TestCase.assertFalse;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,10 +46,9 @@ import static org.mockito.Mockito.when;
 // TODO da det kan virke ret forvirrende. Senest hvis det skal opensources.
 public class UpdateOperationActionTest {
     private GlobalActionState state;
-    private Properties settings = new UpdateTestUtils().getSettings();
-    private static final String GROUP_ID = "700000";
-    private OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
-    private OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
+    private final Properties settings = new UpdateTestUtils().getSettings();
+    private final OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
+    private final OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
@@ -355,10 +354,10 @@ public class UpdateOperationActionTest {
         assertThat(children.size(), is(5));
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord, state.getScripter());
+        AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord);
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
-        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
+        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord);
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -404,7 +403,7 @@ public class UpdateOperationActionTest {
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
-        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord, state.getScripter());
+        AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord);
         assertThat(iterator.hasNext(), is(false));
     }
 

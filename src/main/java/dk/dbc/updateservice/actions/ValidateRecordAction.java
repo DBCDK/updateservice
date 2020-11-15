@@ -7,15 +7,16 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
-import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
@@ -32,11 +33,6 @@ import java.util.Properties;
  * </li>
  * <li>
  * A JavaScript environment, <code>scripter</code>.
- * </li>
- * <li>
- * The JavaScript logic need some settings as a set of Properties to work properly.
- * These settings can be set thought <code>settings</code>. This class does not use these
- * settings by itself.
  * </li>
  * </ol>
  */
@@ -79,19 +75,15 @@ public class ValidateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-            logger.info("state.getLibraryGroup().toString()");
-            Object jsResult = state.getScripter().callMethod("validateRecord", state.getSchemaName(), JsonMapper.encode(state.readRecord()), settings);
-            logger.debug("Result from validateRecord JS (" + jsResult.getClass().getName() + "): " + jsResult);
+            logger.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
 
-            List<MessageEntryDTO> errors = JsonMapper.decodeArray(jsResult.toString(), MessageEntryDTO.class);
+            final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord());
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
-            //TODO: VERSION2: det her ligner spildt arbejde
-            MarcRecordReader reader = new MarcRecordReader(state.readRecord());
-            String recordId = reader.getRecordId();
-            String agencyId = reader.getAgencyId();
+            final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+            final String recordId = reader.getRecordId();
+            final String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {
                 logger.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
@@ -101,7 +93,7 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (IOException | ScripterException ex) {
+        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             logger.error(message, ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);

@@ -11,7 +11,6 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
@@ -110,9 +109,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
-        } catch (ScripterException ex) {
-            logger.error("Update error: " + ex.getMessage(), ex);
-            throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit();
         }
@@ -123,7 +119,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         MDCUtil.setupContextForEnrichmentRecord(updatingCommonRecord, agencyId);
     }
 
-    public MarcRecord createRecord() throws UpdateException, ScripterException {
+    public MarcRecord createRecord() throws UpdateException {
         logger.entry();
         logger.debug("entering createRecord");
         MarcRecord result = null;

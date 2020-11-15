@@ -14,7 +14,6 @@ import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
@@ -49,7 +48,6 @@ public class GlobalActionState {
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
     private WebServiceContext wsContext = null;
     private Authenticator authenticator = null;
-    private Scripter scripter = null;
     private RawRepo rawRepo = null;
     private OpencatBusinessConnector opencatBusiness = null;
     private HoldingsItems holdingsItems = null;
@@ -88,11 +86,10 @@ public class GlobalActionState {
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, HttpServletRequest request, OpenAgencyService.LibraryGroup libraryGroup) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, HttpServletRequest request, OpenAgencyService.LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
-        this.scripter = scripter;
         this.rawRepo = rawRepo;
         this.holdingsItems = holdingsItems;
         this.openAgencyService = openAgencyService;
@@ -107,7 +104,7 @@ public class GlobalActionState {
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getRequest(), null);
+        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getRequest(), null);
     }
 
     private void resetState() {
@@ -142,14 +139,6 @@ public class GlobalActionState {
 
     public void setAuthenticator(Authenticator authenticator) {
         this.authenticator = authenticator;
-    }
-
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
     }
 
     public RawRepo getRawRepo() {
@@ -448,7 +437,7 @@ public class GlobalActionState {
 
     public RecordSorter getRecordSorter() {
         if (this.recordSorter == null) {
-            this.recordSorter = new RecordSorter(getScripter(), getSchemaName());
+            this.recordSorter = new RecordSorter(getOpencatBusiness(), getSchemaName());
         }
 
         return this.recordSorter;
@@ -475,7 +464,6 @@ public class GlobalActionState {
         if (request != null ? !request.equals(state.request) : state.request != null) return false;
         if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
             return false;
-        if (scripter != null ? !scripter.equals(state.scripter) : state.scripter != null) return false;
         if (rawRepo != null ? !rawRepo.equals(state.rawRepo) : state.rawRepo != null) return false;
         if (holdingsItems != null ? !holdingsItems.equals(state.holdingsItems) : state.holdingsItems != null)
             return false;
@@ -499,12 +487,12 @@ public class GlobalActionState {
         int result = updateServiceRequestDTO != null ? updateServiceRequestDTO.hashCode() : 0;
         result = 31 * result + (wsContext != null ? wsContext.hashCode() : 0);
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
-        result = 31 * result + (scripter != null ? scripter.hashCode() : 0);
         result = 31 * result + (rawRepo != null ? rawRepo.hashCode() : 0);
         result = 31 * result + (opencatBusiness != null ? opencatBusiness.hashCode() : 0);
         result = 31 * result + (holdingsItems != null ? holdingsItems.hashCode() : 0);
         result = 31 * result + (openAgencyService != null ? openAgencyService.hashCode() : 0);
         result = 31 * result + (solrService != null ? solrService.hashCode() : 0);
+        result = 31 * result + (solrBasis != null ? solrBasis.hashCode() : 0);
         result = 31 * result + (validator != null ? validator.hashCode() : 0);
         result = 31 * result + (updateStore != null ? updateStore.hashCode() : 0);
         result = 31 * result + (libraryRecordsHandler != null ? libraryRecordsHandler.hashCode() : 0);
@@ -522,11 +510,12 @@ public class GlobalActionState {
                 "updateServiceRequestDTO=" + updateServiceRequestDTO +
                 ", wsContext=" + wsContext +
                 ", authenticator=" + authenticator +
-                ", scripter=" + scripter +
                 ", rawRepo=" + rawRepo +
+                ", opencatBusinessConnector=" + opencatBusiness +
                 ", holdingsItems=" + holdingsItems +
                 ", openAgencyService=" + openAgencyService +
                 ", solrService=" + solrService +
+                ", solrBasis=" + solrBasis +
                 ", validator=" + validator +
                 ", updateStore=" + updateStore +
                 ", libraryRecordsHandler=" + libraryRecordsHandler +

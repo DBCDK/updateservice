@@ -13,8 +13,8 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.update.OpenAgencyService;
 import org.junit.Before;
 import org.junit.Test;
 

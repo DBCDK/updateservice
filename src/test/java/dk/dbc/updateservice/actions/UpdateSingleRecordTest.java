@@ -9,11 +9,10 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.update.JNDIResources;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -122,7 +121,7 @@ public class UpdateSingleRecordTest {
         assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateSingleRecord.children();
-        Assert.assertThat(children.size(), is(1));
+        assertThat(children.size(), is(1));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertOverwriteSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService(), GROUP_ID);
