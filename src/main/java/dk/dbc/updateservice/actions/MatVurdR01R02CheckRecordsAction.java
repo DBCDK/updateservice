@@ -138,21 +138,17 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                         final String message = String.format(state.getMessages().getString("more.than.four.matvurd.hits"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    if (count == 4 && hasSchool != 1) {
-                        final String message = String.format(state.getMessages().getString("wrong.count.of.school.record"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
-                    if (hasSchool > 1) {
-                        final String message = String.format(state.getMessages().getString("wrong.count.of.school.record"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
                 } else {
                     if (count > 2) {
                         final String message = String.format(state.getMessages().getString("more.than.two.matvurd.hits"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    if (count == 2 && hasSchool != 1) {
-                        final String message = String.format(state.getMessages().getString("wrong.count.of.school.record"), id);
+                    if (count == 2 && hasSchool == 0) {
+                        final String message = String.format(state.getMessages().getString("zero.count.of.school.record"), id);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                    }
+                    if (count == 2 && hasSchool == 2) {
+                        final String message = String.format(state.getMessages().getString("two.count.of.school.record"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 }
