@@ -103,6 +103,8 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
             for (String id : ids) {
                 // for each id we get relations and look at content in those
                 int count = 1;
+                boolean idHasLED = hasLED;
+                int idHasSchool = hasSchool;
                 final RecordId recordId = new RecordId(id, RawRepo.COMMON_AGENCY);
                 final Set<RecordId> childrenIds = state.getRawRepo().children(recordId);
                 for (RecordId recordId1 : childrenIds) {
@@ -111,13 +113,13 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                     if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt() && !thisId.equals(reader.getRecordId())) {
                         for (String content : reader.getValues("032", "x")) {
                             if (content.startsWith("LED")) {
-                                hasLED = true;
+                                idHasLED = true;
                                 break;
                             }
                         }
                         for (String content : reader.getValues("700", "f")) {
                             if (content.equals("skole")) {
-                                hasSchool++;
+                                idHasSchool++;
                                 break;
                             }
                         }
@@ -132,7 +134,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                 Without LED :
                     Max two records and only one with skole
                  */
-                if (hasLED) {
+                if (idHasLED) {
                     // Up to 4 records are allowed (excluding the current) but only one school
                     if (count > 4) {
                         final String message = String.format(state.getMessages().getString("more.than.four.matvurd.hits"), id);
@@ -143,11 +145,11 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
                         final String message = String.format(state.getMessages().getString("more.than.two.matvurd.hits"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    if (count == 2 && hasSchool == 0) {
+                    if (count == 2 && idHasSchool == 0) {
                         final String message = String.format(state.getMessages().getString("zero.count.of.school.record"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    if (count == 2 && hasSchool == 2) {
+                    if (count == 2 && idHasSchool == 2) {
                         final String message = String.format(state.getMessages().getString("two.count.of.school.record"), id);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
