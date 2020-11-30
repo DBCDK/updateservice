@@ -9,8 +9,7 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -18,6 +17,7 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.VipCoreService;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -89,9 +89,9 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         logger.info("Found holdings for agency '{}'", agencyWithHoldings);
-                        boolean hasAuthExportHoldings = state.getOpenAgencyService().hasFeature(agencyWithHoldings.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                        boolean hasAuthExportHoldings = state.getVipCoreService().hasFeature(agencyWithHoldings.toString(), VipCoreService.Rule.AUTH_EXPORT_HOLDINGS);
                         if (hasAuthExportHoldings) {
-                            logger.info("Agency '{}' has feature '{}'", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                            logger.info("Agency '{}' has feature '{}'", agencyWithHoldings, VipCoreService.Rule.AUTH_EXPORT_HOLDINGS);
                             String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
                             boolean has002Links = state.getSolrFBS().hasDocuments(solrQuery);
                             if (!has002Links) {
@@ -101,7 +101,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                             }
                         } else {
-                            logger.info("Agency '{}' does not have feature '{}'. Accepting deletion.", agencyWithHoldings, LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS);
+                            logger.info("Agency '{}' does not have feature '{}'. Accepting deletion.", agencyWithHoldings, VipCoreService.Rule.AUTH_EXPORT_HOLDINGS);
                         }
                     }
                 }
@@ -268,9 +268,9 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             logger.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
 
             for (Integer workAgencyId : totalAgencies) {
-                if (!state.getOpenAgencyService().hasFeature(workAgencyId.toString(), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+                if (!state.getVipCoreService().hasFeature(workAgencyId.toString(), VipCoreService.Rule.USE_ENRICHMENTS)) {
                     // Why this check ? 002 linking only works for agencies that uses enrichments - LJL says it can be PH/SBCI that makes it necessary - doesn't hurt so kept for now
-                    logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, LibraryRuleHandler.Rule.USE_ENRICHMENTS);
+                    logger.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, VipCoreService.Rule.USE_ENRICHMENTS);
                     continue;
                 }
                 boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));

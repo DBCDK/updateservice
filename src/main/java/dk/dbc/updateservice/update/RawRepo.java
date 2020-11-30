@@ -130,7 +130,7 @@ public class RawRepo {
     public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
 
     @EJB
-    private OpenAgencyService openAgency;
+    private VipCoreService vipCoreService;
 
     @Resource(lookup = "jdbc/rawrepo")
     private DataSource dataSource;
@@ -912,7 +912,8 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
-            rawRepoBuilder.relationHints(new RelationHintsOpenAgency(openAgency.getService()));
+            // TODO fix
+            //rawRepoBuilder.relationHints(new RelationHintsOpenAgency(vipCoreService.getService()));
             return rawRepoBuilder.build();
         } finally {
             watch.stop("rawrepo.createDAO");

@@ -10,7 +10,7 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import org.junit.Before;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class CreateSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
@@ -147,7 +147,7 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 123456)).thenReturn(rr2);
 
@@ -169,7 +169,7 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
@@ -195,7 +195,7 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 800500)).thenReturn(rr2);
 
@@ -218,7 +218,7 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870971)).thenReturn(rr);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
@@ -243,7 +243,7 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870970)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 830010)).thenReturn(rr2);
         when(state.getRawRepo().fetchRecord(recordId, 830020)).thenReturn(rr3);

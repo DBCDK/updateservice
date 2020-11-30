@@ -26,10 +26,10 @@ import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.IOUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -184,7 +184,7 @@ public class AssertActionsUtil {
         assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
     }
 
-    public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService) {
+    public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, VipCoreService vipCoreService) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(UpdateCommonRecordAction.class.getName()));
 
@@ -194,7 +194,7 @@ public class AssertActionsUtil {
         assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
         assertThat(updateCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
         assertThat(updateCommonRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        assertThat(updateCommonRecordAction.state.getOpenAgencyService(), is(openAgencyService));
+        assertThat(updateCommonRecordAction.state.getVipCoreService(), is(vipCoreService));
     }
 
     public static void assertCreateSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, SolrFBS solrService, String providerId) throws UpdateException {
@@ -418,7 +418,7 @@ public class AssertActionsUtil {
         assertThat(enqueueRecordAction.settings.getProperty(enqueueRecordAction.state.getRawRepoProviderId()), is(providerId));
     }
 
-    public static void assertOverwriteSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, String groupId) {
+    public static void assertOverwriteSingleRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, LibraryRecordsHandler recordsHandler, HoldingsItems holdingsItems, VipCoreService vipCoreService, String groupId) {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), equalTo(OverwriteSingleRecordAction.class.getName()));
 
@@ -427,7 +427,7 @@ public class AssertActionsUtil {
         assertThat(overwriteSingleRecordAction.record, is(record));
         assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(groupId));
         assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(holdingsItems));
-        assertThat(overwriteSingleRecordAction.state.getOpenAgencyService(), is(openAgencyService));
+        assertThat(overwriteSingleRecordAction.state.getVipCoreService(), is(vipCoreService));
         assertThat(overwriteSingleRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
     }
 

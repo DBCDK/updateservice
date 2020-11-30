@@ -12,7 +12,6 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -45,7 +44,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     }
 
     @Mock
-    private OpenAgencyService openAgencyService;
+    private VipCoreService vipCoreService;
 
     @Mock
     private RawRepo rawRepo;
@@ -56,7 +55,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
     }
 
@@ -65,7 +64,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("x", "ABC"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(true));
     }
 
@@ -75,7 +74,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "BKM"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
     }
 
@@ -95,7 +94,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     // These tests are not perfect , and the actual testing of output is being done via ocb-tools, as we cannot test output here.
     @Test
     public void checkForAlteredClassificationForDisputas_test_correct_record() throws Exception {
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
@@ -110,7 +109,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     @Test
     public void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
@@ -126,7 +125,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     @Test
     public void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
@@ -142,7 +141,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     @Test
     public void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
@@ -158,7 +157,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     @Test
     public void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "uden klassemærke");
@@ -174,7 +173,7 @@ public class NoteAndSubjectExtentionsHanderTest {
     public void testisNationalCommonRecord_wrong032() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(false));
     }
 
@@ -184,7 +183,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "NET");
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(false));
     }
 
@@ -195,7 +194,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         writer.addOrReplaceSubfield("032", "a", "DBF12345");
         writer.addOrReplaceSubfield("032", "x", "SFU12345");
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(false));
     }
 
@@ -206,7 +205,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         writer.addOrReplaceSubfield("032", "a", "DBF12345");
         writer.addOrReplaceSubfield("032", "x", "ACC12345");
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isNationalCommonRecord(record), equalTo(true));
     }
 
@@ -214,10 +213,10 @@ public class NoteAndSubjectExtentionsHanderTest {
     public void testcreateExtentableFieldsRx_none() throws Exception {
         String agencyId = "870970";
 
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(""));
     }
 
@@ -225,10 +224,10 @@ public class NoteAndSubjectExtentionsHanderTest {
     public void testcreateExtentableFieldsRx_notes() throws Exception {
         String agencyId = "870970";
 
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS));
     }
 
@@ -236,10 +235,10 @@ public class NoteAndSubjectExtentionsHanderTest {
     public void testcreateExtentableFieldsRx_subjects() throws Exception {
         String agencyId = "870970";
 
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
@@ -247,10 +246,10 @@ public class NoteAndSubjectExtentionsHanderTest {
     public void testcreateExtentableFieldsRx_both() throws Exception {
         String agencyId = "870970";
 
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(agencyId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS + "|" + NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
@@ -264,7 +263,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
@@ -280,7 +279,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
@@ -299,7 +298,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("d", "19940516"));
         field.getSubfields().add(new MarcSubField("f", "a"));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
@@ -314,7 +313,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("w", "Møllgaard, Peter (f. 1964-02-23)"));
         field.getSubfields().add(new MarcSubField("z", "700/1"));
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
@@ -329,7 +328,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("w", "Kastberg Nielsen, Claus"));
         field.getSubfields().add(new MarcSubField("z", "700/2"));
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
@@ -341,7 +340,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "Møllgaard"));
         field.getSubfields().add(new MarcSubField("h", "H. Peter"));
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
     }
 
@@ -353,7 +352,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("a", "Møllegaard")); // Added 'e'
         field.getSubfields().add(new MarcSubField("h", "H. Peter"));
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
     }
 
@@ -365,7 +364,7 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
     }
@@ -379,7 +378,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
     }
@@ -395,10 +394,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         MarcRecord expected = new MarcRecord(record);
         //new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
 
@@ -413,10 +412,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         String groupId = "830010";
 
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
         assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }
@@ -446,10 +445,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         String groupId = "830010";
 
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
         assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
     }
@@ -469,7 +468,7 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, null);
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         assertThat(instance.recordDataForRawRepo(record, "820010"), equalTo(record));
     }
 
@@ -492,10 +491,10 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         try {
             instance.recordDataForRawRepo(record, groupId);
@@ -531,10 +530,10 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expectedRecord));
     }
@@ -574,10 +573,10 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
 
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expectedRecord));
     }
@@ -597,10 +596,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
@@ -622,10 +621,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
@@ -648,10 +647,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
@@ -673,10 +672,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
@@ -698,10 +697,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
@@ -723,10 +722,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
         messageEntryDTO.setType(TypeEnumDTO.ERROR);
@@ -753,10 +752,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
         messageEntryDTO.setType(TypeEnumDTO.ERROR);
@@ -784,10 +783,10 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
-        when(openAgencyService.hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
+        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreService.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(openAgencyService, rawRepo, ResourceBundles.getBundle("actions"));
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO530 = new MessageEntryDTO();

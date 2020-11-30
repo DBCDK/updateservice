@@ -8,7 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -17,13 +17,14 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.updateservice.update.JNDIResources;
 import org.slf4j.ext.XLogger;
@@ -51,7 +52,7 @@ public class GlobalActionState {
     private RawRepo rawRepo = null;
     private OpencatBusinessConnector opencatBusiness = null;
     private HoldingsItems holdingsItems = null;
-    private OpenAgencyService openAgencyService = null;
+    private VipCoreService vipCoreService = null;
     private SolrFBS solrService = null;
     private SolrBasis solrBasis = null;
     private Validator validator = null;
@@ -61,7 +62,7 @@ public class GlobalActionState {
     private MarcRecord marcRecord = null;
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
-    private OpenAgencyService.LibraryGroup libraryGroup = null;
+    private LibraryGroup libraryGroup = null;
     private String templateGroup = null;
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
@@ -86,13 +87,26 @@ public class GlobalActionState {
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, HttpServletRequest request, OpenAgencyService.LibraryGroup libraryGroup) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO,
+                             WebServiceContext wsContext,
+                             Authenticator authenticator,
+                             RawRepo rawRepo,
+                             HoldingsItems holdingsItems,
+                             VipCoreService vipCoreService,
+                             SolrFBS solrService,
+                             SolrBasis solrBasis,
+                             Validator validator,
+                             UpdateStore updateStore,
+                             LibraryRecordsHandler libraryRecordsHandler,
+                             ResourceBundle messages,
+                             HttpServletRequest request,
+                             LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
         this.rawRepo = rawRepo;
         this.holdingsItems = holdingsItems;
-        this.openAgencyService = openAgencyService;
+        this.vipCoreService = vipCoreService;
         this.solrService = solrService;
         this.solrBasis = solrBasis;
         this.validator = validator;
@@ -104,7 +118,20 @@ public class GlobalActionState {
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), globalActionState.getRequest(), null);
+        this(globalActionState.getUpdateServiceRequestDTO(),
+                globalActionState.getWsContext(),
+                globalActionState.getAuthenticator(),
+                globalActionState.getRawRepo(),
+                globalActionState.getHoldingsItems(),
+                globalActionState.getVipCoreService(),
+                globalActionState.getSolrFBS(),
+                globalActionState.getSolrBasis(),
+                globalActionState.getValidator(),
+                globalActionState.getUpdateStore(),
+                globalActionState.getLibraryRecordsHandler(),
+                globalActionState.getMessages(),
+                globalActionState.getRequest(),
+                null);
     }
 
     private void resetState() {
@@ -165,12 +192,12 @@ public class GlobalActionState {
         this.holdingsItems = holdingsItems;
     }
 
-    public OpenAgencyService getOpenAgencyService() {
-        return openAgencyService;
+    public VipCoreService getVipCoreService() {
+        return vipCoreService;
     }
 
-    public void setOpenAgencyService(OpenAgencyService openAgencyService) {
-        this.openAgencyService = openAgencyService;
+    public void setVipCoreService(VipCoreService vipCoreService) {
+        this.vipCoreService = vipCoreService;
     }
 
     public SolrFBS getSolrFBS() {
@@ -229,7 +256,7 @@ public class GlobalActionState {
         this.marcRecord = marcRecord;
     }
 
-    public void setLibraryGroup(OpenAgencyService.LibraryGroup libraryGroup) {
+    public void setLibraryGroup(LibraryGroup libraryGroup) {
         this.libraryGroup = libraryGroup;
     }
 
@@ -445,7 +472,7 @@ public class GlobalActionState {
 
     public NoteAndSubjectExtensionsHandler getNoteAndSubjectExtensionsHandler() {
         if (this.noteAndSubjectExtensionsHandler == null) {
-            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getOpenAgencyService(), getRawRepo(), messages);
+            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getVipCoreService(), getRawRepo(), messages);
         }
 
         return this.noteAndSubjectExtensionsHandler;
@@ -467,7 +494,7 @@ public class GlobalActionState {
         if (rawRepo != null ? !rawRepo.equals(state.rawRepo) : state.rawRepo != null) return false;
         if (holdingsItems != null ? !holdingsItems.equals(state.holdingsItems) : state.holdingsItems != null)
             return false;
-        if (openAgencyService != null ? !openAgencyService.equals(state.openAgencyService) : state.openAgencyService != null)
+        if (vipCoreService != null ? !vipCoreService.equals(state.vipCoreService) : state.vipCoreService != null)
             return false;
         if (solrService != null ? !solrService.equals(state.solrService) : state.solrService != null) return false;
         if (validator != null ? !validator.equals(state.validator) : state.validator != null) return false;
@@ -479,7 +506,6 @@ public class GlobalActionState {
         if (bibliographicRecordExtraData != null ? !bibliographicRecordExtraData.equals(state.bibliographicRecordExtraData) : state.bibliographicRecordExtraData != null)
             return false;
         return recordPid != null ? recordPid.equals(state.recordPid) : state.recordPid == null;
-
     }
 
     @Override
@@ -490,7 +516,7 @@ public class GlobalActionState {
         result = 31 * result + (rawRepo != null ? rawRepo.hashCode() : 0);
         result = 31 * result + (opencatBusiness != null ? opencatBusiness.hashCode() : 0);
         result = 31 * result + (holdingsItems != null ? holdingsItems.hashCode() : 0);
-        result = 31 * result + (openAgencyService != null ? openAgencyService.hashCode() : 0);
+        result = 31 * result + (vipCoreService != null ? vipCoreService.hashCode() : 0);
         result = 31 * result + (solrService != null ? solrService.hashCode() : 0);
         result = 31 * result + (solrBasis != null ? solrBasis.hashCode() : 0);
         result = 31 * result + (validator != null ? validator.hashCode() : 0);
@@ -513,7 +539,7 @@ public class GlobalActionState {
                 ", rawRepo=" + rawRepo +
                 ", opencatBusinessConnector=" + opencatBusiness +
                 ", holdingsItems=" + holdingsItems +
-                ", openAgencyService=" + openAgencyService +
+                ", vipCoreService=" + vipCoreService +
                 ", solrService=" + solrService +
                 ", solrBasis=" + solrBasis +
                 ", validator=" + validator +
@@ -542,13 +568,13 @@ public class GlobalActionState {
         return "admin".equalsIgnoreCase(userId);
     }
 
-    public OpenAgencyService.LibraryGroup getLibraryGroup() throws UpdateException {
+    public LibraryGroup getLibraryGroup() throws UpdateException {
         if (libraryGroup == null) {
             String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
-                libraryGroup = openAgencyService.getLibraryGroup(groupId);
-            } catch (OpenAgencyException | UpdateException ex) {
+                libraryGroup = vipCoreService.getLibraryGroup(groupId);
+            } catch (UpdateException | OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
@@ -570,7 +596,7 @@ public class GlobalActionState {
             String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
-                templateGroup = openAgencyService.getTemplateGroup(groupId);
+                templateGroup = vipCoreService.getTemplateGroup(groupId);
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
@@ -590,7 +616,7 @@ public class GlobalActionState {
     public Set<String> getPHLibraries() throws UpdateException {
         if (phLibraries == null) {
             try {
-                phLibraries = openAgencyService.getPHLibraries();
+                phLibraries = vipCoreService.getPHLibraries();
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
@@ -603,7 +629,7 @@ public class GlobalActionState {
     public Set<String> getFFULibraries() throws UpdateException {
         if (ffuLibraries == null) {
             try {
-                ffuLibraries = openAgencyService.getFFULibraries();
+                ffuLibraries = vipCoreService.getFFULibraries();
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
@@ -616,7 +642,7 @@ public class GlobalActionState {
     public Set<String> getLokbibLibraries() throws UpdateException {
         if (lokbibLibraries == null) {
             try {
-                lokbibLibraries = openAgencyService.getLokbibLibraries();
+                lokbibLibraries = vipCoreService.getLokbibLibraries();
             } catch (OpenAgencyException ex) {
                 logger.error("OpenAgency error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);

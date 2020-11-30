@@ -8,7 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 public class UpdateSchoolCommonRecordTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {

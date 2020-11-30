@@ -12,8 +12,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -21,6 +20,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.VipCoreService;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -317,7 +317,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 logger.info("Found holdings or enrichments record for: {}", librariesWithPosts.toString());
 
                 for (int id : librariesWithPosts) {
-                    if (!state.getOpenAgencyService().hasFeature(Integer.toString(id), LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+                    if (!state.getVipCoreService().hasFeature(Integer.toString(id), VipCoreService.Rule.USE_ENRICHMENTS)) {
                         continue;
                     }
                     if (rawRepo.recordExists(recordId, id)) {

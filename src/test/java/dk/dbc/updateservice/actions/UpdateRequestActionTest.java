@@ -11,7 +11,7 @@ import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 public class UpdateRequestActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
@@ -201,7 +201,7 @@ public class UpdateRequestActionTest {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -248,7 +248,7 @@ public class UpdateRequestActionTest {
     @Test
     public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        state.setLibraryGroup(LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
@@ -356,7 +356,7 @@ public class UpdateRequestActionTest {
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, bibliographicRecordExtraData));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
         when(state.getRawRepo().checkProvider(eq("new_provider_name"))).thenReturn(true);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -431,7 +431,7 @@ public class UpdateRequestActionTest {
         assertThat(updateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(updateOperationAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(updateOperationAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateOperationAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateOperationAction.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateOperationAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
         assertThat(updateOperationAction.record, equalTo(state.readRecord()));
         assertThat(updateOperationAction.settings, equalTo(properties));

@@ -16,8 +16,7 @@ import dk.dbc.common.records.UpdateOwnership;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.jsonb.JSONBException;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import org.slf4j.ext.XLogger;
@@ -54,7 +53,7 @@ public class LibraryRecordsHandler {
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
 
     @EJB
-    private OpenAgencyService openAgencyService;
+    private VipCoreService vipCoreService;
 
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
@@ -888,7 +887,7 @@ public class LibraryRecordsHandler {
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
         LOGGER.entry(record, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
@@ -936,9 +935,9 @@ public class LibraryRecordsHandler {
         final MarcRecordReader reader = new MarcRecordReader(record);
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS))) {
+                    vipCoreService.hasFeature(groupId, VipCoreService.Rule.USE_ENRICHMENTS) ||
+                            vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_ROOT) ||
+                            vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_METACOMPASS))) {
 
                 LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
                 result = splitRecordDataIO(record, reader.getAgencyId());
@@ -974,7 +973,7 @@ public class LibraryRecordsHandler {
                 LOGGER.info("Agency id of record is not 870970 - returning same record");
                 return Collections.singletonList(record);
             }
-            final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService, rawRepo, messages);
+            final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
 
             final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
             final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);

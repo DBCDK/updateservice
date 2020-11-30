@@ -10,7 +10,7 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 public class EnqueueRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
@@ -229,7 +229,7 @@ public class EnqueueRecordActionTest {
 
         final MarcRecord record = prepareRecord(bibliographicRecordId, agencyId);
 
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         final Properties newSettings = (Properties) settings.clone();
         newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
@@ -254,7 +254,7 @@ public class EnqueueRecordActionTest {
 
         final MarcRecord record = prepareRecord(bibliographicRecordId, agencyId);
 
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.PH);
+        state.setLibraryGroup(LibraryGroup.PH);
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
         assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));

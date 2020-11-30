@@ -15,8 +15,7 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -33,7 +32,7 @@ import java.util.ResourceBundle;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
-    private OpenAgencyService openAgencyService;
+    private VipCoreService vipCoreService;
     private RawRepo rawRepo;
     private ResourceBundle messages;
 
@@ -42,8 +41,8 @@ public class NoteAndSubjectExtensionsHandler {
     private static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
 
-    public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo, ResourceBundle messages) {
-        this.openAgencyService = openAgencyService;
+    public NoteAndSubjectExtensionsHandler(VipCoreService vipCoreService, RawRepo rawRepo, ResourceBundle messages) {
+        this.vipCoreService = vipCoreService;
         this.rawRepo = rawRepo;
         this.messages = messages;
     }
@@ -66,7 +65,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
             logger.info("Checking for altered classifications for disputas type material");
             if (curReader.hasValue("008", "d", "m") &&
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
+                    vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
                     !canChangeClassificationForDisputas(reader)) {
                 final String msg = messages.getString("update.dbc.record.652");
                 logger.error("Unable to create sub actions due to an error: {}", msg);
@@ -217,11 +216,11 @@ public class NoteAndSubjectExtensionsHandler {
     String createExtendableFieldsRx(String agencyId) throws OpenAgencyException {
         String extendableFields = "";
 
-        if (openAgencyService.hasFeature(agencyId, LibraryRuleHandler.Rule.AUTH_COMMON_NOTES)) {
+        if (vipCoreService.hasFeature(agencyId, VipCoreService.Rule.AUTH_COMMON_NOTES)) {
             extendableFields += EXTENDABLE_NOTE_FIELDS;
         }
 
-        if (openAgencyService.hasFeature(agencyId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+        if (vipCoreService.hasFeature(agencyId, VipCoreService.Rule.AUTH_COMMON_SUBJECTS)) {
             if (!extendableFields.isEmpty()) {
                 extendableFields += "|";
             }
@@ -333,7 +332,7 @@ public class NoteAndSubjectExtensionsHandler {
                 return result;
             }
 
-            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_NOTES)) {
+            if (!vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_COMMON_NOTES)) {
                 logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in openagency - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {
@@ -354,7 +353,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+            if (!vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_COMMON_SUBJECTS)) {
                 logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in openagency - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {

@@ -10,11 +10,11 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
+import dk.dbc.updateservice.update.VipCoreService;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 public class UpdateLocalRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @Before
     public void before() throws IOException {
@@ -357,7 +357,7 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
@@ -404,7 +404,7 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -483,7 +483,7 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
@@ -529,7 +529,7 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));

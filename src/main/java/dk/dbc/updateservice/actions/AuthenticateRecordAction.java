@@ -10,14 +10,14 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
@@ -123,7 +123,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             // First check if the group is "root" - if so just return as no further validation is necessary
             try {
-                if (state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)) {
+                if (state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_ROOT)) {
                     logger.info("Group is AUTH_ROOT -> exit OK");
                     return result;
                 }
@@ -219,7 +219,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             if ("DBC".equals(curOwner)) {
                 logger.info("Owner is DBC");
-                if (!state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)) {
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_DBC_RECORDS)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.owner.dbc.error"));
                 }
                 return createOkReply();
@@ -227,7 +227,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             if ("RET".equals(curOwner)) {
                 logger.info("Owner is RET");
-                if (!state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)) {
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_RET_RECORD)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.error"));
                 }
                 logger.info("New value of 008 *v is {}", reader.getValue("008", "v"));
@@ -258,13 +258,13 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 hvis bibliotek groupId ikke har sat AUTH_PUBLIC_LIB_COMMON_RECORD så fejl : Du har ikke ret til at overtage ejerskabet for en folkebiblioteksejet fællesskabspost
                 ellers retur ok
              */
-            if (state.getOpenAgencyService().hasFeature(curOwner, LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
+            if (state.getVipCoreService().hasFeature(curOwner, VipCoreService.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
                 logger.info("Owner has AUTH_PUBLIC_LIB_COMMON_RECORD permission");
                 if (!owner.equals(groupId)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.give.public.library.error"));
                 }
 
-                if (!state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.take.public.library.error"));
                 }
                 return createOkReply();
@@ -302,7 +302,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                         field665 == null && curField665 != null ||
                         field665 != null && !field665.equals(curField665)) {
                     logger.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
-                    boolean canChangeMetaCompassRule = state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS);
+                    boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
                         logger.info("Groupid {} does not have permission to change field 665, so returning error");
@@ -312,7 +312,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             } else {
                 if (field665 != null) {
                     logger.info("Field 665 is present in new record - chcking if {} has permission to use field 665", groupId);
-                    boolean canChangeMetaCompassRule = state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS);
+                    boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
                         logger.info("Groupid {} does not have permission to use field 665, so returning error");

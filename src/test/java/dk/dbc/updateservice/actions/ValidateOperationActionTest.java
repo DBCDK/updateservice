@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,7 +35,7 @@ public class ValidateOperationActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
-        OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+        LibraryGroup libraryGroup = LibraryGroup.FBS;
         state.setLibraryGroup(libraryGroup);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
@@ -74,7 +74,7 @@ public class ValidateOperationActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";
         state.getUpdateServiceRequestDTO().setSchemaName(schemaName);
-        OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+        LibraryGroup libraryGroup = LibraryGroup.FBS;
         state.setLibraryGroup(libraryGroup);
 
         ValidateOperationAction validateOperationAction = new ValidateOperationAction(state, settings);
