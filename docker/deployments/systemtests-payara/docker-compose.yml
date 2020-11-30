@@ -51,7 +51,7 @@ services:
       - db.env
       - providers.env
     environment:
-      - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       - INSTANCE_NAME=${USER}_systemtest
       - JAVA_MAX_HEAP_SIZE=8G
       - UPDATE_BUILD_NO=lastSuccessfulBuild
@@ -83,7 +83,7 @@ services:
   update-systemtests-opencat-business-service:
     image: docker-io.dbc.dk/opencat-business:latest
     environment:
-      - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
       - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
       - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
@@ -100,7 +100,7 @@ services:
     image: docker-io.dbc.dk/rawrepo-record-service:DIT-271
     environment:
       -  INSTANCE_NAME=${USER}_systemtest
-      -  OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       -  RAWREPO_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
       -  HOLDINGS_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
       -  JAVA_MAX_HEAP_SIZE=2G

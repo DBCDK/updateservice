@@ -131,7 +131,7 @@ echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/t
 echo "rawrepo.provider.name.ph = fbs-ph-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.ocb-tools/testrun.properties
 
-export DEV_OPENAGENCY_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+export DEV_VIPCORE_ENDPOINT="http://${HOST_IP}:${SOLR_PORT_NR}"
 export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
 export DEV_RAWREPO_DB_URL="rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo"
 export DEV_HOLDINGS_ITEMS_DB_URL="holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems"
