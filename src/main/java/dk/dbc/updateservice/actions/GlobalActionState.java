@@ -8,7 +8,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -17,6 +16,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
@@ -26,7 +26,7 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
@@ -574,8 +574,8 @@ public class GlobalActionState {
 
             try {
                 libraryGroup = vipCoreService.getLibraryGroup(groupId);
-            } catch (UpdateException | OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+            } catch (UpdateException | VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
@@ -597,8 +597,8 @@ public class GlobalActionState {
 
             try {
                 templateGroup = vipCoreService.getTemplateGroup(groupId);
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
@@ -617,8 +617,8 @@ public class GlobalActionState {
         if (phLibraries == null) {
             try {
                 phLibraries = vipCoreService.getPHLibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -630,8 +630,8 @@ public class GlobalActionState {
         if (ffuLibraries == null) {
             try {
                 ffuLibraries = vipCoreService.getFFULibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -643,8 +643,8 @@ public class GlobalActionState {
         if (lokbibLibraries == null) {
             try {
                 lokbibLibraries = vipCoreService.getLokbibLibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }

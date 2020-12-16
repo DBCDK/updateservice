@@ -16,9 +16,10 @@ import dk.dbc.common.records.UpdateOwnership;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.jsonb.JSONBException;
-import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -883,11 +884,11 @@ public class LibraryRecordsHandler {
      * @param record       The record to be updated
      * @param libraryGroup Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
-     * @throws OpenAgencyException          in case of an error
+     * @throws VipCoreException             in case of an error
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws VipCoreException, UnsupportedEncodingException, UpdateException {
         LOGGER.entry(record, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
@@ -911,7 +912,7 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
         LOGGER.entry(record, groupId, messages);
         List<MarcRecord> result = new ArrayList<>();
         try {
@@ -928,16 +929,16 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws OpenAgencyException {
+    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws VipCoreException {
         LOGGER.entry(record, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
         final MarcRecordReader reader = new MarcRecordReader(record);
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
-                    vipCoreService.hasFeature(groupId, VipCoreService.Rule.USE_ENRICHMENTS) ||
-                            vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_ROOT) ||
-                            vipCoreService.hasFeature(groupId, VipCoreService.Rule.AUTH_METACOMPASS))) {
+                    vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS) ||
+                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) ||
+                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS))) {
 
                 LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
                 result = splitRecordDataIO(record, reader.getAgencyId());
@@ -959,11 +960,11 @@ public class LibraryRecordsHandler {
      * @param record  The record to be updated
      * @param groupId The groupId from the ws request
      * @return List containing common and DBC record
-     * @throws OpenAgencyException          in case of an error
+     * @throws VipCoreException             in case of an error
      * @throws UpdateException              in case of an error
      * @throws UnsupportedEncodingException in case of an error
      */
-    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
         LOGGER.entry(record, groupId);
 
         try {

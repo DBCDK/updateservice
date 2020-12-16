@@ -13,12 +13,12 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -116,7 +116,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 children.add(new UpdateSingleRecord(state, settings, recordToStore));
             }
             return ServiceResult.newOkResult();
-        } catch (OpenAgencyException | UnsupportedEncodingException e) {
+        } catch (VipCoreException | UnsupportedEncodingException e) {
             logger.catching(e);
             throw new UpdateException("Exception while collapsing record", e);
         } finally {

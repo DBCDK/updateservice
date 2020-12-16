@@ -12,7 +12,7 @@ import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.update.VipCoreService;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -159,7 +159,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
-        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
@@ -202,7 +202,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
@@ -244,7 +244,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-        when(state.getVipCoreService().hasFeature("710100", VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("710100", VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
@@ -286,7 +286,7 @@ public class UpdateSingleRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet(710100));
-        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreService.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 

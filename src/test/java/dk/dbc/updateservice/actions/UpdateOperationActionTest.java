@@ -11,13 +11,12 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import dk.dbc.updateservice.update.VipCoreService;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -91,7 +90,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -117,7 +116,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -177,7 +176,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreService.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -231,7 +230,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(Integer.toString(enrichmentAgencyId), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(Integer.toString(enrichmentAgencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -295,8 +294,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
@@ -337,8 +336,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -385,8 +384,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -431,8 +430,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -486,7 +485,7 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
@@ -538,7 +537,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
@@ -636,7 +635,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(schoolRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -665,7 +664,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
@@ -693,7 +692,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
 
         String solrRequest = "marc.002a:\"20611529\" AND marc.001b:870970";
         when(state.getSolrFBS().hasDocuments(solrRequest)).thenReturn(true);
@@ -722,7 +721,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(commonRecord);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -1090,7 +1089,7 @@ public class UpdateOperationActionTest {
         MarcRecord record = constructRecordWith001("20611529", "710100", "20001234", "20190327");
         MarcRecord expected = constructRecordWith001("20611529", "710100", "20001234", "20190327");
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreService.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
@@ -1109,7 +1108,7 @@ public class UpdateOperationActionTest {
         MarcRecord record = constructRecordWith001("20611529", "710100", "20001234", null);
         MarcRecord expected = constructRecordWith001("20611529", "710100", "20001234", today);
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(false);
-        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreService.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
@@ -1127,7 +1126,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("20611529"), eq(710100))).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreService.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
@@ -1183,8 +1182,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         // Get existing record merged
         when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
@@ -1246,8 +1245,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         // Get existing record merged
         when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);

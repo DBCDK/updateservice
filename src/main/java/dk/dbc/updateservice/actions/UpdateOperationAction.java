@@ -11,7 +11,6 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.jsonb.JSONBException;
-import dk.dbc.openagency.http.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -21,7 +20,8 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.VipCoreService;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -157,7 +157,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
                     if (!updReader.markedForDeletion() &&
-                            !state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
                         String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -173,8 +173,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.CREATE_ENRICHMENTS) ||
-                            state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreService.Rule.AUTH_METACOMPASS)) {
+                    } else if (state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                            state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
@@ -209,7 +209,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
             return result = ServiceResult.newOkResult();
-        } catch (OpenAgencyException | UnsupportedEncodingException | JAXBException | JSONBException e) {
+        } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
         } finally {
             logger.exit(result);
@@ -245,7 +245,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UpdateException              Update error
      * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
-    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
+    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, VipCoreException {
         logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
 
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
@@ -264,7 +264,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 }
             }
-        } else if (state.getVipCoreService().hasFeature(groupId, VipCoreService.Rule.USE_ENRICHMENTS)) {
+        } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
             // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
             if (!reader.hasSubfield("001", "d") &&
                     rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
