@@ -11,6 +11,8 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -166,43 +168,21 @@ class DefaultEnrichmentRecordHandlerTest {
         assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
-    @Test
-    void testShouldCreateEnrichmentRecordsOkUnderProduction008ru() {
+    @ParameterizedTest
+    @CsvSource({"DBI211542, DBI211541, true",
+            "DBI211542, DBI211542, false",
+            "DBI211642, DBI999999, true",
+    })
+    void testShouldCreateEnrichmentRecordsOkUnderProduction008ru(String updating032a, String current032a, boolean expected) {
         MarcRecord updatingCommonRecord = new MarcRecord();
         updatingCommonRecord.getFields().add(new MarcField("008", "00", Collections.singletonList(new MarcSubField("u", "r"))));
-        updatingCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211542"))));
+        updatingCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", updating032a))));
 
         MarcRecord currentCommonRecord = new MarcRecord();
-        currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211541"))));
+        currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", current032a))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(true));
-    }
-
-    @Test
-    void testShouldCreateEnrichmentRecordsFailUnderProduction008ru() {
-        MarcRecord updatingCommonRecord = new MarcRecord();
-        updatingCommonRecord.getFields().add(new MarcField("008", "00", Collections.singletonList(new MarcSubField("u", "r"))));
-        updatingCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211542"))));
-
-        MarcRecord currentCommonRecord = new MarcRecord();
-        currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211542"))));
-        currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
-
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
-    }
-
-    @Test
-    void testShouldCreateEnrichmentRecordsFailUnderProductionOk() {
-        MarcRecord updatingCommonRecord = new MarcRecord();
-        updatingCommonRecord.getFields().add(new MarcField("008", "00", Collections.singletonList(new MarcSubField("u", "r"))));
-        updatingCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211642"))));
-
-        MarcRecord currentCommonRecord = new MarcRecord();
-        currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI999999"))));
-        currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
-
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(true));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(expected));
     }
 
 }

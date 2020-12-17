@@ -11,6 +11,8 @@ import dk.dbc.updateservice.solr.SolrFBS;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.util.Properties;
 
@@ -39,31 +41,17 @@ class SolrFBSTest {
         solrServer.stop();
     }
 
-    @Test
-    void getOwnerOf002List() throws Exception {
+    @ParameterizedTest
+    @CsvSource({"marc.002a:06605141, 2 041 237 2",
+            "marc.002a:06605142, 20412372",
+            "marc.002a:06605143, ''",
+    })
+    void getOwnerOf002List(String query, String expected) throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
 
         SolrFBS instance = new SolrFBS(settings);
-        assertThat(instance.getOwnerOf002("marc.002a:06605141"), is("2 041 237 2"));
-    }
-
-    @Test
-    void getOwnerOf002String() throws Exception {
-        Properties settings = new Properties();
-        settings.put("SOLR_URL", solrUrl);
-
-        SolrFBS instance = new SolrFBS(settings);
-        assertThat(instance.getOwnerOf002("marc.002a:06605142"), is("20412372"));
-    }
-
-    @Test
-    void getOwnerOf002NoHits() throws Exception {
-        Properties settings = new Properties();
-        settings.put("SOLR_URL", solrUrl);
-
-        SolrFBS instance = new SolrFBS(settings);
-        assertThat(instance.getOwnerOf002("marc.002a:06605143"), is(""));
+        assertThat(instance.getOwnerOf002(query), is(expected));
     }
 
     @Test
