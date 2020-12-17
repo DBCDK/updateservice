@@ -30,9 +30,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by stp on 18/12/14.
- */
 public class HoldingsItemsTest {
     @Mock
     MetricsHandlerBean mockedMetricsHandlerBean;

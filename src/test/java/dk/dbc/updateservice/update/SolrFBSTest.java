@@ -87,19 +87,15 @@ class SolrFBSTest {
         assertThat(instance.hits("marc.002a:06605141"), equalTo(1L));
         assertThat(instance.hits("marc.002a:76605141"), equalTo(0L));
 
-        Assertions.assertThrows(SolrException.class, () -> {
-            instance.hits("marc.xxxsdas:*");
-        });
+        Assertions.assertThrows(SolrException.class, () -> instance.hits("marc.xxxsdas:*"));
     }
 
     @Test
-    void testHits_UnknownHost() throws Exception {
+    void testHits_UnknownHost() {
         Properties settings = new Properties();
         settings.put("SOLR_URL", "http://testHits_UnknownHost/solr/raw-repo-index");
 
         SolrFBS instance = new SolrFBS(settings);
-        Assertions.assertThrows(SolrException.class, () -> {
-            instance.hits("marc.002a:06605141");
-        });
+        Assertions.assertThrows(SolrException.class, () -> instance.hits("marc.002a:06605141"));
     }
 }

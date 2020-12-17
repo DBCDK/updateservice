@@ -51,7 +51,7 @@ public class RawRepoTest {
         }
 
         @Override
-        protected RawRepoDAO createDAO(Connection conn) throws RawRepoException {
+        protected RawRepoDAO createDAO(Connection conn) {
             return rawRepoDAO;
         }
     }
@@ -70,7 +70,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_errormetrics_and_invocation_timers() throws Exception {
+    public void test_errormetrics_and_invocation_timers() {
         RawRepo rawRepo = new MockRawRepo();
         try {
             rawRepo.agenciesForRecord(new MarcRecord());
