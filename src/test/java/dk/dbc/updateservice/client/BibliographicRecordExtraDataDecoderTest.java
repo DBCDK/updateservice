@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 class BibliographicRecordExtraDataDecoderTest {
 
@@ -17,7 +17,7 @@ class BibliographicRecordExtraDataDecoderTest {
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
         expected.setProviderName("bulk-broend");
 
-        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), equalTo(expected));
+        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), is(expected));
     }
 
     @Test
@@ -27,7 +27,7 @@ class BibliographicRecordExtraDataDecoderTest {
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
         expected.setPriority(42);
 
-        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), equalTo(expected));
+        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), is(expected));
     }
 
     @Test
@@ -38,7 +38,7 @@ class BibliographicRecordExtraDataDecoderTest {
         expected.setProviderName("bulk-broend");
         expected.setPriority(42);
 
-        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), equalTo(expected));
+        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), is(expected));
     }
 
     @Test
@@ -47,7 +47,7 @@ class BibliographicRecordExtraDataDecoderTest {
 
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
 
-        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), equalTo(expected));
+        assertThat(BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(o))), is(expected));
     }
 
 }

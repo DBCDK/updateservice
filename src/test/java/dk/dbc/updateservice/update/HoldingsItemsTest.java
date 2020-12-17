@@ -13,7 +13,6 @@ import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import org.eclipse.microprofile.metrics.Tag;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,8 +25,10 @@ import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -73,7 +74,7 @@ class HoldingsItemsTest {
         when(dataSource.getConnection()).thenThrow(new SQLException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
-        Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
+        assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
     }
 
     @Test
@@ -82,7 +83,7 @@ class HoldingsItemsTest {
         HoldingsItems items = new MockHoldingsItems();
 
         try {
-            Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
+            assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
         } finally {
             verify(items.metricsHandlerBean, times(1))
                     .increment(HoldingsItems.holdingsItemsErrorCounterMetrics,
@@ -101,7 +102,7 @@ class HoldingsItemsTest {
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenThrow(new HoldingsItemsException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
-        Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
+        assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
     }
 
     @Test
@@ -123,7 +124,7 @@ class HoldingsItemsTest {
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(libraries);
 
         HoldingsItems items = new MockHoldingsItems();
-        assertEquals(libraries, items.getAgenciesThatHasHoldingsForId("12345678"));
+        assertThat(items.getAgenciesThatHasHoldingsForId("12345678"), is(libraries));
     }
 
     @Test
@@ -151,7 +152,7 @@ class HoldingsItemsTest {
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         record.getFields().add(field);
 
-        assertEquals(libraries, items.getAgenciesThatHasHoldingsFor(record));
+        assertThat(items.getAgenciesThatHasHoldingsFor(record), is(libraries));
     }
 
     @Test
@@ -180,6 +181,6 @@ class HoldingsItemsTest {
         field002.getSubfields().add(new MarcSubField("a", "02345678"));
         record.getFields().add(field002);
 
-        assertEquals(resultlibs, items.getAgenciesThatHasHoldingsFor(record));
+        assertThat(items.getAgenciesThatHasHoldingsFor(record), is(resultlibs));
     }
 }

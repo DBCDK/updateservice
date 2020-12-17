@@ -9,15 +9,15 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ResourceBundle;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 class CharSetControlTest {
 
     @Test
     void testResourceBundlesGetBundle() {
         ResourceBundle instance = ResourceBundles.getBundle(this, "messages");
-        assertEquals("Christian", instance.getString("latin1.letters"));
-        assertEquals("æøåÆØÅ", instance.getString("danish.letters"));
+        assertThat(instance.getString("latin1.letters"), is("Christian"));
+        assertThat(instance.getString("danish.letters"), is("æøåÆØÅ"));
     }
 }

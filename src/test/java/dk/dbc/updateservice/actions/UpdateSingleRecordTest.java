@@ -24,8 +24,7 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +73,7 @@ class UpdateSingleRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertCreateSingleRecordAction(iterator.next(), state.getRawRepo(), record, state.getSolrFBS(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
@@ -118,7 +117,7 @@ class UpdateSingleRecordTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateSingleRecord.children();
         assertThat(children.size(), is(1));
@@ -163,7 +162,7 @@ class UpdateSingleRecordTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
@@ -207,7 +206,7 @@ class UpdateSingleRecordTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));
@@ -249,7 +248,7 @@ class UpdateSingleRecordTest {
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, "710100");
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertTrue(updateSingleRecord.children().isEmpty());
     }
 
@@ -291,7 +290,7 @@ class UpdateSingleRecordTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateSingleRecord updateSingleRecord = new UpdateSingleRecord(state, settings, record);
-        assertThat(updateSingleRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSingleRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSingleRecord.children().listIterator();
         AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS));

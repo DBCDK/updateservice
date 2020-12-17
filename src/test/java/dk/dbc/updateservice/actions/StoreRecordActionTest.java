@@ -25,8 +25,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -76,14 +76,14 @@ class StoreRecordActionTest {
 
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
         verify(state.getRawRepo()).saveRecord(recordArgument.capture());
-        assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
-        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
-        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
+        assertThat(recordArgument.getValue().getId(), is(new RecordId(recordId, agencyId)));
+        assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
     }
 
     @Test
@@ -96,18 +96,18 @@ class StoreRecordActionTest {
 
         StoreRecordAction storeRecordAction = StoreRecordAction.newStoreMarcXChangeAction(state, settings, record);
 
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MATVURD));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.MATVURD));
 
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
         verify(state.getRawRepo()).saveRecord(recordArgument.capture());
-        assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
-        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
-        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
+        assertThat(recordArgument.getValue().getId(), is(new RecordId(recordId, agencyId)));
+        assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
     }
 
     /**
@@ -147,7 +147,7 @@ class StoreRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -190,7 +190,7 @@ class StoreRecordActionTest {
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
         ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(serviceResult, is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -205,7 +205,7 @@ class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(storeRecordAction.deletionMarkToStore(), equalTo(false));
+        assertThat(storeRecordAction.deletionMarkToStore(), is(false));
     }
 
     /**
@@ -216,7 +216,7 @@ class StoreRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(instance.recordToStore(), equalTo(record));
+        assertThat(instance.recordToStore(), is(record));
     }
 
     private static class StoreRecordActionMock extends StoreRecordAction {
@@ -245,7 +245,7 @@ class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), equalTo(modified));
+        assertThat(modifiedReader.getValue("001", "c"), is(modified));
     }
 
     @Test
@@ -259,6 +259,6 @@ class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), equalTo("19971020"));
+        assertThat(modifiedReader.getValue("001", "c"), is("19971020"));
     }
 }

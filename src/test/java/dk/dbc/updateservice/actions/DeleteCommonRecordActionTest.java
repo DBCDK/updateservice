@@ -23,7 +23,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -76,7 +75,7 @@ class DeleteCommonRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(deleteCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = deleteCommonRecordAction.children();
         assertThat(children.size(), is(3));
@@ -128,7 +127,7 @@ class DeleteCommonRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(deleteCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         MarcRecord expectedEnrichmentRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         List<ServiceAction> children = deleteCommonRecordAction.children();
@@ -173,7 +172,7 @@ class DeleteCommonRecordActionTest {
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(deleteCommonRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(deleteCommonRecordAction.children().isEmpty(), is(true));
     }
 
@@ -211,7 +210,7 @@ class DeleteCommonRecordActionTest {
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(deleteCommonRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(deleteCommonRecordAction.children().isEmpty(), is(true));
     }
 
@@ -240,7 +239,7 @@ class DeleteCommonRecordActionTest {
         new MarcRecordWriter(littolkEnrichmentRecordMarkedForDeletion).markForDeletion();
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
-        assertThat(deleteCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(deleteCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = deleteCommonRecordAction.children();
         assertThat(children.size(), is(5));

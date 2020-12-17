@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -72,7 +72,7 @@ class EnqueueRecordActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final EnqueueRecordAction instance = new EnqueueRecordAction(state, new Properties(), record);
         final String message = state.getMessages().getString("provider.id.not.set");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).changedRecord(anyString(), any(RecordId.class));
     }
 
@@ -102,16 +102,16 @@ class EnqueueRecordActionTest {
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
-        assertThat(argId.getValue(), equalTo(new RecordId(bibliographicRecordId, agencyId)));
-        assertThat(priority.getValue(), equalTo(500));
+        assertThat(argProvider.getValue(), is(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS)));
+        assertThat(argId.getValue(), is(new RecordId(bibliographicRecordId, agencyId)));
+        assertThat(priority.getValue(), is(500));
     }
 
     @Test
@@ -126,16 +126,16 @@ class EnqueueRecordActionTest {
         clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE)));
-        assertThat(argId.getValue(), equalTo(new RecordId(bibliographicRecordId, agencyId)));
-        assertThat(priority.getValue(), equalTo(1000));
+        assertThat(argProvider.getValue(), is(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE)));
+        assertThat(argId.getValue(), is(new RecordId(bibliographicRecordId, agencyId)));
+        assertThat(priority.getValue(), is(1000));
     }
 
     @Test
@@ -150,16 +150,16 @@ class EnqueueRecordActionTest {
         clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo("dataio-bulk"));
-        assertThat(argId.getValue(), equalTo(new RecordId(bibliographicRecordId, agencyId)));
-        assertThat(priority.getValue(), equalTo(1000));
+        assertThat(argProvider.getValue(), is("dataio-bulk"));
+        assertThat(argId.getValue(), is(new RecordId(bibliographicRecordId, agencyId)));
+        assertThat(priority.getValue(), is(1000));
 
         final ArgumentCaptor<RecordId> enqueueRecordIdCaptor = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<String> enqueueProviderIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -191,16 +191,16 @@ class EnqueueRecordActionTest {
                 new HashSet<>(Collections.singletonList(new RecordId("child", 870971))));
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo("dataio-bulk"));
-        assertThat(argId.getValue(), equalTo(recordId));
-        assertThat(priority.getValue(), equalTo(1000));
+        assertThat(argProvider.getValue(), is("dataio-bulk"));
+        assertThat(argId.getValue(), is(recordId));
+        assertThat(priority.getValue(), is(1000));
 
         final ArgumentCaptor<RecordId> enqueueRecordIdCaptor = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<String> enqueueProviderIdCaptor = ArgumentCaptor.forClass(String.class);
@@ -215,11 +215,11 @@ class EnqueueRecordActionTest {
                 enqueueLeafCaptor.capture(),
                 enqueuePriorityCaptor.capture());
 
-        assertThat(enqueueRecordIdCaptor.getValue(), equalTo(new RecordId(bibliographicRecordId, 191919)));
-        assertThat(enqueueProviderIdCaptor.getValue(), equalTo("dataio-bulk"));
-        assertThat(enqueueChangedCaptor.getValue(), equalTo(true));
-        assertThat(enqueueLeafCaptor.getValue(), equalTo(true));
-        assertThat(enqueuePriorityCaptor.getValue(), equalTo(1000));
+        assertThat(enqueueRecordIdCaptor.getValue(), is(new RecordId(bibliographicRecordId, 191919)));
+        assertThat(enqueueProviderIdCaptor.getValue(), is("dataio-bulk"));
+        assertThat(enqueueChangedCaptor.getValue(), is(true));
+        assertThat(enqueueLeafCaptor.getValue(), is(true));
+        assertThat(enqueuePriorityCaptor.getValue(), is(1000));
     }
 
     @Test
@@ -235,16 +235,16 @@ class EnqueueRecordActionTest {
         newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, newSettings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
-        assertThat(argId.getValue(), equalTo(new RecordId(bibliographicRecordId, agencyId)));
-        assertThat(priority.getValue(), equalTo(1000));
+        assertThat(argProvider.getValue(), is(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC)));
+        assertThat(argId.getValue(), is(new RecordId(bibliographicRecordId, agencyId)));
+        assertThat(priority.getValue(), is(1000));
     }
 
     @Test
@@ -257,15 +257,15 @@ class EnqueueRecordActionTest {
         state.setLibraryGroup(LibraryGroup.PH);
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
-        assertThat(enqueueRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(enqueueRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final ArgumentCaptor<String> argProvider = ArgumentCaptor.forClass(String.class);
         final ArgumentCaptor<RecordId> argId = ArgumentCaptor.forClass(RecordId.class);
         final ArgumentCaptor<Integer> priority = ArgumentCaptor.forClass(int.class);
 
         verify(state.getRawRepo()).changedRecord(argProvider.capture(), argId.capture(), priority.capture());
-        assertThat(argProvider.getValue(), equalTo(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH)));
-        assertThat(argId.getValue(), equalTo(new RecordId(bibliographicRecordId, agencyId)));
-        assertThat(priority.getValue(), equalTo(500));
+        assertThat(argProvider.getValue(), is(enqueueRecordAction.settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH)));
+        assertThat(argId.getValue(), is(new RecordId(bibliographicRecordId, agencyId)));
+        assertThat(priority.getValue(), is(500));
     }
 }

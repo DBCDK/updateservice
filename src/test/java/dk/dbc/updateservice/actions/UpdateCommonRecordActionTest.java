@@ -21,7 +21,6 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +70,7 @@ class UpdateCommonRecordActionTest {
         state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -80,7 +79,7 @@ class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -117,7 +116,7 @@ class UpdateCommonRecordActionTest {
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -156,7 +155,7 @@ class UpdateCommonRecordActionTest {
         state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -165,7 +164,7 @@ class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -208,7 +207,7 @@ class UpdateCommonRecordActionTest {
         state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, volumeRecord);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -217,7 +216,7 @@ class UpdateCommonRecordActionTest {
         assertThat(updateVolumeRecord, notNullValue());
         assertThat(updateVolumeRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateVolumeRecord.getRecord(), is(volumeRecord));
-        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateVolumeRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateVolumeRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateVolumeRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
@@ -240,7 +239,7 @@ class UpdateCommonRecordActionTest {
         state.setLibraryGroup(LibraryGroup.FBS);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -249,7 +248,7 @@ class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));

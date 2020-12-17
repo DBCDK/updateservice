@@ -18,8 +18,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 class DefaultEnrichmentRecordHandlerTest {
 
@@ -32,7 +32,7 @@ class DefaultEnrichmentRecordHandlerTest {
 
         List<String> expected = new ArrayList<>();
 
-        assertThat(DefaultEnrichmentRecordHandler.collectProductionCodes(record), equalTo(expected));
+        assertThat(DefaultEnrichmentRecordHandler.collectProductionCodes(record), is(expected));
     }
 
     @Test
@@ -59,7 +59,7 @@ class DefaultEnrichmentRecordHandlerTest {
         expected.add("a:DBF999999");
         expected.add("x:DBF999999");
 
-        assertThat(DefaultEnrichmentRecordHandler.collectProductionCodes(record), equalTo(expected));
+        assertThat(DefaultEnrichmentRecordHandler.collectProductionCodes(record), is(expected));
     }
 
     @Test
@@ -70,7 +70,7 @@ class DefaultEnrichmentRecordHandlerTest {
         MarcRecord record2 = new MarcRecord();
         record2.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("x", "DBF999999"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), equalTo(true));
+        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), is(true));
     }
 
     @Test
@@ -81,7 +81,7 @@ class DefaultEnrichmentRecordHandlerTest {
         MarcRecord record2 = new MarcRecord();
         record2.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("x", "DBF999999"), new MarcSubField("a", "DBI999999"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), equalTo(true));
+        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), is(true));
     }
 
     @Test
@@ -92,7 +92,7 @@ class DefaultEnrichmentRecordHandlerTest {
         MarcRecord record2 = new MarcRecord();
         record2.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("x", "DBF999999"), new MarcSubField("a", "DBI999999"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), is(false));
     }
 
     @Test
@@ -103,7 +103,7 @@ class DefaultEnrichmentRecordHandlerTest {
         MarcRecord record2 = new MarcRecord();
         record2.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI999999"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.matchKatCodes(record1, record2), is(false));
     }
 
     @Test
@@ -115,7 +115,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("a", "DBI201541"), new MarcSubField("x", "DBF201541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(true));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(true));
     }
 
     @Test
@@ -127,7 +127,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("a", "DBI201541"), new MarcSubField("x", "DBF201541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "ny titel"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
     @Test
@@ -139,7 +139,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("a", "DBI201541"), new MarcSubField("x", "DBF201541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
     @Test
@@ -151,7 +151,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Arrays.asList(new MarcSubField("a", "DBI201541"), new MarcSubField("x", "DBF201541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
     @Test
@@ -163,7 +163,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
     @Test
@@ -176,7 +176,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211541"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(true));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(true));
     }
 
     @Test
@@ -189,7 +189,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211542"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(false));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(false));
     }
 
     @Test
@@ -202,7 +202,7 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI999999"))));
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
-        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), equalTo(true));
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(true));
     }
 
 }

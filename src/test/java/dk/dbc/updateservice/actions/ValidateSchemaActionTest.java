@@ -8,15 +8,15 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -36,11 +36,11 @@ class ValidateSchemaActionTest {
     }
 
     @Test
-    void testSettingsIsNull() throws Exception {
+    void testSettingsIsNull() {
         settings = null;
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(new AuthenticationDTO());
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        Assertions.assertThrows(IllegalArgumentException.class, validateSchemaAction::performAction);
+        assertThrows(IllegalArgumentException.class, validateSchemaAction::performAction);
     }
 
     @Test
@@ -48,7 +48,7 @@ class ValidateSchemaActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName(null);
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(new AuthenticationDTO());
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty")));
+        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty")));
     }
 
     @Test
@@ -56,14 +56,14 @@ class ValidateSchemaActionTest {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("message");
         when(state.getOpencatBusiness().checkTemplate(anyString(), eq("400700"), anyString())).thenThrow(ex);
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage())));
+        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage())));
     }
 
     @Test
     void testSchemaFound() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         when(state.getOpencatBusiness().checkTemplate(eq("book"), eq("400700"), anyString())).thenReturn(true);
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -71,6 +71,6 @@ class ValidateSchemaActionTest {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         when(state.getOpencatBusiness().checkTemplate(eq("book"), eq("400700"), anyString())).thenReturn(false);
         String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-        assertThat(validateSchemaAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 }

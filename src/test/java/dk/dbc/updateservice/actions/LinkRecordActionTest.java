@@ -15,8 +15,8 @@ import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -62,19 +62,19 @@ class LinkRecordActionTest {
 
         LinkRecordAction linkRecordAction = new LinkRecordAction(state, record);
         linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
-        assertThat(linkRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(linkRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<String> argRecordId = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> argAgencyId = ArgumentCaptor.forClass(Integer.class);
         verify(state.getRawRepo()).recordExists(argRecordId.capture(), argAgencyId.capture());
-        assertThat(argRecordId.getValue(), equalTo(parentId));
-        assertThat(argAgencyId.getValue(), equalTo(agencyId));
+        assertThat(argRecordId.getValue(), is(parentId));
+        assertThat(argAgencyId.getValue(), is(agencyId));
 
         ArgumentCaptor<RecordId> argFrom = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> argTo = ArgumentCaptor.forClass(RecordId.class);
         verify(state.getRawRepo()).linkRecord(argFrom.capture(), argTo.capture());
-        assertThat(argFrom.getValue(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(argTo.getValue(), equalTo(linkRecordAction.getLinkToRecordId()));
+        assertThat(argFrom.getValue(), is(new RecordId(recordId, agencyId)));
+        assertThat(argTo.getValue(), is(linkRecordAction.getLinkToRecordId()));
     }
 
     /**
@@ -110,13 +110,13 @@ class LinkRecordActionTest {
         LinkRecordAction instance = new LinkRecordAction(state, record);
         instance.setLinkToRecordId(new RecordId(parentId, agencyId));
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
 
         ArgumentCaptor<String> argRecordId = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<Integer> argAgencyId = ArgumentCaptor.forClass(Integer.class);
         verify(state.getRawRepo()).recordExists(argRecordId.capture(), argAgencyId.capture());
-        assertThat(argRecordId.getValue(), equalTo(parentId));
-        assertThat(argAgencyId.getValue(), equalTo(agencyId));
+        assertThat(argRecordId.getValue(), is(parentId));
+        assertThat(argAgencyId.getValue(), is(agencyId));
         verify(state.getRawRepo(), never()).linkRecord(any(RecordId.class), any(RecordId.class));
     }
 

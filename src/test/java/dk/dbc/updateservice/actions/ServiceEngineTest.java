@@ -9,13 +9,13 @@ import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,7 +27,7 @@ class ServiceEngineTest {
     @Test
     void testExecuteAction_ActionIsNull() {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> instance.executeAction(null));
+        assertThrows(IllegalArgumentException.class, () -> instance.executeAction(null));
     }
 
     @Test
@@ -35,7 +35,7 @@ class ServiceEngineTest {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenThrow(new UpdateException("error"));
-        Assertions.assertThrows(UpdateException.class, () -> instance.executeAction(action));
+        assertThrows(UpdateException.class, () -> instance.executeAction(action));
     }
 
     @Test
@@ -43,7 +43,7 @@ class ServiceEngineTest {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(null);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> instance.executeAction(action));
+        assertThrows(IllegalArgumentException.class, () -> instance.executeAction(action));
     }
 
     @Test
@@ -51,7 +51,7 @@ class ServiceEngineTest {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error"));
-        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(instance.executeAction(action), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
     }
 
     @Test
@@ -74,7 +74,7 @@ class ServiceEngineTest {
         when(root.performAction()).thenReturn(ServiceResult.newOkResult());
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.executeAction(root), is(ServiceResult.newOkResult()));
 
         verify(root).performAction();
         verify(root).children();
@@ -107,7 +107,7 @@ class ServiceEngineTest {
         when(root.performAction()).thenReturn(err);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(err));
+        assertThat(instance.executeAction(root), is(err));
 
         verify(root).performAction();
         verify(root, never()).children();
@@ -139,7 +139,7 @@ class ServiceEngineTest {
         ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning");
         when(root.performAction()).thenReturn(warn);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
-        assertThat(instance.executeAction(root), equalTo(warn));
+        assertThat(instance.executeAction(root), is(warn));
         verify(root).performAction();
         verify(root).children();
         verify(c1).performAction();
@@ -171,7 +171,7 @@ class ServiceEngineTest {
         when(root.performAction()).thenReturn(ServiceResult.newOkResult());
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(err));
+        assertThat(instance.executeAction(root), is(err));
 
         verify(root).performAction();
         verify(root).children();
@@ -209,7 +209,7 @@ class ServiceEngineTest {
         expected.setStatus(UpdateStatusEnumDTO.FAILED);
         expected.addServiceResult(warn);
         expected.addServiceResult(err);
-        assertThat(instance.executeAction(root), equalTo(expected));
+        assertThat(instance.executeAction(root), is(expected));
 
         verify(root).performAction();
         verify(root).children();

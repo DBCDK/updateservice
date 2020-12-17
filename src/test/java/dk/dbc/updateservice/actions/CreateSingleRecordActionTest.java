@@ -25,7 +25,6 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +73,7 @@ class CreateSingleRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
@@ -112,7 +111,7 @@ class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -153,7 +152,7 @@ class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -173,7 +172,7 @@ class CreateSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
@@ -202,7 +201,7 @@ class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -223,7 +222,7 @@ class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -249,7 +248,7 @@ class CreateSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(recordId, 830020)).thenReturn(rr3);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
@@ -272,7 +271,7 @@ class CreateSingleRecordActionTest {
         state.setMarcRecord(record); // <- Important! The original record is set on the state object
 
         final CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(4));

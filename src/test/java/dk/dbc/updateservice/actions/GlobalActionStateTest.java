@@ -12,8 +12,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
 class GlobalActionStateTest {
     private GlobalActionState state;
@@ -59,9 +60,9 @@ class GlobalActionStateTest {
         expectedBibliographicRecordExtraData.setProviderName("bulk-broend");
         expectedBibliographicRecordExtraData.setPriority(42);
 
-        assertThat(state.readRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getMarcRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getRecordExtraData(), equalTo(expectedBibliographicRecordExtraData));
+        assertThat(state.readRecord(), is(expectedMarcRecord));
+        assertThat(state.getMarcRecord(), is(expectedMarcRecord));
+        assertThat(state.getRecordExtraData(), is(expectedBibliographicRecordExtraData));
     }
 
     @Test
@@ -94,9 +95,9 @@ class GlobalActionStateTest {
 
         final MarcRecord expectedMarcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.GLOBAL_ACTION_STATE);
 
-        assertThat(state.readRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getMarcRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getRecordExtraData(), equalTo(null));
+        assertThat(state.readRecord(), is(expectedMarcRecord));
+        assertThat(state.getMarcRecord(), is(expectedMarcRecord));
+        assertThat(state.getRecordExtraData(), nullValue());
     }
 
     @Test
@@ -122,9 +123,9 @@ class GlobalActionStateTest {
 
         state = new UpdateTestUtils().getGlobalActionStateMockObject(updateServiceRequestDTO);
 
-        assertThat(state.readRecord(), equalTo(null));
-        assertThat(state.getMarcRecord(), equalTo(null));
-        assertThat(state.getRecordExtraData(), equalTo(null));
+        assertThat(state.readRecord(), nullValue());
+        assertThat(state.getMarcRecord(), nullValue());
+        assertThat(state.getRecordExtraData(), nullValue());
     }
 
 }

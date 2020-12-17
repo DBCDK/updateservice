@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +66,7 @@ class ValidateRecordActionTest {
     void testPerformAction_Ok() throws Exception {
         final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
         when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(new ArrayList<>());
-        assertThat(validateRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(validateRecordAction.performAction(), is(ServiceResult.newOkResult()));
     }
 
     /**
@@ -97,7 +97,7 @@ class ValidateRecordActionTest {
 
         final ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
-        assertThat(validateRecordAction.performAction(), equalTo(expected));
+        assertThat(validateRecordAction.performAction(), is(expected));
     }
 
     /**
@@ -128,7 +128,7 @@ class ValidateRecordActionTest {
 
         final ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
-        assertThat(validateRecordAction.performAction(), equalTo(expected));
+        assertThat(validateRecordAction.performAction(), is(expected));
     }
 
     /**
@@ -159,7 +159,7 @@ class ValidateRecordActionTest {
 
         final String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        assertThat(validateRecordAction.performAction(), equalTo(expected));
+        assertThat(validateRecordAction.performAction(), is(expected));
     }
 
 }

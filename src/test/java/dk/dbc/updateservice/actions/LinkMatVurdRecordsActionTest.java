@@ -16,7 +16,7 @@ import org.mockito.ArgumentCaptor;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -43,18 +43,18 @@ class LinkMatVurdRecordsActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(1)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870976));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("11111111"));
+        assertThat(toProvider.getValue().getAgencyId(), is(870970));
+        assertThat(toProvider.getValue().getBibliographicRecordId(), is("11111111"));
     }
 
     @Test
@@ -62,17 +62,17 @@ class LinkMatVurdRecordsActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_2);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(2)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870976));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+        assertThat(toProvider.getAllValues(), is(Arrays.asList(
                 new RecordId("11111111", 870970),
                 new RecordId("22222222", 870970))));
     }
@@ -82,18 +82,18 @@ class LinkMatVurdRecordsActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_3);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(1)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870976));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("11111111"));
+        assertThat(toProvider.getValue().getAgencyId(), is(870970));
+        assertThat(toProvider.getValue().getBibliographicRecordId(), is("11111111"));
     }
 
     @Test
@@ -101,17 +101,17 @@ class LinkMatVurdRecordsActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_4);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(2)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870976));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+        assertThat(toProvider.getAllValues(), is(Arrays.asList(
                 new RecordId("11111111", 870970),
                 new RecordId("22222222", 870970))));
     }
@@ -121,17 +121,17 @@ class LinkMatVurdRecordsActionTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_5);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(4)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870976));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870976));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getAllValues(), equalTo(Arrays.asList(
+        assertThat(toProvider.getAllValues(), is(Arrays.asList(
                 new RecordId("11111111", 870970),
                 new RecordId("22222222", 870970),
                 new RecordId("33333333", 870970),
@@ -146,7 +146,7 @@ class LinkMatVurdRecordsActionTest {
         String message = String.format(resourceBundle.getString("ref.record.doesnt.exist"), "99999999", "870970");
 
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));
+        assertThat(instance.performAction(), is(UpdateTestUtils.createFailedServiceResult(message)));
     }
 
     @Test
@@ -154,7 +154,7 @@ class LinkMatVurdRecordsActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         verify(state.getRawRepo(), never()).linkRecordAppend(any(RecordId.class), any(RecordId.class));
     }

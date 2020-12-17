@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +79,7 @@ class CreateVolumeRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createVolumeRecordAction.children();
         assertThat(children.size(), is(5));
@@ -131,7 +130,7 @@ class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createVolumeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -174,7 +173,7 @@ class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createVolumeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -215,7 +214,7 @@ class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), volumeRecordId, agencyId);
-        assertThat(createVolumeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createVolumeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createVolumeRecordAction.children().isEmpty(), is(true));
     }
 
@@ -256,7 +255,7 @@ class CreateVolumeRecordActionTest {
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), volumeRecordId, agencyId, mainRecordId, agencyId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(instance.children().isEmpty(), is(true));
     }
 }

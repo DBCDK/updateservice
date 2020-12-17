@@ -10,17 +10,17 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
@@ -61,7 +61,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        Assertions.assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -90,7 +90,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(null);
-        Assertions.assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -121,7 +121,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        Assertions.assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -156,7 +156,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), equalTo(newEnrichmentRecord));
+        assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), is(newEnrichmentRecord));
     }
 
     @Test
@@ -191,7 +191,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         // Verify that the records are identical without 001 *c
         new MarcRecordWriter(expected).removeSubfield("001", "c");
         new MarcRecordWriter(actual).removeSubfield("001", "c");
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
 }

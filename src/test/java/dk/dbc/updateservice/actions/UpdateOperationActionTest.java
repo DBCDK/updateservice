@@ -17,8 +17,6 @@ import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,10 +34,9 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Set;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -97,7 +94,7 @@ class UpdateOperationActionTest {
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -123,7 +120,7 @@ class UpdateOperationActionTest {
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -133,7 +130,7 @@ class UpdateOperationActionTest {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date expectedOverwriteDate = sdf.parse("02/06/2017");
-        assertThat(state.getCreateOverwriteDate(), equalTo(expectedOverwriteDate.toInstant()));
+        assertThat(state.getCreateOverwriteDate(), is(expectedOverwriteDate.toInstant()));
 
         MarcRecordReader reader = new MarcRecordReader(updateOperationAction.getRecord());
         assertFalse(reader.hasSubfield("n55", "a"));
@@ -184,7 +181,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
@@ -239,7 +236,7 @@ class UpdateOperationActionTest {
 
         state.setMarcRecord(enrichmentRecord);
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -304,7 +301,7 @@ class UpdateOperationActionTest {
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
@@ -349,10 +346,9 @@ class UpdateOperationActionTest {
         updWriter.addOrReplaceSubfield("996", "a", "810010");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        System.out.println("children = " + children);
         assertThat(children.size(), is(5));
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
@@ -397,7 +393,7 @@ class UpdateOperationActionTest {
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(true);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(4));
@@ -443,7 +439,7 @@ class UpdateOperationActionTest {
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -494,7 +490,7 @@ class UpdateOperationActionTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
@@ -547,7 +543,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("operation.delete.non.existing.record");
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -592,7 +588,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonSchoolRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
@@ -643,7 +639,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
@@ -670,7 +666,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
@@ -702,7 +698,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -729,7 +725,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -750,7 +746,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -761,7 +757,7 @@ class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -783,7 +779,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -804,7 +800,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -828,7 +824,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -851,7 +847,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -872,7 +868,7 @@ class UpdateOperationActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -907,7 +903,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -927,7 +923,7 @@ class UpdateOperationActionTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -957,7 +953,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -988,7 +984,7 @@ class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
@@ -1004,7 +1000,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1019,7 +1015,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1036,7 +1032,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1051,7 +1047,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1065,7 +1061,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1081,7 +1077,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1096,7 +1092,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1115,7 +1111,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
@@ -1133,7 +1129,7 @@ class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     private MarcRecord constructRecordWith001(String bibliographicRecordId, String agencyId, String modified, String created) {
@@ -1193,7 +1189,7 @@ class UpdateOperationActionTest {
                 eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
@@ -1260,7 +1256,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkCommon, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(5));

@@ -26,7 +26,6 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
@@ -74,7 +73,7 @@ class UpdateLocalRecordActionTest {
     void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -118,7 +117,7 @@ class UpdateLocalRecordActionTest {
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, volumeRecord);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -158,7 +157,7 @@ class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -190,7 +189,7 @@ class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
@@ -224,7 +223,7 @@ class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
@@ -261,7 +260,7 @@ class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -318,7 +317,7 @@ class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -362,7 +361,7 @@ class UpdateLocalRecordActionTest {
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -407,7 +406,7 @@ class UpdateLocalRecordActionTest {
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -448,7 +447,7 @@ class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -488,7 +487,7 @@ class UpdateLocalRecordActionTest {
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -532,7 +531,7 @@ class UpdateLocalRecordActionTest {
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);

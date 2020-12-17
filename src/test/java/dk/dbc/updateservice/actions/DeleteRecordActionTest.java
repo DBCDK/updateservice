@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -46,7 +46,7 @@ class DeleteRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, properties, record);
         deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(deleteRecordAction.deletionMarkToStore(), equalTo(true));
+        assertThat(deleteRecordAction.deletionMarkToStore(), is(true));
     }
 
     /**

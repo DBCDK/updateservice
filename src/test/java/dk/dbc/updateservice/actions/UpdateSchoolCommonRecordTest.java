@@ -19,7 +19,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -68,7 +67,7 @@ class UpdateSchoolCommonRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = new UpdateSchoolCommonRecord(state, settings, record);
-        assertThat(updateSchoolCommonRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSchoolCommonRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSchoolCommonRecord.children().listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -112,7 +111,7 @@ class UpdateSchoolCommonRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -163,7 +162,7 @@ class UpdateSchoolCommonRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = new UpdateSchoolCommonRecord(state, settings, record);
-        assertThat(updateSchoolCommonRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateSchoolCommonRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateSchoolCommonRecord.children().listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -212,7 +211,7 @@ class UpdateSchoolCommonRecordTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -266,7 +265,7 @@ class UpdateSchoolCommonRecordTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, commonRecord);

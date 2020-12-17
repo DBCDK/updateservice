@@ -19,7 +19,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -81,7 +80,7 @@ class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, e1, true, true);
         moveEnrichmentRecordAction.setTargetRecordId(c2RecordId);
-        assertThat(moveEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(moveEnrichmentRecordAction.performAction(), is(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = moveEnrichmentRecordAction.children.listIterator();
 
         MarcRecord e1Deleted = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -136,7 +135,7 @@ class MoveEnrichmentRecordActionTest {
 
         MoveEnrichmentRecordAction instance = new MoveEnrichmentRecordAction(state, settings, e1, false, false);
         instance.setTargetRecordId(c2RecordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
         ListIterator<ServiceAction> iterator = instance.children.listIterator();
 
         MarcRecord e1Deleted = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);

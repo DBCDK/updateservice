@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -40,7 +40,7 @@ class LinkAuthorityRecordsActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         verify(state.getRawRepo(), never()).linkRecordAppend(any(RecordId.class), any(RecordId.class));
     }
@@ -57,18 +57,18 @@ class LinkAuthorityRecordsActionTest {
         when(state.getRawRepo().recordExists("33333333", 870979)).thenReturn(true);
 
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> fromProvider = ArgumentCaptor.forClass(RecordId.class);
         ArgumentCaptor<RecordId> toProvider = ArgumentCaptor.forClass(RecordId.class);
 
         verify(state.getRawRepo(), times(3)).linkRecordAppend(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("20611529"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870970));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("20611529"));
 
-        assertThat(toProvider.getValue().getAgencyId(), equalTo(870979));
-        assertThat(toProvider.getValue().getBibliographicRecordId(), equalTo("33333333"));
+        assertThat(toProvider.getValue().getAgencyId(), is(870979));
+        assertThat(toProvider.getValue().getBibliographicRecordId(), is("33333333"));
     }
 
     @Test
@@ -82,6 +82,6 @@ class LinkAuthorityRecordsActionTest {
         String message = String.format(resourceBundle.getString("ref.record.doesnt.exist"), "22222222", "870979");
 
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
-        assertThat(instance.performAction(), equalTo(UpdateTestUtils.createFailedServiceResult(message)));
+        assertThat(instance.performAction(), is(UpdateTestUtils.createFailedServiceResult(message)));
     }
 }

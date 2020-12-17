@@ -26,7 +26,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -88,7 +87,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -127,7 +126,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         final OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(5));
@@ -186,7 +185,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -246,7 +245,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -310,7 +309,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(5));
@@ -375,7 +374,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -438,7 +437,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -506,7 +505,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(5));
@@ -574,7 +573,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(5));
@@ -657,7 +656,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(6));
@@ -738,7 +737,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -823,7 +822,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(5));
@@ -907,7 +906,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
         assertThat(children.size(), is(4));
@@ -994,7 +993,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1079,7 +1078,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1156,7 +1155,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1235,7 +1234,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c2), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1315,7 +1314,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(c2))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1392,7 +1391,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1471,7 +1470,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1554,7 +1553,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1639,7 +1638,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1696,7 +1695,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1944,7 +1943,7 @@ class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithMinusEnrichment() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a Minus korrekturprint\n" +
@@ -1961,7 +1960,7 @@ class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a minus korrekturprint";
@@ -1977,7 +1976,7 @@ class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    void testHasMinusEnrichmentHasNoz98() throws Exception {
+    void testHasMinusEnrichmentHasNoz98() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT";
 

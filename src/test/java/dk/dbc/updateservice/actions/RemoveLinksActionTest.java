@@ -11,8 +11,8 @@ import dk.dbc.rawrepo.RecordId;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.verify;
 
 class RemoveLinksActionTest {
@@ -43,10 +43,10 @@ class RemoveLinksActionTest {
         int agencyId = reader.getAgencyIdAsInt();
 
         RemoveLinksAction instance = new RemoveLinksAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> arg = ArgumentCaptor.forClass(RecordId.class);
         verify(state.getRawRepo()).removeLinks(arg.capture());
-        assertThat(arg.getValue(), equalTo(new RecordId(recordId, agencyId)));
+        assertThat(arg.getValue(), is(new RecordId(recordId, agencyId)));
     }
 }

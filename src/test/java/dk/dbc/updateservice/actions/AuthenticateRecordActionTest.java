@@ -17,7 +17,6 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -74,7 +73,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -92,7 +91,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -111,7 +110,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -137,7 +136,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
@@ -159,7 +158,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -191,7 +190,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
@@ -214,7 +213,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("create.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("create.common.record.error")));
     }
 
     @Test
@@ -237,7 +236,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("create.common.record.other.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("create.common.record.other.library.error")));
     }
 
     @Test
@@ -260,7 +259,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -285,7 +284,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.owner.dbc.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.owner.dbc.error")));
     }
 
     @Test
@@ -310,7 +309,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -335,7 +334,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.error")));
     }
 
     @Test
@@ -361,7 +360,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
     }
 
     @Test
@@ -390,7 +389,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -416,7 +415,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -445,7 +444,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.error")));
     }
 
     @Test
@@ -474,7 +473,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.give.public.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.give.public.library.error")));
     }
 
     @Test
@@ -503,7 +502,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
@@ -532,7 +531,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
@@ -561,7 +560,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
@@ -590,7 +589,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -620,7 +619,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.take.public.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.take.public.library.error")));
     }
 
     @Test
@@ -650,7 +649,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
@@ -679,7 +678,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.other.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.other.library.error")));
     }
 
     @Test
@@ -696,7 +695,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -721,7 +720,7 @@ class AuthenticateRecordActionTest {
         List<MessageEntryDTO> expected = new ArrayList<>();
         expected.add(expectedMessageEntryDTO);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
@@ -737,7 +736,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -753,7 +752,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -772,7 +771,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -791,7 +790,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -804,7 +803,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -819,7 +818,7 @@ class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
@@ -842,6 +841,6 @@ class AuthenticateRecordActionTest {
         List<MessageEntryDTO> expected = new ArrayList<>();
         expected.add(expectedMessageEntryDTO);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 }

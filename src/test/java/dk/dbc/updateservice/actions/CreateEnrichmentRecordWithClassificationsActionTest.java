@@ -11,7 +11,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,8 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
@@ -73,29 +73,29 @@ class CreateEnrichmentRecordWithClassificationsActionTest {
         CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(commonRecord);
 
-        assertThat(createEnrichmentRecordWithClassificationsAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createEnrichmentRecordWithClassificationsAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createEnrichmentRecordWithClassificationsAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        Assertions.assertSame(child.getClass(), StoreRecordAction.class);
+        assertSame(child.getClass(), StoreRecordAction.class);
 
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        Assertions.assertSame(child.getClass(), LinkRecordAction.class);
+        assertSame(child.getClass(), LinkRecordAction.class);
 
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
-        Assertions.assertSame(child.getClass(), EnqueueRecordAction.class);
+        assertSame(child.getClass(), EnqueueRecordAction.class);
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -141,29 +141,29 @@ class CreateEnrichmentRecordWithClassificationsActionTest {
         instance.setUpdatingCommonRecord(commonRecord);
         instance.setTargetRecordId(commonRecordId);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        Assertions.assertSame(child.getClass(), StoreRecordAction.class);
+        assertSame(child.getClass(), StoreRecordAction.class);
 
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        Assertions.assertSame(child.getClass(), LinkRecordAction.class);
+        assertSame(child.getClass(), LinkRecordAction.class);
 
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(enrichmentRecord));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
-        Assertions.assertSame(child.getClass(), EnqueueRecordAction.class);
+        assertSame(child.getClass(), EnqueueRecordAction.class);
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -206,6 +206,6 @@ class CreateEnrichmentRecordWithClassificationsActionTest {
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
-        Assertions.assertThrows(UpdateException.class, instance::performAction);
+        assertThrows(UpdateException.class, instance::performAction);
     }
 }

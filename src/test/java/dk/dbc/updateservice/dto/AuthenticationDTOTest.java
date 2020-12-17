@@ -7,7 +7,8 @@ package dk.dbc.updateservice.dto;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 
 class AuthenticationDTOTest {
@@ -19,7 +20,7 @@ class AuthenticationDTOTest {
         dto.setGroupId("groupid");
         dto.setPassword("password");
 
-        assertEquals("AuthenticationDTO{userId='user', groupId='groupid', password='****'}", dto.toString());
+        assertThat(dto.toString(), is("AuthenticationDTO{userId='user', groupId='groupid', password='****'}"));
     }
 
 }

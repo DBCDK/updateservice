@@ -20,7 +20,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +72,7 @@ class UpdateVolumeRecordTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateVolumeRecord updateVolumeRecord = new UpdateVolumeRecord(state, settings, volumeRecord);
-        assertThat(updateVolumeRecord.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateVolumeRecord.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateVolumeRecord.children().listIterator();
         AssertActionsUtil.assertCreateVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getHoldingsItems(), state.getSolrFBS(), settings.getProperty(state.getRawRepoProviderId()));
@@ -119,7 +118,7 @@ class UpdateVolumeRecordTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertOverwriteVolumeRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -164,7 +163,7 @@ class UpdateVolumeRecordTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), volumeRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));

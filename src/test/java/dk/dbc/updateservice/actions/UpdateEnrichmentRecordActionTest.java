@@ -18,7 +18,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +31,10 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,7 +104,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateEnrichmentRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateEnrichmentRecordAction.children();
         assertThat(children.size(), is(3));
@@ -115,14 +114,14 @@ class UpdateEnrichmentRecordActionTest {
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
         assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -167,7 +166,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(updateEnrichmentRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateEnrichmentRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateEnrichmentRecordAction.children();
         assertThat(children.size(), is(3));
@@ -177,14 +176,14 @@ class UpdateEnrichmentRecordActionTest {
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
         assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -229,7 +228,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(3));
@@ -239,14 +238,14 @@ class UpdateEnrichmentRecordActionTest {
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(storeRecordAction.getRecord(), is(record));
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
         assertSame(child.getClass(), LinkRecordAction.class);
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
         assertThat(linkRecordAction.getRecord(), is(record));
-        assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
+        assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
         AssertActionsUtil.assertEnqueueRecordAction(children.get(2), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
     }
 
@@ -281,7 +280,7 @@ class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
         String message = String.format(state.getMessages().getString("record.does.not.exist"), commonRecordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -325,7 +324,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
 
@@ -370,7 +369,7 @@ class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         updateEnrichmentRecordAction.decoder = decoder;
-        Assertions.assertThrows(UpdateException.class, updateEnrichmentRecordAction::performAction);
+        assertThrows(UpdateException.class, updateEnrichmentRecordAction::performAction);
     }
 
     /**
@@ -409,7 +408,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
@@ -449,7 +448,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);

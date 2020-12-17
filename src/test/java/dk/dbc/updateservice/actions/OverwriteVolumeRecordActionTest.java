@@ -24,7 +24,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -89,7 +88,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(5));
@@ -153,7 +152,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(5));
@@ -219,7 +218,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(5));
@@ -291,7 +290,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(6));
@@ -368,7 +367,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(6));
@@ -459,7 +458,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
         assertThat(children.size(), is(7));
@@ -559,7 +558,7 @@ class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(v1), eq(record))).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, record);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteVolumeRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
