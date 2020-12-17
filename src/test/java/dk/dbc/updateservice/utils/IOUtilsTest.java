@@ -5,14 +5,15 @@
 
 package dk.dbc.updateservice.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class IOUtilsTest {
+
+class IOUtilsTest {
 
     private static final String RESOURCE_NAME = "dk/dbc/updateservice/utils/file.json";
     private static final String RESOURCE_ENCODING = "UTF-8";
@@ -21,12 +22,12 @@ public class IOUtilsTest {
     }
 
     @Test
-    public void testGetResourceAsStream() throws Exception {
+    void testGetResourceAsStream() {
         assertNotNull(IOUtils.getResourceAsStream(RESOURCE_NAME));
     }
 
     @Test
-    public void testLoadProperties_String() throws Exception {
+    void testLoadProperties_String() throws Exception {
         Properties props = IOUtils.loadProperties("dk/dbc/updateservice/utils/props1.properties");
 
         assertNotNull(props);
@@ -35,7 +36,7 @@ public class IOUtilsTest {
     }
 
     @Test
-    public void testLoadProperties_String_StringArray() throws Exception {
+    void testLoadProperties_String_StringArray() throws Exception {
         Properties props = IOUtils.loadProperties(";", "dk/dbc/updateservice/utils/props1.properties", "dk/dbc/updateservice/utils/props2.properties");
 
         assertNotNull(props);
@@ -45,17 +46,17 @@ public class IOUtilsTest {
     }
 
     @Test
-    public void testReadAll_String() throws Exception {
+    void testReadAll_String() throws Exception {
         assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(RESOURCE_NAME));
     }
 
     @Test
-    public void testReadAll_Class_String() throws Exception {
+    void testReadAll_Class_String() throws Exception {
         assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(RESOURCE_NAME, RESOURCE_ENCODING));
     }
 
     @Test
-    public void testReadAll_InputStream_String() throws Exception {
+    void testReadAll_InputStream_String() throws Exception {
         assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(IOUtils.getResourceAsStream(RESOURCE_NAME), RESOURCE_ENCODING));
     }
 

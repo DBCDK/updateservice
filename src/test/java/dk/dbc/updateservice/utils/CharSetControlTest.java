@@ -5,16 +5,17 @@
 
 package dk.dbc.updateservice.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ResourceBundle;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-public class CharSetControlTest {
+class CharSetControlTest {
+
     @Test
-    public void testResourceBundlesGetBundle() {
+    void testResourceBundlesGetBundle() {
         ResourceBundle instance = ResourceBundles.getBundle(this, "messages");
         assertEquals("Christian", instance.getString("latin1.letters"));
         assertEquals("æøåÆØÅ", instance.getString("danish.letters"));

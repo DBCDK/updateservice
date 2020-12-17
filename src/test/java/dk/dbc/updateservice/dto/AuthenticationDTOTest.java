@@ -5,14 +5,15 @@
 
 package dk.dbc.updateservice.dto;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AuthenticationDTOTest {
+
+class AuthenticationDTOTest {
 
     @Test
-    public void testToStringObfuscatesPassword() {
+    void testToStringObfuscatesPassword() {
         AuthenticationDTO dto = new AuthenticationDTO();
         dto.setUserId("user");
         dto.setGroupId("groupid");

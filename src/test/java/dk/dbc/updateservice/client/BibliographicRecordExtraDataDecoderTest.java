@@ -1,18 +1,17 @@
 package dk.dbc.updateservice.client;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.transform.stream.StreamSource;
-
 import java.io.StringReader;
 
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsEqual.equalTo;
 
-public class BibliographicRecordExtraDataDecoderTest {
-    
+class BibliographicRecordExtraDataDecoderTest {
+
     @Test
-    public void fromXmlProvider() {
+    void fromXmlProvider() {
         String o = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><cat:updateRecordExtraData xmlns:cat=\"http://oss.dbc.dk/ns/catalogingUpdate\">\n<providerName>bulk-broend</providerName>\n</cat:updateRecordExtraData>";
 
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
@@ -22,7 +21,7 @@ public class BibliographicRecordExtraDataDecoderTest {
     }
 
     @Test
-    public void fromXmlPriority() {
+    void fromXmlPriority() {
         String o = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><cat:updateRecordExtraData xmlns:cat=\"http://oss.dbc.dk/ns/catalogingUpdate\">\n<priority>42</priority>\n</cat:updateRecordExtraData>";
 
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
@@ -32,7 +31,7 @@ public class BibliographicRecordExtraDataDecoderTest {
     }
 
     @Test
-    public void fromXmlProviderAndPriority() {
+    void fromXmlProviderAndPriority() {
         String o = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><cat:updateRecordExtraData xmlns:cat=\"http://oss.dbc.dk/ns/catalogingUpdate\">\n<providerName>bulk-broend</providerName>\n<priority>42</priority>\n</cat:updateRecordExtraData>";
 
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
@@ -43,7 +42,7 @@ public class BibliographicRecordExtraDataDecoderTest {
     }
 
     @Test
-    public void fromXmlNoOptions() {
+    void fromXmlNoOptions() {
         String o = "<?xml version=\"1.0\" encoding=\"UTF-16\"?><cat:updateRecordExtraData xmlns:cat=\"http://oss.dbc.dk/ns/catalogingUpdate\">\n</cat:updateRecordExtraData>";
 
         final BibliographicRecordExtraData expected = new BibliographicRecordExtraData();
