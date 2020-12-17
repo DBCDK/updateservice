@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-class NoteAndSubjectExtentionsHanderTest {
+class NoteAndSubjectExtensionsHandlerTest {
 
     @Mock
     VipCoreService vipCoreService;
