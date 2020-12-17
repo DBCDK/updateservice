@@ -11,8 +11,8 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
@@ -28,12 +28,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EnqueueRecordActionTest {
+class EnqueueRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -68,7 +68,7 @@ public class EnqueueRecordActionTest {
      * </dl>
      */
     @Test
-    public void testActionPerform_WithNoProviderId() throws Exception {
+    void testActionPerform_WithNoProviderId() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final EnqueueRecordAction instance = new EnqueueRecordAction(state, new Properties(), record);
         final String message = state.getMessages().getString("provider.id.not.set");
@@ -96,7 +96,7 @@ public class EnqueueRecordActionTest {
      * </dl>
      */
     @Test
-    public void testActionPerform_ProviderIdFBS() throws Exception {
+    void testActionPerform_ProviderIdFBS() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final String bibliographicRecordId = AssertActionsUtil.getRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -115,7 +115,7 @@ public class EnqueueRecordActionTest {
     }
 
     @Test
-    public void testActionPerform_ProviderOverride() throws Exception {
+    void testActionPerform_ProviderOverride() throws Exception {
         final String bibliographicRecordId = "12345678";
         final int agencyId = 654321;
 
@@ -139,7 +139,7 @@ public class EnqueueRecordActionTest {
     }
 
     @Test
-    public void testActionPerform_ProviderArticle() throws Exception {
+    void testActionPerform_ProviderArticle() throws Exception {
         final String bibliographicRecordId = "12345678";
         final int agencyId = 870971;
 
@@ -176,7 +176,7 @@ public class EnqueueRecordActionTest {
     }
 
     @Test
-    public void testActionPerform_ProviderArticle_WithChildren() throws Exception {
+    void testActionPerform_ProviderArticle_WithChildren() throws Exception {
         final String bibliographicRecordId = "12345678";
         final int agencyId = 870971;
 
@@ -223,7 +223,7 @@ public class EnqueueRecordActionTest {
     }
 
     @Test
-    public void testActionPerform_ProviderDBC() throws Exception {
+    void testActionPerform_ProviderDBC() throws Exception {
         final String bibliographicRecordId = "12345678";
         final int agencyId = 870970;
 
@@ -248,7 +248,7 @@ public class EnqueueRecordActionTest {
     }
 
     @Test
-    public void testActionPerform_ProviderPH() throws Exception {
+    void testActionPerform_ProviderPH() throws Exception {
         final String bibliographicRecordId = "12345678";
         final int agencyId = 654321;
 

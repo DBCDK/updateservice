@@ -12,8 +12,8 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,12 +28,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class OverwriteVolumeRecordActionTest {
+class OverwriteVolumeRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -67,7 +67,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoClassifications() throws Exception {
+    void testPerformAction_NoClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -130,7 +130,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications() throws Exception {
+    void testPerformAction_SameClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -196,7 +196,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
+    void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -266,7 +266,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         String groupId = "700100";
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
@@ -339,7 +339,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
@@ -428,7 +428,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
@@ -521,7 +521,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         final String v1RecordId = "1 234 567 8";

@@ -13,8 +13,8 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,12 +29,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class CreateSingleRecordActionTest {
+class CreateSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -66,7 +66,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_No002Links() throws Exception {
+    void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 
@@ -103,7 +103,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_With002Links() throws Exception {
+    void testPerformAction_NoLocals_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 
@@ -135,7 +135,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_WithLocal_NotFFU() throws Exception {
+    void testPerformAction_WithLocal_NotFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -158,7 +158,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_WithLocal_WithFFU() throws Exception {
+    void testPerformAction_WithLocal_WithFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -182,7 +182,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_WithLocal_WithFFUAndFBS() throws Exception {
+    void testPerformAction_WithLocal_WithFFUAndFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -207,7 +207,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
+    void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -228,7 +228,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
+    void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -258,7 +258,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_MatVurd() throws Exception {
+    void testPerformAction_MatVurd() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         // The MATVURD_1 record contains r01 and r02 fields.
         // But when the record is send to updateservice the record is split into common part and enrichment part.

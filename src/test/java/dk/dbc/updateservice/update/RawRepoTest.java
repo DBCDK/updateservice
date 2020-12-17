@@ -10,13 +10,16 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -36,7 +39,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RawRepoTest {
+class RawRepoTest {
 
     @Mock
     DataSource dataSource;
@@ -56,21 +59,34 @@ public class RawRepoTest {
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_MarcRecord_RecordIsNull() throws Exception {
-        RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord((MarcRecord) (null));
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    void openMocks() {
+        closeable = MockitoAnnotations.openMocks(this);
     }
 
-
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_MarcRecord_RecordIsNotFound() throws Exception {
-        RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord(new MarcRecord());
+    @AfterEach
+    void releaseMocks() throws Exception {
+        closeable.close();
     }
 
     @Test
-    public void test_errormetrics_and_invocation_timers() {
+    void test_agenciesForRecord_MarcRecord_RecordIsNull() {
+        RawRepo rawRepo = new MockRawRepo();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((MarcRecord) (null)));
+
+    }
+
+
+    @Test
+    void test_agenciesForRecord_MarcRecord_RecordIsNotFound() {
+        RawRepo rawRepo = new MockRawRepo();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(new MarcRecord()));
+    }
+
+    @Test
+    void test_errormetrics_and_invocation_timers() {
         RawRepo rawRepo = new MockRawRepo();
         try {
             rawRepo.agenciesForRecord(new MarcRecord());
@@ -85,7 +101,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
+    void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
         String recId = "12346578";
         MarcRecord record = createRecord(recId, "700400");
 
@@ -102,16 +118,16 @@ public class RawRepoTest {
         assertTrue(agencies.contains(700400));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_String_RecordIdIsNull() throws Exception {
+    @Test
+    void test_agenciesForRecord_String_RecordIdIsNull() {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord((String) (null));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((String) (null)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_String_RecordIdIsEmpty() throws Exception {
+    @Test
+    void test_agenciesForRecord_String_RecordIdIsEmpty() {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord("");
+        Assertions.assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(""));
     }
 
     private MarcRecord createRecord(String id, String agencyId) {
@@ -131,7 +147,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_linkRecordAppend_noExistingLinks() throws Exception {
+    void test_linkRecordAppend_noExistingLinks() throws Exception {
         RecordId linkFrom = new RecordId("12345678", 870970);
         RecordId linkTo = new RecordId("87654321", 870979);
 
@@ -156,7 +172,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_linkRecordAppend_ExistingLinks() throws Exception {
+    void test_linkRecordAppend_ExistingLinks() throws Exception {
         RecordId linkFrom = new RecordId("12345678", 870970);
         RecordId linkTo = new RecordId("22222222", 870979);
 
@@ -186,7 +202,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_checkProvider() throws Exception {
+    void test_checkProvider() throws Exception {
         when(rawRepoDAO.checkProvider(anyString())).thenReturn(false);
         when(rawRepoDAO.checkProvider(eq("found"))).thenReturn(true);
 

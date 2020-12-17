@@ -13,8 +13,8 @@ import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -29,13 +29,13 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateSingleRecordTest {
+class UpdateSingleRecordTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String GROUP_ID = "700000";
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
@@ -66,7 +66,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateRecord() throws Exception {
+    void testPerformAction_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -106,7 +106,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_OverwriteRecord() throws Exception {
+    void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -151,7 +151,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
+    void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -194,7 +194,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithHoldings_NoAuthExportHoldings() throws Exception {
+    void testPerformAction_DeleteRecord_WithHoldings_NoAuthExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -236,7 +236,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithHoldings_No002Links() throws Exception {
+    void testPerformAction_DeleteRecord_WithHoldings_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -278,7 +278,7 @@ public class UpdateSingleRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithHoldings_With002Links() throws Exception {
+    void testPerformAction_DeleteRecord_WithHoldings_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);

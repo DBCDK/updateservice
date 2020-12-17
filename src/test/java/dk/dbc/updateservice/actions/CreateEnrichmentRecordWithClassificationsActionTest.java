@@ -11,8 +11,9 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,16 +22,15 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
-public class CreateEnrichmentRecordWithClassificationsActionTest {
+class CreateEnrichmentRecordWithClassificationsActionTest {
     private GlobalActionState state;
     private Properties settings;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -61,7 +61,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CommonRecordIdIsNull() throws Exception {
+    void testPerformAction_CommonRecordIdIsNull() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(enrichmentRecord);
@@ -79,7 +79,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertSame(child.getClass(), StoreRecordAction.class);
+        Assertions.assertSame(child.getClass(), StoreRecordAction.class);
 
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -87,7 +87,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        assertSame(child.getClass(), LinkRecordAction.class);
+        Assertions.assertSame(child.getClass(), LinkRecordAction.class);
 
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -95,7 +95,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
-        assertSame(child.getClass(), EnqueueRecordAction.class);
+        Assertions.assertSame(child.getClass(), EnqueueRecordAction.class);
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -127,7 +127,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CommonRecordIdIsSet() throws Exception {
+    void testPerformAction_CommonRecordIdIsSet() throws Exception {
         String commonRecordId = "3 456 789 4";
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, commonRecordId);
@@ -147,7 +147,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertSame(child.getClass(), StoreRecordAction.class);
+        Assertions.assertSame(child.getClass(), StoreRecordAction.class);
 
         StoreRecordAction storeRecordAction = (StoreRecordAction) child;
         assertThat(storeRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -155,7 +155,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.ENRICHMENT));
 
         child = children.get(1);
-        assertSame(child.getClass(), LinkRecordAction.class);
+        Assertions.assertSame(child.getClass(), LinkRecordAction.class);
 
         LinkRecordAction linkRecordAction = (LinkRecordAction) child;
         assertThat(linkRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -163,7 +163,7 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
         assertThat(linkRecordAction.getLinkToRecordId(), equalTo(new RecordId(recordId, RawRepo.COMMON_AGENCY)));
 
         child = children.get(2);
-        assertSame(child.getClass(), EnqueueRecordAction.class);
+        Assertions.assertSame(child.getClass(), EnqueueRecordAction.class);
 
         EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) child;
         assertThat(enqueueRecordAction.getRawRepo(), is(state.getRawRepo()));
@@ -194,8 +194,8 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = UpdateException.class)
-    public void testPerformAction_ScripterException() throws Exception {
+    @Test
+    void testPerformAction_ScripterException() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
 
@@ -206,6 +206,6 @@ public class CreateEnrichmentRecordWithClassificationsActionTest {
 
         CreateEnrichmentRecordWithClassificationsAction instance = new CreateEnrichmentRecordWithClassificationsAction(state, settings, agencyId);
         instance.setUpdatingCommonRecord(commonRecord);
-        instance.performAction();
+        Assertions.assertThrows(UpdateException.class, instance::performAction);
     }
 }

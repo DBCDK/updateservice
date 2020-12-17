@@ -9,8 +9,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.utils.ResourceBundles;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Arrays;
@@ -24,10 +24,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LinkMatVurdRecordsActionTest {
+class LinkMatVurdRecordsActionTest {
     private GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         when(state.getRawRepo().recordExists("11111111", 870970)).thenReturn(true);
@@ -39,7 +39,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_r01_single() throws Exception {
+    void testNewLinkMatVurdRecordAction_r01_single() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
@@ -58,7 +58,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_r01_multiple() throws Exception {
+    void testNewLinkMatVurdRecordAction_r01_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_2);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
@@ -78,7 +78,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_r02_single() throws Exception {
+    void testNewLinkMatVurdRecordAction_r02_single() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_3);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
@@ -97,7 +97,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_r02_multiple() throws Exception {
+    void testNewLinkMatVurdRecordAction_r02_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_4);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
@@ -117,7 +117,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_r01_r02_multiple() throws Exception {
+    void testNewLinkMatVurdRecordAction_r01_r02_multiple() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_5);
         final LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);
 
@@ -139,7 +139,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void testNewLinkMatVurdRecordAction_NotFound() throws Exception {
+    void testNewLinkMatVurdRecordAction_NotFound() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_6);
 
         ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
@@ -150,7 +150,7 @@ public class LinkMatVurdRecordsActionTest {
     }
 
     @Test
-    public void recordWithoutMatVurdFields() throws Exception {
+    void recordWithoutMatVurdFields() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         LinkMatVurdRecordsAction instance = new LinkMatVurdRecordsAction(state, record);

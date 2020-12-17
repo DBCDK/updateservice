@@ -13,8 +13,8 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -30,12 +30,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class OverwriteSingleRecordActionTest {
+class OverwriteSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
@@ -70,7 +70,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoClassifications() throws Exception {
+    void testPerformAction_NoClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -100,7 +100,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_MatVurd() throws Exception {
+    void testPerformAction_MatVurd() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         // The MATVURD_1 record contains r01 and r02 fields.
         // But when the record is send to updateservice the record is split into common part and enrichment part.
@@ -167,7 +167,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications() throws Exception {
+    void testPerformAction_SameClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -227,7 +227,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
+    void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -291,7 +291,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -356,7 +356,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -420,7 +420,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -483,7 +483,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -551,7 +551,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -631,7 +631,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -712,7 +712,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -796,7 +796,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -881,7 +881,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -963,7 +963,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1047,7 +1047,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments_LocalAgencyNoEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1129,7 +1129,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_NoChangeIn002Links() throws Exception {
+    void testPerformAction_SameClassifications_NoChangeIn002Links() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1208,7 +1208,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1287,7 +1287,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1366,7 +1366,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1445,7 +1445,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_LocalAgencyNoEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1522,7 +1522,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_MoveEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_MoveEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1607,7 +1607,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_LocalAgencyEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_LocalAgencyEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1676,7 +1676,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_002Link_DoNotExist() throws Exception {
+    void testPerformAction_002Link_DoNotExist() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1707,7 +1707,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100() throws Exception {
         String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
                 "004 00 *r n *a e *x n\n" +
                 "100 00 *a Andersen *h Flemming *c f. 1961-08-24";
@@ -1728,7 +1728,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400() throws Exception {
         String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
                 "100 00 *a Thulstrup *h Thomas C.\n" +
                 "400 00 *a Thulstrup *h Thomas";
@@ -1750,7 +1750,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100Missing400() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100Missing400() throws Exception {
         String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
                 "100 00 *a Thulstrup *h Thomas C.\n" +
                 "400 00 *a Thulstrup *h Thomas";
@@ -1770,7 +1770,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1795,7 +1795,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffChanged100400500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffChanged100400500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1820,7 +1820,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400500Repeated() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400500Repeated() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1849,7 +1849,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffRemoved500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffRemoved500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1877,7 +1877,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffAdded500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffAdded500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1905,7 +1905,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffMinusAdjour() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffMinusAdjour() throws Exception {
         String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1944,7 +1944,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a Minus korrekturprint\n" +
@@ -1961,7 +1961,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() throws Exception {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a minus korrekturprint";
@@ -1977,7 +1977,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasNoz98() throws Exception {
+    void testHasMinusEnrichmentHasNoz98() throws Exception {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT";
 

@@ -18,8 +18,9 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -39,12 +40,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class UpdateEnrichmentRecordActionTest {
+class UpdateEnrichmentRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -56,7 +57,7 @@ public class UpdateEnrichmentRecordActionTest {
      */
     // TODO - WHY?!?!
     @Test
-    public void testConstructor() throws Exception {
+    void testConstructor() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(updateEnrichmentRecordAction, notNullValue());
@@ -89,7 +90,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateRecord_No002Links() throws Exception {
+    void testPerformAction_CreateRecord_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -151,7 +152,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UpdateRecord_No002Links() throws Exception {
+    void testPerformAction_UpdateRecord_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -213,7 +214,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UpdateRecord_With002Links() throws Exception {
+    void testPerformAction_UpdateRecord_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -269,7 +270,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UpdateRecord_CommonRecordDoesNotExist() throws Exception {
+    void testPerformAction_UpdateRecord_CommonRecordDoesNotExist() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(enrichmentRecord);
@@ -309,7 +310,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UpdateRecord_OptimizedToEmpty() throws Exception {
+    void testPerformAction_UpdateRecord_OptimizedToEmpty() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -353,8 +354,8 @@ public class UpdateEnrichmentRecordActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = UpdateException.class)
-    public void testPerformAction_UpdateRecord_EncodingException() throws Exception {
+    @Test
+    void testPerformAction_UpdateRecord_EncodingException() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -369,7 +370,7 @@ public class UpdateEnrichmentRecordActionTest {
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         updateEnrichmentRecordAction.decoder = decoder;
-        updateEnrichmentRecordAction.performAction();
+        Assertions.assertThrows(UpdateException.class, updateEnrichmentRecordAction::performAction);
     }
 
     /**
@@ -397,7 +398,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
+    void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -436,7 +437,7 @@ public class UpdateEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithHoldings() throws Exception {
+    void testPerformAction_DeleteRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();

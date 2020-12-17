@@ -12,8 +12,8 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -27,12 +27,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class DeleteCommonRecordActionTest {
+class DeleteCommonRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -65,7 +65,7 @@ public class DeleteCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoChildren_NoEnrichments() throws Exception {
+    void testPerformAction_NoChildren_NoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -113,7 +113,7 @@ public class DeleteCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoChildren_WithEnrichments() throws Exception {
+    void testPerformAction_NoChildren_WithEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -160,7 +160,7 @@ public class DeleteCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_WithChildren_NoEnrichments() throws Exception {
+    void testPerformAction_WithChildren_NoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -197,7 +197,7 @@ public class DeleteCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_WithChildren_WithEnrichments() throws Exception {
+    void testPerformAction_WithChildren_WithEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -216,7 +216,7 @@ public class DeleteCommonRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_DeleteLittolkChildren() throws Exception {
+    void testPerformAction_DeleteLittolkChildren() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord littolkEnrichment = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.LITTOLK_ENRICHMENT);
         MarcRecord littolkRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.LITTOLK_COMMON);

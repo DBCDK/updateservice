@@ -12,8 +12,12 @@ import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -30,7 +34,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HoldingsItemsTest {
+class HoldingsItemsTest {
     @Mock
     MetricsHandlerBean mockedMetricsHandlerBean;
 
@@ -39,6 +43,18 @@ public class HoldingsItemsTest {
 
     @Mock
     HoldingsItemsDAO holdingsItemsDAO;
+
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    void openMocks() {
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void releaseMocks() throws Exception {
+        closeable.close();
+    }
 
     private class MockHoldingsItems extends HoldingsItems {
         public MockHoldingsItems() {
@@ -52,21 +68,21 @@ public class HoldingsItemsTest {
         }
     }
 
-    @Test(expected = UpdateException.class)
-    public void test_agenciesThatHasHoldingsFor_String_DataSourceException() throws Exception {
+    @Test
+    void test_agenciesThatHasHoldingsFor_String_DataSourceException() throws Exception {
         when(dataSource.getConnection()).thenThrow(new SQLException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
-        items.getAgenciesThatHasHoldingsForId("12345678");
+        Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
     }
 
-    @Test(expected = UpdateException.class)
-    public void test_that_metrics_for_timer_and_error_counter_are_set_properly() throws Exception {
+    @Test
+    void test_that_metrics_for_timer_and_error_counter_are_set_properly() throws Exception {
         when(dataSource.getConnection()).thenThrow(new SQLException("message"));
         HoldingsItems items = new MockHoldingsItems();
 
         try {
-            items.getAgenciesThatHasHoldingsForId("12345678");
+            Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
         } finally {
             verify(items.metricsHandlerBean, times(1))
                     .increment(HoldingsItems.holdingsItemsErrorCounterMetrics,
@@ -79,17 +95,17 @@ public class HoldingsItemsTest {
         }
     }
 
-    @Test(expected = UpdateException.class)
-    public void test_agenciesThatHasHoldingsFor_String_HoldingItemsException() throws Exception {
+    @Test
+    void test_agenciesThatHasHoldingsFor_String_HoldingItemsException() throws Exception {
         when(dataSource.getConnection()).thenReturn(null);
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenThrow(new HoldingsItemsException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
-        items.getAgenciesThatHasHoldingsForId("12345678");
+        Assertions.assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_String_NotFound() throws Exception {
+    void test_agenciesThatHasHoldingsFor_String_NotFound() throws Exception {
         when(dataSource.getConnection()).thenReturn(null);
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<>());
 
@@ -98,7 +114,7 @@ public class HoldingsItemsTest {
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_String_Found() throws Exception {
+    void test_agenciesThatHasHoldingsFor_String_Found() throws Exception {
         Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);
@@ -111,7 +127,7 @@ public class HoldingsItemsTest {
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_NoIdField() throws Exception {
+    void test_agenciesThatHasHoldingsFor_MarcRecord_NoIdField() throws Exception {
         when(dataSource.getConnection()).thenReturn(null);
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<>());
 
@@ -120,7 +136,7 @@ public class HoldingsItemsTest {
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_Found() throws Exception {
+    void test_agenciesThatHasHoldingsFor_MarcRecord_Found() throws Exception {
         Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);
@@ -139,7 +155,7 @@ public class HoldingsItemsTest {
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_002() throws Exception {
+    void test_agenciesThatHasHoldingsFor_MarcRecord_002() throws Exception {
         Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);

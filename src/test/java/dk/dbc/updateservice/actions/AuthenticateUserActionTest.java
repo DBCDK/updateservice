@@ -5,10 +5,13 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
@@ -16,28 +19,28 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AuthenticateUserActionTest {
+class AuthenticateUserActionTest {
     private GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testNullValues() throws Exception {
+    @Test
+    void testNullValues() throws Exception {
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(null);
-        authenticateUserAction.performAction();
+        Assertions.assertThrows(IllegalArgumentException.class, authenticateUserAction::performAction);
     }
 
     @Test
-    public void testAuthenticationIsNull() throws Exception {
+    void testAuthenticationIsNull() throws Exception {
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));
     }
 
     @Test
-    public void testAuthentication_UserIsNull() throws Exception {
+    void testAuthentication_UserIsNull() throws Exception {
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
         AuthenticationDTO.setGroupId("group");
         AuthenticationDTO.setPassword("passwd");
@@ -47,7 +50,7 @@ public class AuthenticateUserActionTest {
     }
 
     @Test
-    public void testAuthentication_GroupIsNull() throws Exception {
+    void testAuthentication_GroupIsNull() throws Exception {
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
         AuthenticationDTO.setUserId("user");
         AuthenticationDTO.setPassword("passwd");
@@ -57,7 +60,7 @@ public class AuthenticateUserActionTest {
     }
 
     @Test
-    public void testAuthentication_PasswordIsNull() throws Exception {
+    void testAuthentication_PasswordIsNull() throws Exception {
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
         AuthenticationDTO.setUserId("user");
         AuthenticationDTO.setGroupId("group");
@@ -67,21 +70,21 @@ public class AuthenticateUserActionTest {
     }
 
     @Test
-    public void testAuthentication_AuthOk() throws Exception {
+    void testAuthentication_AuthOk() throws Exception {
         when(state.getAuthenticator().authenticateUser(state)).thenReturn(true);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testAuthentication_AuthFailure() throws Exception {
+    void testAuthentication_AuthFailure() throws Exception {
         when(state.getAuthenticator().authenticateUser(state)).thenReturn(false);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));
     }
 
     @Test
-    public void testAuthentication_AuthThrowsException() throws Exception {
+    void testAuthentication_AuthThrowsException() throws Exception {
         when(state.getAuthenticator().authenticateUser(state)).thenThrow(new AuthenticatorException("message", null));
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), equalTo(ServiceResult.newAuthErrorResult()));

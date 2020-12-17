@@ -11,8 +11,8 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,12 +25,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateCommonRecordActionTest {
+class UpdateCommonRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String GROUP_ID = "700000";
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
@@ -60,7 +60,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord() throws Exception {
+    void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -105,7 +105,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
+    void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -143,7 +143,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -194,7 +194,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord() throws Exception {
+    void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -224,7 +224,7 @@ public class UpdateCommonRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_CreateSingleRecordFBS() throws Exception {
+    void testPerformAction_CreateSingleRecordFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);

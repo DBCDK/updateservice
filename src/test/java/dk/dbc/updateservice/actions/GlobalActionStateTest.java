@@ -7,7 +7,7 @@ import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,11 +15,11 @@ import java.util.Collections;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-public class GlobalActionStateTest {
+class GlobalActionStateTest {
     private GlobalActionState state;
 
     @Test
-    public void testGetMarcRecordAndExtraDataWithProviderAndPriority() throws Exception {
+    void testGetMarcRecordAndExtraDataWithProviderAndPriority() throws Exception {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 
@@ -65,7 +65,7 @@ public class GlobalActionStateTest {
     }
 
     @Test
-    public void testGetMarcRecordWithDataButNoExtraData() throws Exception {
+    void testGetMarcRecordWithDataButNoExtraData() throws Exception {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 
@@ -100,7 +100,7 @@ public class GlobalActionStateTest {
     }
 
     @Test
-    public void testGetMarcRecordAndExtraDataWithNoData() {
+    void testGetMarcRecordAndExtraDataWithNoData() {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 

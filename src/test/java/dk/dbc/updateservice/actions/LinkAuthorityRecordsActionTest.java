@@ -11,8 +11,8 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.utils.ResourceBundles;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
@@ -27,16 +27,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LinkAuthorityRecordsActionTest {
+class LinkAuthorityRecordsActionTest {
     private GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
     @Test
-    public void recordWithoutAuthFields() throws Exception {
+    void recordWithoutAuthFields() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         LinkAuthorityRecordsAction instance = new LinkAuthorityRecordsAction(state, record);
@@ -46,7 +46,7 @@ public class LinkAuthorityRecordsActionTest {
     }
 
     @Test
-    public void recordWithAuthFields() throws Exception {
+    void recordWithAuthFields() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         record.getFields().add(new MarcField("100", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "11111111"))));
         record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
@@ -72,7 +72,7 @@ public class LinkAuthorityRecordsActionTest {
     }
 
     @Test
-    public void recordWithAuthFields_NotFound() throws Exception {
+    void recordWithAuthFields_NotFound() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
 

@@ -18,7 +18,9 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -44,13 +46,13 @@ import static org.mockito.Mockito.when;
 
 // TODO : Pt indeholder testposterne i de fleste test ikke noget der hænger sammen - det bør rettes op
 // TODO da det kan virke ret forvirrende. Senest hvis det skal opensources.
-public class UpdateOperationActionTest {
+class UpdateOperationActionTest {
     private GlobalActionState state;
     private final Properties settings = new UpdateTestUtils().getSettings();
     private final LibraryGroup libraryGroupDBC = LibraryGroup.DBC;
     private final LibraryGroup libraryGroupFBS = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
@@ -81,7 +83,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_LocalRecord() throws Exception {
+    void testPerformAction_LocalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -105,7 +107,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_LocalRecordWith_n55() throws Exception {
+    void testPerformAction_LocalRecordWith_n55() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -164,7 +166,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
+    void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -218,7 +220,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
+    void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -272,7 +274,7 @@ public class UpdateOperationActionTest {
      */
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test1() throws Exception {
+    void testPerformAction_CreateCommonRecord_test1() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -314,7 +316,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test2() throws Exception {
+    void testPerformAction_CreateCommonRecord_test2() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -362,7 +364,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test3() throws Exception {
+    void testPerformAction_CreateCommonRecord_test3() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -408,7 +410,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test4() throws Exception {
+    void testPerformAction_CreateCommonRecord_test4() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -469,7 +471,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteCommonRecord() throws Exception {
+    void testPerformAction_DeleteCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -521,7 +523,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
+    void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -575,7 +577,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
+    void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord commonSchoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
@@ -624,7 +626,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSchoolEnrichment() throws Exception {
+    void testPerformAction_CreateSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
@@ -650,7 +652,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordNoCommonRecordNo002() throws Exception {
+    void testPerformAction_FBSLocalRecordNoCommonRecordNo002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -678,7 +680,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordNoCommonRecordHas002() throws Exception {
+    void testPerformAction_FBSLocalRecordNoCommonRecordHas002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -704,7 +706,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordDeletedCommonRecord() throws Exception {
+    void testPerformAction_FBSLocalRecordDeletedCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -731,7 +733,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_NewRecord() throws Exception {
+    void testPreviousFaust_NewRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -752,7 +754,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_NoMatch() throws Exception {
+    void testPreviousFaust_UpdateRecord_NoMatch() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         state.setMarcRecord(record);
@@ -763,7 +765,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002a() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002a() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -785,7 +787,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -806,7 +808,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -830,7 +832,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -853,7 +855,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecordRemove002_NoConflict() throws Exception {
+    void testPreviousFaust_UpdateRecordRemove002_NoConflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -874,7 +876,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecordRemove002_Conflict() throws Exception {
+    void testPreviousFaust_UpdateRecordRemove002_Conflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -909,7 +911,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_Ok() throws Exception {
+    void testPreviousFaust_DeleteRecord_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -929,7 +931,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_HoldingOn001() throws Exception {
+    void testPreviousFaust_DeleteRecord_HoldingOn001() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -959,7 +961,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_HoldingOn002() throws Exception {
+    void testPreviousFaust_DeleteRecord_HoldingOn002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -990,7 +992,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateOverwriteWithExisting() throws Exception {
+    void testSetCreatedDateOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
@@ -1006,7 +1008,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateNewRecordWith001d() throws Exception {
+    void testSetCreatedDateNewRecordWith001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
@@ -1021,7 +1023,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateNewRecordWithout001d() throws Exception {
+    void testSetCreatedDateNewRecordWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -1038,7 +1040,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateAdmin() throws Exception {
+    void testSetCreatedDateAdmin() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
@@ -1053,7 +1055,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateFFUWithoutCreated() throws Exception {
+    void testSetCreatedDateFFUWithoutCreated() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("222222");
 
         MarcRecord record = constructRecordWith001("20611529", "222222", "20001234", null);
@@ -1067,7 +1069,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
+    void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("333333");
 
         MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
@@ -1083,7 +1085,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateFBSNewEnrichmentWith001d() throws Exception {
+    void testSetCreatedDateFBSNewEnrichmentWith001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         MarcRecord record = constructRecordWith001("20611529", "710100", "20001234", "20190327");
@@ -1098,7 +1100,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateFBSNewEnrichmentWithout001d() throws Exception {
+    void testSetCreatedDateFBSNewEnrichmentWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -1117,7 +1119,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testSetCreatedDateFBSExistingEnrichmentWithout001d() throws Exception {
+    void testSetCreatedDateFBSExistingEnrichmentWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         MarcRecord existing = constructRecordWith001("20611529", "710100", "20001234", "20182221");
@@ -1151,7 +1153,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_RemoveD09zNoAction() throws Exception {
+    void testPerformAction_RemoveD09zNoAction() throws Exception {
 
         // Load a 870970 record - this is the rawrepo record
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -1205,7 +1207,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_RemoveD09zNoD09InIncoming() throws Exception {
+    void testPerformAction_RemoveD09zNoD09InIncoming() throws Exception {
 
         // Load a 870970 record and create a merged version
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);

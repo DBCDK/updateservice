@@ -15,8 +15,8 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -34,12 +34,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UpdateLocalRecordActionTest {
+class UpdateLocalRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -71,7 +71,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord() throws Exception {
+    void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
@@ -108,7 +108,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord() throws Exception {
+    void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(volumeRecord);
@@ -147,7 +147,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
+    void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -181,7 +181,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
+    void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -213,7 +213,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithChildren() throws Exception {
+    void testPerformAction_DeleteRecord_WithChildren() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
         String recordId = new MarcRecordReader(record).getRecordId();
@@ -253,7 +253,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord() throws Exception {
+    void testPerformAction_DeleteVolumeRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
@@ -300,7 +300,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteLastVolumeRecord() throws Exception {
+    void testPerformAction_DeleteLastVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
@@ -349,7 +349,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
+    void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -395,7 +395,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+    void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -440,7 +440,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord() throws Exception {
+    void testPerformAction_DeleteSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
@@ -475,7 +475,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -520,7 +520,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();

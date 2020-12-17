@@ -9,8 +9,8 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
@@ -23,10 +23,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class LinkRecordActionTest {
+class LinkRecordActionTest {
     private GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
@@ -51,7 +51,7 @@ public class LinkRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_LinkedRecordExist() throws Exception {
+    void testPerformAction_LinkedRecordExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -98,7 +98,7 @@ public class LinkRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_LinkedRecordNotExist() throws Exception {
+    void testPerformAction_LinkedRecordNotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();

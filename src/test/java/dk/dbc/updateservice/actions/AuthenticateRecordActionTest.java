@@ -17,8 +17,9 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,10 +30,10 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AuthenticateRecordActionTest {
+class AuthenticateRecordActionTest {
     GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700400");
@@ -59,7 +60,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_AUTH_ROOT() throws Exception {
+    void testPerformAction_OK_AUTH_ROOT() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "123456";
 
@@ -77,7 +78,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_SameAgency() throws Exception {
+    void testPerformAction_OK_SameAgency() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "700400";
 
@@ -95,7 +96,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_School() throws Exception {
+    void testPerformAction_OK_School() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "300000");
         String groupId = "312345";
@@ -114,7 +115,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_Fail_DifferentGroupsIds() throws Exception {
+    void testPerformAction_Fail_DifferentGroupsIds() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "700300";
 
@@ -140,7 +141,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
+    void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         String groupId = "830010";
@@ -162,7 +163,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_Fail_IsCommonNationalRecord() throws Exception {
+    void testPerformAction_Fail_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         String groupId = "830010";
@@ -194,7 +195,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_NoOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_NoOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -217,7 +218,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_DifferentOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_DifferentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -240,7 +241,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_SameOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_SameOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -263,7 +264,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_NoAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -288,7 +289,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_HasAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -313,7 +314,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_NoAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -338,7 +339,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_WrongCatLevel() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_WrongCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -364,7 +365,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -393,7 +394,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_HasAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -419,7 +420,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_NoCurrentOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_NoCurrentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -448,7 +449,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_DifferentOwnerAndGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_DifferentOwnerAndGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -477,7 +478,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -506,7 +507,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -535,7 +536,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -564,7 +565,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -593,7 +594,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -623,7 +624,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_Ok() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -653,7 +654,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DifferentOwnerAndGroupId() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DifferentOwnerAndGroupId() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -682,7 +683,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_AddOk() throws Exception {
+    void testAuthenticateMetaCompassField_AddOk() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -699,7 +700,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_AddError() throws Exception {
+    void testAuthenticateMetaCompassField_AddError() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -724,7 +725,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_No665HasAuth() throws Exception {
+    void testAuthenticateMetaCompassField_No665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -740,7 +741,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_No665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_No665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -756,7 +757,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_Same665HasAuth() throws Exception {
+    void testAuthenticateMetaCompassField_Same665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -775,7 +776,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -794,7 +795,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
+    void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -807,7 +808,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
+    void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -822,7 +823,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");

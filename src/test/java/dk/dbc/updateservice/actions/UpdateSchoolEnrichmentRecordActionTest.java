@@ -7,8 +7,8 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -19,18 +19,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 
-public class UpdateSchoolEnrichmentRecordActionTest {
+class UpdateSchoolEnrichmentRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
     }
 
     @Test
-    public void testConstructor_NoCommonSchoolRecord() throws Exception {
+    void testConstructor_NoCommonSchoolRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 
@@ -41,7 +41,7 @@ public class UpdateSchoolEnrichmentRecordActionTest {
     }
 
     @Test
-    public void testConstructor_WithCommonSchoolRecord() throws Exception {
+    void testConstructor_WithCommonSchoolRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 

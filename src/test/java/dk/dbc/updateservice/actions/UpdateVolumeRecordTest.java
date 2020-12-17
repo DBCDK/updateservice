@@ -10,8 +10,8 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -24,13 +24,13 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateVolumeRecordTest {
+class UpdateVolumeRecordTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String GROUP_ID = "700000";
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
@@ -61,7 +61,7 @@ public class UpdateVolumeRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateRecord() throws Exception {
+    void testPerformAction_CreateRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -105,7 +105,7 @@ public class UpdateVolumeRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_OverwriteRecord() throws Exception {
+    void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -149,7 +149,7 @@ public class UpdateVolumeRecordTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord() throws Exception {
+    void testPerformAction_DeleteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);

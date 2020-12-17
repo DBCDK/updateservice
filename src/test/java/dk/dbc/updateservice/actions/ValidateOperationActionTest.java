@@ -8,8 +8,8 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.update.LibraryGroup;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,18 +19,18 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class ValidateOperationActionTest {
+class ValidateOperationActionTest {
     private GlobalActionState state;
     private Properties settings;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
     }
 
     @Test
-    public void testPerformAction_fbs_noDoubleRecord() throws Exception {
+    void testPerformAction_fbs_noDoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";
@@ -67,7 +67,7 @@ public class ValidateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_fbs_DoubleRecord() throws Exception {
+    void testPerformAction_fbs_DoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
 

@@ -8,14 +8,14 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.verify;
 
-public class RemoveLinksActionTest {
+class RemoveLinksActionTest {
     /**
      * Test RemovesLinksAction.performAction() to remove all links from a record.
      * <p>
@@ -35,7 +35,7 @@ public class RemoveLinksActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction() throws Exception {
+    void testPerformAction() throws Exception {
         GlobalActionState state = new UpdateTestUtils().getGlobalActionStateMockObject();
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);

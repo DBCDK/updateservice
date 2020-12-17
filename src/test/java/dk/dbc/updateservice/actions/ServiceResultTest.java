@@ -9,7 +9,7 @@ import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +22,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * This unittest tests that the ServiceReult class and methods can correctly merge different results
  */
-public class ServiceResultTest {
+class ServiceResultTest {
+
     @Test
-    public void ServiceResult_okResultAndNoDoubleRecordFrontendError() {
+    void ServiceResult_okResultAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult dpkServiceResult = ServiceResult.newOkResult();
@@ -37,7 +38,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_okResultAndDoubleRecordFrontendError() {
+    void ServiceResult_okResultAndDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         DoubleRecordFrontendDTO doubleRecordFrontendContent = new DoubleRecordFrontendDTO();
@@ -61,7 +62,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_okResultAndDoubleRecordFrontendErrors() {
+    void ServiceResult_okResultAndDoubleRecordFrontendErrors() {
         ServiceResult result = ServiceResult.newOkResult();
 
         String dpkKey = "35bcb78b-7309-4aee-800a-8a62930309b6";
@@ -108,7 +109,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validateErrorAndNoDoubleRecordFrontendError() {
+    void ServiceResult_validateErrorAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -138,7 +139,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validateErrorsAndNoDoubleRecordFrontendError() {
+    void ServiceResult_validateErrorsAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -198,7 +199,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validationErrorAndDoubleRecordFrontendError() {
+    void ServiceResult_validationErrorAndDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -241,7 +242,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validationErrorsAndDoubleRecordFrontendErrors() {
+    void ServiceResult_validationErrorsAndDoubleRecordFrontendErrors() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();

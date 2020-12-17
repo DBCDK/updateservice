@@ -13,8 +13,9 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,12 +27,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateRequestActionTest {
+class UpdateRequestActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -59,7 +60,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testEmptyRequest() throws Exception {
+    void testEmptyRequest() throws Exception {
         state.setMarcRecord(new MarcRecord());
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("request.record.is.missing");
@@ -67,7 +68,7 @@ public class UpdateRequestActionTest {
     }
 
     @Test
-    public void test13LibraryInProduction() throws Exception {
+    void test13LibraryInProduction() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("131010");
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
@@ -94,7 +95,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testWrongRecordSchema() throws Exception {
+    void testWrongRecordSchema() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -126,7 +127,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testWrongRecordPacking() throws Exception {
+    void testWrongRecordPacking() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -157,7 +158,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForValidate() throws Exception {
+    void testValidRecordForValidate() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
@@ -197,7 +198,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate() throws Exception {
+    void testValidRecordForUpdate() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
@@ -246,7 +247,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
         state.setLibraryGroup(LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
@@ -298,7 +299,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -349,7 +350,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -404,8 +405,8 @@ public class UpdateRequestActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = UpdateException.class)
-    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData_ProviderNameIsNull() throws Exception {
+    @Test
+    void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData_ProviderNameIsNull() throws Exception {
         settings = new Properties();
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -414,7 +415,7 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName("book");
 
         UpdateRequestAction instance = new UpdateRequestAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        Assertions.assertThrows(UpdateException.class, instance::performAction);
     }
 
     private void testValidateOperationActionOutput(ValidateOperationAction validateOperationAction) {

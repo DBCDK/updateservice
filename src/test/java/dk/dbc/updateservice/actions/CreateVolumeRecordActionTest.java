@@ -11,8 +11,8 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,12 +25,12 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class CreateVolumeRecordActionTest {
+class CreateVolumeRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -65,7 +65,7 @@ public class CreateVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_No002Links() throws Exception {
+    void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -114,7 +114,7 @@ public class CreateVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_With002Links() throws Exception {
+    void testPerformAction_NoLocals_With002Links() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -156,7 +156,7 @@ public class CreateVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_WithLocals() throws Exception {
+    void testPerformAction_WithLocals() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -197,7 +197,7 @@ public class CreateVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_PointToItselfAsParent() throws Exception {
+    void testPerformAction_PointToItselfAsParent() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -239,7 +239,7 @@ public class CreateVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoParent() throws Exception {
+    void testPerformAction_NoParent() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);

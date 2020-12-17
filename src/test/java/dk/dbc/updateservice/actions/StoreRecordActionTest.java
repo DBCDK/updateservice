@@ -15,8 +15,8 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.xml.bind.JAXBException;
@@ -34,12 +34,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StoreRecordActionTest {
+class StoreRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     LibraryGroup libraryGroup = LibraryGroup.DBC;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -65,7 +65,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_StoreRecordOk() throws Exception {
+    void testPerformAction_StoreRecordOk() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -87,7 +87,7 @@ public class StoreRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_MatVurd() throws Exception {
+    void testPerformAction_MatVurd() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         final String recordId = "12345678";
         final int agencyId = 870976;
@@ -134,7 +134,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UnsupportedEncoding() throws Exception {
+    void testPerformAction_UnsupportedEncoding() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -175,7 +175,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_JAXBException() throws Exception {
+    void testPerformAction_JAXBException() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -201,7 +201,7 @@ public class StoreRecordActionTest {
      * </p>
      */
     @Test
-    public void testDeletionMarkToStore() throws Exception {
+    void testDeletionMarkToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -212,7 +212,7 @@ public class StoreRecordActionTest {
      * Test StoreRecordAction.recordToStore() to store a deleted record.
      */
     @Test
-    public void testRecordToStore() throws Exception {
+    void testRecordToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -233,7 +233,7 @@ public class StoreRecordActionTest {
     }
 
     @Test
-    public void testUpdateModifiedDateDBC() throws Exception {
+    void testUpdateModifiedDateDBC() throws Exception {
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
@@ -249,7 +249,7 @@ public class StoreRecordActionTest {
     }
 
     @Test
-    public void testUpdateModifiedDateNotDBC() throws Exception {
+    void testUpdateModifiedDateNotDBC() throws Exception {
         // 001 00 *a 20611529 *b 700400 *c 19971020 *d 19940516 *f a
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
