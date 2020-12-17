@@ -11,7 +11,7 @@ import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -21,7 +21,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 
-public class LibraryRecordsHandlerTest {
+class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
 
     private static class MockLibraryRecordsHandler extends LibraryRecordsHandler {
@@ -31,7 +31,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testSplitCompleteBasisRecord() throws Exception {
+    void testSplitCompleteBasisRecord() throws Exception {
         // Prepare record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -61,7 +61,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testSplitCompleteBasisRecord870971() throws Exception {
+    void testSplitCompleteBasisRecord870971() throws Exception {
         // Prepare record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -91,7 +91,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void testHasClassificationsChanged() {
+    void testHasClassificationsChanged() {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         logger.info("Enter testHasClassificationsChanged");
@@ -261,7 +261,7 @@ public class LibraryRecordsHandlerTest {
     }
 
     @Test
-    public void test652() {
+    void test652() {
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         MarcRecord oldRecord;

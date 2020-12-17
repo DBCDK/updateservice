@@ -9,13 +9,10 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -94,7 +91,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -133,7 +130,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         final List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields);
@@ -192,7 +189,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -252,7 +249,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -316,7 +313,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -381,7 +378,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -444,7 +441,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -512,7 +509,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -580,7 +577,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -663,7 +660,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -744,7 +741,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -829,7 +826,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -913,7 +910,7 @@ public class OverwriteSingleRecordActionTest {
         assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);

@@ -46,11 +46,6 @@ public class RawRepoTest {
     @Mock
     RawRepoDAO rawRepoDAO;
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-    }
-
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
             super(dataSource);

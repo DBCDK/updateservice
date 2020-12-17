@@ -8,23 +8,24 @@ package dk.dbc.updateservice.update;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dk.dbc.updateservice.solr.SolrFBS;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 
-public class SolrFBSTest {
-    private WireMockServer solrServer;
-    private String solrUrl;
+class SolrFBSTest {
+    private static WireMockServer solrServer;
+    private static String solrUrl;
 
-    @Before
-    public void startSolrServer() {
+    @BeforeAll
+    public static void startSolrServer() {
         WireMockConfiguration wireMockConfiguration = wireMockConfig().
                 dynamicPort().
                 withRootDirectory("src/test/resources/wiremock/solr");
@@ -34,13 +35,13 @@ public class SolrFBSTest {
         solrUrl = String.format("http://localhost:%s/solr/raw-repo-index", solrServer.port());
     }
 
-    @After
-    public void stopSolrServer() {
+    @AfterAll
+    public static void stopSolrServer() {
         solrServer.stop();
     }
 
     @Test
-    public void getOwnerOf002List() throws Exception {
+    void getOwnerOf002List() throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
 
@@ -49,7 +50,7 @@ public class SolrFBSTest {
     }
 
     @Test
-    public void getOwnerOf002String() throws Exception {
+    void getOwnerOf002String() throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
 
@@ -58,7 +59,7 @@ public class SolrFBSTest {
     }
 
     @Test
-    public void getOwnerOf002NoHits() throws Exception {
+    void getOwnerOf002NoHits() throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
 
@@ -67,7 +68,7 @@ public class SolrFBSTest {
     }
 
     @Test
-    public void hasDocuments() throws Exception {
+    void hasDocuments() throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
 
@@ -76,8 +77,8 @@ public class SolrFBSTest {
         assertThat(instance.hasDocuments("marc.002a:06605141"), is(true));
     }
 
-    @Test(expected = SolrException.class)
-    public void testHits() throws Exception {
+    @Test
+    void testHits() throws Exception {
 
         Properties settings = new Properties();
         settings.put("SOLR_URL", solrUrl);
@@ -86,15 +87,19 @@ public class SolrFBSTest {
         assertThat(instance.hits("marc.002a:06605141"), equalTo(1L));
         assertThat(instance.hits("marc.002a:76605141"), equalTo(0L));
 
-        instance.hits("marc.xxxsdas:*");
+        Assertions.assertThrows(SolrException.class, () -> {
+            instance.hits("marc.xxxsdas:*");
+        });
     }
 
-    @Test(expected = SolrException.class)
-    public void testHits_UnknownHost() throws Exception {
+    @Test
+    void testHits_UnknownHost() throws Exception {
         Properties settings = new Properties();
         settings.put("SOLR_URL", "http://testHits_UnknownHost/solr/raw-repo-index");
 
         SolrFBS instance = new SolrFBS(settings);
-        instance.hits("marc.002a:06605141");
+        Assertions.assertThrows(SolrException.class, () -> {
+            instance.hits("marc.002a:06605141");
+        });
     }
 }

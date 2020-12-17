@@ -17,8 +17,9 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -29,64 +30,69 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class NoteAndSubjectExtentionsHanderTest {
+class NoteAndSubjectExtentionsHanderTest {
 
-    @Before
-    public void before() throws IOException {
-        MockitoAnnotations.initMocks(this);
+    @Mock
+    VipCoreService vipCoreService;
+
+    @Mock
+    RawRepo rawRepo;
+
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    public void openMocks() {
+        closeable = MockitoAnnotations.openMocks(this);
     }
 
-    @Mock
-    private VipCoreService vipCoreService;
-
-    @Mock
-    private RawRepo rawRepo;
+    @AfterEach
+    public void releaseMocks() throws Exception {
+        closeable.close();
+    }
 
     @Test
-    public void testIsFieldNationalCommonField_wrongField() throws Exception {
+    void testIsFieldNationalCommonField_wrongField() {
         MarcField field = new MarcField("001", "00");
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
+        assertThat(instance.isFieldNationalCommonField(field), is(false));
     }
 
     @Test
-    public void testIsFieldNationalCommonField_wrongSubfieldValue() throws Exception {
+    void testIsFieldNationalCommonField_wrongSubfieldValue() {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("x", "ABC"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldNationalCommonField(field), equalTo(true));
+        assertThat(instance.isFieldNationalCommonField(field), is(true));
     }
 
     @Test
-    public void testIsFieldNationalCommonField() throws Exception {
+    void testIsFieldNationalCommonField() {
         MarcField field = new MarcField("032", "00");
         field.getSubfields().add(new MarcSubField("a", "BKM"));
         field.getSubfields().add(new MarcSubField("b", "870970"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldNationalCommonField(field), equalTo(false));
+        assertThat(instance.isFieldNationalCommonField(field), is(false));
     }
 
-    protected class TestSet {
-        private MarcRecord inputRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_RECORD_CLASSIFICATION);
-        private MarcRecord commonRec = new MarcRecord(inputRecord);
-        private MarcRecordWriter inputWriter = new MarcRecordWriter(inputRecord);
-        private MarcRecordReader inputReader = new MarcRecordReader(inputRecord);
-        private MarcRecordWriter commonRecWriter = new MarcRecordWriter(commonRec);
-        private MarcRecordReader reader = new MarcRecordReader(inputRecord);
-        private ResourceBundle messages = ResourceBundles.getBundle("actions");
+    protected static class TestSet {
+        final MarcRecord inputRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_RECORD_CLASSIFICATION);
+        final MarcRecord commonRec = new MarcRecord(inputRecord);
+        final MarcRecordWriter inputWriter = new MarcRecordWriter(inputRecord);
+        final MarcRecordReader inputReader = new MarcRecordReader(inputRecord);
+        final MarcRecordWriter commonRecWriter = new MarcRecordWriter(commonRec);
+        final MarcRecordReader reader = new MarcRecordReader(inputRecord);
 
         TestSet() throws IOException {
         }
@@ -94,21 +100,23 @@ public class NoteAndSubjectExtentionsHanderTest {
 
     // These tests are not perfect , and the actual testing of output is being done via ocb-tools, as we cannot test output here.
     @Test
-    public void checkForAlteredClassificationForDisputas_test_correct_record() throws Exception {
+    void checkForAlteredClassificationForDisputas_test_correct_record() throws Exception {
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
 
+        System.out.println("rawrepo is null?" + (rawRepo == null));
+
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
-        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(true));
+        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), is(true));
     }
 
     @Test
-    public void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
+    void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
@@ -120,11 +128,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
-        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(false));
+        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), is(false));
     }
 
     @Test
-    public void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
+    void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
@@ -136,11 +144,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
-        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(false));
+        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), is(false));
     }
 
     @Test
-    public void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
+    void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
@@ -152,11 +160,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
-        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(true));
+        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), is(true));
     }
 
     @Test
-    public void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
+    void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
@@ -167,95 +175,95 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
-        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), equalTo(true));
+        assertThat(instance.canChangeClassificationForDisputas(testSet.inputReader), is(true));
     }
 
     @Test
-    public void testisNationalCommonRecord_wrong032() throws Exception {
+    void testisNationalCommonRecord_wrong032() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(false));
+        assertThat(instance.isNationalCommonRecord(record), is(false));
     }
 
     @Test
-    public void testisNationalCommonRecord() throws Exception {
+    void testisNationalCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "NET");
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(false));
+        assertThat(instance.isNationalCommonRecord(record), is(false));
     }
 
     @Test
-    public void testisNationalCommonRecord_OK() throws Exception {
+    void testisNationalCommonRecord_OK() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "DBF12345");
         writer.addOrReplaceSubfield("032", "x", "SFU12345");
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(false));
+        assertThat(instance.isNationalCommonRecord(record), is(false));
     }
 
     @Test
-    public void testisNationalCommonRecord_wrong032x() throws Exception {
+    void testisNationalCommonRecord_wrong032x() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("032", "a", "DBF12345");
         writer.addOrReplaceSubfield("032", "x", "ACC12345");
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isNationalCommonRecord(record), equalTo(true));
+        assertThat(instance.isNationalCommonRecord(record), is(true));
     }
 
     @Test
-    public void testcreateExtentableFieldsRx_none() throws Exception {
+    void testcreateExtentableFieldsRx_none() throws Exception {
         String agencyId = "870970";
 
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(""));
+        assertThat(instance.createExtendableFieldsRx(agencyId), is(""));
     }
 
     @Test
-    public void testcreateExtentableFieldsRx_notes() throws Exception {
+    void testcreateExtentableFieldsRx_notes() throws Exception {
         String agencyId = "870970";
 
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS));
+        assertThat(instance.createExtendableFieldsRx(agencyId), is(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS));
     }
 
     @Test
-    public void testcreateExtentableFieldsRx_subjects() throws Exception {
+    void testcreateExtentableFieldsRx_subjects() throws Exception {
         String agencyId = "870970";
 
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
+        assertThat(instance.createExtendableFieldsRx(agencyId), is(NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
     @Test
-    public void testcreateExtentableFieldsRx_both() throws Exception {
+    void testcreateExtentableFieldsRx_both() throws Exception {
         String agencyId = "870970";
 
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(agencyId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.createExtendableFieldsRx(agencyId), equalTo(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS + "|" + NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
+        assertThat(instance.createExtendableFieldsRx(agencyId), is(NoteAndSubjectExtensionsHandler.EXTENDABLE_NOTE_FIELDS + "|" + NoteAndSubjectExtensionsHandler.EXTENDABLE_SUBJECT_FIELDS));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_001_match() throws Exception {
+    void testisFieldChangedInOtherRecord_001_match() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcField field = new MarcField("001", "00");
         field.getSubfields().add(new MarcSubField("a", "111111111"));
@@ -265,11 +273,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("f", "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_001_nomatch() throws Exception {
+    void testisFieldChangedInOtherRecord_001_nomatch() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
@@ -281,11 +289,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("f", "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_001_missing001cd_match() throws Exception {
+    void testisFieldChangedInOtherRecord_001_missing001cd_match() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.removeSubfield("001", "c");
@@ -300,11 +308,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("f", "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
+    void testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -315,11 +323,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("z", "700/1"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
+    void testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -330,11 +338,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("z", "700/2"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
+    void testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -342,11 +350,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("h", "H. Peter"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(false));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
     }
 
     @Test
-    public void testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
+    void testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
         final MarcField field = new MarcField("900", "00");
@@ -354,11 +362,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         field.getSubfields().add(new MarcSubField("h", "H. Peter"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.isFieldChangedInOtherRecord(field, record), equalTo(true));
+        assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
     }
 
     @Test
-    public void testrecordDataForRawRepo_recordNotExists() throws Exception {
+    void testrecordDataForRawRepo_recordNotExists() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
@@ -367,11 +375,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
+        assertThat(instance.recordDataForRawRepo(record, groupId), is(record));
     }
 
     @Test
-    public void testrecordDataForRawRepo_isNotNationalCommonRecord() throws Exception {
+    void testrecordDataForRawRepo_isNotNationalCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String groupId = "870970";
@@ -381,11 +389,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(record));
+        assertThat(instance.recordDataForRawRepo(record, groupId), is(record));
     }
 
     @Test
-    public void testrecordDataForRawRepo() throws Exception {
+    void testrecordDataForRawRepo() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -402,11 +410,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         MarcRecord expected = new MarcRecord(record);
         //new MarcRecordReader(expected).getField("504").getSubfields().add(new MarcSubField("&", groupId));
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expected));
+        assertThat(instance.recordDataForRawRepo(record, groupId), is(expected));
     }
 
     @Test
-    public void testCollapseSameRecord() throws Exception {
+    void testCollapseSameRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -418,11 +426,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
-        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), is(sortRecord(expected)));
     }
 
     @Test
-    public void testCollapseWithAUT() throws Exception {
+    void testCollapseWithAUT() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.removeField("504");
@@ -451,11 +459,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
 
-        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), equalTo(sortRecord(expected)));
+        assertThat(sortRecord(instance.collapse(record, currentRecord, groupId, false)), is(sortRecord(expected)));
     }
 
     @Test
-    public void testNoteAndSubject_NoNotesOrSubjectPermissions() throws Exception {
+    void testNoteAndSubject_NoNotesOrSubjectPermissions() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -470,11 +478,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         when(rawRepo.fetchRecord(eq(reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
-        assertThat(instance.recordDataForRawRepo(record, "820010"), equalTo(record));
+        assertThat(instance.recordDataForRawRepo(record, "820010"), is(record));
     }
 
     @Test
-    public void testNoteAndSubjectFields_DBCNote() throws Exception {
+    void testNoteAndSubjectFields_DBCNote() throws Exception {
         String groupId = "830010";
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -501,12 +509,12 @@ public class NoteAndSubjectExtentionsHanderTest {
             instance.recordDataForRawRepo(record, groupId);
             fail(); // To make sure we never hit this branch
         } catch (UpdateException ex) {
-            assertThat(ex.getMessage(), equalTo("Posten må ikke beriges"));
+            assertThat(ex.getMessage(), is("Posten må ikke beriges"));
         }
     }
 
     @Test
-    public void testNoteAndSubjectFields_ExistingNote() throws Exception {
+    void testNoteAndSubjectFields_ExistingNote() throws Exception {
         String groupId = "830010";
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -536,11 +544,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expectedRecord));
+        assertThat(instance.recordDataForRawRepo(record, groupId), is(expectedRecord));
     }
 
     @Test
-    public void testNoteAndSubjectFields_AddNote() throws Exception {
+    void testNoteAndSubjectFields_AddNote() throws Exception {
         String groupId = "830010";
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -579,11 +587,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), equalTo(expectedRecord));
+        assertThat(instance.recordDataForRawRepo(record, groupId), is(expectedRecord));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -604,11 +612,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddSubjectField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -629,11 +637,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField_AddSubjectField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -655,11 +663,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddNoteField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddNoteField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -680,11 +688,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddSubjectField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -705,11 +713,11 @@ public class NoteAndSubjectExtentionsHanderTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddNoteField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddNoteField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -735,11 +743,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddSubjectField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -765,11 +773,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateCommonRecordExtraFields_NotAllowedNote_NotAllowedSubject_AddNoteField_AddSubjectField() throws Exception {
+    void testAuthenticateCommonRecordExtraFields_NotAllowedNote_NotAllowedSubject_AddNoteField_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
         final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -802,15 +810,11 @@ public class NoteAndSubjectExtentionsHanderTest {
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     private MarcRecord sortRecord(MarcRecord record) {
-        Collections.sort(record.getFields(), new Comparator<MarcField>() {
-            public int compare(MarcField o1, MarcField o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        record.getFields().sort(Comparator.comparing(MarcField::getName));
 
         return record;
     }
