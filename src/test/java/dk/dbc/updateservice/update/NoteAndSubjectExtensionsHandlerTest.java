@@ -585,31 +585,6 @@ class NoteAndSubjectExtensionsHandlerTest {
     }
 
     @Test
-    void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddNoteField() throws Exception {
-        final String groupId = "830010";
-
-        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("530", "a", "a Note");
-        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
-        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
-
-        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
-
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
-        final List<MessageEntryDTO> expected = new ArrayList<>();
-        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
-
-        assertThat(actual, is(expected));
-    }
-
-    @Test
     void testAuthenticateCommonRecordExtraFields_AllowedNote_AllowedSubject_AddSubjectField() throws Exception {
         final String groupId = "830010";
 
@@ -670,31 +645,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.addFieldSubfield("530", "a", "a Note");
-        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
-        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
-
-        when(rawRepo.recordExists(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
-        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
-        when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
-
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
-        final List<MessageEntryDTO> expected = new ArrayList<>();
-        final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
-
-        assertThat(actual, is(expected));
-    }
-
-    @Test
-    void testAuthenticateCommonRecordExtraFields_NotAllowedNote_AllowedSubject_AddSubjectField() throws Exception {
-        final String groupId = "830010";
-
-        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-
-        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("666", "a", "a subject");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
