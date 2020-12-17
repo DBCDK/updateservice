@@ -107,8 +107,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         testSet.inputWriter.addFieldSubfield("652", "m", "klassemærke1");
         testSet.commonRecWriter.addFieldSubfield("652", "m", "UdeN klAssemærke");
 
-        System.out.println("rawrepo is null?" + (rawRepo == null));
-
         when(rawRepo.recordExists(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(rawRepo.fetchRecord(eq(testSet.reader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(testSet.commonRec, MarcXChangeMimeType.MARCXCHANGE));
 
@@ -117,7 +115,6 @@ class NoteAndSubjectExtensionsHandlerTest {
 
     @Test
     void checkForAlteredClassificationForDisputas_test_wrong_current_652() throws Exception {
-
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
@@ -133,7 +130,6 @@ class NoteAndSubjectExtensionsHandlerTest {
 
     @Test
     void checkForAlteredClassificationForDisputas_test_wrong_materialType() throws Exception {
-
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
@@ -149,7 +145,6 @@ class NoteAndSubjectExtensionsHandlerTest {
 
     @Test
     void checkForAlteredClassificationForDisputas_test_no_652() throws Exception {
-
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
@@ -165,7 +160,6 @@ class NoteAndSubjectExtensionsHandlerTest {
 
     @Test
     void checkForAlteredClassificationForDisputas_test_equal_652() throws Exception {
-
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, null);
         TestSet testSet = new TestSet();
 
