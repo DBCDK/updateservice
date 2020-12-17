@@ -24,6 +24,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 class LibraryRecordsHandlerTest {
     private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
 
+    private static final String f001DBC = "001 00 *b 870970 \n";
+    private static final String f001FBS = "001 00 *b 763000 \n";
+
     private static class MockLibraryRecordsHandler extends LibraryRecordsHandler {
         MockLibraryRecordsHandler() {
             super();
@@ -91,15 +94,10 @@ class LibraryRecordsHandlerTest {
     }
 
     @Test
-    void testHasClassificationsChanged() {
+    void testHasClassificationsChanged008() {
         MarcRecord oldRecord;
         MarcRecord newRecord;
-        logger.info("Enter testHasClassificationsChanged");
 
-        String f001DBC = "001 00 *b 870970 \n";
-        String f001FBS = "001 00 *b 763000 \n";
-
-        // felt 008
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *tm");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *tp");
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
@@ -108,8 +106,14 @@ class LibraryRecordsHandlerTest {
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
         newRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *ty");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
+    }
 
-        // felt 009
+    @Test
+    void testHasClassificationsChanged009() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
@@ -131,16 +135,28 @@ class LibraryRecordsHandlerTest {
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb*gxr*as*gxx");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx*as*gxy");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    }
 
-        // felt 038
+    @Test
+    void testHasClassificationsChanged038() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aer");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
+    }
 
-        // felt 039
+    @Test
+    void testHasClassificationsChanged039() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*bdk");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
@@ -150,8 +166,14 @@ class LibraryRecordsHandlerTest {
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
+    }
 
-        // felt 100
+    @Test
+    void testHasClassificationsChanged100() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
@@ -161,56 +183,45 @@ class LibraryRecordsHandlerTest {
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romérriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
+    }
 
-        // felt 110
+    @Test
+    void testHasClassificationsChanged110() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska feministkongressen*i35*k1989*jReykjavik");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    }
 
-        // felt 239
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    @Test
+    void testHasClassificationsChanged239() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 117. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
-
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*aYoung Frankenstein*\u00F8Brady");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*aYoung Frankenstein*\u00F8Lee");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    }
 
-        // felt 239 + 245
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
-                "245 00*aPiece de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPierces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    @Test
+    void testHasClassificationsChanged245() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*n4. Band*aKupperzeit");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
-                "004 00*as \n" +
-                "245 00*n3. Band*aKupferzeit");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
-
-        // felt 245
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 2");
         newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 4");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
@@ -257,6 +268,43 @@ class LibraryRecordsHandlerTest {
 
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
         newRecord = MarcRecordFactory.readRecord(f001FBS + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+    }
+
+    @Test
+    void testHasClassificationsChangedSpecial() {
+        MarcRecord oldRecord;
+        MarcRecord newRecord;
+        final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(false));
+
+        // felt 239 + 245
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
+                "245 00*aPiece de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPierces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
+
+        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*n4. Band*aKupperzeit");
+        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
+                "004 00*as \n" +
+                "245 00*n3. Band*aKupferzeit");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord), is(true));
     }
 
