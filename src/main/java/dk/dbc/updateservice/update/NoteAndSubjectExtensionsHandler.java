@@ -239,13 +239,13 @@ public class NoteAndSubjectExtensionsHandler {
      * @param record Record.
      * @return {Boolean} True / False.
      */
-    public Boolean isNationalCommonRecord(MarcRecord record) {
+    public boolean isNationalCommonRecord(MarcRecord record) {
         logger.entry(record);
 
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!reader.hasValue("996", "a", "DBC")) {
+            if (!Boolean.TRUE.equals(reader.hasValue("996", "a", "DBC"))) {
                 return false;
             }
             for (MarcField field : record.getFields()) {
@@ -265,7 +265,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @param field Field.
      * @return True / False. Return false if a field is indicating it is a NCR field, and true if the field demonstrates it's not a NCR.
      */
-    Boolean isFieldNationalCommonField(MarcField field) {
+    boolean isFieldNationalCommonField(MarcField field) {
         logger.entry(field);
 
         try {

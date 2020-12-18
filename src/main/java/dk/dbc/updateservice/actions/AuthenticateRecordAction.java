@@ -86,7 +86,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             logger.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            if (logger.isInfoEnabled()) {
+                logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            }
 
             List<MessageEntryDTO> errors = authenticateRecord();
             result = new ServiceResult();
@@ -152,7 +154,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
                 validationErrors.addAll(authenticateMetaCompassField());
 
-                if (validationErrors.size() > 0) {
+                if (!validationErrors.isEmpty()) {
                     logger.info("Validation errors!");
                     result.addAll(validationErrors);
                     logger.info("Number of errors: {}", result.size());
