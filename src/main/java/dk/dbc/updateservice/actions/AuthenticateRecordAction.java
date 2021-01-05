@@ -105,7 +105,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (EJBException | VipCoreException ex) {
+        } catch (VipCoreException ex) {
+            String message = String.format(state.getMessages().getString("vipcore.authenticate.record.error"), ex.getMessage());
+            logger.error(message);
+            logger.warn("Exception doing authentication: ", ex);
+            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        } catch (EJBException ex) {
             Throwable businessException = findServiceException(ex);
             String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), businessException.getMessage());
             logger.error(message);
