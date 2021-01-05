@@ -97,7 +97,7 @@ services:
       - "4848"
 
   update-systemtests-rawrepo-record-service:
-    image: docker-io.dbc.dk/rawrepo-record-service:DIT-271
+    image: docker-io.dbc.dk/rawrepo-record-service:DIT-287
     environment:
       -  INSTANCE_NAME=${USER}_systemtest
       -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
