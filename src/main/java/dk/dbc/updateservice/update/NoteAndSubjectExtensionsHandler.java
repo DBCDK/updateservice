@@ -334,7 +334,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
 
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
-                logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in openagency - checking for changed note fields", groupId);
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {
                     if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
@@ -355,7 +355,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
 
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
-                logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in openagency - checking for changed note fields", groupId);
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {
                     if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
