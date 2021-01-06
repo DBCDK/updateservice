@@ -9,7 +9,8 @@ import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import org.junit.Test;
+import dk.dbc.vipcore.dto.ErrorMessageDTO;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,9 +23,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * This unittest tests that the ServiceReult class and methods can correctly merge different results
  */
-public class ServiceResultTest {
+class ServiceResultTest {
+
     @Test
-    public void ServiceResult_okResultAndNoDoubleRecordFrontendError() {
+    void ServiceResult_okResultAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult dpkServiceResult = ServiceResult.newOkResult();
@@ -37,7 +39,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_okResultAndDoubleRecordFrontendError() {
+    void ServiceResult_okResultAndDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         DoubleRecordFrontendDTO doubleRecordFrontendContent = new DoubleRecordFrontendDTO();
@@ -61,7 +63,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_okResultAndDoubleRecordFrontendErrors() {
+    void ServiceResult_okResultAndDoubleRecordFrontendErrors() {
         ServiceResult result = ServiceResult.newOkResult();
 
         String dpkKey = "35bcb78b-7309-4aee-800a-8a62930309b6";
@@ -108,7 +110,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validateErrorAndNoDoubleRecordFrontendError() {
+    void ServiceResult_validateErrorAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -138,7 +140,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validateErrorsAndNoDoubleRecordFrontendError() {
+    void ServiceResult_validateErrorsAndNoDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -198,7 +200,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validationErrorAndDoubleRecordFrontendError() {
+    void ServiceResult_validationErrorAndDoubleRecordFrontendError() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -241,7 +243,7 @@ public class ServiceResultTest {
     }
 
     @Test
-    public void ServiceResult_validationErrorsAndDoubleRecordFrontendErrors() {
+    void ServiceResult_validationErrorsAndDoubleRecordFrontendErrors() {
         ServiceResult result = ServiceResult.newOkResult();
 
         ServiceResult validateServiceResult = new ServiceResult();
@@ -311,23 +313,10 @@ public class ServiceResultTest {
 
         assertThat(result.getEntries(), is(notNullValue()));
         assertThat(result.getEntries().size(), is(3));
-        assertThat(result.getEntries().get(0).getMessage(), is(errMsgVal1));
-        assertThat(result.getEntries().get(0).getType(), is(TypeEnumDTO.ERROR));
-        assertThat(result.getEntries().get(0).getOrdinalPositionInSubfield(), is(1));
-        assertThat(result.getEntries().get(0).getOrdinalPositionOfField(), is(2));
-        assertThat(result.getEntries().get(0).getOrdinalPositionOfSubfield(), is(3));
 
-        assertThat(result.getEntries().get(1).getMessage(), is(errMsgVal2));
-        assertThat(result.getEntries().get(1).getType(), is(TypeEnumDTO.ERROR));
-        assertThat(result.getEntries().get(1).getOrdinalPositionInSubfield(), is(4));
-        assertThat(result.getEntries().get(1).getOrdinalPositionOfField(), is(5));
-        assertThat(result.getEntries().get(1).getOrdinalPositionOfSubfield(), is(6));
-
-        assertThat(result.getEntries().get(2).getMessage(), is(errMsgVal3));
-        assertThat(result.getEntries().get(2).getType(), is(TypeEnumDTO.FATAL));
-        assertThat(result.getEntries().get(2).getOrdinalPositionInSubfield(), is(7));
-        assertThat(result.getEntries().get(2).getOrdinalPositionOfField(), is(8));
-        assertThat(result.getEntries().get(2).getOrdinalPositionOfSubfield(), is(9));
+        assertMessageEntryDTO(result.getEntries().get(0), errMsgVal1, TypeEnumDTO.ERROR, 1,2,3);
+        assertMessageEntryDTO(result.getEntries().get(1), errMsgVal2, TypeEnumDTO.ERROR, 4,5,6);
+        assertMessageEntryDTO(result.getEntries().get(2), errMsgVal3, TypeEnumDTO.FATAL, 7,8,9);
 
         assertThat(result.getDoubleRecordFrontendDTOS(), is(notNullValue()));
         assertThat(result.getDoubleRecordFrontendDTOS().size(), is(3));
@@ -337,5 +326,18 @@ public class ServiceResultTest {
         assertThat(result.getDoubleRecordFrontendDTOS().get(1).getPid(), is(pid2));
         assertThat(result.getDoubleRecordFrontendDTOS().get(2).getMessage(), is(errMsg3));
         assertThat(result.getDoubleRecordFrontendDTOS().get(2).getPid(), is(pid3));
+    }
+
+    private void assertMessageEntryDTO(MessageEntryDTO messageEntryDTO,
+                      String message,
+                      TypeEnumDTO typeEnumDTO,
+                      int ordinalPositionInSubfield,
+                      int ordinalPositionOfField,
+                      int ordinalPositionOfSubfield) {
+        assertThat(messageEntryDTO.getMessage(), is(message));
+        assertThat(messageEntryDTO.getType(), is(typeEnumDTO));
+        assertThat(messageEntryDTO.getOrdinalPositionInSubfield(), is(ordinalPositionInSubfield));
+        assertThat(messageEntryDTO.getOrdinalPositionOfField(), is(ordinalPositionOfField));
+        assertThat(messageEntryDTO.getOrdinalPositionOfSubfield(), is(ordinalPositionOfSubfield));
     }
 }

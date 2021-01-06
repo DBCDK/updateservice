@@ -8,14 +8,14 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.rawrepo.RecordId;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.Mockito.verify;
 
-public class RemoveLinksActionTest {
+class RemoveLinksActionTest {
     /**
      * Test RemovesLinksAction.performAction() to remove all links from a record.
      * <p>
@@ -35,7 +35,7 @@ public class RemoveLinksActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction() throws Exception {
+    void testPerformAction() throws Exception {
         GlobalActionState state = new UpdateTestUtils().getGlobalActionStateMockObject();
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -43,10 +43,10 @@ public class RemoveLinksActionTest {
         int agencyId = reader.getAgencyIdAsInt();
 
         RemoveLinksAction instance = new RemoveLinksAction(state, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<RecordId> arg = ArgumentCaptor.forClass(RecordId.class);
         verify(state.getRawRepo()).removeLinks(arg.capture());
-        assertThat(arg.getValue(), equalTo(new RecordId(recordId, agencyId)));
+        assertThat(arg.getValue(), is(new RecordId(recordId, agencyId)));
     }
 }

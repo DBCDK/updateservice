@@ -15,12 +15,12 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.utils.ResourceBundles;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -33,7 +33,7 @@ import java.util.ResourceBundle;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
-    private OpenAgencyService openAgencyService;
+    private VipCoreService vipCoreService;
     private RawRepo rawRepo;
     private ResourceBundle messages;
 
@@ -42,13 +42,13 @@ public class NoteAndSubjectExtensionsHandler {
     private static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
 
-    public NoteAndSubjectExtensionsHandler(OpenAgencyService openAgencyService, RawRepo rawRepo, ResourceBundle messages) {
-        this.openAgencyService = openAgencyService;
+    public NoteAndSubjectExtensionsHandler(VipCoreService vipCoreService, RawRepo rawRepo, ResourceBundle messages) {
+        this.vipCoreService = vipCoreService;
         this.rawRepo = rawRepo;
         this.messages = messages;
     }
 
-    MarcRecord recordDataForRawRepo(MarcRecord record, String groupId) throws UpdateException, OpenAgencyException, UnsupportedEncodingException {
+    MarcRecord recordDataForRawRepo(MarcRecord record, String groupId) throws UpdateException, VipCoreException, UnsupportedEncodingException {
         logger.entry(record, groupId);
 
         try {
@@ -66,7 +66,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
             logger.info("Checking for altered classifications for disputas type material");
             if (curReader.hasValue("008", "d", "m") &&
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
+                    vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
                     !canChangeClassificationForDisputas(reader)) {
                 final String msg = messages.getString("update.dbc.record.652");
                 logger.error("Unable to create sub actions due to an error: {}", msg);
@@ -212,16 +212,16 @@ public class NoteAndSubjectExtensionsHandler {
      *
      * @param agencyId AgencyId of the library to check for
      * @return String containing fields which can be used in regex
-     * @throws OpenAgencyException Incase OpenAgency throws exception
+     * @throws VipCoreException In case VipCore throws exception
      */
-    String createExtendableFieldsRx(String agencyId) throws OpenAgencyException {
+    String createExtendableFieldsRx(String agencyId) throws VipCoreException {
         String extendableFields = "";
 
-        if (openAgencyService.hasFeature(agencyId, LibraryRuleHandler.Rule.AUTH_COMMON_NOTES)) {
+        if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
             extendableFields += EXTENDABLE_NOTE_FIELDS;
         }
 
-        if (openAgencyService.hasFeature(agencyId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
+        if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
             if (!extendableFields.isEmpty()) {
                 extendableFields += "|";
             }
@@ -239,7 +239,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @param record Record.
      * @return {Boolean} True / False.
      */
-    public Boolean isNationalCommonRecord(MarcRecord record) {
+    public boolean isNationalCommonRecord(MarcRecord record) {
         logger.entry(record);
 
         try {
@@ -265,7 +265,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @param field Field.
      * @return True / False. Return false if a field is indicating it is a NCR field, and true if the field demonstrates it's not a NCR.
      */
-    Boolean isFieldNationalCommonField(MarcField field) {
+    boolean isFieldNationalCommonField(MarcField field) {
         logger.entry(field);
 
         try {
@@ -305,7 +305,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @return List of validation errors (ok returns empty list)
      * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
-    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException, OpenAgencyException {
+    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException, VipCoreException {
         logger.entry(record, groupId);
         List<MessageEntryDTO> result = new ArrayList<>();
         try {
@@ -333,8 +333,8 @@ public class NoteAndSubjectExtensionsHandler {
                 return result;
             }
 
-            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_NOTES)) {
-                logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in openagency - checking for changed note fields", groupId);
+            if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {
                     if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
@@ -354,8 +354,8 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if (!openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_COMMON_SUBJECTS)) {
-                logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in openagency - checking for changed note fields", groupId);
+            if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
+                logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : record.getFields()) {
                     if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
@@ -389,7 +389,7 @@ public class NoteAndSubjectExtensionsHandler {
         return result;
     }
 
-    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId, boolean isNationalCommonRecord) throws OpenAgencyException {
+    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId, boolean isNationalCommonRecord) throws VipCoreException {
         MarcRecord collapsedRecord = new MarcRecord(currentRecord);
         List<String> fieldsToCopy = new ArrayList<>();
 

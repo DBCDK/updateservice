@@ -7,19 +7,20 @@ import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 
-public class GlobalActionStateTest {
+class GlobalActionStateTest {
     private GlobalActionState state;
 
     @Test
-    public void testGetMarcRecordAndExtraDataWithProviderAndPriority() throws Exception {
+    void testGetMarcRecordAndExtraDataWithProviderAndPriority() throws Exception {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 
@@ -59,13 +60,13 @@ public class GlobalActionStateTest {
         expectedBibliographicRecordExtraData.setProviderName("bulk-broend");
         expectedBibliographicRecordExtraData.setPriority(42);
 
-        assertThat(state.readRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getMarcRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getRecordExtraData(), equalTo(expectedBibliographicRecordExtraData));
+        assertThat(state.readRecord(), is(expectedMarcRecord));
+        assertThat(state.getMarcRecord(), is(expectedMarcRecord));
+        assertThat(state.getRecordExtraData(), is(expectedBibliographicRecordExtraData));
     }
 
     @Test
-    public void testGetMarcRecordWithDataButNoExtraData() throws Exception {
+    void testGetMarcRecordWithDataButNoExtraData() throws Exception {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 
@@ -94,13 +95,13 @@ public class GlobalActionStateTest {
 
         final MarcRecord expectedMarcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.GLOBAL_ACTION_STATE);
 
-        assertThat(state.readRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getMarcRecord(), equalTo(expectedMarcRecord));
-        assertThat(state.getRecordExtraData(), equalTo(null));
+        assertThat(state.readRecord(), is(expectedMarcRecord));
+        assertThat(state.getMarcRecord(), is(expectedMarcRecord));
+        assertThat(state.getRecordExtraData(), nullValue());
     }
 
     @Test
-    public void testGetMarcRecordAndExtraDataWithNoData() {
+    void testGetMarcRecordAndExtraDataWithNoData() {
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setSchemaName("dbc");
 
@@ -122,9 +123,9 @@ public class GlobalActionStateTest {
 
         state = new UpdateTestUtils().getGlobalActionStateMockObject(updateServiceRequestDTO);
 
-        assertThat(state.readRecord(), equalTo(null));
-        assertThat(state.getMarcRecord(), equalTo(null));
-        assertThat(state.getRecordExtraData(), equalTo(null));
+        assertThat(state.readRecord(), nullValue());
+        assertThat(state.getMarcRecord(), nullValue());
+        assertThat(state.getRecordExtraData(), nullValue());
     }
 
 }

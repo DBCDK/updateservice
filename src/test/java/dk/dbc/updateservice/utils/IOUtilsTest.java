@@ -5,14 +5,16 @@
 
 package dk.dbc.updateservice.utils;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class IOUtilsTest {
+
+class IOUtilsTest {
 
     private static final String RESOURCE_NAME = "dk/dbc/updateservice/utils/file.json";
     private static final String RESOURCE_ENCODING = "UTF-8";
@@ -21,42 +23,42 @@ public class IOUtilsTest {
     }
 
     @Test
-    public void testGetResourceAsStream() throws Exception {
+    void testGetResourceAsStream() {
         assertNotNull(IOUtils.getResourceAsStream(RESOURCE_NAME));
     }
 
     @Test
-    public void testLoadProperties_String() throws Exception {
+    void testLoadProperties_String() throws Exception {
         Properties props = IOUtils.loadProperties("dk/dbc/updateservice/utils/props1.properties");
 
         assertNotNull(props);
-        assertEquals("v1", props.get("k1"));
-        assertEquals("v2", props.get("k2"));
+        assertThat(props.get("k1"), is("v1"));
+        assertThat(props.get("k2"), is("v2"));
     }
 
     @Test
-    public void testLoadProperties_String_StringArray() throws Exception {
+    void testLoadProperties_String_StringArray() throws Exception {
         Properties props = IOUtils.loadProperties(";", "dk/dbc/updateservice/utils/props1.properties", "dk/dbc/updateservice/utils/props2.properties");
 
         assertNotNull(props);
-        assertEquals("v1", props.get("k1"));
-        assertEquals("v2;v2", props.get("k2"));
-        assertEquals("v3", props.get("k3"));
+        assertThat(props.get("k1"), is("v1"));
+        assertThat(props.get("k2"), is("v2;v2"));
+        assertThat(props.get("k3"), is("v3"));
     }
 
     @Test
-    public void testReadAll_String() throws Exception {
-        assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(RESOURCE_NAME));
+    void testReadAll_String() throws Exception {
+        assertThat(IOUtils.readAll(RESOURCE_NAME), is("{ \"name\": \"Cookie Monster\" }"));
     }
 
     @Test
-    public void testReadAll_Class_String() throws Exception {
-        assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(RESOURCE_NAME, RESOURCE_ENCODING));
+    void testReadAll_Class_String() throws Exception {
+        assertThat(IOUtils.readAll(RESOURCE_NAME, RESOURCE_ENCODING), is("{ \"name\": \"Cookie Monster\" }"));
     }
 
     @Test
-    public void testReadAll_InputStream_String() throws Exception {
-        assertEquals("{ \"name\": \"Cookie Monster\" }", IOUtils.readAll(IOUtils.getResourceAsStream(RESOURCE_NAME), RESOURCE_ENCODING));
+    void testReadAll_InputStream_String() throws Exception {
+        assertThat(IOUtils.readAll(IOUtils.getResourceAsStream(RESOURCE_NAME), RESOURCE_ENCODING), is("{ \"name\": \"Cookie Monster\" }"));
     }
 
 }

@@ -9,10 +9,10 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,16 +21,15 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateCommonRecordActionTest {
+class UpdateCommonRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
     private static final String GROUP_ID = "700000";
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
@@ -60,7 +59,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord() throws Exception {
+    void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -68,10 +67,10 @@ public class UpdateCommonRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -80,9 +79,9 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
     }
 
@@ -105,7 +104,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
+    void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -117,7 +116,7 @@ public class UpdateCommonRecordActionTest {
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -143,7 +142,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -153,10 +152,10 @@ public class UpdateCommonRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -165,9 +164,9 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
     }
 
@@ -194,7 +193,7 @@ public class UpdateCommonRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord() throws Exception {
+    void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -205,10 +204,10 @@ public class UpdateCommonRecordActionTest {
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, volumeRecord);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -217,14 +216,14 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateVolumeRecord, notNullValue());
         assertThat(updateVolumeRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateVolumeRecord.getRecord(), is(volumeRecord));
-        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateVolumeRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateVolumeRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateVolumeRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateVolumeRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateVolumeRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
     }
 
     @Test
-    public void testPerformAction_CreateSingleRecordFBS() throws Exception {
+    void testPerformAction_CreateSingleRecordFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -237,10 +236,10 @@ public class UpdateCommonRecordActionTest {
         when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(new MarcRecord(record), MarcXChangeMimeType.MARCXCHANGE));
         when(state.getNoteAndSubjectExtensionsHandler().collapse(record, new MarcRecord(record), groupId, true)).thenReturn(record);
 
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        state.setLibraryGroup(LibraryGroup.FBS);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
-        assertThat(updateCommonRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateCommonRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateCommonRecordAction.children();
         assertThat(children.size(), is(1));
@@ -249,9 +248,9 @@ public class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord, notNullValue());
         assertThat(updateSingleRecord.getRawRepo(), is(state.getRawRepo()));
         assertThat(updateSingleRecord.getRecord(), is(record));
-        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), equalTo(GROUP_ID));
+        assertThat(updateSingleRecord.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(GROUP_ID));
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateSingleRecord.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
     }
 

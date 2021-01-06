@@ -10,26 +10,26 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class DeleteRecordActionTest {
+class DeleteRecordActionTest {
     private GlobalActionState state;
     private Properties properties;
     private final String localSingleRecordId = "20611529";
     private final int localSingleAgencyId = 700400;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         properties = new UpdateTestUtils().getSettings();
@@ -42,18 +42,18 @@ public class DeleteRecordActionTest {
      * </p>
      */
     @Test
-    public void testDeletionMarkToStore() throws Exception {
+    void testDeletionMarkToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, properties, record);
         deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(deleteRecordAction.deletionMarkToStore(), equalTo(true));
+        assertThat(deleteRecordAction.deletionMarkToStore(), is(true));
     }
 
     /**
      * Test DeleteRecordAction.recordToStore() to store a deleted record.
      */
     @Test
-    public void testRecordToStore() throws Exception {
+    void testRecordToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         DeleteRecordAction instance = new DeleteRecordAction(state, properties, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
@@ -69,7 +69,7 @@ public class DeleteRecordActionTest {
     }
 
     @Test
-    public void testRecordToStoreTwoFields() throws Exception {
+    void testRecordToStoreTwoFields() throws Exception {
 
         List<MarcSubField> field001 = new ArrayList<>();
         field001.add(new MarcSubField("a", localSingleRecordId));

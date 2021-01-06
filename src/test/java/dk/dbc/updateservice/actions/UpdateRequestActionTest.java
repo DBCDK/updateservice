@@ -11,27 +11,27 @@ import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class UpdateRequestActionTest {
+class UpdateRequestActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -59,19 +59,19 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testEmptyRequest() throws Exception {
+    void testEmptyRequest() throws Exception {
         state.setMarcRecord(new MarcRecord());
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("request.record.is.missing");
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void test13LibraryInProduction() throws Exception {
+    void test13LibraryInProduction() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("131010");
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -94,16 +94,16 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testWrongRecordSchema() throws Exception {
+    void testWrongRecordSchema() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
 
         state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().setRecordSchema(null);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
 
         state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().setRecordSchema("wrong");
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
     }
 
     /**
@@ -126,16 +126,16 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testWrongRecordPacking() throws Exception {
+    void testWrongRecordPacking() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
 
         state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().setRecordPacking(null);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
 
         state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().setRecordPacking("wrong");
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED)));
     }
 
     /**
@@ -157,7 +157,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForValidate() throws Exception {
+    void testValidRecordForValidate() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
@@ -166,13 +166,13 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setOptionsDTO(optionsDTO);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
         assertThat(children.size(), is(2));
 
         ServiceAction child = children.get(1);
-        assertThat(child.getClass(), equalTo(ValidateOperationAction.class));
+        assertThat(child.getClass(), is(ValidateOperationAction.class));
 
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
@@ -197,28 +197,28 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate() throws Exception {
+    void testValidRecordForUpdate() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertThat(child.getClass(), equalTo(PreProcessingAction.class));
+        assertThat(child.getClass(), is(PreProcessingAction.class));
 
         child = children.get(1);
-        assertThat(child.getClass(), equalTo(ValidateOperationAction.class));
+        assertThat(child.getClass(), is(ValidateOperationAction.class));
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
-        assertThat(child.getClass(), equalTo(UpdateOperationAction.class));
+        assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
     }
@@ -246,9 +246,9 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_NoJNDISettings_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        state.setLibraryGroup(LibraryGroup.FBS);
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
@@ -256,21 +256,21 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertThat(child.getClass(), equalTo(PreProcessingAction.class));
+        assertThat(child.getClass(), is(PreProcessingAction.class));
 
         child = children.get(1);
-        assertThat(child.getClass(), equalTo(ValidateOperationAction.class));
+        assertThat(child.getClass(), is(ValidateOperationAction.class));
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
-        assertThat(child.getClass(), equalTo(UpdateOperationAction.class));
+        assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
     }
@@ -298,7 +298,7 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_JNDISettingsIsFalse_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -307,21 +307,21 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName("book");
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertThat(child.getClass(), equalTo(PreProcessingAction.class));
+        assertThat(child.getClass(), is(PreProcessingAction.class));
 
         child = children.get(1);
-        assertThat(child.getClass(), equalTo(ValidateOperationAction.class));
+        assertThat(child.getClass(), is(ValidateOperationAction.class));
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
-        assertThat(child.getClass(), equalTo(UpdateOperationAction.class));
+        assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
     }
@@ -349,27 +349,27 @@ public class UpdateRequestActionTest {
      * </dl>
      */
     @Test
-    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
+    void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData() throws Exception {
         settings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC, "opencataloging");
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
         bibliographicRecordExtraData.setProviderName("new_provider_name");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, bibliographicRecordExtraData));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
-        state.setLibraryGroup(OpenAgencyService.LibraryGroup.DBC);
+        state.setLibraryGroup(LibraryGroup.DBC);
         when(state.getRawRepo().checkProvider(eq("new_provider_name"))).thenReturn(true);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
         assertThat(children.size(), is(3));
 
         ServiceAction child = children.get(0);
-        assertThat(child.getClass(), equalTo(PreProcessingAction.class));
+        assertThat(child.getClass(), is(PreProcessingAction.class));
 
         child = children.get(1);
-        assertThat(child.getClass(), equalTo(ValidateOperationAction.class));
+        assertThat(child.getClass(), is(ValidateOperationAction.class));
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
@@ -377,7 +377,7 @@ public class UpdateRequestActionTest {
         expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
 
         child = children.get(2);
-        assertThat(child.getClass(), equalTo(UpdateOperationAction.class));
+        assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, expectedSettings);
     }
@@ -404,8 +404,8 @@ public class UpdateRequestActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = UpdateException.class)
-    public void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData_ProviderNameIsNull() throws Exception {
+    @Test
+    void testValidRecordForUpdate_JNDISettingsIsTrue_ExtraRecordData_ProviderNameIsNull() throws Exception {
         settings = new Properties();
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         BibliographicRecordExtraData bibliographicRecordExtraData = new BibliographicRecordExtraData();
@@ -414,16 +414,16 @@ public class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName("book");
 
         UpdateRequestAction instance = new UpdateRequestAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThrows(UpdateException.class, instance::performAction);
     }
 
     private void testValidateOperationActionOutput(ValidateOperationAction validateOperationAction) {
         assertThat(validateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(validateOperationAction.state.getWsContext(), is(state.getWsContext()));
-        assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getSchemaName(), equalTo(state.getUpdateServiceRequestDTO().getSchemaName()));
-        assertThat(validateOperationAction.state.readRecord(), equalTo(state.readRecord()));
-        assertThat(validateOperationAction.settings, equalTo(settings));
+        assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getSchemaName(), is(state.getUpdateServiceRequestDTO().getSchemaName()));
+        assertThat(validateOperationAction.state.readRecord(), is(state.readRecord()));
+        assertThat(validateOperationAction.settings, is(settings));
     }
 
     private void testUpdateOperationAction(UpdateOperationAction updateOperationAction, Properties properties) {
@@ -431,9 +431,9 @@ public class UpdateRequestActionTest {
         assertThat(updateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(updateOperationAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(updateOperationAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
-        assertThat(updateOperationAction.state.getOpenAgencyService(), is(state.getOpenAgencyService()));
+        assertThat(updateOperationAction.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateOperationAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
-        assertThat(updateOperationAction.record, equalTo(state.readRecord()));
-        assertThat(updateOperationAction.settings, equalTo(properties));
+        assertThat(updateOperationAction.record, is(state.readRecord()));
+        assertThat(updateOperationAction.settings, is(properties));
     }
 }

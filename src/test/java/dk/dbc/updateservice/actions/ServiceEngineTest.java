@@ -9,61 +9,53 @@ import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ServiceEngineTest {
-    private GlobalActionState state;
-
+class ServiceEngineTest {
     private static final MetricsHandlerBean metricsHandlerBean = mock(MetricsHandlerBean.class);
 
-    @Before
-    public void before() throws IOException {
-        state = new UpdateTestUtils().getGlobalActionStateMockObject();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionIsNull() throws UpdateException, SolrException {
+    @Test
+    void testExecuteAction_ActionIsNull() {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
-        instance.executeAction(null);
+        assertThrows(IllegalArgumentException.class, () -> instance.executeAction(null));
     }
 
-    @Test(expected = UpdateException.class)
-    public void testExecuteAction_ActionThrows() throws UpdateException, SolrException {
+    @Test
+    void testExecuteAction_ActionThrows() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenThrow(new UpdateException("error"));
-        instance.executeAction(action);
+        assertThrows(UpdateException.class, () -> instance.executeAction(action));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testExecuteAction_ActionReturnsNull() throws UpdateException, SolrException {
+    @Test
+    void testExecuteAction_ActionReturnsNull() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(null);
-        instance.executeAction(action);
+        assertThrows(IllegalArgumentException.class, () -> instance.executeAction(action));
     }
 
     @Test
-    public void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException {
+    void testExecuteAction_ActionReturnsErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction action = mock(ServiceAction.class);
         when(action.performAction()).thenReturn(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error"));
-        assertThat(instance.executeAction(action), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(instance.executeAction(action), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
     }
 
     @Test
-    public void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException, SolrException {
+    void testExecuteAction_ThreeChildrenNoErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction root = mock(ServiceAction.class);
 
@@ -82,7 +74,7 @@ public class ServiceEngineTest {
         when(root.performAction()).thenReturn(ServiceResult.newOkResult());
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.executeAction(root), is(ServiceResult.newOkResult()));
 
         verify(root).performAction();
         verify(root).children();
@@ -95,7 +87,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException, SolrException {
+    void testExecuteAction_ThreeChildren_RootHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction root = mock(ServiceAction.class);
 
@@ -115,7 +107,7 @@ public class ServiceEngineTest {
         when(root.performAction()).thenReturn(err);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(err));
+        assertThat(instance.executeAction(root), is(err));
 
         verify(root).performAction();
         verify(root, never()).children();
@@ -128,7 +120,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException, SolrException {
+    void testExecuteAction_ThreeChildren_RootHasWarnings() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction root = mock(ServiceAction.class);
 
@@ -147,7 +139,7 @@ public class ServiceEngineTest {
         ServiceResult warn = ServiceResult.newWarningResult(UpdateStatusEnumDTO.OK, "warning");
         when(root.performAction()).thenReturn(warn);
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
-        assertThat(instance.executeAction(root), equalTo(warn));
+        assertThat(instance.executeAction(root), is(warn));
         verify(root).performAction();
         verify(root).children();
         verify(c1).performAction();
@@ -159,7 +151,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException, SolrException {
+    void testExecuteAction_ThreeChildren_MiddleChildHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction root = mock(ServiceAction.class);
 
@@ -179,7 +171,7 @@ public class ServiceEngineTest {
         when(root.performAction()).thenReturn(ServiceResult.newOkResult());
         when(root.children()).thenReturn(Arrays.asList(c1, c2, c3));
 
-        assertThat(instance.executeAction(root), equalTo(err));
+        assertThat(instance.executeAction(root), is(err));
 
         verify(root).performAction();
         verify(root).children();
@@ -192,7 +184,7 @@ public class ServiceEngineTest {
     }
 
     @Test
-    public void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException, SolrException {
+    void testExecuteAction_ThreeChildren_FirstChildHasWarnings_SecondChildHasErrors() throws UpdateException, SolrException {
         ServiceEngine instance = new ServiceEngine(metricsHandlerBean);
         ServiceAction root = mock(ServiceAction.class);
 
@@ -217,7 +209,7 @@ public class ServiceEngineTest {
         expected.setStatus(UpdateStatusEnumDTO.FAILED);
         expected.addServiceResult(warn);
         expected.addServiceResult(err);
-        assertThat(instance.executeAction(root), equalTo(expected));
+        assertThat(instance.executeAction(root), is(expected));
 
         verify(root).performAction();
         verify(root).children();

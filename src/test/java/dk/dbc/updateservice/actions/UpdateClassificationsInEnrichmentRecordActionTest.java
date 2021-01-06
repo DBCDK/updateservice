@@ -10,25 +10,26 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
-public class UpdateClassificationsInEnrichmentRecordActionTest {
+class UpdateClassificationsInEnrichmentRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -53,14 +54,14 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = IllegalStateException.class)
-    public void testCreateRecord_CommonRecordIsNull() throws Exception {
+    @Test
+    void testCreateRecord_CommonRecordIsNull() throws Exception {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        updateClassificationsInEnrichmentRecordAction.createRecord();
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -82,14 +83,14 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = IllegalStateException.class)
-    public void testCreateRecord_EnrichmentRecordIsNull() throws Exception {
+    @Test
+    void testCreateRecord_EnrichmentRecordIsNull() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, UpdateTestUtils.GROUP_ID);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(null);
-        updateClassificationsInEnrichmentRecordAction.createRecord();
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -111,8 +112,8 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
      * </dd>
      * </dl>
      */
-    @Test(expected = IllegalStateException.class)
-    public void testCreateRecord_RecordsHandlerIsNull() throws Exception {
+    @Test
+    void testCreateRecord_RecordsHandlerIsNull() throws Exception {
         state.setLibraryRecordsHandler(null);
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
@@ -120,7 +121,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        updateClassificationsInEnrichmentRecordAction.createRecord();
+        assertThrows(IllegalStateException.class, updateClassificationsInEnrichmentRecordAction::createRecord);
     }
 
     /**
@@ -143,7 +144,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
      * </dl>
      */
     @Test
-    public void testCreateRecord() throws Exception {
+    void testCreateRecord() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
@@ -155,11 +156,11 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(null);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(enrichmentRecord);
-        assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), equalTo(newEnrichmentRecord));
+        assertThat(updateClassificationsInEnrichmentRecordAction.createRecord(), is(newEnrichmentRecord));
     }
 
     @Test
-    public void testModifyEnrichment() throws Exception {
+    void testModifyEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
@@ -190,7 +191,7 @@ public class UpdateClassificationsInEnrichmentRecordActionTest {
         // Verify that the records are identical without 001 *c
         new MarcRecordWriter(expected).removeSubfield("001", "c");
         new MarcRecordWriter(actual).removeSubfield("001", "c");
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
 }

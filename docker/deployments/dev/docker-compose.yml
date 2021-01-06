@@ -45,7 +45,7 @@ services:
       - db.env
       - providers.env
     environment:
-      - OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      - VIPCORE_ENDPOINT=${DEV_VIPCORE_ENDPOINT}
       - INSTANCE_NAME=${USER}_dev
       - OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
       - JAVA_MAX_HEAP_SIZE=8G
@@ -77,7 +77,7 @@ services:
   opencat-business-service:
     image: docker-io.dbc.dk/opencat-business:latest
     environment:
-      - OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      - VIPCORE_ENDPOINT=${DEV_VIPCORE_ENDPOINT}
       - RAWREPO_RECORD_SERVICE_URL=${DEV_RAWREPO_RECORD_SERVICE_URL}
       - OPENNUMBERROLL_URL=${DEV_NUMBERROLL_URL}
       - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
@@ -96,10 +96,10 @@ services:
       - "4848"
 
   rawrepo-record-service:
-    image: docker-io.dbc.dk/rawrepo-record-service:DIT-271
+    image: docker-io.dbc.dk/rawrepo-record-service:DIT-287
     environment:
       -  INSTANCE_NAME=${USER}_dev
-      -  OPENAGENCY_URL=${DEV_OPENAGENCY_URL}
+      -  VIPCORE_ENDPOINT=${DEV_VIPCORE_ENDPOINT}
       -  RAWREPO_URL=${DEV_RAWREPO_DB_URL}
       -  HOLDINGS_URL=${DEV_HOLDINGS_ITEMS_DB_URL}
       -  JAVA_MAX_HEAP_SIZE=2G

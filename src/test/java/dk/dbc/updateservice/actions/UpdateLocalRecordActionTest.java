@@ -10,13 +10,13 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
-import dk.dbc.updateservice.update.OpenAgencyService;
-import org.junit.Before;
-import org.junit.Test;
+import dk.dbc.updateservice.update.LibraryGroup;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -26,7 +26,6 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
@@ -34,12 +33,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class UpdateLocalRecordActionTest {
+class UpdateLocalRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -71,10 +70,10 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSingleRecord() throws Exception {
+    void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -108,7 +107,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord() throws Exception {
+    void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(volumeRecord);
@@ -118,7 +117,7 @@ public class UpdateLocalRecordActionTest {
         when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, volumeRecord);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -147,7 +146,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
+    void testPerformAction_CreateVolumeRecord_UnknownParent() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -158,7 +157,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -181,7 +180,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
+    void testPerformAction_CreateVolumeRecord_Itself() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -190,7 +189,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
@@ -213,7 +212,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteRecord_WithChildren() throws Exception {
+    void testPerformAction_DeleteRecord_WithChildren() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
         String recordId = new MarcRecordReader(record).getRecordId();
@@ -224,7 +223,7 @@ public class UpdateLocalRecordActionTest {
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         verify(state.getRawRepo(), never()).recordExists(anyString(), anyInt());
     }
 
@@ -253,7 +252,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord() throws Exception {
+    void testPerformAction_DeleteVolumeRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
@@ -261,7 +260,7 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -300,7 +299,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteLastVolumeRecord() throws Exception {
+    void testPerformAction_DeleteLastVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_MAIN_RECORD_RESOURCE);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_VOLUME_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
@@ -318,7 +317,7 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -349,7 +348,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
+    void testPerformAction_DeleteVolumeRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -357,12 +356,12 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -395,7 +394,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+    void testPerformAction_DeleteVolumeRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -404,10 +403,10 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(updateLocalRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateLocalRecordAction.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -440,7 +439,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord() throws Exception {
+    void testPerformAction_DeleteSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).markForDeletion();
 
@@ -448,7 +447,7 @@ public class UpdateLocalRecordActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
@@ -475,7 +474,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -483,12 +482,12 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         when(state.getRawRepo().children(eq(record))).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -520,7 +519,7 @@ public class UpdateLocalRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
+    void testPerformAction_DeleteSingleRecord_WithHoldings_DoesNotExportHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         AgencyNumber agencyId = new AgencyNumber(new MarcRecordReader(record).getAgencyIdAsInt());
         new MarcRecordWriter(record).markForDeletion();
@@ -529,10 +528,10 @@ public class UpdateLocalRecordActionTest {
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
-        when(state.getOpenAgencyService().hasFeature(agencyId.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);

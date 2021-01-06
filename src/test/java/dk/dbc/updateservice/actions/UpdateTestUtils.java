@@ -16,12 +16,13 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 
@@ -83,7 +84,7 @@ public class UpdateTestUtils {
         globalActionState.setOpencatBusiness(mock(OpencatBusinessConnector.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));
-        globalActionState.setOpenAgencyService(mock(OpenAgencyService.class));
+        globalActionState.setVipCoreService(mock(VipCoreService.class));
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
@@ -93,7 +94,7 @@ public class UpdateTestUtils {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
         }
         // You have to change this is in the actual test if anything other than fbs is needed
-        globalActionState.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        globalActionState.setLibraryGroup(LibraryGroup.FBS);
         return globalActionState;
     }
 
@@ -105,14 +106,14 @@ public class UpdateTestUtils {
         globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));
-        globalActionState.setOpenAgencyService(mock(OpenAgencyService.class));
+        globalActionState.setVipCoreService(mock(VipCoreService.class));
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
         globalActionState.setRecordSorter(new RecordSorterMock());
         globalActionState.setNoteAndSubjectExtensionsHandler(mock(NoteAndSubjectExtensionsHandler.class));
         // You have to change this is in the actual test if anything other than fbs is needed
-        globalActionState.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        globalActionState.setLibraryGroup(LibraryGroup.FBS);
         return globalActionState;
     }
 

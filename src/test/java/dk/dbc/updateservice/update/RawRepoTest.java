@@ -10,11 +10,11 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.rawrepo.RawRepoDAO;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
 import org.eclipse.microprofile.metrics.Tag;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -28,28 +28,23 @@ import java.util.Set;
 import static dk.dbc.updateservice.update.RawRepo.ERROR_TYPE;
 import static dk.dbc.updateservice.update.RawRepo.METHOD_NAME_KEY;
 import static dk.dbc.updateservice.update.RawRepo.rawrepoErrorCounterMetrics;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RawRepoTest {
+class RawRepoTest {
 
     @Mock
     DataSource dataSource;
 
     @Mock
     RawRepoDAO rawRepoDAO;
-
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-    }
 
     private class MockRawRepo extends RawRepo {
         public MockRawRepo() {
@@ -58,26 +53,39 @@ public class RawRepoTest {
         }
 
         @Override
-        protected RawRepoDAO createDAO(Connection conn) throws RawRepoException {
+        protected RawRepoDAO createDAO(Connection conn) {
             return rawRepoDAO;
         }
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_MarcRecord_RecordIsNull() throws Exception {
-        RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord((MarcRecord) (null));
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    void openMocks() {
+        closeable = MockitoAnnotations.openMocks(this);
     }
 
-
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_MarcRecord_RecordIsNotFound() throws Exception {
-        RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord(new MarcRecord());
+    @AfterEach
+    void releaseMocks() throws Exception {
+        closeable.close();
     }
 
     @Test
-    public void test_errormetrics_and_invocation_timers() throws Exception {
+    void test_agenciesForRecord_MarcRecord_RecordIsNull() {
+        RawRepo rawRepo = new MockRawRepo();
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((MarcRecord) (null)));
+
+    }
+
+
+    @Test
+    void test_agenciesForRecord_MarcRecord_RecordIsNotFound() {
+        RawRepo rawRepo = new MockRawRepo();
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(new MarcRecord()));
+    }
+
+    @Test
+    void test_errormetrics_and_invocation_timers() {
         RawRepo rawRepo = new MockRawRepo();
         try {
             rawRepo.agenciesForRecord(new MarcRecord());
@@ -92,7 +100,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
+    void test_agenciesForRecord_MarcRecord_RecordIdIsFound() throws Exception {
         String recId = "12346578";
         MarcRecord record = createRecord(recId, "700400");
 
@@ -105,20 +113,20 @@ public class RawRepoTest {
 
         RawRepo rawRepo = new MockRawRepo();
         Set<Integer> agencies = rawRepo.agenciesForRecord(record);
-        assertEquals(1, agencies.size());
+        assertThat(agencies.size(), is(1));
         assertTrue(agencies.contains(700400));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_String_RecordIdIsNull() throws Exception {
+    @Test
+    void test_agenciesForRecord_String_RecordIdIsNull() {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord((String) (null));
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((String) (null)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void test_agenciesForRecord_String_RecordIdIsEmpty() throws Exception {
+    @Test
+    void test_agenciesForRecord_String_RecordIdIsEmpty() {
         RawRepo rawRepo = new MockRawRepo();
-        rawRepo.agenciesForRecord("");
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(""));
     }
 
     private MarcRecord createRecord(String id, String agencyId) {
@@ -138,7 +146,7 @@ public class RawRepoTest {
     }
 
     @Test
-    public void test_linkRecordAppend_noExistingLinks() throws Exception {
+    void test_linkRecordAppend_noExistingLinks() throws Exception {
         RecordId linkFrom = new RecordId("12345678", 870970);
         RecordId linkTo = new RecordId("87654321", 870979);
 
@@ -154,16 +162,16 @@ public class RawRepoTest {
 
         verify(rawRepoDAO, times(1)).setRelationsFrom(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870970));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getValue().size(), equalTo(1));
-        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getAgencyId(), equalTo(870979));
-        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getBibliographicRecordId(), equalTo("87654321"));
+        assertThat(toProvider.getValue().size(), is(1));
+        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getAgencyId(), is(870979));
+        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getBibliographicRecordId(), is("87654321"));
     }
 
     @Test
-    public void test_linkRecordAppend_ExistingLinks() throws Exception {
+    void test_linkRecordAppend_ExistingLinks() throws Exception {
         RecordId linkFrom = new RecordId("12345678", 870970);
         RecordId linkTo = new RecordId("22222222", 870979);
 
@@ -182,25 +190,25 @@ public class RawRepoTest {
 
         verify(rawRepoDAO, times(1)).setRelationsFrom(fromProvider.capture(), toProvider.capture());
 
-        assertThat(fromProvider.getValue().getAgencyId(), equalTo(870970));
-        assertThat(fromProvider.getValue().getBibliographicRecordId(), equalTo("12345678"));
+        assertThat(fromProvider.getValue().getAgencyId(), is(870970));
+        assertThat(fromProvider.getValue().getBibliographicRecordId(), is("12345678"));
 
-        assertThat(toProvider.getValue().size(), equalTo(2));
-        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getAgencyId(), equalTo(870979));
-        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getBibliographicRecordId(), equalTo("11111111"));
-        assertThat(((RecordId) toProvider.getValue().toArray()[1]).getAgencyId(), equalTo(870979));
-        assertThat(((RecordId) toProvider.getValue().toArray()[1]).getBibliographicRecordId(), equalTo("22222222"));
+        assertThat(toProvider.getValue().size(), is(2));
+        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getAgencyId(), is(870979));
+        assertThat(((RecordId) toProvider.getValue().toArray()[0]).getBibliographicRecordId(), is("11111111"));
+        assertThat(((RecordId) toProvider.getValue().toArray()[1]).getAgencyId(), is(870979));
+        assertThat(((RecordId) toProvider.getValue().toArray()[1]).getBibliographicRecordId(), is("22222222"));
     }
 
     @Test
-    public void test_checkProvider() throws Exception {
+    void test_checkProvider() throws Exception {
         when(rawRepoDAO.checkProvider(anyString())).thenReturn(false);
         when(rawRepoDAO.checkProvider(eq("found"))).thenReturn(true);
 
         RawRepo rawRepo = new MockRawRepo();
 
-        assertThat(rawRepo.checkProvider("found"), equalTo(true));
-        assertThat(rawRepo.checkProvider("not-found"), equalTo(false));
+        assertThat(rawRepo.checkProvider("found"), is(true));
+        assertThat(rawRepo.checkProvider("not-found"), is(false));
     }
 
 }

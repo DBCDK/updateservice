@@ -12,12 +12,11 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.json.JsonMapper;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.xml.bind.JAXBException;
@@ -26,8 +25,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -35,12 +34,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StoreRecordActionTest {
+class StoreRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.DBC;
+    LibraryGroup libraryGroup = LibraryGroup.DBC;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
@@ -66,7 +65,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_StoreRecordOk() throws Exception {
+    void testPerformAction_StoreRecordOk() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -77,18 +76,18 @@ public class StoreRecordActionTest {
 
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
         verify(state.getRawRepo()).saveRecord(recordArgument.capture());
-        assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
-        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
-        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
+        assertThat(recordArgument.getValue().getId(), is(new RecordId(recordId, agencyId)));
+        assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
     }
 
     @Test
-    public void testPerformAction_MatVurd() throws Exception {
+    void testPerformAction_MatVurd() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         final String recordId = "12345678";
         final int agencyId = 870976;
@@ -97,18 +96,18 @@ public class StoreRecordActionTest {
 
         StoreRecordAction storeRecordAction = StoreRecordAction.newStoreMarcXChangeAction(state, settings, record);
 
-        assertThat(storeRecordAction.getMimetype(), equalTo(MarcXChangeMimeType.MATVURD));
+        assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.MATVURD));
 
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ArgumentCaptor<Record> recordArgument = ArgumentCaptor.forClass(Record.class);
         verify(state.getRawRepo()).saveRecord(recordArgument.capture());
-        assertThat(recordArgument.getValue().getId(), equalTo(new RecordId(recordId, agencyId)));
-        assertThat(recordArgument.getValue().getMimeType(), equalTo(storeRecordAction.getMimetype()));
-        assertThat(recordArgument.getValue().isDeleted(), equalTo(storeRecordAction.deletionMarkToStore()));
-        assertThat(recordArgument.getValue().getContent(), equalTo(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
+        assertThat(recordArgument.getValue().getId(), is(new RecordId(recordId, agencyId)));
+        assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
+        assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
+        assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
     }
 
     /**
@@ -135,7 +134,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_UnsupportedEncoding() throws Exception {
+    void testPerformAction_UnsupportedEncoding() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -148,7 +147,7 @@ public class StoreRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
         when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
 
-        assertThat(storeRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(storeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -176,7 +175,7 @@ public class StoreRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_JAXBException() throws Exception {
+    void testPerformAction_JAXBException() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -191,7 +190,7 @@ public class StoreRecordActionTest {
         when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
 
         ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
+        assertThat(serviceResult, is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
         verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
@@ -202,22 +201,22 @@ public class StoreRecordActionTest {
      * </p>
      */
     @Test
-    public void testDeletionMarkToStore() throws Exception {
+    void testDeletionMarkToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(storeRecordAction.deletionMarkToStore(), equalTo(false));
+        assertThat(storeRecordAction.deletionMarkToStore(), is(false));
     }
 
     /**
      * Test StoreRecordAction.recordToStore() to store a deleted record.
      */
     @Test
-    public void testRecordToStore() throws Exception {
+    void testRecordToStore() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         StoreRecordAction instance = new StoreRecordAction(state, settings, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        assertThat(instance.recordToStore(), equalTo(record));
+        assertThat(instance.recordToStore(), is(record));
     }
 
     private static class StoreRecordActionMock extends StoreRecordAction {
@@ -234,7 +233,7 @@ public class StoreRecordActionTest {
     }
 
     @Test
-    public void testUpdateModifiedDateDBC() throws Exception {
+    void testUpdateModifiedDateDBC() throws Exception {
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
         final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
@@ -246,11 +245,11 @@ public class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), equalTo(modified));
+        assertThat(modifiedReader.getValue("001", "c"), is(modified));
     }
 
     @Test
-    public void testUpdateModifiedDateNotDBC() throws Exception {
+    void testUpdateModifiedDateNotDBC() throws Exception {
         // 001 00 *a 20611529 *b 700400 *c 19971020 *d 19940516 *f a
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         final StoreRecordActionMock instance = new StoreRecordActionMock(state, settings, record);
@@ -260,6 +259,6 @@ public class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), equalTo("19971020"));
+        assertThat(modifiedReader.getValue("001", "c"), is("19971020"));
     }
 }

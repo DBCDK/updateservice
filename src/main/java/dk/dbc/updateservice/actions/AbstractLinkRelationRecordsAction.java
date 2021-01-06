@@ -15,7 +15,7 @@ import org.slf4j.ext.XLoggerFactory;
 public abstract class AbstractLinkRelationRecordsAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(AbstractLinkRelationRecordsAction.class);
 
-    public AbstractLinkRelationRecordsAction(String name, GlobalActionState globalActionState, MarcRecord record) {
+    protected AbstractLinkRelationRecordsAction(String name, GlobalActionState globalActionState, MarcRecord record) {
         super(name, globalActionState, record);
     }
 

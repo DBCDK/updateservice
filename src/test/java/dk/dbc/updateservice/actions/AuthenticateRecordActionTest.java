@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -17,22 +16,23 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.ResourceBundles;
-import org.junit.Before;
-import org.junit.Test;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AuthenticateRecordActionTest {
+class AuthenticateRecordActionTest {
     GlobalActionState state;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700400");
@@ -59,7 +59,7 @@ public class AuthenticateRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_OK_AUTH_ROOT() throws Exception {
+    void testPerformAction_OK_AUTH_ROOT() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "123456";
 
@@ -69,15 +69,15 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_SameAgency() throws Exception {
+    void testPerformAction_OK_SameAgency() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "700400";
 
@@ -87,15 +87,15 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_School() throws Exception {
+    void testPerformAction_OK_School() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "300000");
         String groupId = "312345";
@@ -106,15 +106,15 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_Fail_DifferentGroupsIds() throws Exception {
+    void testPerformAction_Fail_DifferentGroupsIds() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         String groupId = "700300";
 
@@ -124,7 +124,7 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         ServiceResult expected = new ServiceResult();
         expected.setStatus(UpdateStatusEnumDTO.FAILED);
@@ -136,11 +136,11 @@ public class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
+    void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         String groupId = "830010";
@@ -152,17 +152,17 @@ public class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         List<MessageEntryDTO> validationErrors = new ArrayList<>();
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(true);
         when(state.getNoteAndSubjectExtensionsHandler().authenticateCommonRecordExtraFields(record, groupId)).thenReturn(validationErrors);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_Fail_IsCommonNationalRecord() throws Exception {
+    void testPerformAction_Fail_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         String groupId = "830010";
@@ -177,7 +177,7 @@ public class AuthenticateRecordActionTest {
         MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
         messageEntryDTO.setMessage("fejl");
         validationErrors.add(messageEntryDTO);
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(true);
         when(state.getNoteAndSubjectExtensionsHandler().authenticateCommonRecordExtraFields(record, groupId)).thenReturn(validationErrors);
 
@@ -190,11 +190,11 @@ public class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_NoOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_NoOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -207,17 +207,17 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("create.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("create.common.record.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_DifferentOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_DifferentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -230,17 +230,17 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("create.common.record.other.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("create.common.record.other.library.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_NewRecord_SameOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_NewRecord_SameOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -253,17 +253,17 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_NoAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -276,19 +276,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.owner.dbc.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.owner.dbc.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_HasAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -301,19 +301,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_NoAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -326,19 +326,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_WrongCatLevel() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_WrongCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -352,19 +352,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -381,19 +381,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_HasAuth() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -407,19 +407,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_RET_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_NoCurrentOwner() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_NoCurrentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -436,19 +436,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_DifferentOwnerAndGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_DifferentOwnerAndGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -465,19 +465,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.give.public.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.give.public.library.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -494,19 +494,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -523,19 +523,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -552,19 +552,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.change.record.700300")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.change.record.700300")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -581,19 +581,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700300", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -610,20 +610,20 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("830010", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.take.public.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.take.public.library.error")));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_Ok() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -640,20 +640,20 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("830010", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(ServiceResult.newOkResult()));
+        assertThat(actual, is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DifferentOwnerAndGroupId() throws Exception {
+    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DifferentOwnerAndGroupId() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -670,19 +670,19 @@ public class AuthenticateRecordActionTest {
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
-        assertThat(actual, equalTo(createExpectedErrorReply("update.common.record.other.library.error")));
+        assertThat(actual, is(createExpectedErrorReply("update.common.record.other.library.error")));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_AddOk() throws Exception {
+    void testAuthenticateMetaCompassField_AddOk() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -691,15 +691,15 @@ public class AuthenticateRecordActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_AddError() throws Exception {
+    void testAuthenticateMetaCompassField_AddError() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -708,7 +708,7 @@ public class AuthenticateRecordActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
@@ -720,11 +720,11 @@ public class AuthenticateRecordActionTest {
         List<MessageEntryDTO> expected = new ArrayList<>();
         expected.add(expectedMessageEntryDTO);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_No665HasAuth() throws Exception {
+    void testAuthenticateMetaCompassField_No665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -732,15 +732,15 @@ public class AuthenticateRecordActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_No665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_No665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -748,34 +748,15 @@ public class AuthenticateRecordActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_Same665HasAuth() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
-
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
-
-        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
-
-        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
-        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
-    }
-
-    @Test
-    public void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_Same665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
@@ -786,15 +767,34 @@ public class AuthenticateRecordActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
+    void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        MarcRecordReader reader = new MarcRecordReader(record);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+
+        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
+
+        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
+
+        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
+        assertThat(actual, is(new ArrayList<>()));
+    }
+
+    @Test
+    void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
@@ -803,33 +803,33 @@ public class AuthenticateRecordActionTest {
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
+    void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, equalTo(new ArrayList<>()));
+        assertThat(actual, is(new ArrayList<>()));
     }
 
     @Test
-    public void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
+    void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
         new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature("700400", LibraryRuleHandler.Rule.AUTH_METACOMPASS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
@@ -841,6 +841,6 @@ public class AuthenticateRecordActionTest {
         List<MessageEntryDTO> expected = new ArrayList<>();
         expected.add(expectedMessageEntryDTO);
 
-        assertThat(actual, equalTo(expected));
+        assertThat(actual, is(expected));
     }
 }

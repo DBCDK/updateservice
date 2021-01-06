@@ -15,7 +15,7 @@ public abstract class AbstractAction implements ServiceAction {
     protected long timeElapsed;
     protected GlobalActionState state;
 
-    public AbstractAction(String actionName, GlobalActionState globalActionState) {
+    protected AbstractAction(String actionName, GlobalActionState globalActionState) {
         name = actionName;
         children = new ArrayList<>();
         timeElapsed = -1;

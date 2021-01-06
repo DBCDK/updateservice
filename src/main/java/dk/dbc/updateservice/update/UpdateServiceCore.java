@@ -10,7 +10,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
-import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -37,6 +36,7 @@ import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
+import dk.dbc.vipcore.exception.VipCoreException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -79,7 +79,7 @@ public class UpdateServiceCore {
     private HoldingsItems holdingsItems;
 
     @EJB
-    private OpenAgencyService openAgencyService;
+    private VipCoreService vipCoreService;
 
     @EJB
     private SolrFBS solrService;
@@ -117,7 +117,7 @@ public class UpdateServiceCore {
         newGlobalActionStateObject.setRawRepo(rawRepo);
         newGlobalActionStateObject.setOpencatBusiness(opencatBusiness);
         newGlobalActionStateObject.setHoldingsItems(holdingsItems);
-        newGlobalActionStateObject.setOpenAgencyService(openAgencyService);
+        newGlobalActionStateObject.setVipCoreService(vipCoreService);
         newGlobalActionStateObject.setSolrService(solrService);
         newGlobalActionStateObject.setSolrBasis(solrBasis);
         newGlobalActionStateObject.setValidator(validator);
@@ -234,8 +234,8 @@ public class UpdateServiceCore {
             }
 
             final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-            final String templateGroup = openAgencyService.getTemplateGroup(groupId);
-            final Set<String> allowedLibraryRules = openAgencyService.getAllowedLibraryRules(groupId);
+            final String templateGroup = vipCoreService.getTemplateGroup(groupId);
+            final Set<String> allowedLibraryRules = vipCoreService.getAllowedLibraryRules(groupId);
             final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(templateGroup, allowedLibraryRules);
 
             schemasResponseDTO = new SchemasResponseDTO();
@@ -243,8 +243,8 @@ public class UpdateServiceCore {
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
             schemasResponseDTO.setError(false);
             return schemasResponseDTO;
-        } catch (OpenAgencyException ex) {
-            LOGGER.error("Caught OpenAgencyException exception", ex);
+        } catch (VipCoreException ex) {
+            LOGGER.error("Caught VipCoreException exception", ex);
             schemasResponseDTO = new SchemasResponseDTO();
             schemasResponseDTO.setErrorMessage(ex.getMessage());
             schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);

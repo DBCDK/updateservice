@@ -11,14 +11,14 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -34,23 +34,22 @@ import java.util.ListIterator;
 import java.util.Properties;
 import java.util.Set;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 // TODO : Pt indeholder testposterne i de fleste test ikke noget der hænger sammen - det bør rettes op
 // TODO da det kan virke ret forvirrende. Senest hvis det skal opensources.
-public class UpdateOperationActionTest {
+class UpdateOperationActionTest {
     private GlobalActionState state;
     private final Properties settings = new UpdateTestUtils().getSettings();
-    private final OpenAgencyService.LibraryGroup libraryGroupDBC = OpenAgencyService.LibraryGroup.DBC;
-    private final OpenAgencyService.LibraryGroup libraryGroupFBS = OpenAgencyService.LibraryGroup.FBS;
+    private final LibraryGroup libraryGroupDBC = LibraryGroup.DBC;
+    private final LibraryGroup libraryGroupFBS = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
@@ -81,7 +80,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_LocalRecord() throws Exception {
+    void testPerformAction_LocalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -90,12 +89,12 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -105,7 +104,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_LocalRecordWith_n55() throws Exception {
+    void testPerformAction_LocalRecordWith_n55() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -116,12 +115,12 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -131,7 +130,7 @@ public class UpdateOperationActionTest {
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         Date expectedOverwriteDate = sdf.parse("02/06/2017");
-        assertThat(state.getCreateOverwriteDate(), equalTo(expectedOverwriteDate.toInstant()));
+        assertThat(state.getCreateOverwriteDate(), is(expectedOverwriteDate.toInstant()));
 
         MarcRecordReader reader = new MarcRecordReader(updateOperationAction.getRecord());
         assertFalse(reader.hasSubfield("n55", "a"));
@@ -164,7 +163,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
+    void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -176,13 +175,13 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS))).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
@@ -218,7 +217,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
+    void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -230,14 +229,14 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(enrichmentAgencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(Integer.toString(enrichmentAgencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(enrichmentRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
 
         state.setMarcRecord(enrichmentRecord);
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(2));
@@ -272,7 +271,7 @@ public class UpdateOperationActionTest {
      */
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test1() throws Exception {
+    void testPerformAction_CreateCommonRecord_test1() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -294,27 +293,27 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
         // this shall not create an doublerecord action
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test2() throws Exception {
+    void testPerformAction_CreateCommonRecord_test2() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -336,8 +335,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -347,22 +346,21 @@ public class UpdateOperationActionTest {
         updWriter.addOrReplaceSubfield("996", "a", "810010");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        System.out.println("children = " + children);
         assertThat(children.size(), is(5));
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord);
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord);
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test3() throws Exception {
+    void testPerformAction_CreateCommonRecord_test3() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -384,8 +382,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -395,20 +393,20 @@ public class UpdateOperationActionTest {
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(true);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(4));
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord);
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
-    public void testPerformAction_CreateCommonRecord_test4() throws Exception {
+    void testPerformAction_CreateCommonRecord_test4() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -430,8 +428,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
@@ -441,7 +439,7 @@ public class UpdateOperationActionTest {
         when(state.getUpdateStore().doesDoubleRecordKeyExist(eq(doubleRecordKey))).thenReturn(false);
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), doubleRecordKey);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -469,7 +467,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteCommonRecord() throws Exception {
+    void testPerformAction_DeleteCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -485,19 +483,19 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId))).thenReturn("");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getOpenAgencyService());
+        AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
@@ -521,7 +519,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
+    void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -537,7 +535,7 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(null);
@@ -545,7 +543,7 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("operation.delete.non.existing.record");
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     /**
@@ -575,7 +573,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
+    void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord commonSchoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
@@ -590,7 +588,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonSchoolRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
@@ -624,7 +622,7 @@ public class UpdateOperationActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_CreateSchoolEnrichment() throws Exception {
+    void testPerformAction_CreateSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
@@ -635,13 +633,13 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(schoolRecord);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(schoolRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(commonRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
@@ -650,7 +648,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordNoCommonRecordNo002() throws Exception {
+    void testPerformAction_FBSLocalRecordNoCommonRecordNo002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -664,11 +662,11 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = instance.children();
         assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
@@ -678,7 +676,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordNoCommonRecordHas002() throws Exception {
+    void testPerformAction_FBSLocalRecordNoCommonRecordHas002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -692,7 +690,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
 
         String solrRequest = "marc.002a:\"20611529\" AND marc.001b:870970";
         when(state.getSolrFBS().hasDocuments(solrRequest)).thenReturn(true);
@@ -700,11 +698,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPerformAction_FBSLocalRecordDeletedCommonRecord() throws Exception {
+    void testPerformAction_FBSLocalRecordDeletedCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
@@ -721,17 +719,17 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         List<MarcRecord> rawRepoRecords = Collections.singletonList(record);
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(record), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupFBS), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY)).thenReturn(commonRecord);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
 
         String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_NewRecord() throws Exception {
+    void testPreviousFaust_NewRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -748,22 +746,22 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_NoMatch() throws Exception {
+    void testPreviousFaust_UpdateRecord_NoMatch() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002a() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002a() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -781,11 +779,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -802,11 +800,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -826,11 +824,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
+    void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         List<MarcField> fields = record.getFields();
@@ -849,11 +847,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecordRemove002_NoConflict() throws Exception {
+    void testPreviousFaust_UpdateRecordRemove002_NoConflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -870,11 +868,11 @@ public class UpdateOperationActionTest {
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPreviousFaust_UpdateRecordRemove002_Conflict() throws Exception {
+    void testPreviousFaust_UpdateRecordRemove002_Conflict() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -905,11 +903,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_Ok() throws Exception {
+    void testPreviousFaust_DeleteRecord_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -925,11 +923,11 @@ public class UpdateOperationActionTest {
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
-        assertThat(instance.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_HoldingOn001() throws Exception {
+    void testPreviousFaust_DeleteRecord_HoldingOn001() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -955,11 +953,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testPreviousFaust_DeleteRecord_HoldingOn002() throws Exception {
+    void testPreviousFaust_DeleteRecord_HoldingOn002() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
@@ -986,11 +984,11 @@ public class UpdateOperationActionTest {
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("delete.record.holdings.on.002a");
-        assertThat(instance.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
 
     @Test
-    public void testSetCreatedDateOverwriteWithExisting() throws Exception {
+    void testSetCreatedDateOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
@@ -1002,11 +1000,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateNewRecordWith001d() throws Exception {
+    void testSetCreatedDateNewRecordWith001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
@@ -1017,11 +1015,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateNewRecordWithout001d() throws Exception {
+    void testSetCreatedDateNewRecordWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -1034,11 +1032,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateAdmin() throws Exception {
+    void testSetCreatedDateAdmin() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("010100");
 
         MarcRecord record = constructRecordWith001("20611529", "870970", "20001234", "19001234");
@@ -1049,11 +1047,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateFFUWithoutCreated() throws Exception {
+    void testSetCreatedDateFFUWithoutCreated() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("222222");
 
         MarcRecord record = constructRecordWith001("20611529", "222222", "20001234", null);
@@ -1063,11 +1061,11 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
+    void testSetCreatedDateFBSOverwriteWithExisting() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("333333");
 
         MarcRecord existing = constructRecordWith001("20611529", "870970", "20001234", "20182221");
@@ -1079,26 +1077,26 @@ public class UpdateOperationActionTest {
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateFBSNewEnrichmentWith001d() throws Exception {
+    void testSetCreatedDateFBSNewEnrichmentWith001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         MarcRecord record = constructRecordWith001("20611529", "710100", "20001234", "20190327");
         MarcRecord expected = constructRecordWith001("20611529", "710100", "20001234", "20190327");
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq("710100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateFBSNewEnrichmentWithout001d() throws Exception {
+    void testSetCreatedDateFBSNewEnrichmentWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMdd");
@@ -1108,16 +1106,16 @@ public class UpdateOperationActionTest {
         MarcRecord record = constructRecordWith001("20611529", "710100", "20001234", null);
         MarcRecord expected = constructRecordWith001("20611529", "710100", "20001234", today);
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq("710100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     @Test
-    public void testSetCreatedDateFBSExistingEnrichmentWithout001d() throws Exception {
+    void testSetCreatedDateFBSExistingEnrichmentWithout001d() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("710100");
 
         MarcRecord existing = constructRecordWith001("20611529", "710100", "20001234", "20182221");
@@ -1126,12 +1124,12 @@ public class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(eq("20611529"), eq(710100))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq("20611529"), eq(710100))).thenReturn(AssertActionsUtil.createRawRepoRecord(existing, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getOpenAgencyService().hasFeature(eq("710100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("710100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         state.setMarcRecord(record);
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         instance.setCreatedDate(new MarcRecordReader(record));
 
-        assertThat(instance.getRecord(), equalTo(expected));
+        assertThat(instance.getRecord(), is(expected));
     }
 
     private MarcRecord constructRecordWith001(String bibliographicRecordId, String agencyId, String modified, String created) {
@@ -1151,7 +1149,7 @@ public class UpdateOperationActionTest {
     }
 
     @Test
-    public void testPerformAction_RemoveD09zNoAction() throws Exception {
+    void testPerformAction_RemoveD09zNoAction() throws Exception {
 
         // Load a 870970 record - this is the rawrepo record
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -1182,8 +1180,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         // Get existing record merged
         when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
@@ -1191,7 +1189,7 @@ public class UpdateOperationActionTest {
                 eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(3));
@@ -1199,13 +1197,13 @@ public class UpdateOperationActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
-                state.getHoldingsItems(), state.getOpenAgencyService());
+                state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
-    public void testPerformAction_RemoveD09zNoD09InIncoming() throws Exception {
+    void testPerformAction_RemoveD09zNoD09InIncoming() throws Exception {
 
         // Load a 870970 record and create a merged version
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
@@ -1245,8 +1243,8 @@ public class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD)).thenReturn(true);
         // Get existing record merged
         when(state.getRawRepo().fetchMergedDBCRecord(eq(recordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(mergedRecord, MarcXChangeMimeType.MARCXCHANGE));
         List<MarcRecord> rawRepoRecords = Arrays.asList(record, enrichmentRecord);
@@ -1258,7 +1256,7 @@ public class UpdateOperationActionTest {
         when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkCommon, MarcXChangeMimeType.MARCXCHANGE));
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        assertThat(updateOperationAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
         assertThat(children.size(), is(5));
@@ -1266,7 +1264,7 @@ public class UpdateOperationActionTest {
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
-                state.getHoldingsItems(), state.getOpenAgencyService());
+                state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), littolkEnrichment, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDeleteCommonRecordAction(iterator.next(), state.getRawRepo(), littolkCommon, state.getLibraryRecordsHandler(), state.getHoldingsItems(),
                 settings.getProperty(state.getRawRepoProviderId()));

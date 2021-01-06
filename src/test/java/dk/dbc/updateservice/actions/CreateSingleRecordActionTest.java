@@ -10,11 +10,11 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,16 +25,15 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class CreateSingleRecordActionTest {
+class CreateSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -66,7 +65,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_No002Links() throws Exception {
+    void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 
@@ -74,7 +73,7 @@ public class CreateSingleRecordActionTest {
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
@@ -103,7 +102,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoLocals_With002Links() throws Exception {
+    void testPerformAction_NoLocals_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
 
@@ -112,7 +111,7 @@ public class CreateSingleRecordActionTest {
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
@@ -135,7 +134,7 @@ public class CreateSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_WithLocal_NotFFU() throws Exception {
+    void testPerformAction_WithLocal_NotFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -147,18 +146,18 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 123456)).thenReturn(rr2);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
     @Test
-    public void testPerformAction_WithLocal_WithFFU() throws Exception {
+    void testPerformAction_WithLocal_WithFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -169,11 +168,11 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
@@ -182,7 +181,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_WithLocal_WithFFUAndFBS() throws Exception {
+    void testPerformAction_WithLocal_WithFFUAndFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -195,19 +194,19 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 800500)).thenReturn(rr2);
 
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
     @Test
-    public void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
+    void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -218,17 +217,17 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870971)).thenReturn(rr);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("create.record.with.locals");
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
         assertThat(createSingleRecordAction.children().isEmpty(), is(true));
     }
 
     @Test
-    public void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
+    void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
@@ -243,13 +242,13 @@ public class CreateSingleRecordActionTest {
 
         when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
-        when(state.getOpenAgencyService().getFFULibraries()).thenReturn(ffuLibraries);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870970)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 830010)).thenReturn(rr2);
         when(state.getRawRepo().fetchRecord(recordId, 830020)).thenReturn(rr3);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
@@ -258,7 +257,7 @@ public class CreateSingleRecordActionTest {
     }
 
     @Test
-    public void testPerformAction_MatVurd() throws Exception {
+    void testPerformAction_MatVurd() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
         // The MATVURD_1 record contains r01 and r02 fields.
         // But when the record is send to updateservice the record is split into common part and enrichment part.
@@ -272,7 +271,7 @@ public class CreateSingleRecordActionTest {
         state.setMarcRecord(record); // <- Important! The original record is set on the state object
 
         final CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
-        assertThat(createSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         final List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(4));

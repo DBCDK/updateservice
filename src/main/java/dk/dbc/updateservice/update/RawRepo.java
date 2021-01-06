@@ -22,7 +22,8 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.RelationHintsVipCore;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
 import org.eclipse.microprofile.metrics.MetricUnits;
@@ -33,7 +34,6 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
@@ -65,6 +65,9 @@ public class RawRepo {
 
     @Inject
     MetricsHandlerBean metricsHandler;
+
+    @Inject
+    private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
     private static class RawrepoErrorCounterMetrics implements CounterMetric {
         private final Metadata metadata;
@@ -128,9 +131,6 @@ public class RawRepo {
     public static final List<String> MATVURD_FIELDS = Arrays.asList("r01", "r02");
 
     public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
-
-    @EJB
-    private OpenAgencyService openAgency;
 
     @Resource(lookup = "jdbc/rawrepo")
     private DataSource dataSource;
@@ -912,7 +912,8 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
-            rawRepoBuilder.relationHints(new RelationHintsOpenAgency(openAgency.getService()));
+
+            rawRepoBuilder.relationHints(new RelationHintsVipCore(vipCoreLibraryRulesConnector));
             return rawRepoBuilder.build();
         } finally {
             watch.stop("rawrepo.createDAO");
