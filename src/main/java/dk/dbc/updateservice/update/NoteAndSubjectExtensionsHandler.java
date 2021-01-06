@@ -245,7 +245,7 @@ public class NoteAndSubjectExtensionsHandler {
         try {
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (!Boolean.TRUE.equals(reader.hasValue("996", "a", "DBC"))) {
+            if (!reader.hasValue("996", "a", "DBC")) {
                 return false;
             }
             for (MarcField field : record.getFields()) {
