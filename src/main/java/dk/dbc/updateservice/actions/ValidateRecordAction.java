@@ -13,6 +13,7 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -20,6 +21,8 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to validate a record.
@@ -75,9 +78,10 @@ public class ValidateRecordAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             logger.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
 
-            final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord());
+            final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 

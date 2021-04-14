@@ -27,18 +27,18 @@ import org.slf4j.ext.XLoggerFactory;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class UpdateServiceClient {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceClient.class);
     private static final String BASE_URL = "http://localhost:8080/UpdateService/rest";
     private static final String PATH_UPDATESERVICE = "/api/v1/updateservice";
-    private static final RetryPolicy RETRY_POLICY = new RetryPolicy()
-            .retryOn(Collections.singletonList(ProcessingException.class))
-            .retryIf((Response response) -> response.getStatus() == 404)
-            .withDelay(10, TimeUnit.SECONDS)
+    private static final RetryPolicy<Response> RETRY_POLICY = new RetryPolicy<Response>()
+            .handle(ProcessingException.class)
+            .handleResultIf(response -> response.getStatus() == 404)
+            .withDelay(Duration.ofSeconds(10))
             .withMaxRetries(1);
     private static boolean isReady;
     private static final JSONBContext jsonbContext = new JSONBContext();

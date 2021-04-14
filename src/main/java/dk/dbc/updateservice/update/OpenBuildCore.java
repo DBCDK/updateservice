@@ -22,6 +22,7 @@ import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.json.MixIns;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Document;
@@ -45,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
 public class OpenBuildCore {
@@ -139,7 +142,9 @@ public class OpenBuildCore {
         LOGGER.entry(name);
         Boolean result = null;
         try {
-            result = opencatBusinessConnector.checkTemplateBuild(name);
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+
+            result = opencatBusinessConnector.checkTemplateBuild(name, trackingId);
 
             LOGGER.trace("Result checkTemplateBuild({}): {}", name, result);
 
@@ -178,12 +183,9 @@ public class OpenBuildCore {
         LOGGER.entry(buildSchema, record);
         MarcRecord result = null;
         try {
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             try {
-                if (record != null) {
-                    result = opencatBusinessConnector.buildRecord(buildSchema, record);
-                } else {
-                    result = opencatBusinessConnector.buildRecord(buildSchema);
-                }
+                result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
             } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
                 LOGGER.error(ex.getLocalizedMessage());
                 throw new EJBException("Error calling OpencatBusinessConnector", ex);

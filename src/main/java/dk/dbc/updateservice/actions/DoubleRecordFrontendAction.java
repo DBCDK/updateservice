@@ -13,12 +13,15 @@ import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to check a record for double records, and if one exists return a warning to the user.
@@ -44,8 +47,9 @@ public class DoubleRecordFrontendAction extends AbstractAction {
         logger.entry();
         ServiceResult result = null;
         try {
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-            final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord());
+            final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
             result = doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
             return result;
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {

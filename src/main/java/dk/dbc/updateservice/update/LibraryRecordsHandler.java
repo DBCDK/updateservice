@@ -20,6 +20,7 @@ import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -36,6 +37,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -1090,7 +1093,9 @@ public class LibraryRecordsHandler {
         LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
         Object jsResult = null;
         try {
-            return opencatBusinessConnector.doRecategorizationThings(currentCommonRecord, updatingCommonRecord, extendedRecord);
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+
+            return opencatBusinessConnector.doRecategorizationThings(currentCommonRecord, updatingCommonRecord, extendedRecord, trackingId);
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
@@ -1112,7 +1117,9 @@ public class LibraryRecordsHandler {
         LOGGER.entry(record);
         MarcField mf = null;
         try {
-            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(record);
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+
+            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(record, trackingId);
 
             return mf;
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {

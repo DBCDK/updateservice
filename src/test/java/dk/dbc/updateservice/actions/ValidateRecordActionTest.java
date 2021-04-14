@@ -10,8 +10,10 @@ import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
@@ -41,6 +43,12 @@ class ValidateRecordActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         state.getUpdateServiceRequestDTO().setSchemaName(SCHEMA_NAME);
         settings = new UpdateTestUtils().getSettings();
+        MDC.put("trackingId", "ValidateRecordActionTest");
+    }
+
+    @AfterAll
+    static void afterAll() {
+        MDC.clear();
     }
 
     /**
@@ -93,7 +101,7 @@ class ValidateRecordActionTest {
         final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenReturn(jsReturnList);
 
         final ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
@@ -124,7 +132,7 @@ class ValidateRecordActionTest {
         final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenReturn(jsReturnList);
+        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenReturn(jsReturnList);
 
         final ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
@@ -155,7 +163,7 @@ class ValidateRecordActionTest {
         final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
 
         final OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("error");
-        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record)).thenThrow(ex);
+        when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenThrow(ex);
 
         final String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);

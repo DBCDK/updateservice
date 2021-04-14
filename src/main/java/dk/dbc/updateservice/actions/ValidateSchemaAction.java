@@ -9,10 +9,13 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to check that the validate scheme name from the request is a valid
@@ -44,13 +47,17 @@ public class ValidateSchemaAction extends AbstractAction {
         ServiceResult result = null;
         validateData();
         try {
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             if (state.getSchemaName() == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty");
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
-            final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getTemplateGroup());
+            final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
+                    state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
+                    state.getTemplateGroup(),
+                    trackingId);
             if (validateSchemaFound) {
                 logger.info("Validating schema '{}' successfully", state.getSchemaName());
                 return result = ServiceResult.newOkResult();

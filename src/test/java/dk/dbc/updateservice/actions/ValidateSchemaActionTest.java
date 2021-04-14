@@ -8,8 +8,10 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.MDC;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -33,6 +35,12 @@ class ValidateSchemaActionTest {
         final String templateGroup = "fbs";
         state.setTemplateGroup(templateGroup);
         settings = new UpdateTestUtils().getSettings();
+        MDC.put("trackingId", "ValidateSchemaActionTest");
+    }
+
+    @AfterAll
+    static void afterAll() {
+        MDC.clear();
     }
 
     @Test
@@ -55,14 +63,14 @@ class ValidateSchemaActionTest {
     void testScripterException() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("message");
-        when(state.getOpencatBusiness().checkTemplate(anyString(), eq("400700"), anyString())).thenThrow(ex);
+        when(state.getOpencatBusiness().checkTemplate(anyString(), eq("400700"), anyString(), eq("ValidateSchemaActionTest"))).thenThrow(ex);
         assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage())));
     }
 
     @Test
     void testSchemaFound() throws Exception {
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        when(state.getOpencatBusiness().checkTemplate(eq("book"), eq("400700"), anyString())).thenReturn(true);
+        when(state.getOpencatBusiness().checkTemplate(eq("book"), eq("400700"), anyString(), eq("ValidateSchemaActionTest"))).thenReturn(true);
         assertThat(validateSchemaAction.performAction(), is(ServiceResult.newOkResult()));
     }
 
