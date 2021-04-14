@@ -773,7 +773,7 @@ public class LibraryRecordsHandler {
         return result;
     }
 
-    private Boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
+    private boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
         final MarcFieldReader fieldReader = new MarcFieldReader(field);
         String subfieldZ = fieldReader.getValue("z");
         if (subfieldZ != null) {
@@ -786,7 +786,7 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private Boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
+    private boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
         final String cleanedEnrichmentField = enrichmentField.toString().trim();
         for (MarcField field : commonRecordFieldList) {
             if (cleanedEnrichmentField.equals(field.toString().trim())) {
@@ -814,7 +814,7 @@ public class LibraryRecordsHandler {
         return collector;
     }
 
-    private Boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
+    private boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
         final MarcField cleanedField = createRecordFieldWithoutIgnorableSubfields(enrichmentField);
         final List<MarcField> listCleanedFields = createRecordFieldListWithoutIgnorableSubfields(commonFieldList);
         return isFieldPresentInList(cleanedField, listCleanedFields);
@@ -824,7 +824,7 @@ public class LibraryRecordsHandler {
     // (1) if the field nbr. is in the list of always keep fields (001, 004, 996 + classification fields)
     // (2) if field is not found in the common record from RawRepo
     // (3) if the field is a reference field that points to either a field from (1) or (2)
-    private Boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
+    private boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
         if (CONTROL_AND_CLASSIFICATION_FIELDS.contains(enrichmentField.getName())) {
             return true;
         }
