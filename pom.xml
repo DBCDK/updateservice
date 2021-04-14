@@ -37,7 +37,7 @@
         <postgres.jdbc.version>9.4-1204-jdbc41</postgres.jdbc.version>
         <buildnumber.maven.plugin.version>1.4</buildnumber.maven.plugin.version>
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
-        <dto.version>2.0-SNAPSHOT</dto.version>
+        <dto.version>2.1-SNAPSHOT</dto.version>
         <system-rules>1.19.0</system-rules>
         <jersey.version>2.22.2</jersey.version>
     </properties>
@@ -140,7 +140,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>vipcore-connector</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.3-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -185,7 +185,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>opencat-business-connector</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -325,6 +325,12 @@
             <groupId>dk.dbc</groupId>
             <artifactId>serviceutils</artifactId>
             <version>${serviceutils.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>dk.dbc</groupId>
+                    <artifactId>httpclient</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
