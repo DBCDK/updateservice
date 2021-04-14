@@ -36,7 +36,7 @@ public class RecordSorter {
         this.schemaName = schemaName;
     }
 
-    public MarcRecord sortRecord(MarcRecord record, Properties properties) throws UpdateException {
+    public MarcRecord sortRecord(MarcRecord record) {
         logger.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
 

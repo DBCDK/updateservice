@@ -23,6 +23,8 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.apache.commons.lang3.StringUtils;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -133,12 +135,15 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && record.getFields().size() > 0) {
+                final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
                 try {
                     final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
                     record = state.getOpencatBusiness().metacompass(record, trackingId);
                     MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, record, settings);
                 } catch (UpdateException | OpencatBusinessConnectorException ex) {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
+                } finally {
+                    watch.stop();
                 }
             }
 

@@ -11,6 +11,8 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -45,6 +47,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
         ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -56,6 +59,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
             logger.error(message, ex);
             return result = ServiceResult.newOkResult();
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }

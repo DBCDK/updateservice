@@ -328,8 +328,13 @@ public class UpdateServiceCore {
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(record);
-                    serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
+                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
+                    try {
+                        final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(record);
+                        serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
+                    } finally {
+                        watch.stop();
+                    }
                 } else {
                     serviceResult = ServiceResult.newOkResult();
                 }

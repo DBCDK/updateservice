@@ -20,6 +20,8 @@ import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -1091,7 +1093,7 @@ public class LibraryRecordsHandler {
      */
     private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws UpdateException {
         LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
-        Object jsResult = null;
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.doRecategorizationThings");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
@@ -1099,7 +1101,8 @@ public class LibraryRecordsHandler {
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
-            LOGGER.exit(jsResult);
+            watch.stop();
+            LOGGER.exit();
         }
     }
 
@@ -1115,6 +1118,7 @@ public class LibraryRecordsHandler {
 
     public MarcField fetchNoteField(MarcRecord record) throws UpdateException {
         LOGGER.entry(record);
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.recategorizationNoteFieldFactory");
         MarcField mf = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -1125,6 +1129,7 @@ public class LibraryRecordsHandler {
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: changeUpdateRecordForUpdate", ex);
         } finally {
+            watch.stop();
             LOGGER.exit(mf);
         }
     }

@@ -109,9 +109,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 updatedRecordCollection.put(reader.getRecordId(), record);
                 try {
                     final MarcRecord currentCommonRecord = state.getRecordSorter().sortRecord(
-                            ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, id.getBibliographicRecordId()), settings);
+                            ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, id.getBibliographicRecordId()));
                     final MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
-                            ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()), settings);
+                            ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()));
                     children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentCommonRecord));
                 } catch (RawRepoException e) {
                     throw new UpdateException("Exception while expanding the records", e);
@@ -241,7 +241,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
 
-            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId), settings);
+            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId));
 
             return result;
         } finally {
@@ -282,7 +282,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId), settings);
+            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId));
 
             return result;
         } finally {
