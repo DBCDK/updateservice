@@ -8,6 +8,8 @@ package dk.dbc.updateservice.update;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.marshallers.LibraryRule;
+import dk.dbc.vipcore.marshallers.LibraryRules;
+import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
@@ -15,8 +17,8 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Stateless
@@ -31,9 +33,9 @@ public class VipCoreService {
         StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
 
         try {
-            final List<LibraryRule> libraryRuleList = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
+            final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
 
-            for (LibraryRule libraryRule : libraryRuleList) {
+            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(feature.getValue())) {
                     LOGGER.debug("LibraryRule {} for {} is {}", agencyId, feature.getValue(), libraryRule);
                     if (libraryRule.getBool() != null) {
@@ -55,9 +57,9 @@ public class VipCoreService {
         String reply = "";
         LibraryGroup result;
         try {
-            final List<LibraryRule> libraryRuleList = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
+            final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
 
-            for (LibraryRule libraryRule : libraryRuleList) {
+            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
                     LOGGER.debug("LibraryRule {} for {} is {}", agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
                     reply = libraryRule.getString();
@@ -94,9 +96,9 @@ public class VipCoreService {
         LOGGER.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.vipcore.getTemplateGroup");
         try {
-            final List<LibraryRule> libraryRuleList = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
+            final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
 
-            for (LibraryRule libraryRule : libraryRuleList) {
+            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
                     LOGGER.debug("LibraryRule {} for {} is {}", agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
                     LOGGER.info("Agency '{}' has LibraryGroup {}", agencyId, libraryRule.getString());
@@ -112,46 +114,43 @@ public class VipCoreService {
     }
 
     public Set<String> getLokbibLibraries() throws VipCoreException {
-        LOGGER.entry();
-        Set<String> result = null;
-        try {
-            result = vipCoreLibraryRulesConnector.getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET, "lokbib");
-            return result;
-        } finally {
-            LOGGER.exit(result);
-        }
+        return getLibrariesByCatalogingTemplateSet("lokbib");
     }
 
     public Set<String> getPHLibraries() throws VipCoreException {
+        return getLibrariesByCatalogingTemplateSet("ph");
+    }
+
+    public Set<String> getFFULibraries() throws VipCoreException {
+        return getLibrariesByCatalogingTemplateSet("ffu");
+    }
+
+    private Set<String> getLibrariesByCatalogingTemplateSet(String catalogingTemplateSet) throws VipCoreException {
         LOGGER.entry();
         Set<String> result = null;
         try {
-            result = vipCoreLibraryRulesConnector.getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET, "ph");
+            final LibraryRule libraryRule = new LibraryRule();
+            libraryRule.setName(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue());
+            libraryRule.setString(catalogingTemplateSet);
+            final LibraryRulesRequest request = new LibraryRulesRequest();
+            request.setLibraryRule(Collections.singletonList(libraryRule));
+
+            result = vipCoreLibraryRulesConnector.getLibraries(request);
             return result;
         } finally {
             LOGGER.exit(result);
         }
     }
 
-    public Set<String> getFFULibraries() throws VipCoreException {
-        LOGGER.entry();
-        Set<String> result = null;
-        try {
-            result = vipCoreLibraryRulesConnector.getLibrariesByLibraryRule(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET, "ffu");
-            return result;
-        } finally {
-            LOGGER.exit(result);
-        }
-    }
 
     public Set<String> getAllowedLibraryRules(String agencyId) throws VipCoreException {
         LOGGER.entry(agencyId, agencyId);
         StopWatch watch = new Log4JStopWatch("service.vipcore.getAllowedLibraryRules");
         final Set<String> result = new HashSet<>();
         try {
-            List<LibraryRule> libraryRuleList = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
+            final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
 
-            for (LibraryRule libraryRule : libraryRuleList) {
+            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getBool() != null && libraryRule.getBool()) {
                     result.add(libraryRule.getName());
                 }
