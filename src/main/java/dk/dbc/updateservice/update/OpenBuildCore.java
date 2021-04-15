@@ -187,14 +187,13 @@ public class OpenBuildCore {
         MarcRecord result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            try {
-                result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
-            } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
-                LOGGER.error(ex.getLocalizedMessage());
-                throw new EJBException("Error calling OpencatBusinessConnector", ex);
-            }
+
+            result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
 
             return result;
+        } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
+            LOGGER.error(ex.getLocalizedMessage());
+            throw new EJBException("Error calling OpencatBusinessConnector", ex);
         } finally {
             watch.stop();
             LOGGER.exit(result);
