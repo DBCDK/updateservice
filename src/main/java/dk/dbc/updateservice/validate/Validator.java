@@ -10,6 +10,8 @@ import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -31,6 +33,7 @@ public class Validator {
 
     public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws UpdateException {
         logger.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.getValidateSchemas");
         List<SchemaDTO> result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -41,6 +44,7 @@ public class Validator {
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: getValidateSchemas", ex);
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }

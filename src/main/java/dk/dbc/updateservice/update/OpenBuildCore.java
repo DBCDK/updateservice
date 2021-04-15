@@ -140,6 +140,7 @@ public class OpenBuildCore {
 
     private boolean checkValidateSchema(String name) throws JSONBException, OpencatBusinessConnectorException {
         LOGGER.entry(name);
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplateBuild");
         Boolean result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -150,6 +151,7 @@ public class OpenBuildCore {
 
             return result;
         } finally {
+            watch.stop();
             LOGGER.exit(result);
         }
     }
@@ -181,18 +183,19 @@ public class OpenBuildCore {
 
     private MarcRecord buildRecord(String buildSchema, MarcRecord record) {
         LOGGER.entry(buildSchema, record);
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.buildRecord");
         MarcRecord result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            try {
-                result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
-            } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
-                LOGGER.error(ex.getLocalizedMessage());
-                throw new EJBException("Error calling OpencatBusinessConnector", ex);
-            }
+
+            result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
 
             return result;
+        } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
+            LOGGER.error(ex.getLocalizedMessage());
+            throw new EJBException("Error calling OpencatBusinessConnector", ex);
         } finally {
+            watch.stop();
             LOGGER.exit(result);
         }
     }

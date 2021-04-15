@@ -165,9 +165,9 @@ public class NoteAndSubjectExtensionsHandler {
      *
      * @param field  field to compare
      * @param record record to compare the field in
-     * @return Boolean True if the record has a field that matches field
+     * @return boolean True if the record has a field that matches field
      */
-    Boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord record) {
+    boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord record) {
         final MarcRecord cloneMarcRecord = new MarcRecord(record);
         final MarcRecordReader cloneMarcRecordReader = new MarcRecordReader(cloneMarcRecord);
         final MarcRecordWriter cloneMarcRecordWriter = new MarcRecordWriter(cloneMarcRecord);
@@ -237,7 +237,7 @@ public class NoteAndSubjectExtensionsHandler {
      * Checks if this record is a national common record.
      *
      * @param record Record.
-     * @return {Boolean} True / False.
+     * @return {boolean} True / False.
      */
     public boolean isNationalCommonRecord(MarcRecord record) {
         logger.entry(record);

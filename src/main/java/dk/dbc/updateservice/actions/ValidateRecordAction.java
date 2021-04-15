@@ -13,6 +13,8 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -76,6 +78,7 @@ public class ValidateRecordAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
         ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -102,6 +105,7 @@ public class ValidateRecordAction extends AbstractAction {
             logger.error(message, ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }

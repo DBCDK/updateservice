@@ -9,6 +9,8 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -44,6 +46,7 @@ public class ValidateSchemaAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate");
         ServiceResult result = null;
         validateData();
         try {
@@ -69,6 +72,7 @@ public class ValidateSchemaAction extends AbstractAction {
             logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }

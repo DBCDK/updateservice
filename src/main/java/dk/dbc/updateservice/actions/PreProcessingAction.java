@@ -10,6 +10,8 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -32,6 +34,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         LOGGER.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record
@@ -47,6 +50,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             LOGGER.error("Error during pre-processing", ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
+            watch.stop();
             LOGGER.exit();
         }
     }

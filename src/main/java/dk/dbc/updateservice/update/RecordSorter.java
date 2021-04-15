@@ -17,7 +17,6 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
-import java.util.Properties;
 
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
@@ -36,7 +35,7 @@ public class RecordSorter {
         this.schemaName = schemaName;
     }
 
-    public MarcRecord sortRecord(MarcRecord record, Properties properties) throws UpdateException {
+    public MarcRecord sortRecord(MarcRecord record) {
         logger.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
 

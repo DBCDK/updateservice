@@ -108,7 +108,7 @@ public class UpdateRequestAction extends AbstractAction {
      * It is declared public so {@link dk.dbc.updateservice.update.UpdateServiceCore} can use it.
      * </p>
      *
-     * @return Boolean value.
+     * @return boolean value.
      */
     public boolean hasValidateOnlyOption() {
         logger.entry();

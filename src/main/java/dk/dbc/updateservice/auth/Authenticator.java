@@ -51,7 +51,7 @@ public class Authenticator {
             logger.debug("Using endpoint to forsrights webservice: {}", endpoint);
             ForsRights.RightSet rights;
             Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
-            if (useIpSetting != null && Boolean.valueOf(useIpSetting.toString())) {
+            if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString())) {
                 String ipAddress;
                 if (state.getRequest() != null) {
                     ipAddress = getRemoteAddrFromMessage(state.getRequest());

@@ -20,6 +20,8 @@ import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -771,7 +773,7 @@ public class LibraryRecordsHandler {
         return result;
     }
 
-    private Boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
+    private boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
         final MarcFieldReader fieldReader = new MarcFieldReader(field);
         String subfieldZ = fieldReader.getValue("z");
         if (subfieldZ != null) {
@@ -784,7 +786,7 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private Boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
+    private boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
         final String cleanedEnrichmentField = enrichmentField.toString().trim();
         for (MarcField field : commonRecordFieldList) {
             if (cleanedEnrichmentField.equals(field.toString().trim())) {
@@ -812,7 +814,7 @@ public class LibraryRecordsHandler {
         return collector;
     }
 
-    private Boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
+    private boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
         final MarcField cleanedField = createRecordFieldWithoutIgnorableSubfields(enrichmentField);
         final List<MarcField> listCleanedFields = createRecordFieldListWithoutIgnorableSubfields(commonFieldList);
         return isFieldPresentInList(cleanedField, listCleanedFields);
@@ -822,7 +824,7 @@ public class LibraryRecordsHandler {
     // (1) if the field nbr. is in the list of always keep fields (001, 004, 996 + classification fields)
     // (2) if field is not found in the common record from RawRepo
     // (3) if the field is a reference field that points to either a field from (1) or (2)
-    private Boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
+    private boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
         if (CONTROL_AND_CLASSIFICATION_FIELDS.contains(enrichmentField.getName())) {
             return true;
         }
@@ -1091,7 +1093,7 @@ public class LibraryRecordsHandler {
      */
     private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws UpdateException {
         LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
-        Object jsResult = null;
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.doRecategorizationThings");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
@@ -1099,7 +1101,8 @@ public class LibraryRecordsHandler {
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
-            LOGGER.exit(jsResult);
+            watch.stop();
+            LOGGER.exit();
         }
     }
 
@@ -1115,6 +1118,7 @@ public class LibraryRecordsHandler {
 
     public MarcField fetchNoteField(MarcRecord record) throws UpdateException {
         LOGGER.entry(record);
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.recategorizationNoteFieldFactory");
         MarcField mf = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -1125,6 +1129,7 @@ public class LibraryRecordsHandler {
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: changeUpdateRecordForUpdate", ex);
         } finally {
+            watch.stop();
             LOGGER.exit(mf);
         }
     }
