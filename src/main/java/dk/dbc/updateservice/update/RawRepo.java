@@ -22,6 +22,7 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RelationHintsVipCore;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
@@ -127,7 +128,7 @@ public class RawRepo {
     public static final int SCHOOL_COMMON_AGENCY = 300000;
     public static final int MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
-    public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700", "770", "780");
+    public static final List<String> AUTHORITY_FIELDS = ExpandCommonMarcRecord.AUTHORITY_FIELD_LIST;
     public static final List<String> MATVURD_FIELDS = Arrays.asList("r01", "r02");
 
     public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
