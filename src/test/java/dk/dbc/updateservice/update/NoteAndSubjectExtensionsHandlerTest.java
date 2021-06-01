@@ -601,6 +601,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
@@ -627,6 +628,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
@@ -652,6 +654,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
@@ -677,6 +680,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
@@ -707,6 +711,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(true);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final List<MessageEntryDTO> expected = new ArrayList<>();
@@ -738,6 +743,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(eq(currentReader.getRecordId()), eq(RawRepo.COMMON_AGENCY))).thenReturn(curRecordCollection);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES))).thenReturn(false);
         when(vipCoreService.hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS))).thenReturn(false);
+        when(vipCoreService.getLibraryGroup(eq(groupId))).thenReturn(LibraryGroup.FBS);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
