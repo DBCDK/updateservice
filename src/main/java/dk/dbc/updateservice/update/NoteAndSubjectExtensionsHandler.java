@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
+import dk.dbc.common.records.CatalogExtractionCode;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcFieldWriter;
@@ -33,9 +34,9 @@ import java.util.ResourceBundle;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
-    private VipCoreService vipCoreService;
-    private RawRepo rawRepo;
-    private ResourceBundle messages;
+    private final VipCoreService vipCoreService;
+    private final RawRepo rawRepo;
+    private final ResourceBundle messages;
 
     static final String EXTENDABLE_NOTE_FIELDS = "504|530";
     static final String EXTENDABLE_SUBJECT_FIELDS = "600|610|630|631|666";
@@ -48,21 +49,21 @@ public class NoteAndSubjectExtensionsHandler {
         this.messages = messages;
     }
 
-    MarcRecord recordDataForRawRepo(MarcRecord record, String groupId) throws UpdateException, VipCoreException, UnsupportedEncodingException {
-        logger.entry(record, groupId);
+    MarcRecord recordDataForRawRepo(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException, UnsupportedEncodingException {
+        logger.entry(marcRecord, groupId);
 
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recId = reader.getRecordId();
             if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 logger.info("No existing record - returning same record");
-                return record;
+                return marcRecord;
             }
             final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
             if (!isNationalCommonRecord(curRecord)) {
                 logger.info("Record is not national common record - returning same record");
-                return record;
+                return marcRecord;
             }
             logger.info("Checking for altered classifications for disputas type material");
             if (curReader.hasValue("008", "d", "m") &&
@@ -79,7 +80,7 @@ public class NoteAndSubjectExtensionsHandler {
 
             if (extendableFieldsRx.isEmpty()) {
                 logger.info("Agency {} doesn't have permission to edit notes or subject fields - returning same record", groupId);
-                return record;
+                return marcRecord;
             }
             extendableFieldsRx += "|" + EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
             logger.info("Extendable fields: {} ", extendableFieldsRx);
@@ -108,7 +109,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
 
             // Handle note/subject fields in the incoming record
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 final MarcField fieldClone = new MarcField(field);
                 if (fieldClone.getName().matches(extendableFieldsRx)) {
                     if (!"652".equals(fieldClone.getName())) {
@@ -143,8 +144,8 @@ public class NoteAndSubjectExtensionsHandler {
                 String new652 = reader.getValue("652", "m");
                 String current652 = currentRecordReader.getValue("652", "m");
 
-                if (current652 != null && new652 != null && !new652.toLowerCase().equals(current652.toLowerCase())) {
-                    return current652.toLowerCase().equals(NO_CLASSIFICATION) &&
+                if (current652 != null && new652 != null && !new652.equalsIgnoreCase(current652)) {
+                    return current652.equalsIgnoreCase(NO_CLASSIFICATION) &&
                             currentRecordReader.isDBCRecord() &&
                             currentRecordReader.hasValue("008", "d", "m");
 
@@ -163,12 +164,12 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * This function checks whether the input field exist and is identical with a field in the record
      *
-     * @param field  field to compare
-     * @param record record to compare the field in
+     * @param field      field to compare
+     * @param marcRecord record to compare the field in
      * @return boolean True if the record has a field that matches field
      */
-    boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord record) {
-        final MarcRecord cloneMarcRecord = new MarcRecord(record);
+    boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord marcRecord) {
+        final MarcRecord cloneMarcRecord = new MarcRecord(marcRecord);
         final MarcRecordReader cloneMarcRecordReader = new MarcRecordReader(cloneMarcRecord);
         final MarcRecordWriter cloneMarcRecordWriter = new MarcRecordWriter(cloneMarcRecord);
         final MarcFieldReader fieldReader = new MarcFieldReader(field);
@@ -236,19 +237,19 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * Checks if this record is a national common record.
      *
-     * @param record Record.
+     * @param marcRecord Record.
      * @return {boolean} True / False.
      */
-    public boolean isNationalCommonRecord(MarcRecord record) {
-        logger.entry(record);
+    public boolean isNationalCommonRecord(MarcRecord marcRecord) {
+        logger.entry(marcRecord);
 
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (!reader.hasValue("996", "a", "DBC")) {
                 return false;
             }
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 if (isFieldNationalCommonField(field)) {
                     return true;
                 }
@@ -279,7 +280,8 @@ public class NoteAndSubjectExtensionsHandler {
 
     private boolean hasOnlyNationalBibliographicCode(MarcField field032) {
         for (MarcSubField subfield : field032.getSubfields()) {
-            if ("a".equals(subfield.getName()) && !subfield.getValue().matches("^(DBF|DBI|DBR|DBÅ|DKF|DLF|DMF|DMO|DOP|DPF|DPO|FBL|FPF|GBF|GBÅ|GMO|GPF|IDO|IDP|KIP).*$")) {
+            // 00C5 = Å
+            if ("a".equals(subfield.getName()) && !subfield.getValue().matches("^(DBF|DBI|DBR|DB\00C5|DKF|DLF|DMF|DMO|DOP|DPF|DPO|FBL|FPF|GBF|GB\00C5|GMO|GPF|IDO|IDP|KIP).*$")) {
                 return false;
             }
         }
@@ -300,16 +302,16 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * Validate whether the record is legal in regards to note and subject fields and the permissions of the group
      *
-     * @param record  The incoming record
-     * @param groupId GroupId of the requester
+     * @param marcRecord The incoming record
+     * @param groupId    GroupId of the requester
      * @return List of validation errors (ok returns empty list)
      * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
-    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord record, String groupId) throws UpdateException, VipCoreException {
-        logger.entry(record, groupId);
+    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
+        logger.entry(marcRecord, groupId);
         List<MessageEntryDTO> result = new ArrayList<>();
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
@@ -336,7 +338,7 @@ public class NoteAndSubjectExtensionsHandler {
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
                 logger.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
-                for (MarcField field : record.getFields()) {
+                for (MarcField field : marcRecord.getFields()) {
                     if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
                         String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                         result.add(createMessageDTO(message));
@@ -344,7 +346,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
                 // Check if all fields in the existing record are in the incoming record
                 for (MarcField field : curRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, record)) {
+                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
                         String fieldName = field.getName();
                         if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
                             String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
@@ -357,7 +359,7 @@ public class NoteAndSubjectExtensionsHandler {
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
                 logger.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
-                for (MarcField field : record.getFields()) {
+                for (MarcField field : marcRecord.getFields()) {
                     if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
                         String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                         result.add(createMessageDTO(message));
@@ -365,7 +367,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
                 // Check if all fields in the existing record are in the incoming record
                 for (MarcField field : curRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, record)) {
+                    if (field.getName().matches(EXTENDABLE_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
                         String fieldName = field.getName();
                         if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
                             String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
@@ -374,6 +376,14 @@ public class NoteAndSubjectExtensionsHandler {
                     }
                 }
             }
+
+            // The 700300 check will be replaced once there is a SBCI library group
+            if (("700300".equals(groupId) || vipCoreService.getLibraryGroup(groupId).isFBS())
+                    && !CatalogExtractionCode.isPublished(marcRecord)) {
+                final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
+                result.add(createMessageDTO(message));
+            }
+
             return result;
         } finally {
             logger.trace("Exit - NoteAndSubjectExtensionsHandler.authenticateExtensions(): {}", result);
@@ -389,7 +399,7 @@ public class NoteAndSubjectExtensionsHandler {
         return result;
     }
 
-    public MarcRecord collapse(MarcRecord record, MarcRecord currentRecord, String groupId, boolean isNationalCommonRecord) throws VipCoreException {
+    public MarcRecord collapse(MarcRecord marcRecord, MarcRecord currentRecord, String groupId, boolean isNationalCommonRecord) throws VipCoreException {
         MarcRecord collapsedRecord = new MarcRecord(currentRecord);
         List<String> fieldsToCopy = new ArrayList<>();
 
@@ -408,7 +418,7 @@ public class NoteAndSubjectExtensionsHandler {
         fieldsToCopy.add("996");
         MarcRecordWriter curWriter = new MarcRecordWriter(collapsedRecord);
         curWriter.removeFields(fieldsToCopy);
-        curWriter.copyFieldsFromRecord(fieldsToCopy, record);
+        curWriter.copyFieldsFromRecord(fieldsToCopy, marcRecord);
 
         return collapsedRecord;
     }
