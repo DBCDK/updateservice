@@ -21,7 +21,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.eclipse.persistence.internal.sessions.DirectCollectionChangeRecord;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
