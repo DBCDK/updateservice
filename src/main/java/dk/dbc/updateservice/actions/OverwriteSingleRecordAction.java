@@ -21,6 +21,7 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.eclipse.persistence.internal.sessions.DirectCollectionChangeRecord;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -134,11 +135,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     /**
      * This function checks if the authority record has been changed in a way which affects proof printing (korrekturprint)
      * <p>
-     * The rule is the child common records should be updated if field 100 (non repeatable), 400 (repeatable) or 500 (repeatable)
+     * The rule is the child common records should be updated if field 100/110 (non repeatable), 400/410 (repeatable) or 500/510 (repeatable)
      * in the authority record has been changed.
      *
      * @param record The incoming authority record
-     * @return True if field 100, 400 or 500 has been changed
+     * @return True if field 100, 110, 400, 410, 500 or 510 has been changed
      * @throws UpdateException
      * @throws UnsupportedEncodingException
      */
@@ -157,9 +158,14 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
 
             // Field exists in the updated record but not in the current record -> korrekturprint
-            return !(currentReader.getField("100").equals(reader.getField("100")) &&
+            // It's a fact that both 100 and 110 may only exist as one field, but getField returns null if the field doesn't exist
+            // therefore we get "all" fields of the to types. Number of fields are validated at another place.
+            return !(currentReader.getFieldAll("100").equals(reader.getFieldAll("100")) &&
+                    currentReader.getFieldAll("110").equals(reader.getFieldAll("110")) &&
                     currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
-                    currentReader.getFieldAll("500").equals(reader.getFieldAll("500")));
+                    currentReader.getFieldAll("410").equals(reader.getFieldAll("410")) &&
+                    currentReader.getFieldAll("500").equals(reader.getFieldAll("500")) &&
+                    currentReader.getFieldAll("510").equals(reader.getFieldAll("510")));
         }
 
         return false;
