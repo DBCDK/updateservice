@@ -142,7 +142,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
+            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
+                    RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
             } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
