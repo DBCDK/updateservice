@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+DOCKER_FOLDER=docker/update-payara-dev
+
+case "$1" in
+    docker)
+        echo "### building update-service docker ###"
+        rm ${DOCKER_FOLDER}/*.war
+        cp target/updateservice-2.0-SNAPSHOT.war ${DOCKER_FOLDER}
+        docker build -t docker-i.dbc.dk/update-payara-dev:devel ${DOCKER_FOLDER} || exit 1
+        if [[ ! -z "$BUILD_NUMBER" ]]; then
+            docker tag docker-io.dbc.dk/update-service:devel docker-io.dbc.dk/update-service:${BRANCH_NAME}-${BUILD_NUMBER}
+        fi
+        ;;
+
+    *)
+        echo "### building update-service project ###"
+        echo "### Look for build artifacts in target/ ###"
+
+        mvn package -Dmaven.test.skip=true || exit 1
+        ;;
+esac

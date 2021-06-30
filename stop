@@ -1,0 +1,3 @@
+echo "### Stopping update-service docker ###"
+
+docker stop update-service || exit 1
