@@ -37,9 +37,6 @@ public class HoldingsItemsTest {
     MetricsHandlerBean mockedMetricsHandlerBean;
 
     @Mock
-    DataSource dataSource;
-
-    @Mock
     HoldingsItemsDAO holdingsItemsDAO;
 
     private AutoCloseable closeable;
@@ -66,8 +63,8 @@ public class HoldingsItemsTest {
         }
     }
 
-    @Test(expected = UpdateException.class)
-    public void test_agenciesThatHasHoldingsFor_String_HoldingItemsException() throws Exception {
+    @Test
+    void test_agenciesThatHasHoldingsFor_String_HoldingItemsException() throws Exception {
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenThrow(new HoldingsItemsException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
