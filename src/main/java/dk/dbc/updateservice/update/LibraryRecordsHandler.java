@@ -15,17 +15,22 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.UpdateOwnership;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
-import dk.dbc.updateservice.javascript.Scripter;
-import dk.dbc.updateservice.javascript.ScripterException;
-import org.codehaus.jackson.map.ObjectMapper;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
@@ -34,6 +39,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Class to manipulate library records for a local library. Local records and
@@ -52,10 +59,10 @@ public class LibraryRecordsHandler {
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
 
     @EJB
-    private Scripter scripter;
+    private VipCoreService vipCoreService;
 
-    @EJB
-    private OpenAgencyService openAgencyService;
+    @Inject
+    private OpencatBusinessConnector opencatBusinessConnector;
 
     @EJB
     private RawRepo rawRepo;
@@ -75,19 +82,14 @@ public class LibraryRecordsHandler {
     public LibraryRecordsHandler() {
     }
 
-    protected LibraryRecordsHandler(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
     /**
      * Tests if a record is published
      *
      * @param record The record.
      * @return <code>true</code> if published
      * <code>false</code> otherwise.
-     * @throws ScripterException in case of an error
      */
-    public boolean isRecordInProduction(MarcRecord record) throws ScripterException {
+    public boolean isRecordInProduction(MarcRecord record) {
         LOGGER.entry(record);
 
         try {
@@ -689,7 +691,7 @@ public class LibraryRecordsHandler {
         final String oldValue = oldReader.getValue(oldField, subfield);
         final String newValue = newReader.getValue(newField, subfield);
 
-        return oldValue != null && newValue != null && oldValue.equals(newValue);
+        return oldValue != null && oldValue.equals(newValue);
     }
 
 
@@ -734,9 +736,9 @@ public class LibraryRecordsHandler {
      *                            record will be created for.
      * @return Returns the library record after it has been updated.
      * <code>libraryRecord</code> may have changed.
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
-    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws ScripterException {
+    public MarcRecord createLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, String agencyId) throws UpdateException {
         MarcRecord result = new MarcRecord();
         final MarcRecordWriter writer = new MarcRecordWriter(result);
         final MarcRecordReader reader = new MarcRecordReader(updatingCommonRecord);
@@ -759,9 +761,9 @@ public class LibraryRecordsHandler {
      * @param enrichmentRecord     The library extended record.
      * @return Returns the library record after it has been updated.
      * <code>enrichmentRecord</code> may have changed.
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
-    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord updateLibraryExtendedRecord(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord enrichmentRecord) throws UpdateException {
         MarcRecord result = updateClassificationsInRecord(currentCommonRecord, enrichmentRecord);
         result = recategorization(currentCommonRecord, updatingCommonRecord, result);
         final MarcRecordWriter writer = new MarcRecordWriter(result);
@@ -771,7 +773,7 @@ public class LibraryRecordsHandler {
         return result;
     }
 
-    private Boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
+    private boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(MarcField field, MarcRecord enrichment) {
         final MarcFieldReader fieldReader = new MarcFieldReader(field);
         String subfieldZ = fieldReader.getValue("z");
         if (subfieldZ != null) {
@@ -784,7 +786,7 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private Boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
+    private boolean isFieldPresentInList(MarcField enrichmentField, List<MarcField> commonRecordFieldList) {
         final String cleanedEnrichmentField = enrichmentField.toString().trim();
         for (MarcField field : commonRecordFieldList) {
             if (cleanedEnrichmentField.equals(field.toString().trim())) {
@@ -812,7 +814,7 @@ public class LibraryRecordsHandler {
         return collector;
     }
 
-    private Boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
+    private boolean isEnrichmentFieldPresentInCommonFieldList(MarcField enrichmentField, List<MarcField> commonFieldList) {
         final MarcField cleanedField = createRecordFieldWithoutIgnorableSubfields(enrichmentField);
         final List<MarcField> listCleanedFields = createRecordFieldListWithoutIgnorableSubfields(commonFieldList);
         return isFieldPresentInList(cleanedField, listCleanedFields);
@@ -822,7 +824,7 @@ public class LibraryRecordsHandler {
     // (1) if the field nbr. is in the list of always keep fields (001, 004, 996 + classification fields)
     // (2) if field is not found in the common record from RawRepo
     // (3) if the field is a reference field that points to either a field from (1) or (2)
-    private Boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
+    private boolean shouldEnrichmentRecordFieldBeKept(MarcField enrichmentField, MarcRecord common, MarcRecord enrichment) {
         if (CONTROL_AND_CLASSIFICATION_FIELDS.contains(enrichmentField.getName())) {
             return true;
         }
@@ -850,7 +852,7 @@ public class LibraryRecordsHandler {
         return newRecord;
     }
 
-    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) throws ScripterException {
+    public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) {
         LOGGER.entry(commonRecord, enrichmentRecord);
         MarcRecord result = null;
         if (hasClassificationData(commonRecord)) {
@@ -887,11 +889,11 @@ public class LibraryRecordsHandler {
      * @param record       The record to be updated
      * @param libraryGroup Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
-     * @throws OpenAgencyException          in case of an error
+     * @throws VipCoreException             in case of an error
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, OpenAgencyService.LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws OpenAgencyException, UnsupportedEncodingException, UpdateException {
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws VipCoreException, UnsupportedEncodingException, UpdateException {
         LOGGER.entry(record, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
@@ -900,7 +902,7 @@ public class LibraryRecordsHandler {
             if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
                     rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                 final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                record = UpdateOwnership.mergeRecord(record, existingRecord);
+                UpdateOwnership.mergeRecord(record, existingRecord);
             }
 
             if (libraryGroup.isFBS()) {
@@ -915,7 +917,7 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
         LOGGER.entry(record, groupId, messages);
         List<MarcRecord> result = new ArrayList<>();
         try {
@@ -932,22 +934,22 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws OpenAgencyException {
+    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws VipCoreException {
         LOGGER.entry(record, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
         final MarcRecordReader reader = new MarcRecordReader(record);
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
-                    openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_ROOT) ||
-                            openAgencyService.hasFeature(groupId, LibraryRuleHandler.Rule.AUTH_METACOMPASS))) {
+                    vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS) ||
+                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) ||
+                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS))) {
 
                 LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
                 result = splitRecordDataIO(record, reader.getAgencyId());
             } else {
                 LOGGER.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
-                result = Arrays.asList(record);
+                result = Collections.singletonList(record);
             }
 
             return result;
@@ -963,11 +965,11 @@ public class LibraryRecordsHandler {
      * @param record  The record to be updated
      * @param groupId The groupId from the ws request
      * @return List containing common and DBC record
-     * @throws OpenAgencyException          in case of an error
+     * @throws VipCoreException             in case of an error
      * @throws UpdateException              in case of an error
      * @throws UnsupportedEncodingException in case of an error
      */
-    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws OpenAgencyException, UpdateException, UnsupportedEncodingException {
+    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
         LOGGER.entry(record, groupId);
 
         try {
@@ -975,9 +977,9 @@ public class LibraryRecordsHandler {
 
             if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
                 LOGGER.info("Agency id of record is not 870970 - returning same record");
-                return Arrays.asList(record);
+                return Collections.singletonList(record);
             }
-            final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.openAgencyService, rawRepo, messages);
+            final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
 
             final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
             final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
@@ -989,7 +991,7 @@ public class LibraryRecordsHandler {
             if (owner == null) {
                 LOGGER.debug("No owner in record.");
 
-                return Arrays.asList(correctedRecord);
+                return Collections.singletonList(correctedRecord);
             } else {
                 LOGGER.info("Owner of record is {}", owner);
             }
@@ -1087,26 +1089,20 @@ public class LibraryRecordsHandler {
      * @param updatingCommonRecord incoming record
      * @param extendedRecord       extended record in rr
      * @return record with notes about eventual recategorization
-     * @throws ScripterException Trouble calling js.
+     * @throws UpdateException Trouble calling js.
      */
-    private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws ScripterException {
+    private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws UpdateException {
         LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
-        Object jsResult = null;
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.doRecategorizationThings");
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            final String jsonCurrentCommonRecord = mapper.writeValueAsString(currentCommonRecord);
-            final String jsonUpdatingCommonRecord = mapper.writeValueAsString(updatingCommonRecord);
-            final String jsonNewRecord = mapper.writeValueAsString(extendedRecord);
-            jsResult = scripter.callMethod("doRecategorizationThings", jsonCurrentCommonRecord, jsonUpdatingCommonRecord, jsonNewRecord);
-            LOGGER.debug("Result from doRecategorizationThings JS ({}): {}", jsResult.getClass().getName(), jsResult);
-            if (jsResult instanceof String) {
-                return mapper.readValue(jsResult.toString(), MarcRecord.class);
-            }
-            throw new ScripterException(String.format("The JavaScript function %s must return a String value.", "doRecategorizationThings"));
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: doRecategorizationThings", ex);
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+
+            return opencatBusinessConnector.doRecategorizationThings(currentCommonRecord, updatingCommonRecord, extendedRecord, trackingId);
+        } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
+            throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
-            LOGGER.exit(jsResult);
+            watch.stop();
+            LOGGER.exit();
         }
     }
 
@@ -1117,32 +1113,23 @@ public class LibraryRecordsHandler {
      *
      * @param record The record.
      * @return MarcField containing 512 data
-     * @throws ScripterException in case of an error
+     * @throws UpdateException in case of an error
      */
 
-    public MarcField fetchNoteField(MarcRecord record) throws ScripterException {
+    public MarcField fetchNoteField(MarcRecord record) throws UpdateException {
         LOGGER.entry(record);
-
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.recategorizationNoteFieldFactory");
         MarcField mf = null;
-        Object jsResult;
-        final ObjectMapper mapper = new ObjectMapper();
         try {
-            try {
-                final String json = mapper.writeValueAsString(record);
-                jsResult = scripter.callMethod("recategorizationNoteFieldFactory", json);
-            } catch (IOException ex) {
-                throw new ScripterException("Error when executing JavaScript function: fetchNoteField", ex);
-            }
-            LOGGER.debug("Result from recategorizationNoteFieldFactory JS ({}): {}", jsResult.getClass().getName(), jsResult);
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            if (!(jsResult instanceof String)) {
-                throw new ScripterException("The JavaScript function %s must return a String value.", "recordDataForRawRepo");
-            }
-            return mf = mapper.readValue((String) jsResult, MarcField.class);
+            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(record, trackingId);
 
-        } catch (IOException ex) {
-            throw new ScripterException("Error when executing JavaScript function: changeUpdateRecordForUpdate", ex);
+            return mf;
+        } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
+            throw new UpdateException("Error when executing OpencatBusinessConnector function: changeUpdateRecordForUpdate", ex);
         } finally {
+            watch.stop();
             LOGGER.exit(mf);
         }
     }

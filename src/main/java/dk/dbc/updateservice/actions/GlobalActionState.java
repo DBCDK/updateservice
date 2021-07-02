@@ -8,30 +8,34 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.ws.JNDIResources;
+import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.ws.WebServiceContext;
+import java.io.StringReader;
 import java.time.Instant;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -45,10 +49,10 @@ public class GlobalActionState {
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
     private WebServiceContext wsContext = null;
     private Authenticator authenticator = null;
-    private Scripter scripter = null;
     private RawRepo rawRepo = null;
+    private OpencatBusinessConnector opencatBusiness = null;
     private HoldingsItems holdingsItems = null;
-    private OpenAgencyService openAgencyService = null;
+    private VipCoreService vipCoreService = null;
     private SolrFBS solrService = null;
     private SolrBasis solrBasis = null;
     private Validator validator = null;
@@ -58,7 +62,7 @@ public class GlobalActionState {
     private MarcRecord marcRecord = null;
     private BibliographicRecordExtraData bibliographicRecordExtraData = null;
     private String recordPid = null;
-    private OpenAgencyService.LibraryGroup libraryGroup = null;
+    private LibraryGroup libraryGroup = null;
     private String templateGroup = null;
     private MarcRecordReader marcRecordReader = null;
     private Boolean doubleRecordPossible = null;
@@ -69,18 +73,40 @@ public class GlobalActionState {
     private Set<String> lokbibLibraries = null;
     private RecordSorter recordSorter = null;
     private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
+    private HttpServletRequest request;
+
+
+    public HttpServletRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
+    }
 
     public GlobalActionState() {
     }
 
-    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO, WebServiceContext wsContext, Authenticator authenticator, Scripter scripter, RawRepo rawRepo, HoldingsItems holdingsItems, OpenAgencyService openAgencyService, SolrFBS solrService, SolrBasis solrBasis, Validator validator, UpdateStore updateStore, LibraryRecordsHandler libraryRecordsHandler, ResourceBundle messages, OpenAgencyService.LibraryGroup libraryGroup) {
+    public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO,
+                             WebServiceContext wsContext,
+                             Authenticator authenticator,
+                             RawRepo rawRepo,
+                             HoldingsItems holdingsItems,
+                             VipCoreService vipCoreService,
+                             SolrFBS solrService,
+                             SolrBasis solrBasis,
+                             Validator validator,
+                             UpdateStore updateStore,
+                             LibraryRecordsHandler libraryRecordsHandler,
+                             ResourceBundle messages,
+                             HttpServletRequest request,
+                             LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
         this.wsContext = wsContext;
         this.authenticator = authenticator;
-        this.scripter = scripter;
         this.rawRepo = rawRepo;
         this.holdingsItems = holdingsItems;
-        this.openAgencyService = openAgencyService;
+        this.vipCoreService = vipCoreService;
         this.solrService = solrService;
         this.solrBasis = solrBasis;
         this.validator = validator;
@@ -88,10 +114,24 @@ public class GlobalActionState {
         this.libraryRecordsHandler = libraryRecordsHandler;
         this.messages = messages;
         this.libraryGroup = libraryGroup;
+        this.request = request;
     }
 
     public GlobalActionState(GlobalActionState globalActionState) {
-        this(globalActionState.getUpdateServiceRequestDTO(), globalActionState.getWsContext(), globalActionState.getAuthenticator(), globalActionState.getScripter(), globalActionState.getRawRepo(), globalActionState.getHoldingsItems(), globalActionState.getOpenAgencyService(), globalActionState.getSolrFBS(), globalActionState.getSolrBasis(), globalActionState.getValidator(), globalActionState.getUpdateStore(), globalActionState.getLibraryRecordsHandler(), globalActionState.getMessages(), null);
+        this(globalActionState.getUpdateServiceRequestDTO(),
+                globalActionState.getWsContext(),
+                globalActionState.getAuthenticator(),
+                globalActionState.getRawRepo(),
+                globalActionState.getHoldingsItems(),
+                globalActionState.getVipCoreService(),
+                globalActionState.getSolrFBS(),
+                globalActionState.getSolrBasis(),
+                globalActionState.getValidator(),
+                globalActionState.getUpdateStore(),
+                globalActionState.getLibraryRecordsHandler(),
+                globalActionState.getMessages(),
+                globalActionState.getRequest(),
+                null);
     }
 
     private void resetState() {
@@ -128,20 +168,20 @@ public class GlobalActionState {
         this.authenticator = authenticator;
     }
 
-    public Scripter getScripter() {
-        return scripter;
-    }
-
-    public void setScripter(Scripter scripter) {
-        this.scripter = scripter;
-    }
-
     public RawRepo getRawRepo() {
         return rawRepo;
     }
 
     public void setRawRepo(RawRepo rawRepo) {
         this.rawRepo = rawRepo;
+    }
+
+    public OpencatBusinessConnector getOpencatBusiness() {
+        return opencatBusiness;
+    }
+
+    public void setOpencatBusiness(OpencatBusinessConnector opencatBusiness) {
+        this.opencatBusiness = opencatBusiness;
     }
 
     public HoldingsItems getHoldingsItems() {
@@ -152,12 +192,12 @@ public class GlobalActionState {
         this.holdingsItems = holdingsItems;
     }
 
-    public OpenAgencyService getOpenAgencyService() {
-        return openAgencyService;
+    public VipCoreService getVipCoreService() {
+        return vipCoreService;
     }
 
-    public void setOpenAgencyService(OpenAgencyService openAgencyService) {
-        this.openAgencyService = openAgencyService;
+    public void setVipCoreService(VipCoreService vipCoreService) {
+        this.vipCoreService = vipCoreService;
     }
 
     public SolrFBS getSolrFBS() {
@@ -216,7 +256,7 @@ public class GlobalActionState {
         this.marcRecord = marcRecord;
     }
 
-    public void setLibraryGroup(OpenAgencyService.LibraryGroup libraryGroup) {
+    public void setLibraryGroup(LibraryGroup libraryGroup) {
         this.libraryGroup = libraryGroup;
     }
 
@@ -260,11 +300,11 @@ public class GlobalActionState {
             doubleRecordPossible = false;
 
             if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
-                Boolean markedForDeletion = marcRecordReader.markedForDeletion();
-                Boolean isDBCMode = getLibraryGroup().isDBC();
-                Boolean recordExists = recordExists();
+                boolean markedForDeletion = marcRecordReader.markedForDeletion();
+                boolean isDBCMode = getLibraryGroup().isDBC();
+                boolean recordExists = recordExists();
                 int agencyId = marcRecordReader.getAgencyIdAsInt();
-                Boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
+                boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
                 doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
@@ -320,6 +360,12 @@ public class GlobalActionState {
                         if (o instanceof Node) {
                             marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
                             break;
+                        } else if (o instanceof String) {
+                            String marcString = (String) o;
+                            if (!"".equals(marcString.trim())) {
+                                marcRecord = MarcConverter.convertFromMarcXChange(marcString);
+                                break;
+                            }
                         }
                     }
                 }
@@ -400,6 +446,12 @@ public class GlobalActionState {
                         if (o instanceof Node) {
                             bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
                             break;
+                        } else if (o instanceof String) {
+                            String extraRecordDataString = (String) o;
+                            if (!"".equals(extraRecordDataString.trim())) {
+                                bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(extraRecordDataString)));
+                                break;
+                            }
                         }
                     }
                 }
@@ -412,7 +464,7 @@ public class GlobalActionState {
 
     public RecordSorter getRecordSorter() {
         if (this.recordSorter == null) {
-            this.recordSorter = new RecordSorter(getScripter(), getSchemaName());
+            this.recordSorter = new RecordSorter(getOpencatBusiness(), getSchemaName());
         }
 
         return this.recordSorter;
@@ -420,7 +472,7 @@ public class GlobalActionState {
 
     public NoteAndSubjectExtensionsHandler getNoteAndSubjectExtensionsHandler() {
         if (this.noteAndSubjectExtensionsHandler == null) {
-            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getOpenAgencyService(), getRawRepo(), messages);
+            this.noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(getVipCoreService(), getRawRepo(), messages);
         }
 
         return this.noteAndSubjectExtensionsHandler;
@@ -436,13 +488,13 @@ public class GlobalActionState {
         if (updateServiceRequestDTO != null ? !updateServiceRequestDTO.equals(state.updateServiceRequestDTO) : state.updateServiceRequestDTO != null)
             return false;
         if (wsContext != null ? !wsContext.equals(state.wsContext) : state.wsContext != null) return false;
+        if (request != null ? !request.equals(state.request) : state.request != null) return false;
         if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
             return false;
-        if (scripter != null ? !scripter.equals(state.scripter) : state.scripter != null) return false;
         if (rawRepo != null ? !rawRepo.equals(state.rawRepo) : state.rawRepo != null) return false;
         if (holdingsItems != null ? !holdingsItems.equals(state.holdingsItems) : state.holdingsItems != null)
             return false;
-        if (openAgencyService != null ? !openAgencyService.equals(state.openAgencyService) : state.openAgencyService != null)
+        if (vipCoreService != null ? !vipCoreService.equals(state.vipCoreService) : state.vipCoreService != null)
             return false;
         if (solrService != null ? !solrService.equals(state.solrService) : state.solrService != null) return false;
         if (validator != null ? !validator.equals(state.validator) : state.validator != null) return false;
@@ -454,7 +506,6 @@ public class GlobalActionState {
         if (bibliographicRecordExtraData != null ? !bibliographicRecordExtraData.equals(state.bibliographicRecordExtraData) : state.bibliographicRecordExtraData != null)
             return false;
         return recordPid != null ? recordPid.equals(state.recordPid) : state.recordPid == null;
-
     }
 
     @Override
@@ -462,11 +513,12 @@ public class GlobalActionState {
         int result = updateServiceRequestDTO != null ? updateServiceRequestDTO.hashCode() : 0;
         result = 31 * result + (wsContext != null ? wsContext.hashCode() : 0);
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
-        result = 31 * result + (scripter != null ? scripter.hashCode() : 0);
         result = 31 * result + (rawRepo != null ? rawRepo.hashCode() : 0);
+        result = 31 * result + (opencatBusiness != null ? opencatBusiness.hashCode() : 0);
         result = 31 * result + (holdingsItems != null ? holdingsItems.hashCode() : 0);
-        result = 31 * result + (openAgencyService != null ? openAgencyService.hashCode() : 0);
+        result = 31 * result + (vipCoreService != null ? vipCoreService.hashCode() : 0);
         result = 31 * result + (solrService != null ? solrService.hashCode() : 0);
+        result = 31 * result + (solrBasis != null ? solrBasis.hashCode() : 0);
         result = 31 * result + (validator != null ? validator.hashCode() : 0);
         result = 31 * result + (updateStore != null ? updateStore.hashCode() : 0);
         result = 31 * result + (libraryRecordsHandler != null ? libraryRecordsHandler.hashCode() : 0);
@@ -474,6 +526,7 @@ public class GlobalActionState {
         result = 31 * result + (marcRecord != null ? marcRecord.hashCode() : 0);
         result = 31 * result + (bibliographicRecordExtraData != null ? bibliographicRecordExtraData.hashCode() : 0);
         result = 31 * result + (recordPid != null ? recordPid.hashCode() : 0);
+        result = 31 * result + (request != null ? request.hashCode() : 0);
         return result;
     }
 
@@ -483,11 +536,12 @@ public class GlobalActionState {
                 "updateServiceRequestDTO=" + updateServiceRequestDTO +
                 ", wsContext=" + wsContext +
                 ", authenticator=" + authenticator +
-                ", scripter=" + scripter +
                 ", rawRepo=" + rawRepo +
+                ", opencatBusinessConnector=" + opencatBusiness +
                 ", holdingsItems=" + holdingsItems +
-                ", openAgencyService=" + openAgencyService +
+                ", vipCoreService=" + vipCoreService +
                 ", solrService=" + solrService +
+                ", solrBasis=" + solrBasis +
                 ", validator=" + validator +
                 ", updateStore=" + updateStore +
                 ", libraryRecordsHandler=" + libraryRecordsHandler +
@@ -496,6 +550,7 @@ public class GlobalActionState {
                 ", bibliographicRecordExtraData=" + bibliographicRecordExtraData +
                 ", libraryGroup=" + libraryGroup +
                 ", recordPid='" + recordPid + '\'' +
+                ", request='" + request + '\'' +
                 '}';
     }
 
@@ -513,14 +568,14 @@ public class GlobalActionState {
         return "admin".equalsIgnoreCase(userId);
     }
 
-    public OpenAgencyService.LibraryGroup getLibraryGroup() throws UpdateException {
+    public LibraryGroup getLibraryGroup() throws UpdateException {
         if (libraryGroup == null) {
             String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
-                libraryGroup = openAgencyService.getLibraryGroup(groupId);
-            } catch (OpenAgencyException | UpdateException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                libraryGroup = vipCoreService.getLibraryGroup(groupId);
+            } catch (UpdateException | VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
@@ -541,9 +596,9 @@ public class GlobalActionState {
             String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
-                templateGroup = openAgencyService.getTemplateGroup(groupId);
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                templateGroup = vipCoreService.getTemplateGroup(groupId);
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
@@ -561,9 +616,9 @@ public class GlobalActionState {
     public Set<String> getPHLibraries() throws UpdateException {
         if (phLibraries == null) {
             try {
-                phLibraries = openAgencyService.getPHLibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                phLibraries = vipCoreService.getPHLibraries();
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -574,9 +629,9 @@ public class GlobalActionState {
     public Set<String> getFFULibraries() throws UpdateException {
         if (ffuLibraries == null) {
             try {
-                ffuLibraries = openAgencyService.getFFULibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                ffuLibraries = vipCoreService.getFFULibraries();
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -587,9 +642,9 @@ public class GlobalActionState {
     public Set<String> getLokbibLibraries() throws UpdateException {
         if (lokbibLibraries == null) {
             try {
-                lokbibLibraries = openAgencyService.getLokbibLibraries();
-            } catch (OpenAgencyException ex) {
-                logger.error("OpenAgency error: " + ex.getMessage(), ex);
+                lokbibLibraries = vipCoreService.getLokbibLibraries();
+            } catch (VipCoreException ex) {
+                logger.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }

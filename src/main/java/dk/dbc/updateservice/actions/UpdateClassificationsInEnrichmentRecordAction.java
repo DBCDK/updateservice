@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.updateservice.javascript.ScripterException;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -45,10 +44,10 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
      * updates the classifications in the enrichment record.
      *
      * @return The enrichment record after its classifications has been updated.
-     * @throws ScripterException In case of en JavaScript error.
+     * @throws UpdateException In case of en JavaScript error.
      */
     @Override
-    public MarcRecord createRecord() throws ScripterException, UpdateException {
+    public MarcRecord createRecord() throws UpdateException {
         logger.entry();
         try {
             if (updatingCommonRecord == null) {

@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
+import java.util.Objects;
 
 /**
  * This class represent extra data to associated with the record in an update
@@ -53,5 +54,27 @@ public class BibliographicRecordExtraData {
 
     public void setPriority(Integer priority) {
         this.priority = priority;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        BibliographicRecordExtraData that = (BibliographicRecordExtraData) o;
+        return Objects.equals(providerName, that.providerName) &&
+                Objects.equals(priority, that.priority);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(providerName, priority);
+    }
+
+    @Override
+    public String toString() {
+        return "BibliographicRecordExtraData{" +
+                "providerName='" + providerName + '\'' +
+                ", priority=" + priority +
+                '}';
     }
 }

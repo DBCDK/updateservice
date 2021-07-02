@@ -8,13 +8,12 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -25,16 +24,15 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class OverwriteVolumeRecordActionTest {
+class OverwriteVolumeRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
@@ -68,7 +66,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoClassifications() throws Exception {
+    void testPerformAction_NoClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -90,10 +88,10 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -131,7 +129,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications() throws Exception {
+    void testPerformAction_SameClassifications() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -154,10 +152,10 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -197,7 +195,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
+    void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
@@ -220,10 +218,10 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -267,7 +265,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         String groupId = "700100";
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
@@ -287,15 +285,15 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(volumeRecordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(Integer.valueOf(groupId)));
-        when(state.getOpenAgencyService().hasFeature(eq(groupId), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(groupId), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -340,7 +338,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
@@ -364,15 +362,15 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(volumeRecordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -429,7 +427,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
@@ -454,16 +452,16 @@ public class OverwriteVolumeRecordActionTest {
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(volumeRecord))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(volumeRecord), eq(volumeRecord))).thenReturn(true);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, volumeRecord);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteVolumeRecordAction.children();
-        Assert.assertThat(children.size(), is(7));
+        assertThat(children.size(), is(7));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), volumeRecord);
@@ -522,7 +520,7 @@ public class OverwriteVolumeRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
         String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
         final String v1RecordId = "1 234 567 8";
@@ -554,13 +552,13 @@ public class OverwriteVolumeRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(v1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(v1)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(v1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(v1), eq(record))).thenReturn(false);
 
         OverwriteVolumeRecordAction overwriteVolumeRecordAction = new OverwriteVolumeRecordAction(state, settings, record);
-        assertThat(overwriteVolumeRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteVolumeRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);

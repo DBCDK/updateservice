@@ -9,15 +9,15 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.update.OpenAgencyService;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -26,16 +26,15 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-public class OverwriteSingleRecordActionTest {
+class OverwriteSingleRecordActionTest {
     private GlobalActionState state;
     private Properties settings;
-    OpenAgencyService.LibraryGroup libraryGroup = OpenAgencyService.LibraryGroup.FBS;
+    LibraryGroup libraryGroup = LibraryGroup.FBS;
 
-    @Before
+    @BeforeEach
     public void before() throws IOException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
@@ -70,7 +69,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_NoClassifications() throws Exception {
+    void testPerformAction_NoClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -84,19 +83,59 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
         AssertActionsUtil.assertEnqueueRecordAction(children.get(3), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+    }
+
+    @Test
+    void testPerformAction_MatVurd() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.MATVURD_1);
+        // The MATVURD_1 record contains r01 and r02 fields.
+        // But when the record is send to updateservice the record is split into common part and enrichment part.
+        // Only the common part (without letter fields) are passed to the OverwriteSingleRecordAction.
+        // In order to test that the LinkMatVurdRecordsAction is given the original record we have to remove the letter
+        // fields from the original record first and use that record as input to OverwriteSingleRecordAction
+        final MarcRecord recordWithoutEnrichmentFields = new MarcRecord(record);
+        final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
+        writer.removeFields(Arrays.asList("r01", "r02"));
+
+        final String recordId = AssertActionsUtil.getRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+
+        final Map<String, MarcRecord> recordCollection = new HashMap<>();
+        recordCollection.put(recordId, record);
+
+        state.setMarcRecord(record); // <- Important! The original record is set on the state object
+        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
+        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
+
+        final OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, recordWithoutEnrichmentFields);
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
+
+        final List<ServiceAction> children = overwriteSingleRecordAction.children();
+        assertThat(children.size(), is(5));
+
+        AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
+        AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields);
+        AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record); // <- Here we assert the correct record is used by LinkMatVurdRecordsAction
+        AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), recordWithoutEnrichmentFields);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(4), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
     }
 
     /**
@@ -127,7 +166,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications() throws Exception {
+    void testPerformAction_SameClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -141,15 +180,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -187,7 +226,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
+    void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -201,15 +240,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -251,7 +290,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -265,15 +304,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
-        when(state.getOpenAgencyService().hasFeature(eq("700100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -316,7 +355,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -330,15 +369,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
-        when(state.getOpenAgencyService().hasFeature(eq("700100"), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -380,7 +419,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -393,15 +432,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(agencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -443,7 +482,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -461,15 +500,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -511,7 +550,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -529,15 +568,15 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
         AssertActionsUtil.assertRemoveLinksAction(children.get(1), state.getRawRepo(), record);
@@ -591,7 +630,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -611,16 +650,16 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(6));
+        assertThat(children.size(), is(6));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -672,7 +711,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -692,16 +731,16 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -756,7 +795,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
         String recordId = AssertActionsUtil.getRecordId(record);
@@ -777,16 +816,16 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(5));
+        assertThat(children.size(), is(5));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -841,7 +880,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -861,16 +900,16 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = overwriteSingleRecordAction.children();
-        Assert.assertThat(children.size(), is(4));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -923,7 +962,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -948,13 +987,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(e1AgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(e1AgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1007,7 +1046,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_MoveEnrichments_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_SameClassifications_MoveEnrichments_LocalAgencyNoEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1033,13 +1072,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1089,7 +1128,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_SameClassifications_NoChangeIn002Links() throws Exception {
+    void testPerformAction_SameClassifications_NoChangeIn002Links() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1110,13 +1149,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(e1AgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(e1AgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1168,7 +1207,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1188,14 +1227,14 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c2), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1247,7 +1286,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1268,14 +1307,14 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(c2))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1326,7 +1365,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_SourceIsNotPublished_DestinationIsNotPublished() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1346,13 +1385,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(Integer.toString(localAgencyId), LibraryRuleHandler.Rule.USE_ENRICHMENTS)).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1405,7 +1444,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_LocalAgencyNoEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_HoldingsButNoEnrichments_LocalAgencyNoEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1425,13 +1464,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(localAgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(localAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1482,7 +1521,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_MoveEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_MoveEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1508,13 +1547,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(true);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1567,7 +1606,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_ChangedClassifications_002Links_LocalAgencyEnrichments() throws Exception {
+    void testPerformAction_ChangedClassifications_002Links_LocalAgencyEnrichments() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         final int localAgencyId = 700400;
@@ -1593,13 +1632,13 @@ public class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
-        when(state.getOpenAgencyService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(LibraryRuleHandler.Rule.USE_ENRICHMENTS))).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(true);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1636,7 +1675,7 @@ public class OverwriteSingleRecordActionTest {
      * </dl>
      */
     @Test
-    public void testPerformAction_002Link_DoNotExist() throws Exception {
+    void testPerformAction_002Link_DoNotExist() throws Exception {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
@@ -1656,7 +1695,7 @@ public class OverwriteSingleRecordActionTest {
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(c1), eq(record))).thenReturn(false);
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, record);
-        assertThat(overwriteSingleRecordAction.performAction(), equalTo(ServiceResult.newOkResult()));
+        assertThat(overwriteSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = overwriteSingleRecordAction.children().listIterator();
         AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), record);
@@ -1667,7 +1706,243 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame110() throws Exception {
+        String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "110 00 *a Andersen *h Flemming *c f. 1961-08-24";
+
+        String input = "001 00 *a 68058309 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "110 00 *a Andersen *h Flemming *c f. 1961-08-24";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("68058309"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("68058309"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffSame110410() throws Exception {
+        String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
+                "110 00 *a Thulstrup *h Thomas C.\n" +
+                "410 00 *a Thulstrup *h Thomas";
+
+        String input = "001 00 *a 69022804 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "110 00 *a Thulstrup *h Thomas C.\n" +
+                "375 00 *a 1 *2 iso5218 *& VIAF\n" +
+                "410 00 *a Thulstrup *h Thomas";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffSame110Missing410() throws Exception {
+        String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
+                "110 00 *a Thulstrup *h Thomas C.\n" +
+                "410 00 *a Thulstrup *h Thomas";
+
+        String input = "001 00 *a 69022804 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "110 00 *a Thulstrup *h Thomas C.";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffSame110410510() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffChanged110410510() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "510 00 *a Mernild *h Sebastian I .\n" + // Space after I
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffSame110410510Repeated() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffRemoved510() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffAdded510() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffMinusAdjourCorp() throws Exception {
+        String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "996 00 *a DBCAUT";
+
+
+        String stateRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.\n" +
+                "410 00 *a Mernild *h Sebastian\n" +
+                "410 00 *a Mernild *h Sebastian A.\n" +
+                "510 00 *a Mernild *h Sebastian F.\n" +
+                "510 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT \n" +
+                "s13 00 *a minusAJOUR";
+
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.\n" +
+                "400 00 *a Mernild *h Sebastian\n" +
+                "400 00 *a Mernild *h Sebastian A.\n" +
+                "500 00 *a Mernild *h Sebastian F.\n" +
+                "500 00 *a Mernild *h Sebastian I.\n" +
+                "996 00 *a DBCAUT";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existingRecord);
+        MarcRecord stateAutRecord = MarcRecordFactory.readRecord(stateRecord);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(record);
+
+        state.setMarcRecord(stateAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+    }
+    @Test
+    void testAuthorityRecordHasProofPrintingDiffSame100() throws Exception {
         String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
                 "004 00 *r n *a e *x n\n" +
                 "100 00 *a Andersen *h Flemming *c f. 1961-08-24";
@@ -1688,7 +1963,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400() throws Exception {
         String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
                 "100 00 *a Thulstrup *h Thomas C.\n" +
                 "400 00 *a Thulstrup *h Thomas";
@@ -1710,7 +1985,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100Missing400() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100Missing400() throws Exception {
         String existing = "001 00 *a 69022804 *b 870979 *c 20181210135157 *d 20131129 *f a *t faust\n" +
                 "100 00 *a Thulstrup *h Thomas C.\n" +
                 "400 00 *a Thulstrup *h Thomas";
@@ -1730,7 +2005,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1755,7 +2030,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffChanged100400500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffChanged100400500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1780,7 +2055,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffSame100400500Repeated() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffSame100400500Repeated() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1809,7 +2084,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffRemoved500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffRemoved500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1837,7 +2112,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffAdded500() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffAdded500() throws Exception {
         String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1865,7 +2140,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testAuthorityRecordHasProofPrintingDiffMinusAdjour() throws Exception {
+    void testAuthorityRecordHasProofPrintingDiffMinusAdjour() throws Exception {
         String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
@@ -1904,7 +2179,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasz98WithMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithMinusEnrichment() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a Minus korrekturprint\n" +
@@ -1921,7 +2196,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() throws Exception {
+    void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a minus korrekturprint";
@@ -1937,7 +2212,7 @@ public class OverwriteSingleRecordActionTest {
     }
 
     @Test
-    public void testHasMinusEnrichmentHasNoz98() throws Exception {
+    void testHasMinusEnrichmentHasNoz98() {
         String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
                 "996 00 *a DBCAUT";
 

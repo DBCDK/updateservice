@@ -5,20 +5,22 @@
 
 package dk.dbc.updateservice.dto;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-public class AuthenticationDTOTest {
+
+class AuthenticationDTOTest {
 
     @Test
-    public void testToStringObfuscatesPassword() {
+    void testToStringObfuscatesPassword() {
         AuthenticationDTO dto = new AuthenticationDTO();
         dto.setUserId("user");
         dto.setGroupId("groupid");
         dto.setPassword("password");
 
-        assertEquals("AuthenticationDTO{userId='user', groupId='groupid', password='****'}", dto.toString());
+        assertThat(dto.toString(), is("AuthenticationDTO{userId='user', groupId='groupid', password='****'}"));
     }
 
 }

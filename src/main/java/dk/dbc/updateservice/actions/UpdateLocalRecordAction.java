@@ -12,11 +12,11 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -181,7 +181,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
                 AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).getAgencyId());
-                if (state.getOpenAgencyService().hasFeature(agencyNumber.toString(), LibraryRuleHandler.Rule.AUTH_EXPORT_HOLDINGS)) {
+                if (state.getVipCoreService().hasFeature(agencyNumber.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)) {
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
@@ -196,7 +196,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
-        } catch (OpenAgencyException ex) {
+        } catch (VipCoreException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
             logger.exit();

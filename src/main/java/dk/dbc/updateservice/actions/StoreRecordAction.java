@@ -15,7 +15,7 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.UpdateService;
+import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -91,7 +91,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
-            recordToStore = state.getRecordSorter().sortRecord(recordToStore, properties);
+            recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
@@ -100,7 +100,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             if (state.getCreateOverwriteDate() != null) {
                 rawRepoRecord.setCreated(state.getCreateOverwriteDate());
             }
-            rawRepoRecord.setTrackingId(MDC.get(UpdateService.MDC_TRACKING_ID_LOG_CONTEXT));
+            rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
             rawRepo.saveRecord(rawRepoRecord);
             logger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
             logger.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
@@ -142,12 +142,19 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
+            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
+                    RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
             } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
             } else if (RawRepo.LITTOLK_AGENCY == reader.getAgencyIdAsInt()) {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.LITANALYSIS);
+            } else if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.MATVURD);
+            } else if (RawRepo.HOSTPUB_AGENCY == reader.getAgencyIdAsInt()) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.HOSTPUB);
+            } else if (RawRepo.SIMPLE_AGENCIES.contains(reader.getAgencyIdAsInt())) {
+                storeRecordAction.setMimetype(MarcXChangeMimeType.SIMPLE);
             } else {
                 storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             }

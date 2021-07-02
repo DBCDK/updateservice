@@ -26,6 +26,7 @@ import java.util.Properties;
  */
 public class CreateVolumeRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(CreateVolumeRecordAction.class);
+    private static final String SUB_ACTION_ERROR_MESSAGE = "Unable to create sub actions due to an error: {}";
 
     Properties settings;
 
@@ -44,7 +45,9 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            if (logger.isInfoEnabled()) {
+                logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            }
             MarcRecordReader reader = new MarcRecordReader(record);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
@@ -54,26 +57,26 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             if (recordId.equals(parentRecordId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!rawRepo.recordExists(parentRecordId, parentAgencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentRecordId, parentAgencyId);
 
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record)) {
                 String message = state.getMessages().getString("create.record.with.locals");
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));

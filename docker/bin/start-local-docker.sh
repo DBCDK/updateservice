@@ -23,9 +23,13 @@ DOCKER_FOLDER=${IDEA_ROOT}/docker/update-payara-dev
 if [ "$(uname)" == "Darwin" ]
 then
     export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1' | head -1)
+elif [ "$(uname -v | grep Ubuntu | cut -d- -f2 | cut -d' ' -f1)x" == "Ubuntux" ]; then
+    export HOST_IP=$(ip -o addr show | grep inet\ | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1'  | grep 172 | head -1)
 else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
+
+echo "HOST_IP: $HOST_IP"
 
 cd ${IDEA_ROOT}
 mvn verify install -Dmaven.test.skip=true
@@ -44,17 +48,18 @@ if [ ${DEV_NUMBERROLL_URL} = "NOTSET" ]
 then
     export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
 fi
-DEV_OPENAGENCY_URL=${DEV_OPENAGENCY_URL:-NOTSET}
-if [ ${DEV_OPENAGENCY_URL} = "NOTSET" ]
+DEV_VIPCORE_ENDPOINT=${DEV_VIPCORE_ENDPOINT:-NOTSET}
+if [ ${DEV_VIPCORE_ENDPOINT} = "NOTSET" ]
 then
-    export DEV_OPENAGENCY_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+    export DEV_VIPCORE_ENDPOINT="http://${HOST_IP}:${SOLR_PORT_NR}"
 fi
+
 
 # Solr FBS settings
 DEV_SOLR_ADDR=${DEV_SOLR_ADDR:-NOTSET}
 if [ ${DEV_SOLR_ADDR} = "NOTSET" ]
 then
-    export DEV_SOLR_ADDR="solrserver"
+    export DEV_SOLR_ADDR="${HOST_IP}"
 fi
 DEV_SOLR_PORT=${DEV_SOLR_PORT:-NOTSET}
 if [ ${DEV_SOLR_PORT} = "NOTSET" ]
@@ -73,7 +78,7 @@ export DEV_SOLR_URL="http://${DEV_SOLR_ADDR}:${DEV_SOLR_PORT}/${DEV_SOLR_PATH}"
 DEV_SOLR_BASIS_ADDR=${DEV_SOLR_BASIS_ADDR:-NOTSET}
 if [ ${DEV_SOLR_BASIS_ADDR} = "NOTSET" ]
 then
-    export DEV_SOLR_BASIS_ADDR="solrbasis"
+    export DEV_SOLR_BASIS_ADDR="${HOST_IP}"
 fi
 DEV_SOLR_BASIS_PORT=${DEV_SOLR_BASIS_PORT:-NOTSET}
 if [ ${DEV_SOLR_BASIS_PORT} = "NOTSET" ]
@@ -91,11 +96,14 @@ export DEV_SOLR_BASIS_URL="http://${DEV_SOLR_BASIS_ADDR}:${DEV_SOLR_BASIS_PORT}/
 export DEV_RAWREPO_DB_URL=$(grep rawrepo.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_HOLDINGS_ITEMS_DB_URL=$(grep holdings.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 export DEV_UPDATE_DB_URL=$(grep updateservice.db.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
+export DEV_OPENCAT_BUSINESS_URL=$(grep opencat.business.url ${HOME}/.ocb-tools/testrun.properties | awk '{print $3}')
 echo -e "Rawrepo db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
+echo -e "Opencat-business url : ${DEV_OPENCAT_BUSINESS_URL}"
 
 docker-compose stop updateservice
+docker-compose stop updateservice-facade
 docker-compose up -d updateservice
 
 UPDATESERVICE_IMAGE=`docker-compose ps -q updateservice`
@@ -106,16 +114,22 @@ echo -e "UPDATESERVICE_PORT_8686 is ${UPDATESERVICE_PORT_8686}\n"
 UPDATESERVICE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
 echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
 
-sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
+export UPDATE_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
+export BUILD_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
 
-# Config of rest services - please call them <restservice>.url where <restservice> are copied from rest/api/v?/<restservice>
-# same foldername (<restservice>) are expected to be found in the opencat-business/rest directory where testcases for a service is placed
-# TODO DIE
-sed -i -e "/^roublerecordcheck.url/s/^.*$/roublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/roublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^doublerecordcheck.url/s/^.*$/doublerecordcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/doublerecordcheck/" ${HOME}/.ocb-tools/testrun.properties
-sed -i -e "/^classificationcheck.url/s/^.*$/classificationcheck.url = http:\/\/${HOST_IP}:${UPDATESERVICE_PORT_8080}\/UpdateService\/rest\/api\/v1\/classificationcheck/" ${HOME}/.ocb-tools/testrun.properties
-# TODO DIE END
+docker-compose up -d updateservice-facade
 
-../../bin/return-when-status-ok.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 '[updateservice]' || die "could not start updateservice"
+UPDATESERVICE_FACADE_IMAGE=`docker-compose ps -q updateservice-facade`
+UPDATESERVICE_FACADE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_8080 is ${UPDATESERVICE_FACADE_PORT_8080}\n"
+UPDATESERVICE_FACADE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8686/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_8686 is ${UPDATESERVICE_FACADE_PORT_8686}\n"
+UPDATESERVICE_FACADE_PORT_4848=`docker inspect --format='{{(index (index .NetworkSettings.Ports "4848/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
+echo -e "UPDATESERVICE_FACADE_PORT_4848 is ${UPDATESERVICE_FACADE_PORT_4848}\n"
+
+../../bin/healthcheck-update-service.sh ${HOST_IP} ${UPDATESERVICE_PORT_8080} 220 || die "could not start update-service"
+../../bin/healthcheck-update-facade-service.sh ${HOST_IP} ${UPDATESERVICE_FACADE_PORT_8080} 220 || die "could not start update-facade-service"
 cd -
+
+sed -i -e "/^buildservice.url/s/^.*$/buildservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties
+sed -i -e "/^updateservice.url/s/^.*$/updateservice.url = http:\/\/${HOST_IP}:${UPDATESERVICE_FACADE_PORT_8080}/" ${HOME}/.ocb-tools/testrun.properties

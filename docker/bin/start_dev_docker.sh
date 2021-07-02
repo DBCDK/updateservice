@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #set -x
 
 # If this is set different from N then also change
@@ -16,7 +16,9 @@ export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
 RAWREPO_VERSION=1.13-snapshot
 RAWREPO_DIT_TAG=DIT-5016
-HOLDINGS_ITEMS_VERSION=1.1.99
+HOLDINGS_ITEMS_VERSION=1.2-snapshot
+OPENCAT_BUSINESS_SERVICE_TAG=latest
+RAWREPO_RECORD_SERVICE_TAG=DIT-271
 
 cd ${IDEA_ROOT}/docker
 
@@ -59,9 +61,13 @@ export COMPOSE_PROJECT_NAME=${USER}
 if [ "$(uname)" == "Darwin" ]
 then
     export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1' | head -1)
+elif [ "$(uname -v | grep Ubuntu | cut -d- -f2 | cut -d' ' -f1)x" == "Ubuntux" ]; then
+    export HOST_IP=$(ip -o addr show | grep inet\ | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | egrep -v '^127.0.0.1'  | grep 172 | head -1)
 else
     export HOST_IP=$( ip -o addr show | grep "inet " | cut -d: -f2- | cut -c2- | egrep -v "^docker|^br" | grep "$(ip route list | grep default | cut -d' ' -f5) " | cut -d' ' -f6 | cut -d/ -f1)
 fi
+
+echo "HOST_IP: $HOST_IP"
 
 docker-compose down
 docker-compose ps
@@ -70,6 +76,8 @@ echo "docker ps : $?"
 docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
 docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
+docker rmi -f docker-io.dbc.dk/opencat-business:${USER}
+docker rmi -f docker-io.dbc.dk/rawrepo-record-service:${USER}
 if [ "$USE_LOCAL_PAYARA" = "N" ]
 then
     docker rmi -f docker-i.dbc.dk/update-payara:${USER}
@@ -79,7 +87,7 @@ docker-compose up -d rawrepoDb
 docker-compose up -d updateserviceDb
 docker-compose up -d holdingsitemsDb
 docker-compose up -d fakeSmtp
-sleep 3
+
 docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
 docker tag docker-os.dbc.dk/holdings-items-postgres-content-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-content.${HOLDINGS_ITEMS_VERSION}:${USER}
@@ -115,20 +123,44 @@ echo "updateservice.db.url = updateservice:thePassword@${HOST_IP}:${UPDATESERVIC
 
 echo "solr.port = ${SOLR_PORT_NR}" >> ${HOME}/.ocb-tools/testrun.properties
 
-echo "request.headers.x.forwarded.for = ${HOST_IP}" >> ${HOME}/.ocb-tools/testrun.properties
+#Set x.forwarded.for to the ip of devel8. This way it is possible to run the test behind the vpn
+echo "request.headers.x.forwarded.for = 172.17.20.165" >> ${HOME}/.ocb-tools/testrun.properties
 
 echo "rawrepo.provider.name.dbc = dataio-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.fbs = opencataloging-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph = fbs-ph-update" >> ${HOME}/.ocb-tools/testrun.properties
 echo "rawrepo.provider.name.ph.holdings = dataio-ph-holding-update" >> ${HOME}/.ocb-tools/testrun.properties
 
+export DEV_VIPCORE_ENDPOINT="http://${HOST_IP}:${SOLR_PORT_NR}"
+export DEV_NUMBERROLL_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+export DEV_RAWREPO_DB_URL="rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrepo"
+export DEV_HOLDINGS_ITEMS_DB_URL="holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems"
+
+#opencat-business-service
+docker-compose up -d rawrepo-record-service
+RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
+export RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
+echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
+echo "rawrepo.record.service.url = http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
+
+export DEV_RAWREPO_RECORD_SERVICE_URL="http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}"
+export DEV_SOLR_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/raapost-index"
+export DEV_SOLR_BASIS_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/basis-index"
+
+docker-compose up -d opencat-business-service
+OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
+export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
+echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
+echo "opencat.business.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
+
+docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${USER}
+docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${USER}
+docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
+
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 echo "buildservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
 
-# TODO DIE
-# Please look in start-local-docker.sh for further information
-echo "roublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "doublerecordcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-echo "classificationcheck.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties
-# TODO DIE END
+../../bin/healthcheck-rawrepo-record-service.sh ${HOST_IP} ${RAWREPO_RECORD_SERVICE_PORT} 220 || die "could not start rawrepo-record-service"
+../../bin/healthcheck-opencat-business-service.sh ${HOST_IP} ${OPENCAT_BUSINESS_SERVICE_PORT} 220 || die "could not start opencat-business-service"

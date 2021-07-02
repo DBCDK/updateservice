@@ -5,31 +5,29 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.javascript.Scripter;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
-import dk.dbc.updateservice.update.OpenAgencyService;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
-import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
-import dk.dbc.updateservice.ws.JNDIResources;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
@@ -67,9 +65,9 @@ public class UpdateTestUtils {
     }
 
     public GlobalActionState getGlobalActionStateMockObject() throws IOException {
-        return getGlobalActionStateMockObject(null);
+        // If the object isn't initialized as a null string it can't figure out which of the overloaded functions to call
+        return getGlobalActionStateMockObject((String) null);
     }
-
 
     public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
         GlobalActionState globalActionState = new GlobalActionState();
@@ -82,11 +80,11 @@ public class UpdateTestUtils {
         globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
         globalActionState.setHoldingsItems(mock(HoldingsItems.class));
-        globalActionState.setScripter(mock(Scripter.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
+        globalActionState.setOpencatBusiness(mock(OpencatBusinessConnector.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));
-        globalActionState.setOpenAgencyService(mock(OpenAgencyService.class));
+        globalActionState.setVipCoreService(mock(VipCoreService.class));
         globalActionState.setValidator(mock(Validator.class));
         globalActionState.setUpdateStore(mock(UpdateStore.class));
         globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
@@ -96,7 +94,26 @@ public class UpdateTestUtils {
             globalActionState.setMarcRecord(AssertActionsUtil.loadRecord(marcRecordName));
         }
         // You have to change this is in the actual test if anything other than fbs is needed
-        globalActionState.setLibraryGroup(OpenAgencyService.LibraryGroup.FBS);
+        globalActionState.setLibraryGroup(LibraryGroup.FBS);
+        return globalActionState;
+    }
+
+    public GlobalActionState getGlobalActionStateMockObject(UpdateServiceRequestDTO updateServiceRequestDTO) {
+        GlobalActionState globalActionState = new GlobalActionState();
+        globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
+        globalActionState.setAuthenticator(mock(Authenticator.class));
+        globalActionState.setHoldingsItems(mock(HoldingsItems.class));
+        globalActionState.setSolrService(mock(SolrFBS.class));
+        globalActionState.setMessages(ResourceBundles.getBundle("actions"));
+        globalActionState.setRawRepo(mock(RawRepo.class));
+        globalActionState.setVipCoreService(mock(VipCoreService.class));
+        globalActionState.setValidator(mock(Validator.class));
+        globalActionState.setUpdateStore(mock(UpdateStore.class));
+        globalActionState.setLibraryRecordsHandler(mock(LibraryRecordsHandler.class));
+        globalActionState.setRecordSorter(new RecordSorterMock());
+        globalActionState.setNoteAndSubjectExtensionsHandler(mock(NoteAndSubjectExtensionsHandler.class));
+        // You have to change this is in the actual test if anything other than fbs is needed
+        globalActionState.setLibraryGroup(LibraryGroup.FBS);
         return globalActionState;
     }
 
@@ -112,16 +129,10 @@ public class UpdateTestUtils {
 
     // This record sorter is only able to sort the fields by field name, and not also sort subfields
     // The sorting is needed because expand function might change the order of the fields
-    private class RecordSorterMock extends RecordSorter {
+    private static class RecordSorterMock extends RecordSorter {
         @Override
-        public MarcRecord sortRecord(MarcRecord record, Properties properties) throws UpdateException {
-
-            Collections.sort(record.getFields(), new Comparator<MarcField>() {
-                @Override
-                public int compare(MarcField f1, MarcField f2) {
-                    return Integer.parseInt(f1.getName()) - Integer.parseInt(f2.getName());
-                }
-            });
+        public MarcRecord sortRecord(MarcRecord record) {
+            record.getFields().sort(Comparator.comparingInt(f -> Integer.parseInt(f.getName())));
 
             return record;
         }

@@ -11,9 +11,10 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.JNDIResources;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -58,6 +59,13 @@ public class UpdateRequestAction extends AbstractAction {
             children.add(new PreProcessingAction(state));
             children.add(new ValidateOperationAction(state, settings));
             if (!hasValidateOnlyOption()) {
+                final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+                if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+                    // Since this can result in writing/creating the common part of the matvurd record even when there is an error
+                    // in the r01/r02 fields, it has to be done before any kind of writing in the records table
+                    // Information that needs check is in the enrichment part so we have to look at the full request record
+                    children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
+                }
                 children.add(createUpdateOperation());
             }
             return ServiceResult.newOkResult();
@@ -97,10 +105,10 @@ public class UpdateRequestAction extends AbstractAction {
     /**
      * Checks if the request is a validate only request.
      * <p>
-     * It is declared public so {@link dk.dbc.updateservice.ws.UpdateService} can use it.
+     * It is declared public so {@link dk.dbc.updateservice.update.UpdateServiceCore} can use it.
      * </p>
      *
-     * @return Boolean value.
+     * @return boolean value.
      */
     public boolean hasValidateOnlyOption() {
         logger.entry();
@@ -181,7 +189,7 @@ public class UpdateRequestAction extends AbstractAction {
             if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
                 throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
             }
-            boolean isProduction = Boolean.valueOf(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
+            boolean isProduction = Boolean.parseBoolean(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
             if (isProduction
                     && state.getUpdateServiceRequestDTO() != null
                     && state.getUpdateServiceRequestDTO().getAuthenticationDTO() != null

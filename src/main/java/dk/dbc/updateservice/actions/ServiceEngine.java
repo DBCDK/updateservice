@@ -5,10 +5,18 @@
 
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
+import java.time.Duration;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -27,9 +35,57 @@ public class ServiceEngine {
     private static final XLogger logger = XLoggerFactory.getXLogger(ServiceEngine.class);
 
     private Map<String, String> loggerKeys = new HashMap<>();
+    MetricsHandlerBean metricsHandlerBean;
 
-    public ServiceEngine() {
+    public ServiceEngine(MetricsHandlerBean metricsHandlerBean) {
+        this.metricsHandlerBean = metricsHandlerBean;
     }
+
+
+    private static class ServiceEngineErrorCounterMetrics implements CounterMetric {
+        private Metadata metadata;
+
+        ServiceEngineErrorCounterMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    private static class ServiceEngineTimingMetrics implements SimpleTimerMetric {
+        private Metadata metadata;
+
+        ServiceEngineTimingMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    static final String METHOD_NAME_KEY = "method";
+    static final String ERROR_TYPE = "errortype";
+
+    static final ServiceEngineErrorCounterMetrics serviceEngineErrorCounterMetrics =
+            new ServiceEngineErrorCounterMetrics(Metadata.builder()
+                    .withName("update_actions_error_counter")
+                    .withDescription("Number of errors caught in actions")
+                    .withType(MetricType.COUNTER)
+                    .withUnit("actions").build());
+
+    static final ServiceEngineTimingMetrics serviceEngineTimingMetrics =
+            new ServiceEngineTimingMetrics(Metadata.builder()
+                    .withName("update_actions_timer")
+                    .withDescription("Duration of various actions")
+                    .withType(MetricType.SIMPLE_TIMER)
+                    .withUnit(MetricUnits.MILLISECONDS).build());
+
+
 
     public void setLoggerKeys(Map<String, String> loggerKeys) {
         this.loggerKeys = loggerKeys;
@@ -52,6 +108,14 @@ public class ServiceEngine {
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
         logger.entry();
+        StopWatch watch = new Log4JStopWatch();
+        final Tag methodTag;
+        if (action != null && action.name() != null) {
+            methodTag = new Tag(METHOD_NAME_KEY, action.name());
+        } else {
+            methodTag = new Tag(METHOD_NAME_KEY, "unknown");
+        }
+
         try {
             if (action == null) {
                 String message = String.format("%s.executeAction can not be called with (null)", getClass().getName());
@@ -62,7 +126,6 @@ public class ServiceEngine {
 
             printActionHeader(action);
 
-            StopWatch watch = new Log4JStopWatch();
             ServiceResult serviceResult = action.performAction();
             watch.stop("action." + action.name());
             action.setTimeElapsed(watch.getElapsedTime());
@@ -88,9 +151,16 @@ public class ServiceEngine {
             }
             return serviceResult;
         } catch (IllegalStateException ex) {
+            metricsHandlerBean.increment(serviceEngineErrorCounterMetrics,
+                    methodTag,
+                    new Tag(ERROR_TYPE, ex.getMessage().toLowerCase()));
+
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
             MDC.setContextMap(loggerKeys);
+            metricsHandlerBean.update(serviceEngineTimingMetrics,
+                    Duration.ofMillis(watch.getElapsedTime()),
+                    methodTag);
             logger.exit();
         }
     }

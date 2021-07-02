@@ -7,7 +7,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
 
 
 /**
@@ -18,11 +18,11 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
     protected RawRepo rawRepo;
     protected MarcRecord record;
 
-    public AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
+    protected AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
         this(name, globalActionState, globalActionState.readRecord());
     }
 
-    public AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord record) {
+    protected AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord record) {
         super(name, globalActionState);
         rawRepo = globalActionState.getRawRepo();
         this.record = record;

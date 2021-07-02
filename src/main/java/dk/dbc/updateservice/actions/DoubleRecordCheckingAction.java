@@ -7,22 +7,27 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.utils.LogUtils;
-import dk.dbc.updateservice.json.JsonMapper;
-import dk.dbc.updateservice.javascript.ScripterException;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.ws.MDCUtil;
+import dk.dbc.updateservice.utils.MDCUtil;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.IOException;
+import javax.xml.bind.JAXBException;
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to check a record for double records.
  */
 public class DoubleRecordCheckingAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
-    private static final String ENTRY_POINT = "checkDoubleRecord";
 
     MarcRecord record;
     Properties settings;
@@ -42,16 +47,19 @@ public class DoubleRecordCheckingAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
         ServiceResult result = null;
         try {
+            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            state.getScripter().callMethod(ENTRY_POINT, JsonMapper.encode(record), settings);
+            state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
             return result = ServiceResult.newOkResult();
-        } catch (IOException | ScripterException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
             String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
             logger.error(message, ex);
             return result = ServiceResult.newOkResult();
         } finally {
+            watch.stop();
             logger.exit(result);
         }
     }

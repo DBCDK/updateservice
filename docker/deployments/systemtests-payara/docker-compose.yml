@@ -51,7 +51,7 @@ services:
       - db.env
       - providers.env
     environment:
-      - OPENAGENCY_URL=http://ocb-tools-systemtests:8080
+      - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       - INSTANCE_NAME=${USER}_systemtest
       - JAVA_MAX_HEAP_SIZE=8G
       - UPDATE_BUILD_NO=lastSuccessfulBuild
@@ -61,6 +61,7 @@ services:
       - UPDATE_DB_URL=updateservice:thePassword@update-systemtests-update-db:5432/updateservice
       - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
       - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
+      - OPENCAT_BUSINESS_URL=http://update-systemtests-opencat-business-service:8080
     expose:
       - "8080"
       - "4848"
@@ -68,12 +69,53 @@ services:
       - "18180:8080"
       - "18148:4848"
 
+  update-systemtests-updateservice-facade:
+    image: docker-io.dbc.dk/updateservice-facade:master-31
+    environment:
+      - UPDATE_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
+      - BUILD_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
+      - JAVA_MAX_HEAP_SIZE=2G
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+  update-systemtests-opencat-business-service:
+    image: docker-io.dbc.dk/opencat-business:latest
+    environment:
+      - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
+      - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
+      - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
+      - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
+      - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
+      - INSTANCE_NAME=${USER}_systemtest
+      - JAVA_MAX_HEAP_SIZE=2G
+      - JAVASCRIPT_POOL_SIZE=1
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+  update-systemtests-rawrepo-record-service:
+    image: docker-io.dbc.dk/rawrepo-record-service:DIT-287
+    environment:
+      -  INSTANCE_NAME=${USER}_systemtest
+      -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
+      -  RAWREPO_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
+      -  HOLDINGS_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
+      -  JAVA_MAX_HEAP_SIZE=2G
+    ports:
+      - "8080"
+      - "8686"
+      - "4848"
+
+
   ocb-tools-systemtests:
     image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
     env_file:
       - ./db.env
     environment:
-      - UPDATE_SERVICE_PORT_8080_TCP_ADDR=update-systemtests-updateservice
+      - UPDATE_SERVICE_PORT_8080_TCP_ADDR=update-systemtests-updateservice-facade
       - UPDATE_SERVICE_PORT_8080_TCP_PORT=8080
       - RAWREPO_PORT_5432_TCP_ADDR=update-systemtests-rawrepo-db
       - RAWREPO_PORT_5432_TCP_PORT=5432

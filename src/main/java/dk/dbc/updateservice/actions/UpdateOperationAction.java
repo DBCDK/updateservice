@@ -10,8 +10,8 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.openagency.client.LibraryRuleHandler;
-import dk.dbc.openagency.client.OpenAgencyException;
+import dk.dbc.jsonb.JSONBException;
+import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -20,18 +20,29 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.apache.commons.lang3.StringUtils;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
+
+import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to perform an Update Operation for a record.
@@ -100,7 +111,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            if (logger.isInfoEnabled()) {
+                logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            }
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
                 logger.info("Unable to update record: {}", serviceResult);
@@ -123,13 +136,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
 
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
-            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
+            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !record.getFields().isEmpty()) {
+                final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
                 try {
-                    record = MetakompasHandler.enrichMetakompasRecord(rawRepo, record);
+                    final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                    record = state.getOpencatBusiness().metacompass(record, trackingId);
                     MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, record, settings);
-                } catch (UpdateException ex) {
-                    String message = String.format(state.getMessages().getString("record.does.not.exist.or.deleted"), reader.getRecordId(), reader.getAgencyId());
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                } catch (UpdateException | OpencatBusinessConnectorException ex) {
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
+                } finally {
+                    watch.stop();
                 }
             }
 
@@ -152,7 +168,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
                     if (!updReader.markedForDeletion() &&
-                            !state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
                         String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -168,8 +184,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.CREATE_ENRICHMENTS) ||
-                            state.getOpenAgencyService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), LibraryRuleHandler.Rule.AUTH_METACOMPASS)) {
+                    } else if (state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                            state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
@@ -197,15 +213,18 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         children.add(new DoubleRecordCheckingAction(state, settings, record));
                     } else {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-                        return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                        result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                        return result;
                     }
                 } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, record));
                 }
             }
-            return result = ServiceResult.newOkResult();
-        } catch (OpenAgencyException | UnsupportedEncodingException e) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
+            result = ServiceResult.newOkResult();
+            return result;
+        } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
+            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
+            return result;
         } finally {
             logger.exit(result);
         }
@@ -217,7 +236,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @param recordId The recordId to check for
      * @return true if the recordId exists as common record
      * @throws UpdateException Update error
-     * @throws SolrException Solr error
+     * @throws SolrException   Solr error
      */
     private boolean checkForExistingCommonFaust(String recordId) throws UpdateException, SolrException {
         if (state.getRawRepo().recordExistsMaybeDeleted(recordId, RawRepo.COMMON_AGENCY)) {
@@ -237,10 +256,10 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * Only applicable for agencies which uses enrichments (i.e. FFU and lokbib are ignored)
      *
      * @param reader MarcRecordReader of the record to be checked
-     * @throws UpdateException Update error
+     * @throws UpdateException              Update error
      * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
-    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, OpenAgencyException {
+    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, VipCoreException {
         logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
 
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
@@ -253,13 +272,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     // For specifically 870974 (literature analysis) must have a creation date equal to the parent
                     // record creation date
                     if ("870974".equals(reader.getAgencyId())) {
-                     setCreationDateToParentCreationDate(record);
+                        setCreationDateToParentCreationDate(record);
                     } else {
                         setCreationDateToToday(record);
                     }
                 }
             }
-        } else if (state.getOpenAgencyService().hasFeature(groupId, LibraryRuleHandler.Rule.USE_ENRICHMENTS)) {
+        } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
             // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
             if (!reader.hasSubfield("001", "d") &&
                     rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
@@ -305,9 +324,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void addDoubleRecordFrontendActionIfNecessary() throws UpdateException {
-        Boolean doubleRecordPossible = state.isDoubleRecordPossible();
-        Boolean fbsMode = state.getLibraryGroup().isFBS();
-        Boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
+        boolean doubleRecordPossible = state.isDoubleRecordPossible();
+        boolean fbsMode = state.getLibraryGroup().isFBS();
+        boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
         if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings));
@@ -315,15 +334,17 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
-        logger.info("Delete?..................: " + updReader.markedForDeletion());
-        logger.info("Library group?...........: " + state.getLibraryGroup());
-        logger.info("Schema name?.............: " + state.getSchemaName());
-        logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
-        logger.info("agency id?...............: " + updReader.getAgencyIdAsInt());
-        logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
-        logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
-        logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
-        logger.info("User is admin?...........: " + state.isAdmin());
+        if (logger.isInfoEnabled()) {
+            logger.info("Delete?..................: " + updReader.markedForDeletion());
+            logger.info("Library group?...........: " + state.getLibraryGroup());
+            logger.info("Schema name?.............: " + state.getSchemaName());
+            logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
+            logger.info("agency id?...............: " + updReader.getAgencyIdAsInt());
+            logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
+            logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
+            logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
+            logger.info("User is admin?...........: " + state.isAdmin());
+        }
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
@@ -335,9 +356,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
             String recordId = reader.getRecordId();
-            if (rawRepo == null) {
-                logger.info("UpdateOperationAction.commonRecordExists(), rawRepo is NULL");
-            }
             if (rawRepo.recordExists(recordId, parentAgencyId)) {
                 return true;
             }
@@ -373,11 +391,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 rawRepoAgencyId = RawRepo.COMMON_AGENCY;
             }
             RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
-            logger.debug("UpdateOperationAction.checkRecordForDeleteability().newRecordId: " + newRecordId);
+            logger.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
             Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
-            logger.debug("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: " + recordIdSet);
+            logger.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
             if (!recordIdSet.isEmpty()) {
-                for (RecordId childRecordId: recordIdSet) {
+                for (RecordId childRecordId : recordIdSet) {
                     // If all child records are 870974 littolk then the record can be deleted anyway
                     // The littolk children will be marked for deletion later in the flow
                     if (childRecordId.getAgencyId() != 870974) {
@@ -414,7 +432,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                     // Deletion of 002a - check for holding on 001a
                     Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
-                    if (holdingAgencies001.size() > 0) {
+                    if (!holdingAgencies001.isEmpty()) {
                         for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                             if (!state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
                                 return state.getMessages().getString("delete.record.holdings.on.002a");
@@ -425,14 +443,20 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
                     for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                         Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
-                        if (holdingAgencies002.size() > 0 && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
+                        if (!holdingAgencies002.isEmpty() && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
                             return state.getMessages().getString("delete.record.holdings.on.002a");
                         }
                     }
                 }
             } else {
+                // No matter if it's a new record or updating an existing, none of eventual 002a may contain the records id
+                for (String aValue : reader.getValues("002", "a")) {
+                    if (aValue.equals(readerRecordId)) {
+                        return state.getMessages().getString("update.record.with.001.equals.002a.links");
+                    }
+                }
                 // Handle either new record or update of existing record
-                Boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
+                boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
                 for (String aValue : reader.getValues("002", "a")) {
                     String solrQuery = createSolrQuery(recordExists, readerRecordId, "002a", aValue);
@@ -470,7 +494,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                     for (String m : removedPreviousFaust) {
                         if (state.getRawRepo().recordDoesNotExistOrIsDeleted(m, RawRepo.COMMON_AGENCY) &&
-                                state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).size() > 0) {
+                                !state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).isEmpty()) {
                             return state.getMessages().getString("update.record.holdings.on.002a");
                         }
                     }
@@ -483,7 +507,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private String createSolrQuery(Boolean recordExists, String recordId, String subfieldName, String subfieldValue) {
+    private String createSolrQuery(boolean recordExists, String recordId, String subfieldName, String subfieldValue) {
         if (recordExists) {
             return SolrServiceIndexer.createSubfieldQueryWithExcludeDBCOnly(subfieldName, subfieldValue, "001a", recordId);
         } else {

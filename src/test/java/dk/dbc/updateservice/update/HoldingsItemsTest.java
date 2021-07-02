@@ -8,34 +8,56 @@ package dk.dbc.updateservice.update;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcSubField;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.holdingsitems.HoldingsItemsDAO;
 import dk.dbc.holdingsitems.HoldingsItemsException;
-import org.junit.Before;
-import org.junit.Test;
+import org.eclipse.microprofile.metrics.Tag;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HoldingsItemsTest {
 
     @Mock
+    MetricsHandlerBean mockedMetricsHandlerBean;
+
+    @Mock
+    DataSource dataSource;
+
+    @Mock
     HoldingsItemsDAO holdingsItemsDAO;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    private AutoCloseable closeable;
+
+    @BeforeEach
+    void openMocks() {
+        closeable = MockitoAnnotations.openMocks(this);
+    }
+
+    @AfterEach
+    void releaseMocks() throws Exception {
+        closeable.close();
     }
 
     private class MockHoldingsItems extends HoldingsItems {
         public MockHoldingsItems() {
             super();
+            metricsHandlerBean = mockedMetricsHandlerBean;
         }
 
         @Override
@@ -49,19 +71,19 @@ public class HoldingsItemsTest {
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenThrow(new HoldingsItemsException("message"));
 
         HoldingsItems items = new MockHoldingsItems();
-        items.getAgenciesThatHasHoldingsForId("12345678");
+        assertThrows(UpdateException.class, () -> items.getAgenciesThatHasHoldingsForId("12345678"));
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_String_NotFound() throws Exception {
-        when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<Integer>());
+    void test_agenciesThatHasHoldingsFor_String_NotFound() throws Exception {
+        when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<>());
 
         HoldingsItems items = new MockHoldingsItems();
         assertTrue(items.getAgenciesThatHasHoldingsForId("12345678").isEmpty());
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_String_Found() throws Exception {
+    void test_agenciesThatHasHoldingsFor_String_Found() throws Exception {
         Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);
@@ -69,19 +91,19 @@ public class HoldingsItemsTest {
         when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(libraries);
 
         HoldingsItems items = new MockHoldingsItems();
-        assertEquals(libraries, items.getAgenciesThatHasHoldingsForId("12345678"));
+        assertThat(items.getAgenciesThatHasHoldingsForId("12345678"), is(libraries));
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_NoIdField() throws Exception {
-        when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<Integer>());
+    void test_agenciesThatHasHoldingsFor_MarcRecord_NoIdField() throws Exception {
+        when(holdingsItemsDAO.getAgenciesThatHasHoldingsFor(eq("12345678"))).thenReturn(new HashSet<>());
 
         HoldingsItems items = new MockHoldingsItems();
         assertTrue(items.getAgenciesThatHasHoldingsFor(new MarcRecord()).isEmpty());
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_Found() throws Exception {
+    void test_agenciesThatHasHoldingsFor_MarcRecord_Found() throws Exception {
         Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);
@@ -95,18 +117,18 @@ public class HoldingsItemsTest {
         field.getSubfields().add(new MarcSubField("a", "12345678"));
         record.getFields().add(field);
 
-        assertEquals(libraries, items.getAgenciesThatHasHoldingsFor(record));
+        assertThat(items.getAgenciesThatHasHoldingsFor(record), is(libraries));
     }
 
     @Test
-    public void test_agenciesThatHasHoldingsFor_MarcRecord_002() throws Exception {
-        Set<Integer> libraries = new HashSet<Integer>();
+    void test_agenciesThatHasHoldingsFor_MarcRecord_002() throws Exception {
+        Set<Integer> libraries = new HashSet<>();
         libraries.add(700300);
         libraries.add(10100);
-        Set<Integer> libraries002 = new HashSet<Integer>();
+        Set<Integer> libraries002 = new HashSet<>();
         libraries002.add(700400);
         libraries002.add(101009);
-        Set<Integer> resultlibs = new HashSet<Integer>();
+        Set<Integer> resultlibs = new HashSet<>();
         resultlibs.addAll(libraries);
         resultlibs.addAll(libraries002);
 
@@ -123,6 +145,6 @@ public class HoldingsItemsTest {
         field002.getSubfields().add(new MarcSubField("a", "02345678"));
         record.getFields().add(field002);
 
-        assertEquals(resultlibs, items.getAgenciesThatHasHoldingsFor(record));
+        assertThat(items.getAgenciesThatHasHoldingsFor(record), is(resultlibs));
     }
 }

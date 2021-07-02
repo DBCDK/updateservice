@@ -19,8 +19,10 @@ public class ApplicationConfig extends Application {
             Arrays.asList(
                     StatusService.class,
                     HowruService.class,
-                    DoubleRecordCheckService.class,
-                    ClassificationCheckService.class)
+                    DoubleRecordCheckServiceRest.class,
+                    ClassificationCheckServiceRest.class,
+                    UpdateServiceRest.class,
+                    OpenBuildRest.class)
     );
 
     @Override

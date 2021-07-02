@@ -12,6 +12,9 @@ import dk.dbc.common.records.marcxchange.CollectionType;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
 import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.commons.metricshandler.CounterMetric;
+import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.marcxmerge.FieldRules;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
@@ -19,15 +22,21 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.marcrecord.ExpandCommonMarcRecord;
+import dk.dbc.rawrepo.RelationHintsVipCore;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import org.eclipse.microprofile.metrics.Metadata;
+import org.eclipse.microprofile.metrics.MetricType;
+import org.eclipse.microprofile.metrics.MetricUnits;
+import org.eclipse.microprofile.metrics.Tag;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.sql.DataSource;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -35,38 +44,95 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * EJB to provide access to the RawRepo database.
  */
 @Stateless
 public class RawRepo {
+
+    @Inject
+    MetricsHandlerBean metricsHandler;
+
+    @Inject
+    private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
+
+    private static class RawrepoErrorCounterMetrics implements CounterMetric {
+        private final Metadata metadata;
+
+        RawrepoErrorCounterMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    private static class RawrepoDaoTimingMetrics implements SimpleTimerMetric {
+        private final Metadata metadata;
+
+        public RawrepoDaoTimingMetrics(Metadata metadata) {
+            this.metadata = validateMetadata(metadata);
+        }
+
+        @Override
+        public Metadata getMetadata() {
+            return metadata;
+        }
+    }
+
+    protected static final String METHOD_NAME_KEY = "method";
+    protected static final String ERROR_TYPE = "errortype";
+
+    static final RawrepoDaoTimingMetrics rawrepoDaoTimingMetrics =
+            new RawrepoDaoTimingMetrics(Metadata.builder()
+                    .withName("update_rawrepodao_timer")
+                    .withDescription("Duration of various rawrepodao calls")
+                    .withType(MetricType.SIMPLE_TIMER)
+                    .withUnit(MetricUnits.MILLISECONDS).build());
+
+    static final RawrepoErrorCounterMetrics rawrepoErrorCounterMetrics = new RawrepoErrorCounterMetrics(Metadata.builder()
+            .withName("update_rawrepodao_error_counter")
+            .withDescription("Number of errors caught in rawrepodao calls")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build());
+
+
     private static final XLogger logger = XLoggerFactory.getXLogger(RawRepo.class);
     public static final int COMMON_AGENCY = 870970;
     public static final int ARTICLE_AGENCY = 870971;
     public static final int LITTOLK_AGENCY = 870974;
+    public static final int HOSTPUB_AGENCY = 870975;
+    public static final int MATVURD_AGENCY = 870976;
+    public static final int RETRO_AGENCY = 870978;
     public static final int AUTHORITY_AGENCY = 870979;
-    public static final List<String> DBC_AGENCY_LIST = Arrays.asList("870970", "870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
-    public static final List<String> DBC_AGENCY_ALL = Arrays.asList("190002", "190004", "191919", "870970", "870971", "870974", "870979"); // More will probably be added later
-    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870973", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
+    public static final List<Integer> SIMPLE_AGENCIES = Collections.singletonList(190007);
+    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007");
+    public static final List<String> DBC_AGENCY_LIST = Stream.concat(Stream.of("870970"), DBC_PRIVATE_AGENCY_LIST.stream()).collect(Collectors.toList());
+    public static final List<String> DBC_AGENCY_ALL = Stream.concat(Stream.of("191919"), DBC_AGENCY_LIST.stream()).collect(Collectors.toList());
     public static final int DBC_ENRICHMENT = 191919;
     public static final int SCHOOL_COMMON_AGENCY = 300000;
     public static final int MIN_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 1;
     public static final int MAX_SCHOOL_AGENCY = SCHOOL_COMMON_AGENCY + 99999;
-    public static final List<String> AUTHORITY_FIELDS = Arrays.asList("100", "600", "700", "770", "780");
+    public static final List<String> AUTHORITY_FIELDS = ExpandCommonMarcRecord.AUTHORITY_FIELD_LIST;
+    public static final List<String> MATVURD_FIELDS = Arrays.asList("r01", "r02");
 
     public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
-
-    @EJB
-    private OpenAgencyService openAgency;
 
     @Resource(lookup = "jdbc/rawrepo")
     private DataSource dataSource;
@@ -185,6 +251,8 @@ public class RawRepo {
         logger.entry(recordId);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = null;
+        final String methodName = "allAgenciesForBibliographicRecordId";
+
         try {
             if (recordId == null) {
                 throw new IllegalArgumentException("recordId can not be null");
@@ -207,8 +275,12 @@ public class RawRepo {
                 logger.error(e.getMessage(), e);
                 throw new UpdateException(e.getMessage(), e);
             }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.agenciesForRecord.String");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -233,6 +305,7 @@ public class RawRepo {
     public Set<RecordId> children(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "getRelationsChildren";
 
         try {
             if (recordId == null) {
@@ -252,8 +325,12 @@ public class RawRepo {
                 logger.error(ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.children.RecordId");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -278,6 +355,7 @@ public class RawRepo {
     public Set<RecordId> enrichments(RecordId recordId) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "getRelationsSiblingsToMe";
 
         try {
             if (recordId == null) {
@@ -298,8 +376,12 @@ public class RawRepo {
                 logger.error(ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.enrichments.RecordId");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -318,6 +400,8 @@ public class RawRepo {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
         Record result = null;
+        final String methodName = "fetchRecord";
+
         try {
             if (recId == null) {
                 throw new IllegalArgumentException("recId can not be null");
@@ -337,8 +421,12 @@ public class RawRepo {
                 logger.error(ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -346,6 +434,7 @@ public class RawRepo {
     public Map<String, MarcRecord> fetchRecordCollection(String recId, int agencyId) throws UpdateException {
         logger.entry(recId, agencyId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "fetchRecordCollection";
         Map<String, MarcRecord> result = null;
         Map<String, Record> recordMap;
         try (Connection conn = dataSource.getConnection()) {
@@ -372,8 +461,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.fetchRecordCollection");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -390,6 +483,7 @@ public class RawRepo {
     public Record fetchMergedDBCRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
         logger.entry(bibliographicRecordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "fetchMergedRecord";
         Record result = null;
         try {
             if (bibliographicRecordId == null) {
@@ -416,8 +510,12 @@ public class RawRepo {
                 logger.error(ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -434,6 +532,7 @@ public class RawRepo {
         logger.entry(recordId, agencyId);
         logger.info("RawRepo.recordExists, input, recordId=" + recordId + ", agencyId=" + agencyId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "recordExists";
         boolean result = false;
         if (dataSource == null) {
             logger.info("RawRepo.recordExists, dataSourceReader == NULL");
@@ -459,8 +558,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.recordExists");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -476,6 +579,7 @@ public class RawRepo {
     public boolean recordExistsMaybeDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
+        String methodName = "recordExistsMaybeDeleted";
 
         boolean result = false;
         try (Connection conn = dataSource.getConnection()) {
@@ -492,8 +596,13 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
+
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -509,6 +618,7 @@ public class RawRepo {
     public boolean recordDoesNotExistOrIsDeleted(String recordId, int agencyId) throws UpdateException {
         logger.entry(recordId, agencyId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "recordExistsMaybeDeleted";
 
         boolean result = false;
         try (Connection conn = dataSource.getConnection()) {
@@ -530,8 +640,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -539,6 +653,7 @@ public class RawRepo {
     public void saveRecord(Record record) throws UpdateException {
         logger.entry(record);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "saveRecord";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -554,8 +669,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.saveRecord.Record");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -563,6 +682,7 @@ public class RawRepo {
     public void removeLinks(RecordId recId) throws UpdateException {
         logger.entry(recId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -576,8 +696,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.removeLinks");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -593,6 +717,7 @@ public class RawRepo {
     public void linkRecord(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -607,8 +732,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -624,6 +753,7 @@ public class RawRepo {
     public void linkRecordAppend(RecordId id, RecordId refer_id) throws UpdateException {
         logger.entry(id, refer_id);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "linkRecordAppend";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
@@ -638,8 +768,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.linkRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -651,6 +785,7 @@ public class RawRepo {
     public void changedRecord(String provider, RecordId recId, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "changedRecord";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -664,8 +799,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.changedRecord");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -673,6 +812,7 @@ public class RawRepo {
     public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
         logger.entry(provider, recId);
         StopWatch watch = new Log4JStopWatch();
+        final String methodName = "enqueue";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -686,8 +826,13 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
+
         } finally {
             watch.stop("rawrepo.enqueue");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit();
         }
     }
@@ -696,6 +841,7 @@ public class RawRepo {
         logger.entry(provider);
         boolean result = false;
         final StopWatch watch = new Log4JStopWatch();
+        final String methodName = "checkProvider";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
@@ -711,8 +857,12 @@ public class RawRepo {
         } catch (SQLException ex) {
             logger.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
         } finally {
             watch.stop("rawrepo.checkProvider");
+            updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }
     }
@@ -745,7 +895,7 @@ public class RawRepo {
             marshaller.marshal(jAXBElement, recData);
 
             logger.info("Marshalled record: {}", recData.toString());
-            result = recData.toString().getBytes("UTF-8");
+            result = recData.toString().getBytes(StandardCharsets.UTF_8);
             return result;
         } finally {
             logger.exit(result);
@@ -764,7 +914,8 @@ public class RawRepo {
         StopWatch watch = new Log4JStopWatch();
         try {
             RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
-            rawRepoBuilder.relationHints(new RelationHintsOpenAgency(openAgency.getService()));
+
+            rawRepoBuilder.relationHints(new RelationHintsVipCore(vipCoreLibraryRulesConnector));
             return rawRepoBuilder.build();
         } finally {
             watch.stop("rawrepo.createDAO");
@@ -793,4 +944,14 @@ public class RawRepo {
         }
     }
 
+    private void incrementErrorCounterMetric(String methodName, Exception e) {
+        metricsHandler.increment(rawrepoErrorCounterMetrics,
+                new Tag(METHOD_NAME_KEY, methodName),
+                new Tag(ERROR_TYPE, e.getMessage().toLowerCase()));
+    }
+
+    private void updateSimpleTimerMetric(String methodName, StopWatch watch) {
+        metricsHandler.update(rawrepoDaoTimingMetrics,
+                Duration.ofMillis(watch.getElapsedTime()), new Tag(METHOD_NAME_KEY, methodName));
+    }
 }
