@@ -80,6 +80,9 @@ public class VipCoreService {
                 case "skole":
                     result = LibraryGroup.FBS;
                     break;
+                case "sbci":
+                    result = LibraryGroup.SBCI;
+                    break;
                 default:
                     throw new UpdateException("Unknown library group: " + reply);
             }

@@ -6,7 +6,7 @@
 package dk.dbc.updateservice.update;
 
 public enum LibraryGroup {
-    DBC("dbc"), FBS("fbs"), PH("ph");
+    DBC("dbc"), FBS("fbs"), PH("ph"), SBCI("sbci");
 
     private final String value;
 
@@ -29,7 +29,9 @@ public enum LibraryGroup {
 
     // PH is also a FBS library
     public boolean isFBS() {
-        return FBS.getValue().equals(this.getValue()) || PH.getValue().equals(this.getValue());
+        return FBS.getValue().equals(this.getValue()) ||
+                PH.getValue().equals(this.getValue()) ||
+                SBCI.getValue().equals(this.getValue());
     }
 
     public boolean isPH() {

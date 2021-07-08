@@ -377,8 +377,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            // The 700300 check will be replaced once there is a SBCI library group
-            if (("700300".equals(groupId) || vipCoreService.getLibraryGroup(groupId).isFBS())
+            if (vipCoreService.getLibraryGroup(groupId).isFBS()
                     && !CatalogExtractionCode.isPublished(marcRecord)) {
                 final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
                 result.add(createMessageDTO(message));
