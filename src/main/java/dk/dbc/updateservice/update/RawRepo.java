@@ -335,6 +335,39 @@ public class RawRepo {
         }
     }
 
+    public Set<RecordId> parents(RecordId recordId) throws UpdateException {
+        logger.entry();
+        StopWatch watch = new Log4JStopWatch();
+        final String methodName = "parents";
+
+        try {
+            if (recordId == null) {
+                throw new IllegalArgumentException("recordId can not be null");
+            }
+
+            try (Connection conn = dataSource.getConnection()) {
+                try {
+                    RawRepoDAO dao = createDAO(conn);
+                    return dao.getRelationsParents(recordId);
+                } catch (RawRepoException ex) {
+                    conn.rollback();
+                    logger.error(ex.getMessage(), ex);
+                    throw new UpdateException(ex.getMessage(), ex);
+                }
+            } catch (SQLException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
+        } finally {
+            watch.stop("rawrepo.parents");
+            updateSimpleTimerMetric(methodName, watch);
+            logger.exit();
+        }
+    }
+
     public Set<RecordId> enrichments(MarcRecord record) throws UpdateException {
         logger.entry();
         StopWatch watch = new Log4JStopWatch();
@@ -426,6 +459,41 @@ public class RawRepo {
             throw e;
         } finally {
             watch.stop("rawrepo.fetchRecord");
+            updateSimpleTimerMetric(methodName, watch);
+            logger.exit(result);
+        }
+    }
+
+    public Record fetchMergedRecord(String recId, int agencyId) throws UpdateException {
+        logger.entry(recId, agencyId);
+        StopWatch watch = new Log4JStopWatch();
+        Record result = null;
+        final String methodName = "fetchMergedRecord";
+
+        try {
+            if (recId == null) {
+                throw new IllegalArgumentException("recId can not be null");
+            }
+            try (Connection conn = dataSource.getConnection()) {
+                try {
+                    final RawRepoDAO dao = createDAO(conn);
+                    final MarcXMerger merger = new MarcXMerger();
+                    result = dao.fetchMergedRecord(recId, agencyId, merger, false);
+                    return result;
+                } catch (RawRepoException | MarcXMergerException ex) {
+                    conn.rollback();
+                    logger.error(ex.getMessage(), ex);
+                    throw new UpdateException(ex.getMessage(), ex);
+                }
+            } catch (SQLException ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
+            }
+        } catch (Exception e) {
+            incrementErrorCounterMetric(methodName, e);
+            throw e;
+        } finally {
+            watch.stop("rawrepo.fetchMergedRecord");
             updateSimpleTimerMetric(methodName, watch);
             logger.exit(result);
         }

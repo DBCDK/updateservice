@@ -1723,7 +1723,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("68058309"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -1745,7 +1745,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -1765,7 +1765,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -1790,7 +1790,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -1815,7 +1815,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -1844,7 +1844,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -1872,7 +1872,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -1900,7 +1900,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -1939,7 +1939,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
     @Test
     void testAuthorityRecordHasProofPrintingDiffSame100() throws Exception {
@@ -1959,7 +1959,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("68058309"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -1981,7 +1981,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -2001,7 +2001,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("69022804"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -2026,7 +2026,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -2051,7 +2051,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -2080,7 +2080,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
     }
 
     @Test
@@ -2108,7 +2108,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -2136,7 +2136,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(true));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
     @Test
@@ -2175,7 +2175,155 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
-        assertThat(overwriteSingleRecordAction.authorityRecordHasProofPrintingDiff(inputAutRecord), is(false));
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100Identical() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100Missing() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100MissingReverse() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_FieldMissingBoth() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(false));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100IDiff() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian J.\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100IDiffReverse() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian J.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field110IDiff() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian J.\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordHasClassificationChange_Field100110IDiff() throws Exception {
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+                "110 00 *a Mernild *h Sebastian H.";
+
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+                "100 00 *a Mernild *h Sebastian H.\n";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(eq("19257355"), eq(RawRepo.AUTHORITY_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord, MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.authorityRecordHasClassificationChange(inputAutRecord), is(true));
     }
 
     @Test
