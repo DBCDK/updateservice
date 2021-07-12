@@ -905,7 +905,8 @@ public class LibraryRecordsHandler {
                 UpdateOwnership.mergeRecord(record, existingRecord);
             }
 
-            if (libraryGroup.isFBS()) {
+            // TODO Remove hardcoded 700300
+            if ("700300".equals(groupId) || libraryGroup.isFBS()) {
                 result = recordDataForRawRepoFBS(record, groupId, messages);
             } else { // Assuming DataIO mode
                 result = recordDataForRawRepoDataIO(record, groupId);

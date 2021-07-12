@@ -253,8 +253,15 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createErrorReply(resourceBundle.getString("update.common.record.error"));
             }
 
+            // TODO Remove hardcoded 700300
             if ("700300".equals(curOwner) &&
                     !("700300".equals(groupId) && "700300".equals(owner))) {
+                return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
+            }
+
+            if (state.getVipCoreService().getLibraryGroup(curOwner).isSBCI() &&
+                    !(state.getVipCoreService().getLibraryGroup(groupId).isSBCI() &&
+                            state.getVipCoreService().getLibraryGroup(owner).isSBCI())) {
                 return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
             }
 
