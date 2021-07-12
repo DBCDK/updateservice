@@ -37,4 +37,8 @@ public enum LibraryGroup {
     public boolean isPH() {
         return PH.getValue().equals(this.getValue());
     }
+
+    public boolean isSBCI() {
+        return SBCI.getValue().equals(this.getValue());
+    }
 }

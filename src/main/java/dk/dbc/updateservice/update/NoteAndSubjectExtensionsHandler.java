@@ -377,7 +377,8 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if (vipCoreService.getLibraryGroup(groupId).isFBS()
+            // TODO Remove hardcoded 700300
+            if (("700300".equals(groupId) || vipCoreService.getLibraryGroup(groupId).isFBS())
                     && !CatalogExtractionCode.isPublished(marcRecord)) {
                 final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
                 result.add(createMessageDTO(message));
