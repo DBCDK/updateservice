@@ -14,6 +14,7 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -470,6 +471,7 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("700400")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -586,6 +588,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("870970")).thenReturn(LibraryGroup.DBC);
+        when(state.getVipCoreService().getLibraryGroup("700300")).thenReturn(LibraryGroup.SBCI);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -616,6 +620,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("830010")).thenReturn(LibraryGroup.FBS);
+        when(state.getVipCoreService().getLibraryGroup("700400")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -646,6 +652,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("830010")).thenReturn(LibraryGroup.FBS);
+        when(state.getVipCoreService().getLibraryGroup("700400")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -675,6 +683,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
+        when(state.getVipCoreService().getLibraryGroup("830010")).thenReturn(LibraryGroup.FBS);
+        when(state.getVipCoreService().getLibraryGroup("700400")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
