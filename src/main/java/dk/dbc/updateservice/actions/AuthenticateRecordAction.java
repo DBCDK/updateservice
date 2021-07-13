@@ -259,6 +259,11 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
             }
 
+            /*
+                If a record is owned by SBCI then a non-SBCI agency can't change the record. In other words, if the
+                current owner (996 *a) is SBCI then the agency updating the record and the owner of the updated record
+                must both be SBCI.
+             */
             if (state.getVipCoreService().getLibraryGroup(curOwner).isSBCI() &&
                     !(state.getVipCoreService().getLibraryGroup(groupId).isSBCI() &&
                             state.getVipCoreService().getLibraryGroup(owner).isSBCI())) {
