@@ -70,7 +70,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
-            } else if (state.getLibraryGroup().isDBC()) {
+            } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
             } else if (state.getLibraryGroup().isPH()) {
                 providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
