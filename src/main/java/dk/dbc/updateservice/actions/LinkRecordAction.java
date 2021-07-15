@@ -29,8 +29,8 @@ public class LinkRecordAction extends AbstractRawRepoAction {
 
     private RecordId linkToRecordId;
 
-    public LinkRecordAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(LinkRecordAction.class.getSimpleName(), globalActionState, record);
+    public LinkRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(LinkRecordAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     public RecordId getLinkToRecordId() {
@@ -52,8 +52,8 @@ public class LinkRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
             RecordId recordIdObj = new RecordId(recordId, agencyId);
@@ -72,11 +72,11 @@ public class LinkRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a LinkRecordAction.
      */
-    public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord record) {
+    public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         logger.entry();
         try {
-            LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, record);
-            MarcRecordReader reader = new MarcRecordReader(record);
+            LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, marcRecord);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String parentId = reader.getParentRecordId();
             int agencyId = reader.getParentAgencyIdAsInt();
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));

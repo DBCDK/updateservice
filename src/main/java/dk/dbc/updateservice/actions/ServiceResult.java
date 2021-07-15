@@ -52,10 +52,6 @@ public class ServiceResult {
         return doubleRecordFrontendDTOS;
     }
 
-    public void setDoubleRecordFrontendDTOS(List<DoubleRecordFrontendDTO> doubleRecordFrontendDTOS) {
-        this.doubleRecordFrontendDTOS = doubleRecordFrontendDTOS;
-    }
-
     public String getDoubleRecordKey() {
         return doubleRecordKey;
     }

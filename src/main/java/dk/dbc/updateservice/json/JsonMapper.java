@@ -61,14 +61,6 @@ public class JsonMapper {
         return instance.readValue(src, clazz);
     }
 
-    public static <T> List<T> decodeArray(String content, Class<T> clazz) throws IOException {
-        return instance.readArrayValue(content, clazz);
-    }
-
-    public static <T> List<T> decodeArray(File src, Class<T> clazz) throws IOException {
-        return instance.readArrayValue(src, clazz);
-    }
-
     public static String encode(Object value) throws IOException {
         return instance.writeValue(value);
     }

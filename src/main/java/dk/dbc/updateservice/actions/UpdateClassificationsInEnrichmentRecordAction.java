@@ -21,10 +21,9 @@ import java.util.Properties;
  */
 public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichmentRecordWithClassificationsAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
-    private final static String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
-    private final static String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
+    private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
+    private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
-    GlobalActionState state;
     private MarcRecord enrichmentRecord;
 
     public UpdateClassificationsInEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
@@ -61,9 +60,9 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             if (state.getLibraryRecordsHandler() == null) {
                 throw new IllegalStateException("recordsHandler is not assigned a value");
             }
-            MarcRecord record = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
-            MarcRecordReader reader = new MarcRecordReader(record);
-            MarcRecordWriter writer = new MarcRecordWriter(record);
+            MarcRecord marcRecord = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
             // When categorization has changed in the common record an y08 *a note must be added
             if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
@@ -76,7 +75,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
                 writer.setChangedTimestamp();
             }
             writer.sort();
-            return record;
+            return marcRecord;
         } finally {
             logger.exit();
         }

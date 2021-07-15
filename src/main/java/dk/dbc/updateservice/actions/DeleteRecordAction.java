@@ -31,10 +31,10 @@ import java.util.Properties;
  * </p>
  */
 public class DeleteRecordAction extends StoreRecordAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DeleteRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
-    public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(globalActionState, properties, record);
+    public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(globalActionState, properties, marcRecord);
         setName(DeleteRecordAction.class.getSimpleName());
     }
 
@@ -50,7 +50,7 @@ public class DeleteRecordAction extends StoreRecordAction {
      */
     @Override
     public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
-        logger.entry();
+        LOGGER.entry();
         MarcRecord result = null;
         try {
             result = loadCurrentRecord();
@@ -59,14 +59,14 @@ public class DeleteRecordAction extends StoreRecordAction {
             if (currentReader.getField("004") == null) {
                 // This is done because the database by historical reasons are pestered with
                 // a large number of records without field 004
-                currentWriter.copyFieldFromRecord("004", record);
+                currentWriter.copyFieldFromRecord("004", marcRecord);
             }
             currentWriter.markForDeletion();
             currentWriter.setChangedTimestamp();
 
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -74,7 +74,7 @@ public class DeleteRecordAction extends StoreRecordAction {
      * Factory method to create a DeleteRecordAction.
      */
     public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        logger.entry(globalActionState, record);
+        LOGGER.entry(globalActionState, record);
         try {
             String mimeType;
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
@@ -90,22 +90,22 @@ public class DeleteRecordAction extends StoreRecordAction {
             deleteRecordAction.setMimetype(mimeType);
             return deleteRecordAction;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
-        logger.entry();
+        LOGGER.entry();
         MarcRecord result = null;
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
             Record record = rawRepo.fetchRecord(recordId, agencyId);
             return result = RecordContentTransformer.decodeRecord(record.getContent());
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

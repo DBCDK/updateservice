@@ -27,7 +27,7 @@ public class UpdateRecordResponseDTOWriter {
     }
 
     private static void addMessageEntries(List<MessageEntryDTO> entries, UpdateRecordResponseDTO updateRecordResponseDTO) {
-        if (entries != null && entries.size() > 0) {
+        if (entries != null && !entries.isEmpty()) {
             updateRecordResponseDTO.addMessageEntryDtos(entries);
         }
     }

@@ -38,10 +38,10 @@ import java.util.Properties;
 public class MetakompasHandler {
     private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
-    private static final String indexName = "phrase.vla";
+    private static final String INDEX_NAME = "phrase.vla";
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
     private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t");
-    private static final String commonRecordTemplate =
+    private static final String COMMON_RECORD_TEMPLATE =
             "001 00 *a*b190004*c*d*fa*tFAUST\n" +
                     "004 00 *rn*ae*xm\n" +
                     "008 00 *th*v0\n" +
@@ -49,7 +49,7 @@ public class MetakompasHandler {
                     "165 00 \n" +
                     "670 00 *a\n" +
                     "996 00 *aDBC\n";
-    private static final String enrichmentRecordTemplate =
+    private static final String ENRICHMENT_RECORD_TEMPLATE =
             "001 00 *a*b191919*c*d*fa*tFAUST\n" +
                     "004 00 *rn*ae*xm\n" +
                     "d08 00 *aMetakompas\n" +
@@ -221,7 +221,7 @@ public class MetakompasHandler {
     private static void doCreateMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, String id, String subFieldName, String subfieldContent, String category, Properties properties)
             throws UpdateException {
         try {
-            MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(commonRecordTemplate);
+            MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(COMMON_RECORD_TEMPLATE);
             MarcRecordWriter writer = new MarcRecordWriter(commonSubjectRecord);
             String newId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
             writer.addOrReplaceSubfield("001", "a", newId);
@@ -231,7 +231,7 @@ public class MetakompasHandler {
             writer.addOrReplaceSubfield("670", "a", id);
             children.add(new CreateSingleRecordAction(state, properties, commonSubjectRecord));
 
-            MarcRecord enrichmentRecord = MarcRecordFactory.readRecord(enrichmentRecordTemplate);
+            MarcRecord enrichmentRecord = MarcRecordFactory.readRecord(ENRICHMENT_RECORD_TEMPLATE);
             writer = new MarcRecordWriter(enrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", newId);
             writer.setChangedTimestamp();
@@ -258,7 +258,7 @@ public class MetakompasHandler {
             throws UpdateException, SolrException, UnsupportedEncodingException {
         if (!(atmosphereSubjectSubFields.contains(subFieldName) || nonAtmosphereSubjectSubFields.contains(subFieldName)))
             return;
-        String solrQuery = SolrServiceIndexer.createGetSubjectId(indexName, subfieldContent);
+        String solrQuery = SolrServiceIndexer.createGetSubjectId(INDEX_NAME, subfieldContent);
         String subjectId = state.getSolrBasis().getSubjectIdNumber(solrQuery);
         if (subjectId.equals("")) {
             // create new subject record

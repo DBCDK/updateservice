@@ -106,7 +106,7 @@ public class UpdateServiceCore {
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
-    private Properties settings = JNDIResources.getProperties();
+    private final Properties settings = JNDIResources.getProperties();
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
@@ -156,9 +156,11 @@ public class UpdateServiceCore {
         UpdateRecordResponseDTO updateRecordResponseDTO = null;
         try {
             if (state.readRecord() != null) {
-                LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
-                LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
-                LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
+                    LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+                    LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
+                }
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
 
@@ -193,10 +195,12 @@ public class UpdateServiceCore {
             updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
             return updateRecordResponseDTO;
         } finally {
-            try {
-                LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", JsonMapper.encodePretty(updateRecordResponseDTO));
-            } catch (IOException e) {
-                LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
+            if (LOGGER.isInfoEnabled()) {
+                try {
+                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", JsonMapper.encodePretty(updateRecordResponseDTO));
+                } catch (IOException e) {
+                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
+                }
             }
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
             LOGGER.exit(serviceResult);
@@ -272,19 +276,19 @@ public class UpdateServiceCore {
     public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) {
         try {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
-            MarcRecord record = getRecord(recordDataDTO);
+            MarcRecord marcRecord = getRecord(recordDataDTO);
 
             ServiceResult serviceResult = ServiceResult.newOkResult();
-            if (record != null) {
-                final MarcRecordReader recordReader = new MarcRecordReader(record);
+            if (marcRecord != null) {
+                final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
                 final String recordId = recordReader.getValue("001", "a");
                 final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
                 if (rawRepo.recordExists(recordId, agencyId)) {
                     final MarcRecord oldRecord = loadRecord(recordId, agencyId);
                     final Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId(recordId);
-                    if (holdingAgencies.size() > 0) {
+                    if (!holdingAgencies.isEmpty()) {
                         List<String> classificationsChangedMessages = new ArrayList<>();
-                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, record, classificationsChangedMessages)) {
+                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages)) {
                             final List<MessageEntryDTO> messageEntryDTOs = new ArrayList<>();
 
                             final MessageEntryDTO holdingsMessageEntryDTO = new MessageEntryDTO();
@@ -319,18 +323,18 @@ public class UpdateServiceCore {
     public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) {
         try {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
-            MarcRecord record = getRecord(recordDataDTO);
+            MarcRecord marcRecord = getRecord(recordDataDTO);
 
 
             ServiceResult serviceResult;
-            if (record != null) {
-                MarcRecordReader reader = new MarcRecordReader(record);
+            if (marcRecord != null) {
+                MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
                     final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
                     try {
-                        final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(record);
+                        final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(marcRecord);
                         serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
                     } finally {
                         watch.stop();
@@ -349,7 +353,7 @@ public class UpdateServiceCore {
         }
     }
 
-    public boolean isServiceReady(GlobalActionState globalActionState) {
+    public boolean isServiceReady() {
         LOGGER.entry();
         boolean res = true;
         try {
@@ -395,9 +399,6 @@ public class UpdateServiceCore {
     }
 
     private void validateRequiredSettings() {
-        if (settings == null) {
-            throw new IllegalStateException("JNDI settings cannot be empty");
-        }
         for (String s : JNDIResources.getListOfRequiredJNDIResources()) {
             if (!settings.containsKey(s)) {
                 throw new IllegalStateException("Required JNDI resource '" + s + "' not found");
@@ -429,7 +430,7 @@ public class UpdateServiceCore {
         }
     }
 
-    public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) throws IOException {
+    public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) {
         ServiceResult result;
         if ("ok".equals(doubleRecordFrontendStatusDTO.getStatus())) {
             result = ServiceResult.newOkResult();
@@ -450,19 +451,19 @@ public class UpdateServiceCore {
     }
 
     private MarcRecord getRecord(RecordDataDTO recordDataDTO) {
-        MarcRecord record = null;
+        MarcRecord marcRecord = null;
         if (recordDataDTO != null) {
             List<Object> list = recordDataDTO.getContent();
             for (Object o : list) {
                 if (o instanceof Node) {
-                    record = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                    marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
                     break;
                 } else if (o instanceof String && !((String) o).trim().isEmpty()) {
-                    record = MarcConverter.convertFromMarcXChange((String) o);
+                    marcRecord = MarcConverter.convertFromMarcXChange((String) o);
                     break;
                 }
             }
         }
-        return record;
+        return marcRecord;
     }
 }

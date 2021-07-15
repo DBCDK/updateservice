@@ -24,6 +24,7 @@ import java.util.Set;
 @Stateless
 public class VipCoreService {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(VipCoreService.class);
+    private static final String LIBRARY_RULE_MESSAGE = "LibraryRule {} for {} is {}";
 
     @Inject
     private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
@@ -37,7 +38,7 @@ public class VipCoreService {
 
             for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(feature.getValue())) {
-                    LOGGER.debug("LibraryRule {} for {} is {}", agencyId, feature.getValue(), libraryRule);
+                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, feature.getValue(), libraryRule);
                     if (libraryRule.getBool() != null) {
                         return libraryRule.getBool();
                     }
@@ -61,7 +62,7 @@ public class VipCoreService {
 
             for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
-                    LOGGER.debug("LibraryRule {} for {} is {}", agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
+                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
                     reply = libraryRule.getString();
                 }
             }
@@ -103,7 +104,7 @@ public class VipCoreService {
 
             for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
                 if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
-                    LOGGER.debug("LibraryRule {} for {} is {}", agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
+                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
                     LOGGER.info("Agency '{}' has LibraryGroup {}", agencyId, libraryRule.getString());
                     return libraryRule.getString();
                 }

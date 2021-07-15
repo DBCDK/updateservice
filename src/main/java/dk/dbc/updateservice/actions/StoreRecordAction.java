@@ -45,8 +45,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             .toFormatter()
             .withZone(ZoneId.of("Europe/Copenhagen"));
 
-    public StoreRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(StoreRecordAction.class.getSimpleName(), globalActionState, record);
+    public StoreRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(StoreRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.properties = properties;
     }
 
@@ -61,13 +61,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     /**
      * Class used for mocking during unit test
      */
-    class Encoder {
-        byte[] encodeRecord(MarcRecord record) throws JAXBException, UnsupportedEncodingException {
-            return RecordContentTransformer.encodeRecord(record);
-        }
-
-        MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
-            return RecordContentTransformer.decodeRecord(bytes);
+    static class Encoder {
+        byte[] encodeRecord(MarcRecord marcRecord) throws JAXBException, UnsupportedEncodingException {
+            return RecordContentTransformer.encodeRecord(marcRecord);
         }
     }
 
@@ -86,8 +82,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 throw new UpdateException("MimeType must be set");
             }
 
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
@@ -122,7 +118,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      * @return The record to store.
      */
     public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
-        return record;
+        return marcRecord;
     }
 
     /**
@@ -135,12 +131,12 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         return false;
     }
 
-    static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        logger.entry(globalActionState, record);
+    static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        logger.entry(globalActionState, marcRecord);
         try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
 
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
                     RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
@@ -165,10 +161,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        logger.entry(globalActionState, record);
+    static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        logger.entry(globalActionState, marcRecord);
         try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             return storeRecordAction;
         } finally {
@@ -177,7 +173,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     void updateModifiedDate(MarcRecord marcRecord) {
-        final MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
 
         if (RawRepo.DBC_AGENCY_ALL.contains(reader.getAgencyId())) {
             final String modified = getModifiedDate();

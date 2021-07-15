@@ -433,7 +433,7 @@ class UpdateRequestActionTest {
         assertThat(updateOperationAction.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateOperationAction.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateOperationAction.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
-        assertThat(updateOperationAction.record, is(state.readRecord()));
+        assertThat(updateOperationAction.marcRecord, is(state.readRecord()));
         assertThat(updateOperationAction.settings, is(properties));
     }
 }

@@ -10,15 +10,12 @@ package dk.dbc.updateservice.update;
  * lookup with the SolrService EJB.
  */
 public class SolrServiceIndexer {
-    private static String GET_SUBJECT_ID_QUERY = "%s:\"%s\" AND marc.001b:190004";
+    private static final String GET_SUBJECT_ID_QUERY = "%s:\"%s\" AND marc.001b:190004";
 
-    private static String GET_OWNER_OF_002_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
+    private static final String GET_OWNER_OF_002_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
 
-    private static String SUBFIELD_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
-    private static String SUBFIELD_QUERY_WITH_EXCLUDE = "marc.%s:\"%s\" AND -marc.%s:\"%s\" AND marc.001b:870970";
-
-    private static String SUBFIELD_QUERY_DUAL = "marc.%s:\"%s\" AND marc.%s:\"%s\" AND marc.001b:870970";
-    private static String SUBFIELD_QUERY_DUAL_WITH_EXCLUDE = "marc.%s:\"%s\" AND marc.%s:\"%s\" AND -marc.%s:\"%s\" AND marc.001b:870970";
+    private static final String SUBFIELD_QUERY = "marc.%s:\"%s\" AND marc.001b:870970";
+    private static final String SUBFIELD_QUERY_WITH_EXCLUDE = "marc.%s:\"%s\" AND -marc.%s:\"%s\" AND marc.001b:870970";
 
     public static String createGetSubjectId(String validIndex, String value) {
         return String.format(GET_SUBJECT_ID_QUERY, validIndex, value);
@@ -36,11 +33,4 @@ public class SolrServiceIndexer {
         return String.format(SUBFIELD_QUERY_WITH_EXCLUDE, fieldAndSubfield, value, fieldAndSubfieldExclude, valueExclude);
     }
 
-    public static String createSubfieldQueryDualDBCOnly(String fieldAndSubfield1, String value1, String fieldAndSubfield2, String value2) {
-        return String.format(SUBFIELD_QUERY_DUAL, fieldAndSubfield1, value1, fieldAndSubfield2, value2);
-    }
-
-    public static String createSubfieldQueryDualWithExcludeDBCOnly(String fieldAndSubfield1, String value1, String fieldAndSubfield2, String value2, String fieldAndSubfieldExclude, String valueExclude) {
-        return String.format(SUBFIELD_QUERY_DUAL_WITH_EXCLUDE, fieldAndSubfield1, value1, fieldAndSubfield2, value2, fieldAndSubfieldExclude, valueExclude);
-    }
 }

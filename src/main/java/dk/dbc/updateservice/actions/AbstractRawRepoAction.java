@@ -16,16 +16,16 @@ import dk.dbc.updateservice.utils.MDCUtil;
  */
 public abstract class AbstractRawRepoAction extends AbstractAction {
     protected RawRepo rawRepo;
-    protected MarcRecord record;
+    protected MarcRecord marcRecord;
 
     protected AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
         this(name, globalActionState, globalActionState.readRecord());
     }
 
-    protected AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord record) {
+    protected AbstractRawRepoAction(String name, GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(name, globalActionState);
         rawRepo = globalActionState.getRawRepo();
-        this.record = record;
+        this.marcRecord = marcRecord;
     }
 
     public RawRepo getRawRepo() {
@@ -37,15 +37,15 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
     }
 
     public MarcRecord getRecord() {
-        return record;
+        return marcRecord;
     }
 
-    public void setRecord(MarcRecord record) {
-        this.record = record;
+    public void setRecord(MarcRecord marcRecord) {
+        this.marcRecord = marcRecord;
     }
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(record);
+        MDCUtil.setupContextForRecord(marcRecord);
     }
 }

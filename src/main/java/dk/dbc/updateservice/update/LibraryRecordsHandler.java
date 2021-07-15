@@ -73,27 +73,27 @@ public class LibraryRecordsHandler {
         CONTROL_AND_CLASSIFICATION_FIELDS.addAll(CLASSIFICATION_FIELDS);
     }
 
-    /**
-     * Ignore the fact that intellij claims this is never used.
-     * If it doesn't exist then the following error will come when deploying :
-     * javax.enterprise.system.core ======> Exception while loading the app : EJB Container initialization error
-     * java.lang.NoSuchMethodError: dk.dbc.updateservice.update.LibraryRecordsHandler: method <init>()V not found
-     */
     public LibraryRecordsHandler() {
+        /*
+         * Ignore the fact that intellij claims this is never used.
+         * If it doesn't exist then the following error will come when deploying :
+         * javax.enterprise.system.core ======> Exception while loading the app : EJB Container initialization error
+         * java.lang.NoSuchMethodError: dk.dbc.updateservice.update.LibraryRecordsHandler: method <init>()V not found
+         */
     }
 
     /**
      * Tests if a record is published
      *
-     * @param record The record.
+     * @param marcRecord The record.
      * @return <code>true</code> if published
      * <code>false</code> otherwise.
      */
-    public boolean isRecordInProduction(MarcRecord record) {
-        LOGGER.entry(record);
+    public boolean isRecordInProduction(MarcRecord marcRecord) {
+        LOGGER.entry(marcRecord);
 
         try {
-            return CatalogExtractionCode.isUnderProduction(record);
+            return CatalogExtractionCode.isUnderProduction(marcRecord);
         } finally {
             LOGGER.exit();
         }
@@ -102,15 +102,15 @@ public class LibraryRecordsHandler {
     /**
      * Tests if a record contains any classification data.
      *
-     * @param record The record.
+     * @param marcRecord The record.
      * @return <code>true</code> if classifications where found,
      * <code>false</code> otherwise.
      */
-    public boolean hasClassificationData(MarcRecord record) {
-        LOGGER.entry(record);
+    public boolean hasClassificationData(MarcRecord marcRecord) {
+        LOGGER.entry(marcRecord);
         boolean result = false;
         try {
-            List<MarcField> fields = record.getFields();
+            List<MarcField> fields = marcRecord.getFields();
             for (MarcField field : fields) {
                 if (CLASSIFICATION_FIELDS.contains(field.getName())) {
                     return result = true;
@@ -136,7 +136,7 @@ public class LibraryRecordsHandler {
             LOGGER.info("field NULL");
             return result;
         }
-        final List<MarcSubField> SubfieldList = field.getSubfields();
+        final List<MarcSubField> subfieldList = field.getSubfields();
         boolean gotLowerCaseA = false;
         String aString = "";
         String gString;
@@ -152,7 +152,7 @@ public class LibraryRecordsHandler {
         // *a s *b b *g xc *a p -> asgxc ap
         // *a s *b b *g xc *g tk -> asgxc gtk
         // *a s *b a *g xc *a s *b m *g th *a s *g xk *b a *h xx -> asgxc asgth asgxk
-        for (MarcSubField aSubfieldList : SubfieldList) {
+        for (MarcSubField aSubfieldList : subfieldList) {
             if ("a".equals(aSubfieldList.getName())) {
                 if (gotLowerCaseA) {
                     result.add("a" + aString);
@@ -236,16 +236,13 @@ public class LibraryRecordsHandler {
     /**
      * Normalize and cut a string
      *
-     * @param input     the string to treat
-     * @param normalize should we normalize ?
-     * @param cut       should we cut ?
+     * @param input the string to treat
+     * @param cut   should we cut ?
      * @return Nicely trimmed string
      */
-    private String cutAndClean(String input, boolean normalize, int cut) {
+    private String cutAndClean(String input, int cut) {
         String result = "";
-        if (normalize) {
-            result = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
-        }
+        result = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
         result = result.toLowerCase().replaceAll(ALPHA_NUMERIC_DANISH_CHARS, "");
         if (cut > 0 && result.length() > cut) {
             result = result.substring(0, cut);
@@ -256,42 +253,39 @@ public class LibraryRecordsHandler {
     /**
      * Compares content of multi occurrence fields
      *
-     * @param oldList   reader for old record
-     * @param newList   reader for new record
-     * @param field     field to check
-     * @param subfield  subfields to check
-     * @param normalize should we normalize ?
-     * @param cut       should we cut ?
+     * @param oldList  reader for old record
+     * @param newList  reader for new record
+     * @param subfield subfields to check
      * @return The result of the comparison
      */
-    private boolean compareSubfieldContentMultiField(MarcRecordReader oldList, MarcRecordReader newList, String field, String subfield, boolean normalize, int cut) {
-        final String oldValue = oldList.getValue(field, subfield);
-        final String newValue = newList.getValue(field, subfield);
+    private boolean compareSubfieldContentMultiField652(MarcRecordReader oldList, MarcRecordReader newList, String subfield) {
+        final String oldValue = oldList.getValue("652", subfield);
+        final String newValue = newList.getValue("652", subfield);
 
-        return oldValue != null &&
-                newValue != null &&
-                cutAndClean(oldValue, normalize, cut).equals(cutAndClean(newValue, normalize, cut)) || oldValue == null && newValue == null;
+        return (oldValue == null ||
+                newValue == null ||
+                !cutAndClean(oldValue, 0).equals(cutAndClean(newValue, 0))) && (oldValue != null || newValue != null);
 
     }
 
-    private boolean compareMultiSubfieldContentMultiField(MarcRecordReader oldReader, MarcRecordReader newReader, String field, String subfield, boolean normalize, int cut) {
-        final List<String> oldValues = oldReader.getValues(field, subfield);
-        final List<String> newValues = newReader.getValues(field, subfield);
+    private boolean compareMultiSubfieldContentMultiField652(MarcRecordReader oldReader, MarcRecordReader newReader, String subfield, int cut) {
+        final List<String> oldValues = oldReader.getValues("652", subfield);
+        final List<String> newValues = newReader.getValues("652", subfield);
 
         if (oldValues.size() != newValues.size()) {
-            return false;
+            return true;
         }
 
         Collections.sort(oldValues);
         Collections.sort(newValues);
 
         for (int i = 0; i < oldValues.size(); i++) {
-            if (!cutAndClean(oldValues.get(i), normalize, cut).equals(cutAndClean(newValues.get(i), normalize, cut))) {
-                return false;
+            if (!cutAndClean(oldValues.get(i), cut).equals(cutAndClean(newValues.get(i), cut))) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -344,11 +338,6 @@ public class LibraryRecordsHandler {
         // This would normally mean removal of this variable and fix things where it has effect.
         // Though, it has been mentioned that it could change in the future, so we don't do the nice stuff.
         int compareLength = 0;
-
-        // If the library is a FBS library then we need to compare the full subfield values and not just the first 10 chars
-        if (RawRepo.COMMON_AGENCY != newReader.getAgencyIdAsInt()) {
-            compareLength = 0; // 0 = compare whole string
-        }
 
         LOGGER.debug("Old record\n{}", oldRecord);
         LOGGER.debug("New record\n{}", newRecord);
@@ -496,9 +485,9 @@ public class LibraryRecordsHandler {
         String f245a = "";
         if (oldField == null) {
             if (newField != null) {
-                final MarcField Field245 = oldReader.getField("245");
-                if (Field245 != null) {
-                    f245a = getCompareString(Field245.getSubfields(), "a", true, cut);
+                final MarcField field245 = oldReader.getField("245");
+                if (field245 != null) {
+                    f245a = getCompareString(field245.getSubfields(), "a", true, cut);
                 }
                 final String f239t = getCompareString(newReader.getField("239").getSubfields(), "t", true, cut);
                 checkField239 = !f245a.equals(f239t);
@@ -511,9 +500,9 @@ public class LibraryRecordsHandler {
             }
         } else {
             if (newField == null) {
-                final MarcField Field245 = newReader.getField("245");
-                if (Field245 != null) {
-                    f245a = getCompareString(Field245.getSubfields(), "a", true, cut);
+                final MarcField field245 = newReader.getField("245");
+                if (field245 != null) {
+                    f245a = getCompareString(field245.getSubfields(), "a", true, cut);
                 }
                 final String f239t = getCompareString(oldReader.getField("239").getSubfields(), "t", true, cut);
                 checkField239 = !f245a.equals(f239t);
@@ -631,13 +620,13 @@ public class LibraryRecordsHandler {
 
     private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader, int cut, List<String> classificationsChangedMessage) {
         // 652 section
-        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "a", true, cut)) {
+        if (compareMultiSubfieldContentMultiField652(oldReader, newReader, "a", cut)) {
             classificationsChangedMessage.add("classificationchanged.reason.652a.difference");
             LOGGER.info("Classification has changed - reason 652a difference");
             return true;
         }
 
-        if (!compareMultiSubfieldContentMultiField(oldReader, newReader, "652", "b", true, cut)) {
+        if (compareMultiSubfieldContentMultiField652(oldReader, newReader, "b", cut)) {
             classificationsChangedMessage.add("classificationchanged.reason.652b.difference");
             LOGGER.info("Classification has changed - reason 652b difference");
             return true;
@@ -649,21 +638,21 @@ public class LibraryRecordsHandler {
         //      if 652h stripped changed return true
         final String f652m = oldReader.getValue("652", "m");
         final String f652o = oldReader.getValue("652", "o");
-        final boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "m");
-        final boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied(oldReader, newReader, "654", "652", "o");
+        final boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied654652(oldReader, newReader, "m");
+        final boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied654652(oldReader, newReader, "o");
         if ((f652m != null || f652o != null) &&
                 !(subfieldMHasBeenCopied || subfieldOHasBeenCopied)) {
-            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "e", true, 0)) {
+            if (compareSubfieldContentMultiField652(oldReader, newReader, "e")) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.e.difference");
                 LOGGER.info("Classification has changed - reason 652m|o : subfield e difference");
                 return true;
             }
-            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "f", true, 0)) {
+            if (compareSubfieldContentMultiField652(oldReader, newReader, "f")) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.f.difference");
                 LOGGER.info("Classification has changed - reason 652m|o : subfield f difference");
                 return true;
             }
-            if (!compareSubfieldContentMultiField(oldReader, newReader, "652", "h", true, 0)) {
+            if (compareSubfieldContentMultiField652(oldReader, newReader, "h")) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.h.difference");
                 LOGGER.info("Classification has changed - reason 652m|o : subfield h difference");
                 return true;
@@ -671,14 +660,14 @@ public class LibraryRecordsHandler {
         }
 
         //  if 652m stripped changed return true
-        if (!subfieldMHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "m", true, 0)) {
+        if (!subfieldMHasBeenCopied && compareSubfieldContentMultiField652(oldReader, newReader, "m")) {
             classificationsChangedMessage.add("classificationchanged.reason.652m.difference");
             LOGGER.info("Classification has changed - reason 652m difference");
             return true;
         }
 
         //  if 652o stripped changed return true
-        if (!subfieldOHasBeenCopied && !compareSubfieldContentMultiField(oldReader, newReader, "652", "o", true, 0)) {
+        if (!subfieldOHasBeenCopied && compareSubfieldContentMultiField652(oldReader, newReader, "o")) {
             classificationsChangedMessage.add("classificationchanged.reason.652o.difference");
             LOGGER.info("Classification has changed - reason 652o difference");
             return true;
@@ -687,9 +676,9 @@ public class LibraryRecordsHandler {
         return false;
     }
 
-    private boolean hasSubfieldBeenCopied(MarcRecordReader oldReader, MarcRecordReader newReader, String oldField, String newField, String subfield) {
-        final String oldValue = oldReader.getValue(oldField, subfield);
-        final String newValue = newReader.getValue(newField, subfield);
+    private boolean hasSubfieldBeenCopied654652(MarcRecordReader oldReader, MarcRecordReader newReader, String subfield) {
+        final String oldValue = oldReader.getValue("654", subfield);
+        final String newValue = newReader.getValue("652", subfield);
 
         return oldValue != null && oldValue.equals(newValue);
     }
@@ -704,23 +693,23 @@ public class LibraryRecordsHandler {
         return result;
     }
 
-    private MarcRecord correctRecordIfEmpty(MarcRecord record) {
-        final MarcRecordReader reader = new MarcRecordReader(record);
+    private MarcRecord correctRecordIfEmpty(MarcRecord marcRecord) {
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String agency = reader.getAgencyId();
         if (Integer.toString(RawRepo.DBC_ENRICHMENT).equals(agency) || Integer.toString(RawRepo.COMMON_AGENCY).equals(agency)) {
-            return record;
+            return marcRecord;
         }
 
         // Special case for PH libraries: record with only 001 and 004 is allowed if 004 contains *n
         if (reader.hasSubfield("004", "n")) {
-            return record;
+            return marcRecord;
         }
 
         // If record contains other fields than 001, 004 and 996, return the record, otherwise an empty record
-        final List<MarcField> fieldList = record.getFields();
+        final List<MarcField> fieldList = marcRecord.getFields();
         for (MarcField wFieldList : fieldList) {
             if (!RECORD_CONTROL_FIELDS.contains(wFieldList.getName())) {
-                return record;
+                return marcRecord;
             }
         }
 
@@ -870,15 +859,21 @@ public class LibraryRecordsHandler {
             result = new MarcRecord(enrichmentRecord);
         }
 
-        LOGGER.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP {}", LogUtils.base64Encode(result));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP {}", LogUtils.base64Encode(result));
+        }
 
         result = cleanupEnrichmentRecord(result, commonRecord);
 
-        LOGGER.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP {}", LogUtils.base64Encode(result));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP {}", LogUtils.base64Encode(result));
+        }
 
         result = correctRecordIfEmpty(result);
 
-        LOGGER.info("Final result of correctLibraryExtendedRecord {}", LogUtils.base64Encode(result));
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Final result of correctLibraryExtendedRecord {}", LogUtils.base64Encode(result));
+        }
 
         return result;
     }
@@ -886,30 +881,30 @@ public class LibraryRecordsHandler {
     /**
      * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
-     * @param record       The record to be updated
+     * @param marcRecord   The record to be updated
      * @param libraryGroup Whether it is a FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws VipCoreException             in case of an error
      * @throws UnsupportedEncodingException in case of an error
      * @throws UpdateException              in case of an error
      */
-    public List<MarcRecord> recordDataForRawRepo(MarcRecord record, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws VipCoreException, UnsupportedEncodingException, UpdateException {
-        LOGGER.entry(record, groupId, libraryGroup, messages);
+    public List<MarcRecord> recordDataForRawRepo(MarcRecord marcRecord, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws VipCoreException, UnsupportedEncodingException, UpdateException {
+        LOGGER.entry(marcRecord, groupId, libraryGroup, messages);
 
         List<MarcRecord> result = new ArrayList<>();
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
                     rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                 final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                UpdateOwnership.mergeRecord(record, existingRecord);
+                UpdateOwnership.mergeRecord(marcRecord, existingRecord);
             }
 
             // TODO Remove hardcoded 700300
             if ("700300".equals(groupId) || libraryGroup.isFBS()) {
-                result = recordDataForRawRepoFBS(record, groupId, messages);
+                result = recordDataForRawRepoFBS(marcRecord, groupId, messages);
             } else { // Assuming DataIO mode
-                result = recordDataForRawRepoDataIO(record, groupId);
+                result = recordDataForRawRepoDataIO(marcRecord, groupId);
             }
 
             return result;
@@ -918,11 +913,11 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(record, groupId, messages);
+    private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
+        LOGGER.entry(marcRecord, groupId, messages);
         List<MarcRecord> result = new ArrayList<>();
         try {
-            result = splitRecordFBS(record, groupId, messages);
+            result = splitRecordFBS(marcRecord, groupId, messages);
 
             for (MarcRecord r : result) {
                 final MarcRecordWriter writer = new MarcRecordWriter(r);
@@ -935,11 +930,11 @@ public class LibraryRecordsHandler {
         }
     }
 
-    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord record, String groupId) throws VipCoreException {
-        LOGGER.entry(record, groupId);
+    private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord marcRecord, String groupId) throws VipCoreException {
+        LOGGER.entry(marcRecord, groupId);
 
         List<MarcRecord> result = new ArrayList<>();
-        final MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         try {
             if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
                     vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS) ||
@@ -947,10 +942,10 @@ public class LibraryRecordsHandler {
                             vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS))) {
 
                 LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
-                result = splitRecordDataIO(record, reader.getAgencyId());
+                result = splitRecordDataIO(marcRecord, reader.getAgencyId());
             } else {
                 LOGGER.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
-                result = Collections.singletonList(record);
+                result = Collections.singletonList(marcRecord);
             }
 
             return result;
@@ -963,26 +958,26 @@ public class LibraryRecordsHandler {
      * If the FBS record is an existing common (870970) record then split it into updated common record and
      * DBC enrichment record
      *
-     * @param record  The record to be updated
-     * @param groupId The groupId from the ws request
+     * @param marcRecord The record to be updated
+     * @param groupId    The groupId from the ws request
      * @return List containing common and DBC record
      * @throws VipCoreException             in case of an error
      * @throws UpdateException              in case of an error
      * @throws UnsupportedEncodingException in case of an error
      */
-    private List<MarcRecord> splitRecordFBS(MarcRecord record, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(record, groupId);
+    private List<MarcRecord> splitRecordFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
+        LOGGER.entry(marcRecord, groupId);
 
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
                 LOGGER.info("Agency id of record is not 870970 - returning same record");
-                return Collections.singletonList(record);
+                return Collections.singletonList(marcRecord);
             }
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
 
-            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(record, groupId);
+            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(marcRecord, groupId);
             final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
             MarcRecord dbcEnrichmentRecord;
 
@@ -1036,17 +1031,17 @@ public class LibraryRecordsHandler {
      * Split the input record into two record:
      * One with all normal Marc fields (001 - 999) and a new record with DBC fields
      *
-     * @param record The record to be updated
+     * @param marcRecord The record to be updated
      * @return List containing common and DBC record
      */
-    List<MarcRecord> splitRecordDataIO(MarcRecord record, String agencyId) {
-        LOGGER.entry(record);
+    List<MarcRecord> splitRecordDataIO(MarcRecord marcRecord, String agencyId) {
+        LOGGER.entry(marcRecord);
 
         try {
             final MarcRecord dbcRecord = new MarcRecord();
             final MarcRecord commonRecord = new MarcRecord();
 
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 if (field.getName().equals("001")) {
                     final MarcField commonField = new MarcField(field);
                     for (int c = 0; c < commonField.getSubfields().size(); c++) {
@@ -1112,19 +1107,19 @@ public class LibraryRecordsHandler {
      * utilizes the create512 notefield functionality , which expects two records, one current, one updating
      * In this case we are not updating , but just wants a 512 field from existing data.
      *
-     * @param record The record.
+     * @param marcRecord The record.
      * @return MarcField containing 512 data
      * @throws UpdateException in case of an error
      */
 
-    public MarcField fetchNoteField(MarcRecord record) throws UpdateException {
-        LOGGER.entry(record);
+    public MarcField fetchNoteField(MarcRecord marcRecord) throws UpdateException {
+        LOGGER.entry(marcRecord);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.recategorizationNoteFieldFactory");
         MarcField mf = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(record, trackingId);
+            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(marcRecord, trackingId);
 
             return mf;
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {

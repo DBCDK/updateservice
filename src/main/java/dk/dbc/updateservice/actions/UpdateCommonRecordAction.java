@@ -36,10 +36,10 @@ import java.util.Properties;
 public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
 
-    private Properties settings;
+    private final Properties settings;
 
-    public UpdateCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(UpdateCommonRecordAction.class.getSimpleName(), globalActionState, record);
+    public UpdateCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateCommonRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 
@@ -53,9 +53,9 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
 
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
                 logger.info("Update single");
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
@@ -79,10 +79,10 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
                 MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-                MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(record, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record));
+                MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(marcRecord, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(marcRecord));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord);
             } else {
-                recordToStore = record;
+                recordToStore = marcRecord;
             }
 
             // At this point we have the collapsed record with authority fields, so perform validation on those now
@@ -127,7 +127,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     private void rewriteIndicators() {
         logger.entry();
         try {
-            MarcRecordWriter writer = new MarcRecordWriter(record);
+            MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
             for (MarcField field : writer.getRecord().getFields()) {
                 if (field.getName().equals("700")) {
                     boolean write02 = false;

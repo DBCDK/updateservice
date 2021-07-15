@@ -17,8 +17,10 @@ import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
+
 import java.time.Duration;
 import javax.inject.Inject;
+
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -92,6 +94,12 @@ public class UpdateServiceRest {
             .withType(MetricType.SIMPLE_TIMER)
             .withUnit(MetricUnits.MILLISECONDS).build();
 
+    static final Metadata groupIdCounterMetaData = Metadata.builder()
+            .withName("update_groupid_requests_counter")
+            .withDescription("Number of requests per agency/group id")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build();
+
     @PostConstruct
     protected void init() {
         globalActionState = new GlobalActionState();
@@ -126,7 +134,7 @@ public class UpdateServiceRest {
         try {
             LOGGER.info("updateRecord REST received: {}", updateRecordRequest);
 
-            if (!updateServiceCore.isServiceReady(globalActionState)) {
+            if (!updateServiceCore.isServiceReady()) {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 return null;
             }
@@ -140,7 +148,7 @@ public class UpdateServiceRest {
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } finally {
             final String validateOnly = updateRecordRequest.getOptionsDTO() != null &&
-                    updateRecordRequest.getOptionsDTO().getOption().contains(OptionEnumDTO.VALIDATE_ONLY)?"yes":"no";
+                    updateRecordRequest.getOptionsDTO().getOption().contains(OptionEnumDTO.VALIDATE_ONLY) ? "yes" : "no";
             watch.stop(UpdateServiceCore.UPDATERECORD_STOPWATCH);
             LOGGER.info("updateRecord REST returns: {}", updateRecordResponseDTO);
 
@@ -153,6 +161,8 @@ public class UpdateServiceRest {
                     new Tag("schemaName", updateRecordRequest.getSchemaName()),
                     new Tag("validateOnly", validateOnly))
                     .update(Duration.ofMillis(watch.getElapsedTime()));
+
+            incrementGroupIdCounter(updateRecordRequest);
 
             LOGGER.exit();
             MDC.clear();
@@ -186,7 +196,7 @@ public class UpdateServiceRest {
         try {
             LOGGER.info("getSchemas REST received: {}", schemasRequestDTO);
 
-            if (!updateServiceCore.isServiceReady(globalActionState)) {
+            if (!updateServiceCore.isServiceReady()) {
                 LOGGER.info("Updateservice (getSchemas) not ready yet.");
                 return null;
             }
@@ -209,7 +219,37 @@ public class UpdateServiceRest {
                 getSchemasErrorCounter.inc();
             }
 
+            incrementGroupIdCounter(schemasRequestDTO);
+
             getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
+        }
+    }
+
+    private void incrementGroupIdCounter(UpdateServiceRequestDTO updateServiceRequestDTO) {
+        try {
+            if (updateServiceRequestDTO != null &&
+                    updateServiceRequestDTO.getAuthenticationDTO() != null &&
+                    updateServiceRequestDTO.getAuthenticationDTO().getGroupId() != null) {
+                metricRegistry.counter(groupIdCounterMetaData,
+                        new Tag("groupId", updateServiceRequestDTO.getAuthenticationDTO().getGroupId()))
+                        .inc();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to increment groupId counter", e);
+        }
+    }
+
+    private void incrementGroupIdCounter(SchemasRequestDTO schemasRequestDTO) {
+        try {
+            if (schemasRequestDTO != null &&
+                    schemasRequestDTO.getAuthenticationDTO() != null &&
+                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
+                metricRegistry.counter(groupIdCounterMetaData,
+                        new Tag("groupId", schemasRequestDTO.getAuthenticationDTO().getGroupId()))
+                        .inc();
+            }
+        } catch (Exception e) {
+            LOGGER.error("Failed to increment groupId counter", e);
         }
     }
 }

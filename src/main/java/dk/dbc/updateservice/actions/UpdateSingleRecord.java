@@ -34,8 +34,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
     protected Properties settings;
 
-    public UpdateSingleRecord(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(UpdateSingleRecord.class.getSimpleName(), globalActionState, record);
+    public UpdateSingleRecord(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateSingleRecord.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 
@@ -49,8 +49,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
@@ -69,7 +69,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 // 004 *a h = head record
                 // 004 *a s = section record
                 if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
-                    Set<RecordId> children = state.getRawRepo().children(record);
+                    Set<RecordId> children = state.getRawRepo().children(marcRecord);
                     for (RecordId childId : children) {
                         // 870971 records are okay as children but a 870970 means it is in volume hierarchy
                         if (RawRepo.COMMON_AGENCY == childId.getAgencyId()) {
@@ -85,7 +85,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             if (reader.markedForDeletion()) {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
-                Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record);
+                Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(marcRecord);
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         logger.info("Found holdings for agency '{}'", agencyWithHoldings);
@@ -124,21 +124,21 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * Factory method to construct the ServiceAction to create a new record.
      */
     protected ServiceAction createCreateRecordAction() {
-        return new CreateSingleRecordAction(state, settings, record);
+        return new CreateSingleRecordAction(state, settings, marcRecord);
     }
 
     /**
      * Factory method to construct the ServiceAction to overwrite an existing record.
      */
     protected ServiceAction createOverwriteRecordAction() {
-        return new OverwriteSingleRecordAction(state, settings, record);
+        return new OverwriteSingleRecordAction(state, settings, marcRecord);
     }
 
     /**
      * Factory method to construct the ServiceAction to delete a record.
      */
     private ServiceAction createDeleteRecordAction() {
-        return new DeleteCommonRecordAction(state, settings, record);
+        return new DeleteCommonRecordAction(state, settings, marcRecord);
     }
 
 
@@ -181,14 +181,14 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         }
     }
 
-    private CreateEnrichmentRecordActionForlinkedRecords getActionForCreateActionForLinkedRecords(MarcRecord record, Integer holdingAgencyId, MarcRecord recordWithHolding) {
-        logger.entry(holdingAgencyId, record);
+    private CreateEnrichmentRecordActionForlinkedRecords getActionForCreateActionForLinkedRecords(MarcRecord marcRecord, Integer holdingAgencyId, MarcRecord recordWithHolding) {
+        logger.entry(holdingAgencyId, marcRecord);
         CreateEnrichmentRecordActionForlinkedRecords createEnrichmentRecordActionForlinkedRecords = null;
         try {
             createEnrichmentRecordActionForlinkedRecords = new CreateEnrichmentRecordActionForlinkedRecords(state, settings);
             createEnrichmentRecordActionForlinkedRecords.setAgencyId(holdingAgencyId);
             createEnrichmentRecordActionForlinkedRecords.setRecordWithHoldings(recordWithHolding);
-            createEnrichmentRecordActionForlinkedRecords.setRecord(record);
+            createEnrichmentRecordActionForlinkedRecords.setMarcRecord(marcRecord);
             return createEnrichmentRecordActionForlinkedRecords;
         } finally {
             logger.exit(createEnrichmentRecordActionForlinkedRecords);
@@ -230,7 +230,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     private void performActionsFor002Links() throws UpdateException, SolrException, UnsupportedEncodingException, VipCoreException {
         logger.entry("performActionsFor002Links");
         try {
-            MarcRecordReader recordReader = new MarcRecordReader(record);
+            MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
             String recordIdForRecordToDelete = recordReader.getValue("001", "a");
             Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
 
@@ -258,7 +258,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
             Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
             enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
-            logger.info("is " + enrichmentIds.toString());
+            logger.info("is " + enrichmentIds);
             Set<Integer> totalAgencies = new HashSet<>(holdingAgencies);
             for (RecordId enrichmentId : enrichmentIds) {
                 totalAgencies.add(enrichmentId.getAgencyId());

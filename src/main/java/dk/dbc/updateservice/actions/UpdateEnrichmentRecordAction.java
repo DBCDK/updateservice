@@ -85,8 +85,8 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", record);
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", marcRecord);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();
             }
@@ -96,21 +96,21 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             if (wrkParentId != null && !wrkParentId.isEmpty()) {
                 String agencyId = reader.getAgencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
-                logger.warn("Unable to update enrichment record due to an error: " + message);
+                logger.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!rawRepo.recordExists(wrkRecordId, getParentAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
-                logger.warn("Unable to update enrichment record due to an error: " + message);
+                logger.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
             MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
-            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, record);
+            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
 
             logger.info("Correct content of enrichment record.");
-            logger.info("Old content:\n" + record);
-            logger.info("New content:\n" + enrichmentRecord);
+            logger.info("Old content:\n{}", marcRecord);
+            logger.info("New content:\n{}", enrichmentRecord);
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
@@ -143,7 +143,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
         logger.entry();
         try {
-            String recordId = new MarcRecordReader(record).getRecordId();
+            String recordId = new MarcRecordReader(marcRecord).getRecordId();
 
             children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
             LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
@@ -174,7 +174,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceResult performDeletionAction() throws UpdateException {
         logger.entry();
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
@@ -183,9 +183,9 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             }
             logger.info("Creating sub actions to delete enrichment record successfully");
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
-            children.add(new RemoveLinksAction(state, record));
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
+            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+            children.add(new RemoveLinksAction(state, marcRecord));
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             children.add(deleteRecordAction);
 
@@ -203,8 +203,8 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         return parentAgencyId;
     }
 
-    void removeMinusEnrichment(MarcRecord record) {
-        MarcRecordWriter writer = new MarcRecordWriter(record);
+    void removeMinusEnrichment(MarcRecord marcRecord) {
+        MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
         writer.removeSubfield("z98", "b");
     }

@@ -19,8 +19,8 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
 
     private static final XLogger logger = XLoggerFactory.getXLogger(LinkMatVurdRecordsAction.class);
 
-    public LinkMatVurdRecordsAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(LinkMatVurdRecordsAction.class.getSimpleName(), globalActionState, record);
+    public LinkMatVurdRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(LinkMatVurdRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     @Override
@@ -28,12 +28,12 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
         logger.entry();
         ServiceResult result = null;
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
             final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
                         if ("a".equals(subField.getName())) {

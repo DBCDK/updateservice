@@ -26,8 +26,8 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
     private static final XLogger logger = XLoggerFactory.getXLogger(MatVurdR01R02CheckRecordsAction.class);
 
-    public MatVurdR01R02CheckRecordsAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(MatVurdR01R02CheckRecordsAction.class.getSimpleName(), globalActionState, record);
+    public MatVurdR01R02CheckRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(MatVurdR01R02CheckRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     @Override
@@ -39,7 +39,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
             int hasSchool = 0;
             boolean hasLED = false;
             String thisId = "";
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
                     for (MarcSubField subField : field.getSubfields()) {
                         if ("a".equals(subField.getName())) {

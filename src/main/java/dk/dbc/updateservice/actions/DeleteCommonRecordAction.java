@@ -48,13 +48,13 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         LOGGER.entry();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
-            Set<RecordId> recordChildren = rawRepo.children(record);
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            Set<RecordId> recordChildren = rawRepo.children(marcRecord);
             if (!recordChildren.isEmpty()) {
                 if (checkForNotDeletableLittolkChildren(recordChildren)) {
                     deleteLittolkChildren(recordChildren);
                 } else {
-                    MarcRecordReader reader = new MarcRecordReader(record);
+                    MarcRecordReader reader = new MarcRecordReader(marcRecord);
                     String recordId = reader.getRecordId();
 
                     String message = state.getMessages().getString("delete.record.children.error");
@@ -65,7 +65,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            for (RecordId enrichmentId : rawRepo.enrichments(record)) {
+            for (RecordId enrichmentId : rawRepo.enrichments(marcRecord)) {
                 Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
                 MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
 
@@ -77,9 +77,9 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 children.add(updateEnrichmentRecordAction);
             }
 
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
-            children.add(new RemoveLinksAction(state, record));
-            children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, record));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+            children.add(new RemoveLinksAction(state, marcRecord));
+            children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, marcRecord));
 
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {

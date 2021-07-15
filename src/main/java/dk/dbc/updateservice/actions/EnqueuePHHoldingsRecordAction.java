@@ -20,10 +20,10 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(EnqueuePHHoldingsRecordAction.class);
 
     Properties settings;
-    private RecordId recordId;
+    private final RecordId recordId;
 
-    public EnqueuePHHoldingsRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record, RecordId recordId) {
-        super(EnqueuePHHoldingsRecordAction.class.getSimpleName(), globalActionState, record);
+    public EnqueuePHHoldingsRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, RecordId recordId) {
+        super(EnqueuePHHoldingsRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
         this.recordId = recordId;
     }

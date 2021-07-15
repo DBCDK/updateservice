@@ -28,8 +28,8 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
 
     Properties settings;
 
-    public UpdateSchoolCommonRecord(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(UpdateSchoolCommonRecord.class.getSimpleName(), globalActionState, record);
+    public UpdateSchoolCommonRecord(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateSchoolCommonRecord.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 
@@ -43,13 +43,13 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         logger.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
-                children.add(new UpdateEnrichmentRecordAction(state, settings, record));
+                children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
             } else {
-                children.add(new UpdateEnrichmentRecordAction(state, settings, record));
+                children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
                 moveSchoolEnrichmentsActions(RawRepo.SCHOOL_COMMON_AGENCY);
             }
             return ServiceResult.newOkResult();
@@ -64,11 +64,11 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {
         logger.entry();
         try {
-            Set<Integer> agencies = rawRepo.agenciesForRecord(record);
+            Set<Integer> agencies = rawRepo.agenciesForRecord(marcRecord);
             if (agencies == null) {
                 return;
             }
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             for (Integer agencyId : agencies) {
                 if (!RawRepo.isSchoolEnrichment(agencyId)) {

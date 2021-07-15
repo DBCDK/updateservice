@@ -52,8 +52,7 @@ public class JNDIResources {
 
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {
-        List<String> res = new ArrayList<>();
-        return res;
+        return new ArrayList<>();
     }
 
     public static Properties getProperties() {
