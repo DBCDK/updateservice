@@ -34,7 +34,7 @@ import java.util.Properties;
 public class UpdateRequestAction extends AbstractAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
 
-    private Properties settings;
+    private final Properties settings;
 
     public UpdateRequestAction(GlobalActionState globalActionState, Properties properties) {
         super(UpdateRequestAction.class.getSimpleName(), globalActionState);
@@ -205,8 +205,8 @@ public class UpdateRequestAction extends AbstractAction {
 
     private boolean sanityCheckRecord() {
         try {
-            MarcRecord record = state.readRecord();
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecord marcRecord = state.readRecord();
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (reader.hasField("001")) { // If 001 is completely missing it will be caught in a later validation
                 if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {

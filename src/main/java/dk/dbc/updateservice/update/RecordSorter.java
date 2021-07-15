@@ -35,17 +35,17 @@ public class RecordSorter {
         this.schemaName = schemaName;
     }
 
-    public MarcRecord sortRecord(MarcRecord record) {
+    public MarcRecord sortRecord(MarcRecord marcRecord) {
         logger.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
 
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            return opencatBusinessConnector.sortRecord(schemaName, record, trackingId);
+            return opencatBusinessConnector.sortRecord(schemaName, marcRecord, trackingId);
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
             logger.error("Error when trying to sort the record. ", ex);
-            return record;
+            return marcRecord;
         } finally {
             watch.stop();
             logger.exit();

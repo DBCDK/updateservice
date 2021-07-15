@@ -112,16 +112,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             if (logger.isInfoEnabled()) {
-                logger.info("Handling record: {}", LogUtils.base64Encode(record));
+                logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
                 logger.info("Unable to update record: {}", serviceResult);
                 return serviceResult;
             }
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             setCreatedDate(reader);
-            children.add(new AuthenticateRecordAction(state, record));
+            children.add(new AuthenticateRecordAction(state, marcRecord));
             handleSetCreateOverwriteDate();
             MarcRecordReader updReader = state.getMarcRecordReader();
             String updRecordId = updReader.getRecordId();
@@ -136,12 +136,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
 
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
-            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !record.getFields().isEmpty()) {
+            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
                 final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
                 try {
                     final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-                    record = state.getOpencatBusiness().metacompass(record, trackingId);
-                    MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, record, settings);
+                    marcRecord = state.getOpencatBusiness().metacompass(marcRecord, trackingId);
+                    MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, marcRecord, settings);
                 } catch (UpdateException | OpencatBusinessConnectorException ex) {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
                 } finally {
@@ -153,7 +153,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(record, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages(), state.isAdmin());
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages(), state.isAdmin());
             logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 logger.info("Create sub actions for record:\n{}", rec);
@@ -210,14 +210,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 if (state.getLibraryGroup().isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                     if (test) {
-                        children.add(new DoubleRecordCheckingAction(state, settings, record));
+                        children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                     } else {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                         result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                         return result;
                     }
                 } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
-                    children.add(new DoubleRecordCheckingAction(state, settings, record));
+                    children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
             }
             result = ServiceResult.newOkResult();
@@ -267,14 +267,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
             if (!state.isAdmin()) {
                 if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    setCreationDateToExistingCreationDate(record);
+                    setCreationDateToExistingCreationDate(marcRecord);
                 } else {
                     // For specifically 870974 (literature analysis) must have a creation date equal to the parent
                     // record creation date
                     if ("870974".equals(reader.getAgencyId())) {
-                        setCreationDateToParentCreationDate(record);
+                        setCreationDateToParentCreationDate(marcRecord);
                     } else {
-                        setCreationDateToToday(record);
+                        setCreationDateToToday(marcRecord);
                     }
                 }
             }
@@ -282,9 +282,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
             if (!reader.hasSubfield("001", "d") &&
                     rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                setCreationDateToExistingCreationDate(record);
+                setCreationDateToExistingCreationDate(marcRecord);
             } else {
-                setCreationDateToToday(record);
+                setCreationDateToToday(marcRecord);
             }
         }
 
@@ -292,34 +292,34 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
-    private void setCreationDateToExistingCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+    private void setCreationDateToExistingCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
         MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
 
         MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
         String existingCreatedDate = existingReader.getValue("001", "d");
         if (!StringUtils.isEmpty(existingCreatedDate)) {
-            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
+            new MarcRecordWriter(marcRecord).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
     }
 
     // Set 001 *d to today's date if the field doesn't have a value
-    private void setCreationDateToToday(MarcRecord record) {
-        MarcRecordReader reader = new MarcRecordReader(record);
+    private void setCreationDateToToday(MarcRecord marcRecord) {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
         String createdDate = reader.getValue("001", "d");
         if (StringUtils.isEmpty(createdDate)) {
-            new MarcRecordWriter(record).setCreationTimestamp();
+            new MarcRecordWriter(marcRecord).setCreationTimestamp();
         }
     }
 
-    private void setCreationDateToParentCreationDate(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+    private void setCreationDateToParentCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
         MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
 
         MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
         String existingCreatedDate = existingReader.getValue("001", "d");
         if (!StringUtils.isEmpty(existingCreatedDate)) {
-            new MarcRecordWriter(record).addOrReplaceSubfield("001", "d", existingCreatedDate);
+            new MarcRecordWriter(marcRecord).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
     }
 
@@ -359,8 +359,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             if (rawRepo.recordExists(recordId, parentAgencyId)) {
                 return true;
             }
-            for (MarcRecord record : records) {
-                MarcRecordReader recordReader = new MarcRecordReader(record);
+            for (MarcRecord marcRecord : records) {
+                MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
                 String checkRecordId = recordReader.getRecordId();
                 int checkAgencyId = recordReader.getAgencyIdAsInt();
                 if (recordId.equals(checkRecordId) && parentAgencyId == checkAgencyId) {
@@ -376,7 +376,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException {
         logger.entry();
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
                 return ServiceResult.newOkResult();
             }
@@ -523,8 +523,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     private void handleSetCreateOverwriteDate() throws UpdateException {
         logger.debug("Checking for n55 field");
-        MarcRecordReader reader = new MarcRecordReader(record);
-        MarcRecordWriter writer = new MarcRecordWriter(record);
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
         if (reader.hasSubfield("n55", "a")) {
             String dateString = reader.getValue("n55", "a");
@@ -552,12 +552,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UpdateException              In case of an error.
      * @throws UnsupportedEncodingException If the record can't be decoded
      */
-    private void performActionsForRemovedLITWeekNumber(MarcRecord record) throws UpdateException, UnsupportedEncodingException {
+    private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
         logger.entry("performActionsForRemovedLITWeekNumber");
 
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
-            logger.debug("GOT REC {}", record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            logger.debug("GOT REC {}", marcRecord);
 
             // Check if a 191919 record
             if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {

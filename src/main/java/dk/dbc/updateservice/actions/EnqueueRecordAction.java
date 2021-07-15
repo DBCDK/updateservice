@@ -40,8 +40,8 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
     Properties settings;
 
-    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, record);
+    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
     }
 
@@ -57,7 +57,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         ServiceResult result = null;
         try {
             String providerId;
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
@@ -93,7 +93,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // However there is a hole when it comes to article records as articles does not retrieve their parent
             // article record during queue processing. Until this case is handled by changedRecord we have to explicit
             // enqueue the parent article
-            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && state.getRawRepo().children(record).size() > 0) {
+            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && state.getRawRepo().children(marcRecord).size() > 0) {
                 logger.info("Found children for article record, so enqueuing that record explict");
                 logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
                 rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
@@ -109,11 +109,11 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     /**
      * Factory method to create a EnqueueRecordAction.
      */
-    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord record, Properties properties) {
-        logger.entry(globalActionState, record);
+    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord marcRecord, Properties properties) {
+        logger.entry(globalActionState, marcRecord);
         EnqueueRecordAction enqueueRecordAction;
         try {
-            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, record);
+            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, marcRecord);
             return enqueueRecordAction;
         } finally {
             logger.exit();

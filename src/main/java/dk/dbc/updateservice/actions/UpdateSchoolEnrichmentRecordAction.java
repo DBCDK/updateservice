@@ -15,11 +15,11 @@ import java.util.Properties;
 public class UpdateSchoolEnrichmentRecordAction extends UpdateEnrichmentRecordAction {
     private int commonRecordAgencyId;
 
-    UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) throws UpdateException {
-        super(globalActionState, properties, record);
+    UpdateSchoolEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) throws UpdateException {
+        super(globalActionState, properties, marcRecord);
         setName("UpdateSchoolEnrichmentRecordAction");
         commonRecordAgencyId = RawRepo.COMMON_AGENCY;
-        if (rawRepo.recordExists(new MarcRecordReader(record).getRecordId(), RawRepo.SCHOOL_COMMON_AGENCY)) {
+        if (rawRepo.recordExists(new MarcRecordReader(marcRecord).getRecordId(), RawRepo.SCHOOL_COMMON_AGENCY)) {
             this.commonRecordAgencyId = RawRepo.SCHOOL_COMMON_AGENCY;
         }
     }

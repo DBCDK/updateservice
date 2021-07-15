@@ -40,13 +40,13 @@ import java.util.Set;
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
 public class HoldingsItems {
-    private static XLogger logger = XLoggerFactory.getXLogger(HoldingsItems.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(HoldingsItems.class);
 
     @Inject
     MetricsHandlerBean metricsHandlerBean;
 
     @Resource(lookup = "jdbc/holdingsitems")
-    private DataSource dataSource;
+    private final DataSource dataSource;
 
     private static final class HoldingsItemsErrorCounterMetrics implements CounterMetric {
         private final Metadata metadata;
@@ -63,7 +63,7 @@ public class HoldingsItems {
 
 
     private static final class HoldingsItemsTimingMetrics implements SimpleTimerMetric {
-        private Metadata metadata;
+        private final Metadata metadata;
 
         public HoldingsItemsTimingMetrics(Metadata metadata) {
             this.metadata = validateMetadata(metadata);
@@ -100,13 +100,13 @@ public class HoldingsItems {
         this.dataSource = dataSource;
     }
 
-    public Set<Integer> getAgenciesThatHasHoldingsFor(MarcRecord record) throws UpdateException {
-        logger.entry(record);
+    public Set<Integer> getAgenciesThatHasHoldingsFor(MarcRecord marcRecord) throws UpdateException {
+        LOGGER.entry(marcRecord);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = new HashSet<>();
         try {
-            result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(record).getRecordId()));
-            MarcRecordReader mm = new MarcRecordReader(record);
+            result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(marcRecord).getRecordId()));
+            MarcRecordReader mm = new MarcRecordReader(marcRecord);
             List<String> aliasIds = mm.getCentralAliasIds();
             for (String s : aliasIds) {
                 result.addAll(getAgenciesThatHasHoldingsForId(s));
@@ -114,14 +114,14 @@ public class HoldingsItems {
             return result;
         } finally {
             watch.stop("holdingsItems.getAgenciesThatHasHoldingsForId.MarcRecord");
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsForId(String recordId) throws UpdateException {
         Tag methodTag = new Tag(METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId");
-        logger.entry(recordId);
-        logger.info("getAgenciesThatHasHoldingsForId : " + recordId);
+        LOGGER.entry(recordId);
+        LOGGER.info("getAgenciesThatHasHoldingsForId: {}", recordId);
         StopWatch watch = new Log4JStopWatch();
         Set<Integer> result = new HashSet<>();
         try (Connection conn = dataSource.getConnection()) {
@@ -129,7 +129,7 @@ public class HoldingsItems {
             result = dao.getAgenciesThatHasHoldingsFor(recordId);
             return result;
         } catch (SQLException | HoldingsItemsException ex) {
-            logger.error(ex.getMessage(), ex);
+            LOGGER.error(ex.getMessage(), ex);
             metricsHandlerBean.increment(holdingsItemsErrorCounterMetrics,
                     methodTag,
                     new Tag(ERROR_TYPE, ex.getMessage().toLowerCase()));
@@ -145,7 +145,7 @@ public class HoldingsItems {
                 Duration.ofMillis(watch.getElapsedTime()),
                 methodTag);
 
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

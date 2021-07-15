@@ -149,9 +149,8 @@ public class DefaultEnrichmentRecordHandler {
         if (input.length() == 9) {
             String firstThreeLetters = input.substring(0,3);
             String lastSixLetters = input.substring(3);
-            if (CAT_CODES.contains(firstThreeLetters.toUpperCase()) && StringUtils.isNumeric(lastSixLetters)) {
-                return true;
-            }
+
+            return CAT_CODES.contains(firstThreeLetters.toUpperCase()) && StringUtils.isNumeric(lastSixLetters);
         }
 
         return false;
@@ -161,9 +160,8 @@ public class DefaultEnrichmentRecordHandler {
         if (input != null && input.length() == 9) {
             String firstThreeLetters = input.substring(0,3);
             String lastSixLetters = input.substring(3);
-            if (CAT_CODES.contains(firstThreeLetters.toUpperCase()) && "999999".equalsIgnoreCase(lastSixLetters)) {
-                return true;
-            }
+
+            return CAT_CODES.contains(firstThreeLetters.toUpperCase()) && "999999".equalsIgnoreCase(lastSixLetters);
         }
 
         return false;

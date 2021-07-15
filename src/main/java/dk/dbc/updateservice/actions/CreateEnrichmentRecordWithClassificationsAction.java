@@ -37,12 +37,12 @@ import java.util.Properties;
  * </p>
  */
 public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
     String agencyId;
-    private Properties settings;
+    private final Properties settings;
     MarcRecord currentCommonRecord = null;
     MarcRecord updatingCommonRecord = null;
     private String targetRecordId = null;
@@ -81,19 +81,21 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("AgencyId..............: " + agencyId);
-            logger.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
-            logger.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("AgencyId..............: " + agencyId);
+                LOGGER.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
+                LOGGER.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
+            }
 
             MarcRecord enrichmentRecord = createRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
-                logger.info("No sub actions to create for an empty enrichment record.");
+                LOGGER.info("No sub actions to create for an empty enrichment record.");
                 return ServiceResult.newOkResult();
             }
-            logger.info("Creating sub actions to store new enrichment record.");
-            logger.info("Enrichment record:\n{}", enrichmentRecord);
+            LOGGER.info("Creating sub actions to store new enrichment record.");
+            LOGGER.info("Enrichment record:\n{}", enrichmentRecord);
 
             String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
 
@@ -110,7 +112,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -120,8 +122,8 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     }
 
     public MarcRecord createRecord() throws UpdateException {
-        logger.entry();
-        logger.debug("entering createRecord");
+        LOGGER.entry();
+        LOGGER.debug("entering createRecord");
         MarcRecord result = null;
         try {
             result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
@@ -139,7 +141,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             }
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }

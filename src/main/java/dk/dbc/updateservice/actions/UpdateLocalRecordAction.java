@@ -35,10 +35,10 @@ import java.util.Set;
 public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
 
-    private Properties settings;
+    private final Properties settings;
 
-    public UpdateLocalRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(UpdateLocalRecordAction.class.getSimpleName(), globalActionState, record);
+    public UpdateLocalRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(UpdateLocalRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 
@@ -54,9 +54,9 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult res = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
 
-            MarcRecordReader reader = new MarcRecordReader(this.record);
+            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
             String parentId = reader.getParentRecordId();
             if (reader.markedForDeletion()) {
                 if (parentId == null) {
@@ -88,19 +88,18 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * </p>
      *
      * @return OK.
-     * @throws UpdateException In case of critical errors.
      */
-    private ServiceResult performUpdateSingleRecordAction() throws UpdateException {
+    private ServiceResult performUpdateSingleRecordAction() {
         logger.entry();
 
         try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(storeRecordAction);
 
-            children.add(new RemoveLinksAction(state, record));
+            children.add(new RemoveLinksAction(state, marcRecord));
 
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
@@ -128,7 +127,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            MarcRecordReader reader = new MarcRecordReader(this.record);
+            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
             if (recordId.equals(parentId)) {
@@ -139,15 +138,15 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
+            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(storeRecordAction);
 
-            LinkRecordAction linkRecordAction = new LinkRecordAction(state, record);
+            LinkRecordAction linkRecordAction = new LinkRecordAction(state, marcRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
             children.add(linkRecordAction);
 
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
         } finally {
@@ -173,26 +172,26 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     private ServiceResult performSingleDeleteAction() throws UpdateException {
         logger.entry();
         try {
-            if (!rawRepo.children(record).isEmpty()) {
-                MarcRecordReader reader = new MarcRecordReader(this.record);
+            if (!rawRepo.children(marcRecord).isEmpty()) {
+                MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
                 String recordId = reader.getRecordId();
                 String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.record).isEmpty()) {
-                AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(record).getAgencyId());
+            if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.marcRecord).isEmpty()) {
+                AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(marcRecord).getAgencyId());
                 if (state.getVipCoreService().hasFeature(agencyNumber.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)) {
                     String message = state.getMessages().getString("delete.local.with.holdings.error");
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
-            children.add(new RemoveLinksAction(state, record));
+            children.add(new RemoveLinksAction(state, marcRecord));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, record);
+            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(deleteRecordAction);
 
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
+            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
@@ -211,7 +210,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             if (result.getStatus() != UpdateStatusEnumDTO.OK) {
                 return result;
             }
-            MarcRecordReader reader = new MarcRecordReader(this.record);
+            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
             String parentRecordId = reader.getParentRecordId();
             int parentAgencyId = reader.getParentAgencyIdAsInt();
             Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));

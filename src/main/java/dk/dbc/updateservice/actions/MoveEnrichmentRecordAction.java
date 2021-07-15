@@ -34,8 +34,8 @@ import java.util.Properties;
 public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(MoveEnrichmentRecordAction.class);
 
-    private boolean isClassificationChangedInCommonRecs = false;
-    private boolean isLinkRecInProduction = false;
+    private final boolean isClassificationChangedInCommonRecs;
+    private final boolean isLinkRecInProduction;
     private String targetRecordId = null;
     Properties settings;
 
@@ -44,10 +44,6 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         settings = properties;
         isClassificationChangedInCommonRecs = classificationChanged;
         isLinkRecInProduction = linkRecInProduction;
-    }
-
-    String getTargetRecordId() {
-        return targetRecordId;
     }
 
     void setTargetRecordId(String commonRecord) {
@@ -65,7 +61,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         logger.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             children.add(createDeleteEnrichmentAction());
             children.add(createMoveEnrichmentToCommonRecordAction());
             return result = ServiceResult.newOkResult();
@@ -82,7 +78,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceAction createDeleteEnrichmentAction() {
         logger.entry();
         try {
-            MarcRecord deleteRecord = new MarcRecord(record);
+            MarcRecord deleteRecord = new MarcRecord(marcRecord);
             MarcRecordReader reader = new MarcRecordReader(deleteRecord);
             String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
@@ -103,11 +99,11 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
         logger.entry();
         try {
-            MarcRecord newEnrichmentRecord = new MarcRecord(record);
+            MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
             MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", targetRecordId);
 
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             logger.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);

@@ -41,10 +41,10 @@ import java.util.Properties;
  * </p>
  */
 public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
-    private final static String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
-    private final static String ERRONEOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
-    private final static String RECATEGORIZATION_STRING_OBSOLETE = " Postens opstilling ændret på grund af omkatalogisering";
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
+    private static final String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
+    private static final String ERRONEOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
+    private static final String RECATEGORIZATION_STRING_OBSOLETE = " Postens opstilling ændret på grund af omkatalogisering";
     private static final String MIMETYPE = MarcXChangeMimeType.ENRICHMENT;
 
     private MarcRecord recordWithHoldings;
@@ -69,8 +69,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         this.agencyId = agencyId;
     }
 
-    public void setRecord(MarcRecord record) {
-        this.record = record;
+    public void setMarcRecord(MarcRecord marcRecord) {
+        this.record = marcRecord;
     }
 
     /**
@@ -81,17 +81,17 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
 
             MarcRecord enrichmentRecord = createEnrichmentRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
-                logger.info("No sub actions to create for an empty enrichment record.");
+                LOGGER.info("No sub actions to create for an empty enrichment record.");
                 return ServiceResult.newOkResult();
             }
-            logger.info("Creating sub actions to store new enrichment record.");
-            logger.info("Enrichment record:\n{}", enrichmentRecord);
+            LOGGER.info("Creating sub actions to store new enrichment record.");
+            LOGGER.info("Enrichment record:\n{}", enrichmentRecord);
 
             String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
             StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
@@ -107,7 +107,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -117,7 +117,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
     }
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
-        logger.entry(recordId, agencyId);
+        LOGGER.entry(recordId, agencyId);
         MarcRecord result = null;
         try {
             Record record = rawRepo.fetchRecord(recordId, agencyId);
@@ -125,12 +125,12 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         } catch (UnsupportedEncodingException e) {
             throw new UpdateException(e.getMessage(), e);
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private MarcRecord createEnrichmentRecord() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
         try {
             MarcRecordReader recordReader = new MarcRecordReader(record);
@@ -145,12 +145,12 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             enrichmentRecord.getFields().add(getFormattedY08Field(recordWithHoldings));
             return enrichmentRecord;
         } finally {
-            logger.exit(enrichmentRecord);
+            LOGGER.exit(enrichmentRecord);
         }
     }
 
     private MarcField getFormattedY08Field(MarcRecord rec) {
-        logger.entry(rec);
+        LOGGER.entry(rec);
         MarcField yNoteField = new MarcField("y08", "00");
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
@@ -168,17 +168,17 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
                 return yNoteField;
             } catch (UpdateException e) {
-                logger.error("Error : UpdateException, probably due to malformed record \n", e);
+                LOGGER.error("Error : UpdateException, probably due to malformed record \n", e);
                 yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
                 return yNoteField;
             }
         } finally {
-            logger.exit(yNoteField);
+            LOGGER.exit(yNoteField);
         }
     }
 
     private String getNoteFieldString(MarcField noteField) {
-        logger.entry(noteField);
+        LOGGER.entry(noteField);
         String res = "";
         try {
             if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
@@ -188,7 +188,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             List<MarcSubField> subFields = noteField.getSubfields();
             for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
                 MarcSubField sf = mfIter.next();
-                logger.trace("working on subfield : " + sf);
+                LOGGER.trace("working on subfield: {}", sf);
                 if (mfIter.hasNext()) {
                     if (sf.getName().equals("d")) {
                         res = res.concat(sf.getValue() + ": ");
@@ -201,7 +201,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             }
             return res;
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
     }
 }

@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Stateless
 public class SolrBasis extends SolrBase {
-    private static XLogger logger = XLoggerFactory.getXLogger(SolrBasis.class);
+    private static final XLogger logger = XLoggerFactory.getXLogger(SolrBasis.class);
 
     private Properties settings;
 
@@ -34,13 +34,13 @@ public class SolrBasis extends SolrBase {
 
     @Override
     protected URL setUrl(String query, String queryParam) throws UpdateException {
-        String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
+        final String solrQueryUrl = "%s/select?q=%s&wt=json";
         logger.entry();
         try {
             if (settings.containsKey(JNDIResources.SOLR_BASIS_URL)) {
                 String url = settings.getProperty(JNDIResources.SOLR_BASIS_URL);
                 logger.info("Using basis solr url: {}", url);
-                URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
+                URL solrUrl = new URL(String.format(solrQueryUrl, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
                 logger.info("Solr call query: {} -> {}", query, solrUrl);
                 return solrUrl;
             } else {

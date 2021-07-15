@@ -323,7 +323,9 @@ public class NoteAndSubjectExtensionsHandler {
             try {
                 Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
                 curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
-                logger.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
+                if (logger.isInfoEnabled()) {
+                    logger.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
+                }
             } catch (RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }

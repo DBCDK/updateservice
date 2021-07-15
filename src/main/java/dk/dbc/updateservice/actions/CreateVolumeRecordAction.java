@@ -46,9 +46,9 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
         logger.entry();
         try {
             if (logger.isInfoEnabled()) {
-                logger.info("Handling record: {}", LogUtils.base64Encode(record));
+                logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
             String parentRecordId = reader.getParentRecordId();
@@ -68,7 +68,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
-            if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record)) {
+            if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, marcRecord)) {
                 String message = state.getMessages().getString("create.record.with.locals");
                 logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -79,11 +79,11 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
                 logger.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
-            children.add(new RemoveLinksAction(state, record));
-            children.add(LinkRecordAction.newLinkParentAction(state, record));
-            children.add(new LinkAuthorityRecordsAction(state, record));
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
+            children.add(new RemoveLinksAction(state, marcRecord));
+            children.add(LinkRecordAction.newLinkParentAction(state, marcRecord));
+            children.add(new LinkAuthorityRecordsAction(state, marcRecord));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();

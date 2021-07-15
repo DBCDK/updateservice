@@ -181,14 +181,14 @@ public class OpenBuildCore {
         }
     }
 
-    private MarcRecord buildRecord(String buildSchema, MarcRecord record) {
-        LOGGER.entry(buildSchema, record);
+    private MarcRecord buildRecord(String buildSchema, MarcRecord marcRecord) {
+        LOGGER.entry(buildSchema, marcRecord);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.buildRecord");
         MarcRecord result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            result = opencatBusinessConnector.buildRecord(buildSchema, record, trackingId);
+            result = opencatBusinessConnector.buildRecord(buildSchema, marcRecord, trackingId);
 
             return result;
         } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {

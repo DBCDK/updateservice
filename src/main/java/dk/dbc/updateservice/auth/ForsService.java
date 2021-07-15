@@ -89,16 +89,15 @@ public class ForsService {
     private static final int CONNECT_TIMEOUT = 1 * 60 * 1000;
     private static final int REQUEST_TIMEOUT = 3 * 60 * 1000;
 
-    private Properties settings = JNDIResources.getProperties();
+    private final Properties settings = JNDIResources.getProperties();
 
-    private ForsRights.RightsCache forsRightsCache;
     private ForsRights forsRights;
 
     @PostConstruct
     public void init() {
         StopWatch watch = new Log4JStopWatch("service.forsrights.init");
         try {
-            forsRightsCache = new ForsRights.RightsCache(CACHE_ENTRY_TIMEOUT);
+            ForsRights.RightsCache forsRightsCache = new ForsRights.RightsCache(CACHE_ENTRY_TIMEOUT);
             ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
             builder = builder.connectTimeout(CONNECT_TIMEOUT).requestTimeout(REQUEST_TIMEOUT);
             forsRights = builder.build(settings.getProperty(JNDIResources.FORSRIGHTS_URL)).forsRights(forsRightsCache);

@@ -423,7 +423,7 @@ public class AssertActionsUtil {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) action;
         assertThat(overwriteSingleRecordAction.getRawRepo(), is(rawRepo));
-        assertThat(overwriteSingleRecordAction.record, is(record));
+        assertThat(overwriteSingleRecordAction.marcRecord, is(record));
         assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(groupId));
         assertThat(overwriteSingleRecordAction.state.getHoldingsItems(), is(holdingsItems));
         assertThat(overwriteSingleRecordAction.state.getVipCoreService(), is(vipCoreService));

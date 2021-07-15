@@ -61,8 +61,8 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
      *
      * @param globalActionState State object containing data with data from request.
      */
-    public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(AuthenticateRecordAction.class.getSimpleName(), globalActionState, record);
+    public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(AuthenticateRecordAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     /**
@@ -94,7 +94,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             if (result.hasErrors()) {
@@ -126,7 +126,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         List<MessageEntryDTO> result = new ArrayList<>();
         try {
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             // First check if the group is "root" - if so just return as no further validation is necessary
             try {
@@ -149,9 +149,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
 
-                if (noteAndSubjectExtensionsHandler.isNationalCommonRecord(record)) {
+                if (noteAndSubjectExtensionsHandler.isNationalCommonRecord(marcRecord)) {
                     logger.info("Record is national common record");
-                    validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(record, groupId);
+                    validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(marcRecord, groupId);
                 } else {
                     logger.info("Record is not national common record");
                     validationErrors = authenticateCommonRecord();
@@ -192,7 +192,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            MarcRecordReader reader = new MarcRecordReader(record);
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
             String recordId = reader.getRecordId();

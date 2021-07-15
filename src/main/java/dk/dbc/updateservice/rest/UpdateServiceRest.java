@@ -134,7 +134,7 @@ public class UpdateServiceRest {
         try {
             LOGGER.info("updateRecord REST received: {}", updateRecordRequest);
 
-            if (!updateServiceCore.isServiceReady(globalActionState)) {
+            if (!updateServiceCore.isServiceReady()) {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 return null;
             }
@@ -196,7 +196,7 @@ public class UpdateServiceRest {
         try {
             LOGGER.info("getSchemas REST received: {}", schemasRequestDTO);
 
-            if (!updateServiceCore.isServiceReady(globalActionState)) {
+            if (!updateServiceCore.isServiceReady()) {
                 LOGGER.info("Updateservice (getSchemas) not ready yet.");
                 return null;
             }

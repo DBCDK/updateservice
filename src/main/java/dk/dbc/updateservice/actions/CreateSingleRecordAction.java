@@ -46,10 +46,10 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         logger.entry();
 
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-            if (!checkIfRecordCanBeRestored(state, record)) {
+            if (!checkIfRecordCanBeRestored(state, marcRecord)) {
                 String message = state.getMessages().getString("create.record.with.locals");
                 logger.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -61,13 +61,13 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
-            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
-            children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
+            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
+            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
             if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
                 // Information that needs check is in the enrichment part so we have to look at the full request record
                 children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
             }
-            children.add(new LinkAuthorityRecordsAction(state, record));
+            children.add(new LinkAuthorityRecordsAction(state, marcRecord));
             return ServiceResult.newOkResult();
         } finally {
             logger.exit();

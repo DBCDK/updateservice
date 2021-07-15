@@ -131,10 +131,10 @@ public class UpdateTestUtils {
     // The sorting is needed because expand function might change the order of the fields
     private static class RecordSorterMock extends RecordSorter {
         @Override
-        public MarcRecord sortRecord(MarcRecord record) {
-            record.getFields().sort(Comparator.comparingInt(f -> Integer.parseInt(f.getName())));
+        public MarcRecord sortRecord(MarcRecord marcRecord) {
+            marcRecord.getFields().sort(Comparator.comparingInt(f -> Integer.parseInt(f.getName())));
 
-            return record;
+            return marcRecord;
         }
     }
 

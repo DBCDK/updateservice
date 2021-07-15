@@ -302,10 +302,9 @@ public class GlobalActionState {
             if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
                 boolean markedForDeletion = marcRecordReader.markedForDeletion();
                 boolean isDBCMode = getLibraryGroup().isDBC();
-                boolean recordExists = recordExists();
                 int agencyId = marcRecordReader.getAgencyIdAsInt();
                 boolean agencyIdEqualsRawRepoCommonLibrary = agencyId == RawRepo.COMMON_AGENCY;
-                doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists && agencyIdEqualsRawRepoCommonLibrary;
+                doubleRecordPossible = !markedForDeletion && !isDBCMode && !recordExists() && agencyIdEqualsRawRepoCommonLibrary;
             }
         }
         return doubleRecordPossible;
@@ -575,7 +574,7 @@ public class GlobalActionState {
             try {
                 libraryGroup = vipCoreService.getLibraryGroup(groupId);
             } catch (UpdateException | VipCoreException ex) {
-                logger.error("VipCoreException error: " + ex.getMessage(), ex);
+                logger.error("VipCoreException error: {}", ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 

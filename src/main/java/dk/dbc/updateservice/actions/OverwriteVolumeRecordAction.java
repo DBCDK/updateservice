@@ -24,10 +24,8 @@ import java.util.Properties;
 public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteVolumeRecordAction.class);
 
-    GlobalActionState state;
-
-    public OverwriteVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(globalActionState, properties, record);
+    public OverwriteVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(globalActionState, properties, marcRecord);
         setName("OverwriteVolumeRecordAction");
         state = globalActionState;
     }
@@ -43,8 +41,8 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         logger.entry();
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
-            MarcRecordReader reader = new MarcRecordReader(record);
+            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();
             } else {
@@ -60,7 +58,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     }
 
     private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
         String recordId = reader.getRecordId();
         String parentId = reader.getParentRecordId();
         int agencyId = reader.getAgencyIdAsInt();
@@ -85,13 +83,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         MarcRecord currentExpandedRecord = loadCurrentRecord();
         MarcRecord newExpandedRecord = expandRecord();
 
-        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, record));
-        children.add(new RemoveLinksAction(state, record));
-        children.add(LinkRecordAction.newLinkParentAction(state, record));
+        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
+        children.add(new RemoveLinksAction(state, marcRecord));
+        children.add(LinkRecordAction.newLinkParentAction(state, marcRecord));
         children.addAll(createActionsForCreateOrUpdateEnrichments(newExpandedRecord, currentExpandedRecord));
-        children.add(new LinkAuthorityRecordsAction(state, record));
-        children.add(EnqueueRecordAction.newEnqueueAction(state, record, settings));
-        children.addAll(getEnqueuePHHoldingsRecordActions(state, record));
+        children.add(new LinkAuthorityRecordsAction(state, marcRecord));
+        children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+        children.addAll(getEnqueuePHHoldingsRecordActions(state, marcRecord));
 
         return ServiceResult.newOkResult();
     }

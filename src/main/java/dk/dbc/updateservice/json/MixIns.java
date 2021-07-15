@@ -16,7 +16,7 @@ import java.util.Map;
  * Provides access to all JSON mixins
  */
 public class MixIns {
-    private static Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+    private static final Map<Class<?>, Class<?>> mixIns = new HashMap<>();
 
     static {
         mixIns.put(MarcRecord.class, MarcRecordMixIn.class);

@@ -11,7 +11,9 @@ import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
+
 import java.time.Duration;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -43,7 +45,7 @@ public class ServiceEngine {
 
 
     private static class ServiceEngineErrorCounterMetrics implements CounterMetric {
-        private Metadata metadata;
+        private final Metadata metadata;
 
         ServiceEngineErrorCounterMetrics(Metadata metadata) {
             this.metadata = validateMetadata(metadata);
@@ -56,7 +58,7 @@ public class ServiceEngine {
     }
 
     private static class ServiceEngineTimingMetrics implements SimpleTimerMetric {
-        private Metadata metadata;
+        private final Metadata metadata;
 
         ServiceEngineTimingMetrics(Metadata metadata) {
             this.metadata = validateMetadata(metadata);
@@ -84,7 +86,6 @@ public class ServiceEngine {
                     .withDescription("Duration of various actions")
                     .withType(MetricType.SIMPLE_TIMER)
                     .withUnit(MetricUnits.MILLISECONDS).build());
-
 
 
     public void setLoggerKeys(Map<String, String> loggerKeys) {
@@ -201,7 +202,7 @@ public class ServiceEngine {
     private void printActions(ServiceAction action, String indent) {
         logger.entry();
         try {
-            logger.info(indent + action.name() + " in " + action.getTimeElapsed() + " ms: " + action.getServiceResult());
+            logger.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {

@@ -19,8 +19,8 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
 
     private static final XLogger logger = XLoggerFactory.getXLogger(LinkAuthorityRecordsAction.class);
 
-    public LinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord record) {
-        super(LinkAuthorityRecordsAction.class.getSimpleName(), globalActionState, record);
+    public LinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(LinkAuthorityRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     @Override
@@ -28,12 +28,12 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
         logger.entry();
         ServiceResult result = null;
         try {
-            final MarcRecordReader reader = new MarcRecordReader(record);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
             final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
-            for (MarcField field : record.getFields()) {
+            for (MarcField field : marcRecord.getFields()) {
                 final MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                     final String authRecordId = fieldReader.getValue("6");

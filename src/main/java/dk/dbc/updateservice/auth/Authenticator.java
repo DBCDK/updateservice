@@ -29,9 +29,8 @@ import java.util.Properties;
 public class Authenticator {
     private static final XLogger logger = XLoggerFactory.getXLogger(Authenticator.class);
 
-    private Properties settings = JNDIResources.getProperties();
+    private final Properties settings = JNDIResources.getProperties();
 
-    @SuppressWarnings("EjbEnvironmentInspection")
     @EJB
     private ForsService forsService;
 
@@ -79,31 +78,31 @@ public class Authenticator {
         final String X_FORWARDED_FOR = "x-forwarded-for";
         String result = "";
         try {
-            String XForwaredForHeaderName = "";
+            String xForwaredForHeaderName = "";
             Enumeration<String> headerNames = request.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
 
                 logger.debug("Checking header: '{}'", name);
-                if (name.toLowerCase().equals(X_FORWARDED_FOR.toLowerCase())) {
-                    XForwaredForHeaderName = name;
+                if (name.equalsIgnoreCase(X_FORWARDED_FOR)) {
+                    xForwaredForHeaderName = name;
                     break;
                 }
             }
-            if (XForwaredForHeaderName.isEmpty()) {
+            if (xForwaredForHeaderName.isEmpty()) {
                 logger.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
 
                 result = request.getRemoteAddr();
                 return result;
             }
-            String XForwardedForValue = request.getHeader(XForwaredForHeaderName);
-            logger.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, XForwardedForValue);
-            int index = XForwardedForValue.indexOf(",");
+            String xForwardedForValue = request.getHeader(xForwaredForHeaderName);
+            logger.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
+            int index = xForwardedForValue.indexOf(",");
             if (index > -1) {
-                result = XForwardedForValue.substring(0, index);
+                result = xForwardedForValue.substring(0, index);
                 return result;
             }
-            result = XForwardedForValue;
+            result = xForwardedForValue;
             return result;
         } finally {
             logger.exit(result);
