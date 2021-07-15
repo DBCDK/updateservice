@@ -501,6 +501,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("700300")).thenReturn(LibraryGroup.SBCI);
+        when(state.getVipCoreService().getLibraryGroup("830020")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -530,6 +532,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("700300")).thenReturn(LibraryGroup.SBCI);
+        when(state.getVipCoreService().getLibraryGroup("830020")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
@@ -559,6 +563,8 @@ class AuthenticateRecordActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
+        when(state.getVipCoreService().getLibraryGroup("700300")).thenReturn(LibraryGroup.SBCI);
+        when(state.getVipCoreService().getLibraryGroup("830010")).thenReturn(LibraryGroup.FBS);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
