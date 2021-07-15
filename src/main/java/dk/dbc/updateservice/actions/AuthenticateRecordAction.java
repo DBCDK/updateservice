@@ -253,12 +253,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createErrorReply(resourceBundle.getString("update.common.record.error"));
             }
 
-            // TODO Remove hardcoded 700300
-            if ("700300".equals(curOwner) &&
-                    !("700300".equals(groupId) && "700300".equals(owner))) {
-                return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
-            }
-
             /*
                 If a record is owned by SBCI then a non-SBCI agency can't change the record. In other words, if the
                 current owner (996 *a) is SBCI then the agency updating the record and the owner of the updated record
@@ -324,7 +318,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                     boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
-                        logger.info("Groupid {} does not have permission to change field 665, so returning error");
+                        logger.info("Groupid {} does not have permission to change field 665, so returning error", groupId);
                         return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
                     }
                 }
@@ -334,7 +328,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                     boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
-                        logger.info("Groupid {} does not have permission to use field 665, so returning error");
+                        logger.info("Groupid {} does not have permission to use field 665, so returning error", groupId);
                         return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
                     }
                 }
