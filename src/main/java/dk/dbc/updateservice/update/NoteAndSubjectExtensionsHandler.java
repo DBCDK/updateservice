@@ -379,7 +379,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if ((vipCoreService.getLibraryGroup(groupId).isFBS()) && !CatalogExtractionCode.isPublished(marcRecord)) {
+            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublished(marcRecord)) {
                 final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
                 result.add(createMessageDTO(message));
             }
