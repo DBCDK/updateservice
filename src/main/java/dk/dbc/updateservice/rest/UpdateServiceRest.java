@@ -230,9 +230,13 @@ public class UpdateServiceRest {
             if (updateServiceRequestDTO != null &&
                     updateServiceRequestDTO.getAuthenticationDTO() != null &&
                     updateServiceRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                metricRegistry.counter(groupIdCounterMetaData,
-                        new Tag("groupId", updateServiceRequestDTO.getAuthenticationDTO().getGroupId()))
-                        .inc();
+                final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+                // Ignore DBC group id as it pollutes the metric
+                if (!"010100".equals(groupId)) {
+                    metricRegistry.counter(groupIdCounterMetaData,
+                            new Tag("groupId", groupId))
+                            .inc();
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Failed to increment groupId counter", e);
@@ -244,9 +248,13 @@ public class UpdateServiceRest {
             if (schemasRequestDTO != null &&
                     schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                metricRegistry.counter(groupIdCounterMetaData,
-                        new Tag("groupId", schemasRequestDTO.getAuthenticationDTO().getGroupId()))
-                        .inc();
+                final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+                // Ignore DBC group id as it pollutes the metric
+                if (!"010100".equals(groupId)) {
+                    metricRegistry.counter(groupIdCounterMetaData,
+                            new Tag("groupId", groupId))
+                            .inc();
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Failed to increment groupId counter", e);
