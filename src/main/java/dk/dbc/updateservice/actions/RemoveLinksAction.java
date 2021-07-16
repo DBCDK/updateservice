@@ -24,7 +24,7 @@ import org.slf4j.ext.XLoggerFactory;
  * </p>
  */
 public class RemoveLinksAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(RemoveLinksAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(RemoveLinksAction.class);
 
     public RemoveLinksAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(RemoveLinksAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -38,21 +38,21 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
 
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
             rawRepo.removeLinks(new RecordId(recId, agencyId));
-            logger.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
+            LOGGER.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
 
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }

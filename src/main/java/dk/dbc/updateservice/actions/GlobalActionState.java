@@ -42,7 +42,7 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 public class GlobalActionState {
-    private static final XLogger logger = XLoggerFactory.getXLogger(GlobalActionState.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(GlobalActionState.class);
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
     private static final String RECORD_PACKING_XML = "xml";
 
@@ -319,17 +319,17 @@ public class GlobalActionState {
      * empty string otherwise.
      */
     public String getSchemaName() {
-        logger.entry();
+        LOGGER.entry();
         String result = "";
         try {
             if (updateServiceRequestDTO != null) {
                 result = updateServiceRequestDTO.getSchemaName();
             } else {
-                logger.warn("Unable to validate schema from request");
+                LOGGER.warn("Unable to validate schema from request");
             }
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -343,7 +343,7 @@ public class GlobalActionState {
      * if the can not be converted or if no records exists.
      */
     public MarcRecord readRecord() {
-        logger.entry();
+        LOGGER.entry();
 
         try {
             if (marcRecord == null) {
@@ -352,7 +352,7 @@ public class GlobalActionState {
                 if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
                     list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
                 } else {
-                    logger.warn("Unable to read record from request");
+                    LOGGER.warn("Unable to read record from request");
                 }
                 if (list != null) {
                     for (Object o : list) {
@@ -371,7 +371,7 @@ public class GlobalActionState {
             }
             return marcRecord;
         } finally {
-            logger.exit(marcRecord);
+            LOGGER.exit(marcRecord);
         }
     }
 
@@ -385,17 +385,17 @@ public class GlobalActionState {
      * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
      */
     public boolean isRecordSchemaValid() {
-        logger.entry();
+        LOGGER.entry();
         boolean result = false;
         try {
             if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
                 result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
             } else {
-                logger.warn("Unable to record schema from request");
+                LOGGER.warn("Unable to record schema from request");
             }
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -409,17 +409,17 @@ public class GlobalActionState {
      * {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
      */
     public boolean isRecordPackingValid() {
-        logger.entry();
+        LOGGER.entry();
         boolean result = false;
         try {
             if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking() != null) {
                 result = RECORD_PACKING_XML.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking());
             } else {
-                logger.warn("Unable to record packing from request");
+                LOGGER.warn("Unable to record packing from request");
             }
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -433,7 +433,7 @@ public class GlobalActionState {
      * if the can not be converted or if no records exists.
      */
     public BibliographicRecordExtraData getRecordExtraData() {
-        logger.entry();
+        LOGGER.entry();
         List<Object> list = null;
         try {
             if (bibliographicRecordExtraData == null) {
@@ -457,7 +457,7 @@ public class GlobalActionState {
             }
             return bibliographicRecordExtraData;
         } finally {
-            logger.exit(bibliographicRecordExtraData);
+            LOGGER.exit(bibliographicRecordExtraData);
         }
     }
 
@@ -574,14 +574,14 @@ public class GlobalActionState {
             try {
                 libraryGroup = vipCoreService.getLibraryGroup(groupId);
             } catch (UpdateException | VipCoreException ex) {
-                logger.error("VipCoreException error: {}", ex.getMessage(), ex);
+                LOGGER.error("VipCoreException error: {}", ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
             // Make sure that we didn't get nul
             if (libraryGroup == null) {
                 String err = "LibraryGroup not found for groupId " + groupId;
-                logger.error(err);
+                LOGGER.error(err);
                 throw new UpdateException(err);
             }
 
@@ -597,14 +597,14 @@ public class GlobalActionState {
             try {
                 templateGroup = vipCoreService.getTemplateGroup(groupId);
             } catch (VipCoreException ex) {
-                logger.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
             // Make sure that we didn't get nul
             if (templateGroup == null) {
                 String err = "TemplateGroup not found for groupId " + groupId;
-                logger.error(err);
+                LOGGER.error(err);
                 throw new UpdateException(err);
             }
         }
@@ -617,7 +617,7 @@ public class GlobalActionState {
             try {
                 phLibraries = vipCoreService.getPHLibraries();
             } catch (VipCoreException ex) {
-                logger.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -630,7 +630,7 @@ public class GlobalActionState {
             try {
                 ffuLibraries = vipCoreService.getFFULibraries();
             } catch (VipCoreException ex) {
-                logger.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -643,7 +643,7 @@ public class GlobalActionState {
             try {
                 lokbibLibraries = vipCoreService.getLokbibLibraries();
             } catch (VipCoreException ex) {
-                logger.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }

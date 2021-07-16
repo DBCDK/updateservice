@@ -42,7 +42,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </ol>
  */
 public class ValidateRecordAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ValidateRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ValidateRecordAction.class);
 
     Properties settings;
 
@@ -77,12 +77,12 @@ public class ValidateRecordAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
         ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            logger.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
 
             final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
             result = new ServiceResult();
@@ -93,20 +93,20 @@ public class ValidateRecordAction extends AbstractAction {
             final String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {
-                logger.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
+                LOGGER.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
                 result.setStatus(UpdateStatusEnumDTO.FAILED);
             } else {
-                logger.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
+                LOGGER.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
         } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
-            logger.error(message, ex);
+            LOGGER.error(message, ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

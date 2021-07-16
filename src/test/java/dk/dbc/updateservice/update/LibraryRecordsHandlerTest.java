@@ -22,8 +22,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 class LibraryRecordsHandlerTest {
-    private static final XLogger logger = XLoggerFactory.getXLogger(LibraryRecordsHandlerTest.class);
-
     private static final String f001DBC = "001 00 *b 870970 \n";
     private static final String f001FBS = "001 00 *b 763000 \n";
 

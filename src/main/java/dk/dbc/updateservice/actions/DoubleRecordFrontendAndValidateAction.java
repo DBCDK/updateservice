@@ -13,7 +13,7 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.Properties;
 
 public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordFrontendAndValidateAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordFrontendAndValidateAction.class);
 
     Properties settings;
     DoubleRecordFrontendAction doubleRecordFrontendAction;
@@ -28,14 +28,14 @@ public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = new ServiceResult();
         try {
             result.addServiceResult(doubleRecordFrontendAction.performAction());
             result.addServiceResult(validateRecordAction.performAction());
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

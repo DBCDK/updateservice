@@ -26,26 +26,26 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
 public class Validator {
-    private static final XLogger logger = XLoggerFactory.getXLogger(Validator.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(Validator.class);
 
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
 
     public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.getValidateSchemas");
         List<SchemaDTO> result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             final List<SchemaDTO> names = opencatBusinessConnector.getValidateSchemas(templateGroup, allowedLibraryRules, trackingId);
             result = new ArrayList<>(names);
-            logger.trace("Number of templates: {}", result.size());
+            LOGGER.trace("Number of templates: {}", result.size());
             return result;
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: getValidateSchemas", ex);
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }

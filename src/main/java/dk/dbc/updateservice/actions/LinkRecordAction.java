@@ -25,7 +25,7 @@ import org.slf4j.ext.XLoggerFactory;
  * </p>
  */
 public class LinkRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(LinkRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(LinkRecordAction.class);
 
     private RecordId linkToRecordId;
 
@@ -49,10 +49,10 @@ public class LinkRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
@@ -61,11 +61,11 @@ public class LinkRecordAction extends AbstractRawRepoAction {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            logger.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+            LOGGER.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
             rawRepo.linkRecord(recordIdObj, linkToRecordId);
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -73,7 +73,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
      * Factory method to create a LinkRecordAction.
      */
     public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
-        logger.entry();
+        LOGGER.entry();
         try {
             LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, marcRecord);
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -82,7 +82,7 @@ public class LinkRecordAction extends AbstractRawRepoAction {
             linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
             return linkRecordAction;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

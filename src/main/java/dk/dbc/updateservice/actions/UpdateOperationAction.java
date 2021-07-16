@@ -63,7 +63,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </ol>
  */
 class UpdateOperationAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateOperationAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateOperationAction.class);
 
     private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
             .appendPattern("yyyyMMdd")
@@ -108,15 +108,15 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
-            if (logger.isInfoEnabled()) {
-                logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
             ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
-                logger.info("Unable to update record: {}", serviceResult);
+                LOGGER.info("Unable to update record: {}", serviceResult);
                 return serviceResult;
             }
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -151,12 +151,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             addDoubleRecordFrontendActionIfNecessary();
 
-            logger.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
+            LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
 
             List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages(), state.isAdmin());
-            logger.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
+            LOGGER.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
-                logger.info("Create sub actions for record:\n{}", rec);
+                LOGGER.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
                 String recordId = reader.getRecordId();
                 int agencyId = reader.getAgencyIdAsInt();
@@ -226,7 +226,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -260,7 +260,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
     void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, VipCoreException {
-        logger.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+        LOGGER.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
 
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
         String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -288,7 +288,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
         }
 
-        logger.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+        LOGGER.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
     }
 
     // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
@@ -334,16 +334,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
-        if (logger.isInfoEnabled()) {
-            logger.info("Delete?..................: " + updReader.markedForDeletion());
-            logger.info("Library group?...........: " + state.getLibraryGroup());
-            logger.info("Schema name?.............: " + state.getSchemaName());
-            logger.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
-            logger.info("agency id?...............: " + updReader.getAgencyIdAsInt());
-            logger.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
-            logger.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
-            logger.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
-            logger.info("User is admin?...........: " + state.isAdmin());
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Delete?..................: " + updReader.markedForDeletion());
+            LOGGER.info("Library group?...........: " + state.getLibraryGroup());
+            LOGGER.info("Schema name?.............: " + state.getSchemaName());
+            LOGGER.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
+            LOGGER.info("agency id?...............: " + updReader.getAgencyIdAsInt());
+            LOGGER.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
+            LOGGER.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
+            LOGGER.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
+            LOGGER.info("User is admin?...........: " + state.isAdmin());
         }
     }
 
@@ -352,7 +352,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, int parentAgencyId) throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(rec);
             String recordId = reader.getRecordId();
@@ -369,12 +369,12 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             return false;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
@@ -391,9 +391,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 rawRepoAgencyId = RawRepo.COMMON_AGENCY;
             }
             RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
-            logger.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
+            LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
             Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
-            logger.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
+            LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
             if (!recordIdSet.isEmpty()) {
                 for (RecordId childRecordId : recordIdSet) {
                     // If all child records are 870974 littolk then the record can be deleted anyway
@@ -406,7 +406,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -419,7 +419,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         try {
             String readerRecordId = reader.getRecordId();
             int readerAgencyId = reader.getAgencyIdAsInt();
@@ -503,7 +503,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             return null;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -522,7 +522,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * As the n55 field is a temporary field that shouldn't be saved in rawrepo it is removed from the record before saving.
      */
     private void handleSetCreateOverwriteDate() throws UpdateException {
-        logger.debug("Checking for n55 field");
+        LOGGER.debug("Checking for n55 field");
         MarcRecordReader reader = new MarcRecordReader(marcRecord);
         MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
@@ -535,7 +535,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     Instant instant = formatter.parse(dateString, Instant::from);
 
                     state.setCreateOverwriteDate(instant);
-                    logger.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
+                    LOGGER.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
                 }
             }
 
@@ -553,27 +553,27 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException If the record can't be decoded
      */
     private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
-        logger.entry("performActionsForRemovedLITWeekNumber");
+        LOGGER.entry("performActionsForRemovedLITWeekNumber");
 
         try {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            logger.debug("GOT REC {}", marcRecord);
+            LOGGER.debug("GOT REC {}", marcRecord);
 
             // Check if a 191919 record
             if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {
-                logger.debug("Not a 191919");
+                LOGGER.debug("Not a 191919");
                 return;
             }
 
             if (!rawRepo.recordExists(reader.getRecordId(), RawRepo.DBC_ENRICHMENT)) {
-                logger.debug("No existing record");
+                LOGGER.debug("No existing record");
                 return;
             }
 
             Pattern p = Pattern.compile("^LIT[0-9]{6}");
             // There is a d09zLIT in incoming record
             if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
-                logger.debug("there is a d09");
+                LOGGER.debug("there is a d09");
                 return;
             }
 
@@ -598,7 +598,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             }
         } catch (Throwable e) {
-            logger.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
+            LOGGER.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
             throw e;
         }
     }

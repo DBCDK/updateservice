@@ -21,7 +21,7 @@ import java.util.ResourceBundle;
  * </p>
  */
 public class AuthenticateUserAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(AuthenticateUserAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AuthenticateUserAction.class);
 
     public AuthenticateUserAction(GlobalActionState globalActionState) {
         super(AuthenticateUserAction.class.getSimpleName(), globalActionState);
@@ -35,7 +35,7 @@ public class AuthenticateUserAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             validateNullableData();
@@ -44,39 +44,39 @@ public class AuthenticateUserAction extends AbstractAction {
 
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
                 msg = resourceBundle.getString("auth.user.missing.arguments");
-                logger.error(msg);
+                LOGGER.error(msg);
                 return result = ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
                 msg = resourceBundle.getString("auth.user.missing.username");
-                logger.error(msg);
+                LOGGER.error(msg);
                 return result = ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
                 msg = resourceBundle.getString("auth.user.missing.groupname");
-                logger.error(msg);
+                LOGGER.error(msg);
                 return result = ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
                 msg = resourceBundle.getString("auth.user.missing.password");
-                logger.error(msg);
+                LOGGER.error(msg);
                 return result = ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getAuthenticator().authenticateUser(state)) {
-                logger.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
+                LOGGER.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 return result = ServiceResult.newOkResult();
             }
 
-            logger.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
+            LOGGER.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
 
             return result = ServiceResult.newAuthErrorResult();
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
-            logger.error(message, ex);
-            logger.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), ex.getMessage());
+            LOGGER.error(message, ex);
+            LOGGER.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), ex.getMessage());
             return result = ServiceResult.newAuthErrorResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

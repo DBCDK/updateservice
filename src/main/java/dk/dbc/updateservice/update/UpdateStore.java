@@ -26,7 +26,7 @@ import java.util.UUID;
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 public class UpdateStore {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateStore.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateStore.class);
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -37,22 +37,22 @@ public class UpdateStore {
         dpkOverride.setRequestUuid(uuid);
         dpkOverride.setCreatedDtm(new Date());
         entityManager.persist(dpkOverride);
-        logger.info("Inserted updatestore object: {}", dpkOverride);
+        LOGGER.info("Inserted updatestore object: {}", dpkOverride);
         return uuid;
     }
 
     public boolean doesDoubleRecordKeyExist(String key) {
         boolean res = false;
         DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key, LockModeType.PESSIMISTIC_WRITE);
-        logger.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: {}", dpkOverride);
+        LOGGER.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: {}", dpkOverride);
         if (dpkOverride != null) {
             entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
             LocalDateTime updatestoreCreateDate = LocalDateTime.ofInstant(dpkOverride.getCreatedDtm().toInstant(), ZoneId.systemDefault());
             if (updatestoreCreateDate.isAfter(LocalDateTime.now().minusDays(1))) {
-                logger.info("Found doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
+                LOGGER.info("Found doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
                 res = true;
             } else {
-                logger.info("Found old doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
+                LOGGER.info("Found old doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
             }
             entityManager.remove(dpkOverride);
         }

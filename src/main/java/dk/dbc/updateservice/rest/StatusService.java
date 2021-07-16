@@ -25,18 +25,18 @@ import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 @Stateless
 @Path("/")
 public class StatusService {
-    private static final XLogger logger = XLoggerFactory.getXLogger(StatusService.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(StatusService.class);
 
     @GET
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getStatus() {
-        logger.entry();
+        LOGGER.entry();
         String res = "ST_OK";
         try {
             return Response.ok(res, MediaType.TEXT_PLAIN).build();
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
     }
 
@@ -44,7 +44,7 @@ public class StatusService {
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() {
-        logger.entry();
+        LOGGER.entry();
         try {
             final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
             final boolean updateServiceClientReady = updateServiceClient.isReady();
@@ -53,7 +53,7 @@ public class StatusService {
             }
             return Response.status(SERVICE_UNAVAILABLE).build();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -61,7 +61,7 @@ public class StatusService {
     @Path("/getrevision")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getRevision() {
-        logger.entry();
+        LOGGER.entry();
         try {
             final URL path = StatusService.class.getClassLoader().getResource("build.properties");
             final Properties properties = new Properties();
@@ -71,10 +71,10 @@ public class StatusService {
             }
             return Response.ok("Cannot resolve an svn revision number, the machine building the app might not have svn installed", MediaType.TEXT_PLAIN).build();
         } catch (Exception e) {
-            logger.catching(e);
+            LOGGER.catching(e);
             return Response.serverError().build();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

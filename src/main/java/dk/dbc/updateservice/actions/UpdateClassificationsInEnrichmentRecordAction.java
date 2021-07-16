@@ -20,7 +20,7 @@ import java.util.Properties;
  * from a common record.
  */
 public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichmentRecordWithClassificationsAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateClassificationsInEnrichmentRecordAction.class);
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
@@ -47,7 +47,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
      */
     @Override
     public MarcRecord createRecord() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             if (updatingCommonRecord == null) {
                 throw new IllegalStateException("updatingCommonRecord is not assigned a value");
@@ -77,7 +77,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             writer.sort();
             return marcRecord;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

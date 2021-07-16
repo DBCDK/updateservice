@@ -26,7 +26,7 @@ import java.util.Properties;
 
 @Stateless
 public class SolrFBS extends SolrBase {
-    private static XLogger logger = XLoggerFactory.getXLogger(SolrFBS.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrFBS.class);
 
     private Properties settings;
 
@@ -42,12 +42,12 @@ public class SolrFBS extends SolrBase {
     @Override
     protected URL setUrl(String query, String queryParam) throws UpdateException {
         String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
-        logger.entry();
+        LOGGER.entry();
         try {
             if (settings.containsKey(JNDIResources.SOLR_URL)) {
                 String url = settings.getProperty(JNDIResources.SOLR_URL);
                 URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
-                logger.info("Solr call query: {} -> {}", query, solrUrl);
+                LOGGER.info("Solr call query: {} -> {}", query, solrUrl);
                 return solrUrl;
             } else {
                 throw new UpdateException("The key '" + JNDIResources.SOLR_URL + "' does not exist in settings");
@@ -59,7 +59,7 @@ public class SolrFBS extends SolrBase {
     }
 
     public String getOwnerOf002(String query) throws UpdateException, SolrException {
-        logger.entry(query);
+        LOGGER.entry(query);
         StopWatch watch = new Log4JStopWatch("service.solr.getownerof002");
         URL solrUrl;
 
@@ -88,7 +88,7 @@ public class SolrFBS extends SolrBase {
             return result;
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

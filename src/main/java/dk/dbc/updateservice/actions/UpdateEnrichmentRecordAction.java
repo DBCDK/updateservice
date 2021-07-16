@@ -31,7 +31,7 @@ import java.util.Properties;
  * </p>
  */
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateEnrichmentRecordAction.class);
 
     Decoder decoder = new Decoder();
     Properties settings;
@@ -83,9 +83,9 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("Handling record: {}", marcRecord);
+            LOGGER.info("Handling record: {}", marcRecord);
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();
@@ -96,21 +96,21 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             if (wrkParentId != null && !wrkParentId.isEmpty()) {
                 String agencyId = reader.getAgencyId();
                 String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
-                logger.warn("Unable to update enrichment record due to an error: {}", message);
+                LOGGER.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!rawRepo.recordExists(wrkRecordId, getParentAgencyId())) {
                 String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
-                logger.warn("Unable to update enrichment record due to an error: {}", message);
+                LOGGER.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
             MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
             MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
 
-            logger.info("Correct content of enrichment record.");
-            logger.info("Old content:\n{}", marcRecord);
-            logger.info("New content:\n{}", enrichmentRecord);
+            LOGGER.info("Correct content of enrichment record.");
+            LOGGER.info("Old content:\n{}", marcRecord);
+            LOGGER.info("New content:\n{}", enrichmentRecord);
             if (enrichmentRecord.isEmpty()) {
                 return performDeletionAction();
             }
@@ -119,10 +119,10 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
             return performSaveRecord(enrichmentRecord);
         } catch (UnsupportedEncodingException ex) {
-            logger.error("Update error: " + ex.getMessage(), ex);
+            LOGGER.error("Update error: " + ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -141,7 +141,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return OK.
      */
     private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
-        logger.entry();
+        LOGGER.entry();
         try {
             String recordId = new MarcRecordReader(marcRecord).getRecordId();
 
@@ -152,7 +152,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
             children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -172,17 +172,17 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performDeletionAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
 
             if (!rawRepo.recordExists(recordId, agencyId)) {
-                logger.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
+                LOGGER.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
                 return ServiceResult.newOkResult();
             }
-            logger.info("Creating sub actions to delete enrichment record successfully");
+            LOGGER.info("Creating sub actions to delete enrichment record successfully");
             children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
             children.add(new RemoveLinksAction(state, marcRecord));
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
@@ -191,7 +191,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
 
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
 
     }

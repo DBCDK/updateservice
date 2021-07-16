@@ -27,7 +27,7 @@ import java.util.Properties;
 @Stateless
 @LocalBean
 public class Authenticator {
-    private static final XLogger logger = XLoggerFactory.getXLogger(Authenticator.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(Authenticator.class);
 
     private final Properties settings = JNDIResources.getProperties();
 
@@ -43,34 +43,34 @@ public class Authenticator {
      * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
-        logger.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
+        LOGGER.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
         boolean result = false;
         try {
             String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL).toString();
-            logger.debug("Using endpoint to forsrights webservice: {}", endpoint);
+            LOGGER.debug("Using endpoint to forsrights webservice: {}", endpoint);
             ForsRights.RightSet rights;
             Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
             if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString())) {
                 String ipAddress;
                 if (state.getRequest() != null) {
                     ipAddress = getRemoteAddrFromMessage(state.getRequest());
-                    logger.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
+                    LOGGER.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
                 } else {
                     ipAddress = getRemoteAddrFromMessage(state.getWsContext());
-                    logger.info("Soap service. wsContext used. Ip is: {}", ipAddress);
+                    LOGGER.info("Soap service. wsContext used. Ip is: {}", ipAddress);
                 }
                 rights = forsService.forsRightsWithIp(state, ipAddress);
             } else {
                 rights = forsService.forsRights(state);
             }
             String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME);
-            logger.debug("Looking for product name: {}", productName);
+            LOGGER.debug("Looking for product name: {}", productName);
             return result = rights.hasRightName(productName);
         } catch (ForsRightsException ex) {
-            logger.error("Caught exception:", ex);
+            LOGGER.error("Caught exception:", ex);
             throw new AuthenticatorException(ex.getMessage(), ex);
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -83,20 +83,20 @@ public class Authenticator {
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
 
-                logger.debug("Checking header: '{}'", name);
+                LOGGER.debug("Checking header: '{}'", name);
                 if (name.equalsIgnoreCase(X_FORWARDED_FOR)) {
                     xForwaredForHeaderName = name;
                     break;
                 }
             }
             if (xForwaredForHeaderName.isEmpty()) {
-                logger.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
+                LOGGER.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
 
                 result = request.getRemoteAddr();
                 return result;
             }
             String xForwardedForValue = request.getHeader(xForwaredForHeaderName);
-            logger.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
+            LOGGER.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
             int index = xForwardedForValue.indexOf(",");
             if (index > -1) {
                 result = xForwardedForValue.substring(0, index);
@@ -105,12 +105,12 @@ public class Authenticator {
             result = xForwardedForValue;
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
-        logger.entry(wsContext);
+        LOGGER.entry(wsContext);
         MessageContext mc = wsContext.getMessageContext();
         HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
         return getRemoteAddrFromMessage(req);

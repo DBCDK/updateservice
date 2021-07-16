@@ -24,7 +24,7 @@ import java.util.Set;
 
 public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
-    private static final XLogger logger = XLoggerFactory.getXLogger(MatVurdR01R02CheckRecordsAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(MatVurdR01R02CheckRecordsAction.class);
 
     public MatVurdR01R02CheckRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(MatVurdR01R02CheckRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -32,7 +32,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             List<String> matvurdRecords = new ArrayList<>();
@@ -87,7 +87,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -157,7 +157,7 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
 
             }
         } catch (UnsupportedEncodingException ex) {
-            logger.error(ex.getMessage(), ex);
+            LOGGER.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         }
 

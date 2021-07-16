@@ -34,7 +34,7 @@ import java.util.Properties;
  * </p>
  */
 public class UpdateCommonRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateCommonRecordAction.class);
 
     private final Properties settings;
 
@@ -51,16 +51,16 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
 
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
-                logger.info("Update single");
+                LOGGER.info("Update single");
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                     String message = state.getMessages().getString("update.record.with.002.links");
-                    logger.error("Unable to create sub actions due to an error: {}", message);
+                    LOGGER.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
@@ -93,14 +93,14 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("ref.record.doesnt.exist"), authRecordId, authAgencyId);
-                        logger.error(message);
+                        LOGGER.error(message);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 }
             }
 
             if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
-                logger.info("Rewriting indicators");
+                LOGGER.info("Rewriting indicators");
                 rewriteIndicators();
             }
 
@@ -109,23 +109,23 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // then the record is part of a volume/section/head structure.
             String parentId = reader.getParentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
-                logger.info("Update vol: {}", parentId);
+                LOGGER.info("Update vol: {}", parentId);
                 children.add(new UpdateVolumeRecord(state, settings, recordToStore));
             } else {
-                logger.info("Update single");
+                LOGGER.info("Update single");
                 children.add(new UpdateSingleRecord(state, settings, recordToStore));
             }
             return ServiceResult.newOkResult();
         } catch (VipCoreException | UnsupportedEncodingException e) {
-            logger.catching(e);
+            LOGGER.catching(e);
             throw new UpdateException("Exception while collapsing record", e);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private void rewriteIndicators() {
-        logger.entry();
+        LOGGER.entry();
         try {
             MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
             for (MarcField field : writer.getRecord().getFields()) {
@@ -146,7 +146,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 

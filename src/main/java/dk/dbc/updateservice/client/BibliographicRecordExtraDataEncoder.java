@@ -20,13 +20,13 @@ import javax.xml.parsers.ParserConfigurationException;
  * Encoder to encode a BibliographicRecordExtraData to XML.
  */
 public class BibliographicRecordExtraDataEncoder {
-    private static final XLogger logger = XLoggerFactory.getXLogger(BibliographicRecordExtraDataEncoder.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(BibliographicRecordExtraDataEncoder.class);
 
     public BibliographicRecordExtraDataEncoder() {
     }
 
     public static Document toXmlDocument(BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException {
-        logger.entry();
+        LOGGER.entry();
 
         Document result = null;
         try {
@@ -44,7 +44,7 @@ public class BibliographicRecordExtraDataEncoder {
 
             return result = document;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

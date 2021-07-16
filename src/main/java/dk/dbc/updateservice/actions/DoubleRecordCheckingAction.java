@@ -27,7 +27,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * Action to check a record for double records.
  */
 public class DoubleRecordCheckingAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
 
     MarcRecord record;
     Properties settings;
@@ -46,21 +46,21 @@ public class DoubleRecordCheckingAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
         ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            logger.info("Handling record: {}", LogUtils.base64Encode(record));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
             state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
             return result = ServiceResult.newOkResult();
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
             String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
-            logger.error(message, ex);
+            LOGGER.error(message, ex);
             return result = ServiceResult.newOkResult();
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

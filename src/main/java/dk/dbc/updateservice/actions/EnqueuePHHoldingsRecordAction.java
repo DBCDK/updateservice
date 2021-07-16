@@ -17,7 +17,7 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.Properties;
 
 public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(EnqueuePHHoldingsRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(EnqueuePHHoldingsRecordAction.class);
 
     Properties settings;
     private final RecordId recordId;
@@ -30,7 +30,7 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             String providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS;
@@ -40,11 +40,11 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
             }
 
             rawRepo.changedRecord(settings.getProperty(providerId), recordId);
-            logger.info("The record {}:{} with provider '{}' was successfully enqueued", recordId.getBibliographicRecordId(), recordId.getAgencyId(), settings.getProperty(providerId));
+            LOGGER.info("The record {}:{} with provider '{}' was successfully enqueued", recordId.getBibliographicRecordId(), recordId.getAgencyId(), settings.getProperty(providerId));
 
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }

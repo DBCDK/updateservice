@@ -25,7 +25,7 @@ import java.util.Properties;
  * </p>
  */
 public class CreateVolumeRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateVolumeRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateVolumeRecordAction.class);
     private static final String SUB_ACTION_ERROR_MESSAGE = "Unable to create sub actions due to an error: {}";
 
     Properties settings;
@@ -43,10 +43,10 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            if (logger.isInfoEnabled()) {
-                logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recordId = reader.getRecordId();
@@ -57,26 +57,26 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             if (recordId.equals(parentRecordId)) {
                 String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
 
-                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
+                LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!rawRepo.recordExists(parentRecordId, parentAgencyId)) {
                 String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentRecordId, parentAgencyId);
 
-                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
+                LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, marcRecord)) {
                 String message = state.getMessages().getString("create.record.with.locals");
-                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
+                LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                logger.error(SUB_ACTION_ERROR_MESSAGE, message);
+                LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
@@ -86,7 +86,7 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
             children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

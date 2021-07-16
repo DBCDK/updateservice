@@ -53,7 +53,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Utility functions to reuse code in different test classes.
  */
 public class AssertActionsUtil {
-    private static final XLogger logger = XLoggerFactory.getXLogger(AssertActionsUtil.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AssertActionsUtil.class);
     public static final String COMMON_SINGLE_RECORD_RESOURCE = "actions/common_enrichment.marc";
     public static final String COMMON_MAIN_RECORD_RESOURCE = "actions/rawrepo-main.marc";
     public static final String COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE = "actions/rawrepo-main-enrichment.marc";
@@ -84,7 +84,7 @@ public class AssertActionsUtil {
     }
 
     public static MarcRecord loadRecord(String filename, String newRecordId) throws IOException {
-        logger.entry();
+        LOGGER.entry();
 
         MarcRecord record = null;
         try {
@@ -93,7 +93,7 @@ public class AssertActionsUtil {
 
             return record;
         } finally {
-            logger.exit(record);
+            LOGGER.exit(record);
         }
     }
 
@@ -105,7 +105,7 @@ public class AssertActionsUtil {
     }
 
     public static MarcRecord loadRecordAndMarkForDeletion(String filename, String newRecordId) throws IOException {
-        logger.entry();
+        LOGGER.entry();
 
         MarcRecord record = null;
         try {
@@ -114,7 +114,7 @@ public class AssertActionsUtil {
 
             return record;
         } finally {
-            logger.exit(record);
+            LOGGER.exit(record);
         }
     }
 

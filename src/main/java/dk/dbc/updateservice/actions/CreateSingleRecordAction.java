@@ -26,7 +26,7 @@ import java.util.Set;
  * This action is used to create a new common record.
  */
 public class CreateSingleRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(CreateSingleRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateSingleRecordAction.class);
 
     Properties settings;
 
@@ -43,21 +43,21 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
 
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (!checkIfRecordCanBeRestored(state, marcRecord)) {
                 String message = state.getMessages().getString("create.record.with.locals");
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                LOGGER.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
             if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                 String message = state.getMessages().getString("update.record.with.002.links");
-                logger.error("Unable to create sub actions due to an error: {}", message);
+                LOGGER.error("Unable to create sub actions due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
 
@@ -70,7 +70,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             children.add(new LinkAuthorityRecordsAction(state, marcRecord));
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -92,13 +92,13 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         // The rule is: FBS and DBC libraries cannot have overlapping records.
         // However, FFU and LokBib libraries are allowed to have overlapping posts as they never use enrichment posts
         if (!listToCheck.isEmpty()) {
-            logger.info("The agencies {} was found for {}. Checking if all agencies are FFU or lokbib - otherwise this action will fail", listToCheck, reader.getRecordId());
+            LOGGER.info("The agencies {} was found for {}. Checking if all agencies are FFU or lokbib - otherwise this action will fail", listToCheck, reader.getRecordId());
             Set<String> allowedOverlappingAgencies = state.getFFULibraries();
             allowedOverlappingAgencies.addAll(state.getLokbibLibraries());
             boolean allAgenciesAreFFU = true;
             for (Integer agencyForRecord : listToCheck) {
                 if (!allowedOverlappingAgencies.contains(agencyForRecord.toString())) {
-                    logger.info("The library {} is not a FFU or lokbib library.", agencyForRecord);
+                    LOGGER.info("The library {} is not a FFU or lokbib library.", agencyForRecord);
                     allAgenciesAreFFU = false;
                     break;
                 }

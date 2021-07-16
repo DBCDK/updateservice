@@ -21,7 +21,7 @@ import java.util.ResourceBundle;
  * ResourceBundle.Control extention to read resource bundles in any charset.
  */
 public class CharSetControl extends ResourceBundle.Control {
-    private static final XLogger logger = XLoggerFactory.getXLogger(CharSetControl.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CharSetControl.class);
     private static String DEFAULT_CHARSET = "UTF-8";
     private String charset;
 
@@ -52,7 +52,7 @@ public class CharSetControl extends ResourceBundle.Control {
      */
     public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload)
             throws IllegalAccessException, InstantiationException, IOException {
-        logger.entry(baseName, locale, format, loader);
+        LOGGER.entry(baseName, locale, format, loader);
 
         ResourceBundle bundle = null;
         try {
@@ -73,7 +73,7 @@ public class CharSetControl extends ResourceBundle.Control {
             }
             if (stream != null) {
                 try {
-                    logger.trace("Reading properties with charset {}", this.charset);
+                    LOGGER.trace("Reading properties with charset {}", this.charset);
                     bundle = new PropertyResourceBundle(new InputStreamReader(stream, this.charset));
                 } finally {
                     stream.close();
@@ -81,7 +81,7 @@ public class CharSetControl extends ResourceBundle.Control {
             }
             return bundle;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 

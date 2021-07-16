@@ -13,7 +13,7 @@ import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 public abstract class AbstractLinkRelationRecordsAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(AbstractLinkRelationRecordsAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AbstractLinkRelationRecordsAction.class);
 
     protected AbstractLinkRelationRecordsAction(String name, GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(name, globalActionState, marcRecord);
@@ -29,7 +29,7 @@ public abstract class AbstractLinkRelationRecordsAction extends AbstractRawRepoA
     }
 
     protected void appendLinkReference(RecordId source, RecordId target) throws UpdateException {
-        logger.info("Set relation from [{}:{}] -> [{}:{}]",
+        LOGGER.info("Set relation from [{}:{}] -> [{}:{}]",
                 source.getBibliographicRecordId(),
                 source.getAgencyId(),
                 target.getBibliographicRecordId(),

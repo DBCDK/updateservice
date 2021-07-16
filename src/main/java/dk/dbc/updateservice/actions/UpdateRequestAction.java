@@ -32,7 +32,7 @@ import java.util.Properties;
  * </ol>
  */
 public class UpdateRequestAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
 
     private final Properties settings;
 
@@ -49,7 +49,7 @@ public class UpdateRequestAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             logRequest();
             ServiceResult message = verifyData();
@@ -70,7 +70,7 @@ public class UpdateRequestAction extends AbstractAction {
             }
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -83,11 +83,11 @@ public class UpdateRequestAction extends AbstractAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"));
         }
         if (!state.isRecordSchemaValid()) {
-            logger.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
+            LOGGER.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
             return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         }
         if (!state.isRecordPackingValid()) {
-            logger.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
+            LOGGER.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
             return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         }
         if (!sanityCheckRecord()) {
@@ -111,12 +111,12 @@ public class UpdateRequestAction extends AbstractAction {
      * @return boolean value.
      */
     public boolean hasValidateOnlyOption() {
-        logger.entry();
+        LOGGER.entry();
         try {
             OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
             return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -131,16 +131,16 @@ public class UpdateRequestAction extends AbstractAction {
                 if (bibliographicRecordExtraData.getProviderName() != null) {
                     final String providerName = bibliographicRecordExtraData.getProviderName();
                     if (state.getRawRepo().checkProvider(providerName)) {
-                        logger.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                        LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
                         newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
                     } else {
-                        logger.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.");
+                        LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.");
                         throw new UpdateException("Provider " + providerName + " findes ikke.");
                     }
                 }
 
                 if (bibliographicRecordExtraData.getPriority() != null) {
-                    logger.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                    LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
                     newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
                 }
 
@@ -154,36 +154,36 @@ public class UpdateRequestAction extends AbstractAction {
         if (state.getWsContext() != null && state.getWsContext().getMessageContext() != null) {
             MessageContext mc = state.getWsContext().getMessageContext();
             HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-            logger.info("REQUEST:");
-            logger.info("======================================");
-            logger.info("Auth type: {}", req.getAuthType());
-            logger.info("Context path: {}", req.getContextPath());
-            logger.info("Content type: {}", req.getContentType());
-            logger.info("Content length: {}", req.getContentLengthLong());
-            logger.info("URI: {}", req.getRequestURI());
-            logger.info("Client address: {}", req.getRemoteAddr());
+            LOGGER.info("REQUEST:");
+            LOGGER.info("======================================");
+            LOGGER.info("Auth type: {}", req.getAuthType());
+            LOGGER.info("Context path: {}", req.getContextPath());
+            LOGGER.info("Content type: {}", req.getContentType());
+            LOGGER.info("Content length: {}", req.getContentLengthLong());
+            LOGGER.info("URI: {}", req.getRequestURI());
+            LOGGER.info("Client address: {}", req.getRemoteAddr());
             // This takes 5 seconds ??
-            logger.info("Client host: {}", req.getRemoteHost());
-            logger.info("Client port: {}", req.getRemotePort());
-            logger.info("Headers");
-            logger.info("--------------------------------------");
-            logger.info("");
+            LOGGER.info("Client host: {}", req.getRemoteHost());
+            LOGGER.info("Client port: {}", req.getRemotePort());
+            LOGGER.info("Headers");
+            LOGGER.info("--------------------------------------");
+            LOGGER.info("");
             Enumeration<String> headerNames = req.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
-                logger.info("{}: {}", name, req.getHeader(name));
+                LOGGER.info("{}: {}", name, req.getHeader(name));
             }
-            logger.info("--------------------------------------");
+            LOGGER.info("--------------------------------------");
         }
-        logger.info("");
-        logger.info("Template name: {}", state.getSchemaName());
-        logger.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
-        logger.info("Request record: \n{}", state.readRecord());
-        logger.info("======================================");
+        LOGGER.info("");
+        LOGGER.info("Template name: {}", state.getSchemaName());
+        LOGGER.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
+        LOGGER.info("Request record: \n{}", state.readRecord());
+        LOGGER.info("======================================");
     }
 
     private boolean isAgencyIdAllowedToUseUpdateOnThisInstance() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         boolean res = true;
         try {
             if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
@@ -199,7 +199,7 @@ public class UpdateRequestAction extends AbstractAction {
             }
             return res;
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
     }
 
@@ -218,7 +218,7 @@ public class UpdateRequestAction extends AbstractAction {
                 }
             }
         } catch (Exception ex) {
-            logger.error("Caught exception during sanity check", ex);
+            LOGGER.error("Caught exception during sanity check", ex);
             return false;
         }
 

@@ -21,7 +21,7 @@ import java.io.UnsupportedEncodingException;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 public class RecordSorter {
-    private static final XLogger logger = XLoggerFactory.getXLogger(RecordSorter.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(RecordSorter.class);
 
     private OpencatBusinessConnector opencatBusinessConnector;
     private String schemaName;
@@ -36,7 +36,7 @@ public class RecordSorter {
     }
 
     public MarcRecord sortRecord(MarcRecord marcRecord) {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
 
         try {
@@ -44,11 +44,11 @@ public class RecordSorter {
 
             return opencatBusinessConnector.sortRecord(schemaName, marcRecord, trackingId);
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
-            logger.error("Error when trying to sort the record. ", ex);
+            LOGGER.error("Error when trying to sort the record. ", ex);
             return marcRecord;
         } finally {
             watch.stop();
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

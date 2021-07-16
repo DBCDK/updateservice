@@ -24,7 +24,7 @@ import java.util.Set;
  * Action to update a common school record.
  */
 public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateSchoolCommonRecord.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateSchoolCommonRecord.class);
 
     Properties settings;
 
@@ -41,9 +41,9 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
@@ -54,15 +54,15 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
             }
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
-            logger.error(ex.getMessage(), ex);
+            LOGGER.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {
-        logger.entry();
+        LOGGER.entry();
         try {
             Set<Integer> agencies = rawRepo.agenciesForRecord(marcRecord);
             if (agencies == null) {
@@ -83,7 +83,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
             }
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

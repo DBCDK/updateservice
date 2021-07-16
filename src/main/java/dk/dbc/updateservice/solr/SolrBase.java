@@ -25,14 +25,14 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public abstract class SolrBase {
-    private static XLogger logger = XLoggerFactory.getXLogger(SolrBase.class);
+    private final static XLogger LOGGER = XLoggerFactory.getXLogger(SolrBase.class);
 
     protected ResourceBundle messages;
 
     protected abstract URL setUrl(String query, String queryParam) throws UpdateException;
 
     protected JsonObject callSolr(URL url) throws SolrException, UpdateException {
-        logger.entry();
+        LOGGER.entry();
 
         int responseCode;
         try {
@@ -54,13 +54,13 @@ public abstract class SolrBase {
             conn.disconnect();
 
             if (responseCode == 200) {
-                logger.info("Solr response {} ==> {}", url.toString(), jObj.toString());
+                LOGGER.info("Solr response {} ==> {}", url.toString(), jObj.toString());
             } else {
                 String s = String.format("Solr response {%s} ==> {%s}", url.toString(), jObj.toString());
-                logger.warn(s);
+                LOGGER.warn(s);
                 if (jObj.containsKey("error")) {
                     s = String.format("Solr returned error code %s: %s", jObj.getJsonObject("error").getInt("code"), jObj.getJsonObject("error").getString("msg"));
-                    logger.warn(s);
+                    LOGGER.warn(s);
                 }
                 throw new SolrException(messages.getString("solr.error.responsecode"));
             }
@@ -68,10 +68,10 @@ public abstract class SolrBase {
                 return jObj.getJsonObject("response");
             } else {
                 String s = String.format("Solr response {%s} ==> {%s}", url.toString(), jObj.toString());
-                logger.warn(s);
+                LOGGER.warn(s);
                 if (jObj.containsKey("error")) {
                     s = String.format("Solr returned error code %s: %s", jObj.getJsonObject("error").getInt("code"), jObj.getJsonObject("error").getString("msg"));
-                    logger.warn(s);
+                    LOGGER.warn(s);
                 } else {
                     s = String.format("Very strange - could not locate neither response nor error section in Solr response %s", jObj.toString());
                 }
@@ -79,15 +79,15 @@ public abstract class SolrBase {
             }
         } catch (IOException ex) {
             String s = "Unable to connect to url " + url.toString() + ": " + ex.getMessage();
-            logger.warn(s);
+            LOGGER.warn(s);
             throw new SolrException(s, ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     public long hits(String query) throws UpdateException, SolrException {
-        logger.entry(query);
+        LOGGER.entry(query);
         StopWatch watch = new Log4JStopWatch("service.solr.hits");
         URL solrUrl;
 
@@ -98,15 +98,15 @@ public abstract class SolrBase {
                 return response.getInt("numFound");
             }
             String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
-            logger.warn(s);
+            LOGGER.warn(s);
             throw new UpdateException(s);
         } finally {
             watch.stop();
-            logger.exit();
+            LOGGER.exit();
         }
     }
     public String getSubjectIdNumber(String query) throws UpdateException, SolrException {
-        logger.entry(query);
+        LOGGER.entry(query);
         StopWatch watch = new Log4JStopWatch("service.solr.hits");
         URL solrUrl;
 
@@ -136,16 +136,16 @@ public abstract class SolrBase {
                 }
             }
             String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
-            logger.warn(s);
+            LOGGER.warn(s);
             throw new UpdateException(s);
         } finally {
             watch.stop();
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     public boolean hasDocuments(String query) throws UpdateException, SolrException {
-        logger.entry(query);
+        LOGGER.entry(query);
         StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
 
         Boolean result = null;
@@ -153,7 +153,7 @@ public abstract class SolrBase {
             return result = hits(query) != 0L;
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }

@@ -50,7 +50,7 @@ import java.util.ResourceBundle;
  * </ol>
  */
 public class AuthenticateRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(AuthenticateRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AuthenticateRecordAction.class);
 
     /**
      * Constructs an instance with a template name and a record.
@@ -82,12 +82,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
-            logger.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-            if (logger.isInfoEnabled()) {
-                logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            LOGGER.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             }
 
             List<MessageEntryDTO> errors = authenticateRecord();
@@ -98,31 +98,31 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             String recordId = reader.getRecordId();
             String agencyId = reader.getAgencyId();
             if (result.hasErrors()) {
-                logger.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
+                LOGGER.warn("Authenticating of record {{}:{}} with user {}/{} failed", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 result.setStatus(UpdateStatusEnumDTO.FAILED);
             } else {
-                logger.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
+                LOGGER.info("Authenticating record {{}:{}} with user {}/{} successfully", recordId, agencyId, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
         } catch (VipCoreException ex) {
             String message = String.format(state.getMessages().getString("vipcore.authenticate.record.error"), ex.getMessage());
-            logger.error(message);
-            logger.warn("Exception doing authentication: ", ex);
+            LOGGER.error(message);
+            LOGGER.warn("Exception doing authentication: ", ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } catch (EJBException ex) {
             Throwable businessException = findServiceException(ex);
             String message = String.format(state.getMessages().getString("internal.authenticate.record.error"), businessException.getMessage());
-            logger.error(message);
-            logger.warn("Exception doing authentication: ", businessException);
+            LOGGER.error(message);
+            LOGGER.warn("Exception doing authentication: ", businessException);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private List<MessageEntryDTO> authenticateRecord() throws UpdateException, VipCoreException {
-        logger.entry();
+        LOGGER.entry();
         List<MessageEntryDTO> result = new ArrayList<>();
         try {
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -131,7 +131,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             // First check if the group is "root" - if so just return as no further validation is necessary
             try {
                 if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)) {
-                    logger.info("Group is AUTH_ROOT -> exit OK");
+                    LOGGER.info("Group is AUTH_ROOT -> exit OK");
                     return result;
                 }
             } catch (VipCoreException e) {
@@ -140,29 +140,29 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             // If the group is identical to the agency of the record then authenticate OK
             if (groupId.equals(reader.getAgencyId())) {
-                logger.info("Group is identical with agencyId -> exit OK");
+                LOGGER.info("Group is identical with agencyId -> exit OK");
                 return result;
             }
 
             if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
-                logger.info("Record belongs to 870970");
+                LOGGER.info("Record belongs to 870970");
                 NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
 
                 if (noteAndSubjectExtensionsHandler.isNationalCommonRecord(marcRecord)) {
-                    logger.info("Record is national common record");
+                    LOGGER.info("Record is national common record");
                     validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(marcRecord, groupId);
                 } else {
-                    logger.info("Record is not national common record");
+                    LOGGER.info("Record is not national common record");
                     validationErrors = authenticateCommonRecord();
                 }
 
                 validationErrors.addAll(authenticateMetaCompassField());
 
                 if (!validationErrors.isEmpty()) {
-                    logger.info("Validation errors!");
+                    LOGGER.info("Validation errors!");
                     result.addAll(validationErrors);
-                    logger.info("Number of errors: {}", result.size());
+                    LOGGER.info("Number of errors: {}", result.size());
                 }
 
                 return result;
@@ -171,7 +171,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             int groupIdAsInt = Integer.parseInt(groupId);
             if (300000 <= groupIdAsInt && groupIdAsInt <= 399999 &&
                     reader.getAgencyIdAsInt() == RawRepo.SCHOOL_COMMON_AGENCY) {
-                logger.info("Group is school agency and record is owner by 300000 -> exit OK");
+                LOGGER.info("Group is school agency and record is owner by 300000 -> exit OK");
                 return result;
             }
 
@@ -184,12 +184,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
     private List<MessageEntryDTO> authenticateCommonRecord() throws UpdateException, VipCoreException {
-        logger.entry();
+        LOGGER.entry();
 
         try {
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -200,11 +200,11 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
             String owner = reader.getValue("996", "a");
 
-            logger.info("Record agency: {}", agencyId);
-            logger.info("New owner: {}", owner);
+            LOGGER.info("Record agency: {}", agencyId);
+            LOGGER.info("New owner: {}", owner);
 
             if (!state.getRawRepo().recordExists(recordId, agencyId)) {
-                logger.debug("Checking authentication for new common record.");
+                LOGGER.debug("Checking authentication for new common record.");
 
                 if (owner == null || owner.isEmpty()) {
                     return createErrorReply(resourceBundle.getString("create.common.record.error"));
@@ -217,15 +217,15 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return createOkReply();
             }
 
-            logger.debug("Checking authentication for updating existing common record.");
+            LOGGER.debug("Checking authentication for updating existing common record.");
             MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
             MarcRecordReader curReader = new MarcRecordReader(curRecord);
             String curOwner = curReader.getValue("996", "a");
 
-            logger.info("Current owner: {}", curOwner);
+            LOGGER.info("Current owner: {}", curOwner);
 
             if ("DBC".equals(curOwner)) {
-                logger.info("Owner is DBC");
+                LOGGER.info("Owner is DBC");
                 if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.owner.dbc.error"));
                 }
@@ -233,12 +233,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             if ("RET".equals(curOwner)) {
-                logger.info("Owner is RET");
+                LOGGER.info("Owner is RET");
                 if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.error"));
                 }
-                logger.info("New value of 008 *v is {}", reader.getValue("008", "v"));
-                logger.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
+                LOGGER.info("New value of 008 *v is {}", reader.getValue("008", "v"));
+                LOGGER.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
                 if ("4".equals(curReader.getValue("008", "v"))) {
                     final List<String> allowedKatValues = Arrays.asList("0", "1", "5");
                     if (!allowedKatValues.contains(reader.getValue("008", "v"))) {
@@ -249,7 +249,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             if (owner == null || owner.isEmpty()) {
-                logger.info("Owner is empty");
+                LOGGER.info("Owner is empty");
                 return createErrorReply(resourceBundle.getString("update.common.record.error"));
             }
 
@@ -272,7 +272,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 ellers retur ok
              */
             if (state.getVipCoreService().hasFeature(curOwner, VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
-                logger.info("Owner has AUTH_PUBLIC_LIB_COMMON_RECORD permission");
+                LOGGER.info("Owner has AUTH_PUBLIC_LIB_COMMON_RECORD permission");
                 if (!owner.equals(groupId)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.give.public.library.error"));
                 }
@@ -291,12 +291,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     List<MessageEntryDTO> authenticateMetaCompassField() throws UpdateException, VipCoreException {
-        logger.entry();
+        LOGGER.entry();
 
         try {
             String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -314,21 +314,21 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 if (field665 != null && curField665 == null ||
                         field665 == null && curField665 != null ||
                         field665 != null && !field665.equals(curField665)) {
-                    logger.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
+                    LOGGER.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
                     boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
-                        logger.info("Groupid {} does not have permission to change field 665, so returning error", groupId);
+                        LOGGER.info("Groupid {} does not have permission to change field 665, so returning error", groupId);
                         return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
                     }
                 }
             } else {
                 if (field665 != null) {
-                    logger.info("Field 665 is present in new record - chcking if {} has permission to use field 665", groupId);
+                    LOGGER.info("Field 665 is present in new record - chcking if {} has permission to use field 665", groupId);
                     boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
                     if (!canChangeMetaCompassRule) {
-                        logger.info("Groupid {} does not have permission to use field 665, so returning error", groupId);
+                        LOGGER.info("Groupid {} does not have permission to use field 665, so returning error", groupId);
                         return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
                     }
                 }
@@ -338,7 +338,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 

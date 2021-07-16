@@ -22,7 +22,7 @@ import java.util.Properties;
  * Action to overwrite an existing volume record.
  */
 public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(OverwriteVolumeRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OverwriteVolumeRecordAction.class);
 
     public OverwriteVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(globalActionState, properties, marcRecord);
@@ -38,10 +38,10 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = ServiceResult.newOkResult();
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();
@@ -53,7 +53,7 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
         } catch (RawRepoException | UnsupportedEncodingException ex) {
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -70,13 +70,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                 errorAgencyId = RawRepo.DBC_ENRICHMENT;
             }
             String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
-            logger.error("Unable to create sub actions due to an error: {}", message);
+            LOGGER.error("Unable to create sub actions due to an error: {}", message);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!rawRepo.recordExists(parentId, parentAgencyId)) {
             String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
-            logger.error("Unable to create sub actions due to an error: {}", message);
+            LOGGER.error("Unable to create sub actions due to an error: {}", message);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 

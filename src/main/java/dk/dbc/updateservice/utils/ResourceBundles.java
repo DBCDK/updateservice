@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ResourceBundles {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ResourceBundles.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ResourceBundles.class);
     public static final Locale DANISH = new Locale("da", "DK");
 
     public static ResourceBundle getBundle(String bundleName) {
@@ -20,12 +20,12 @@ public class ResourceBundles {
     }
 
     public static ResourceBundle getBundle(String bundleName, Locale locale) {
-        logger.entry(bundleName, locale);
+        LOGGER.entry(bundleName, locale);
 
         try {
             return ResourceBundle.getBundle(bundleName, locale, new CharSetControl());
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -34,12 +34,12 @@ public class ResourceBundles {
     }
 
     public static ResourceBundle getBundle(ClassLoader classloader, String bundleName, Locale locale) {
-        logger.entry(classloader, bundleName, locale);
+        LOGGER.entry(classloader, bundleName, locale);
 
         try {
             return ResourceBundle.getBundle(bundleName, locale, classloader, new CharSetControl());
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 

@@ -36,7 +36,7 @@ import java.util.Properties;
  * </p>
  */
 public class EnqueueRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
 
     Properties settings;
 
@@ -53,7 +53,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             String providerId;
@@ -65,7 +65,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
                 priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
-                logger.info("Using override priority {}", priority);
+                LOGGER.info("Using override priority {}", priority);
             }
 
             if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
@@ -82,7 +82,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
             }
 
-            logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
+            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
             rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
 
             // Hack for handling missing enqueue of article (870971) records with child articles.
@@ -94,14 +94,14 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             // article record during queue processing. Until this case is handled by changedRecord we have to explicit
             // enqueue the parent article
             if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && state.getRawRepo().children(marcRecord).size() > 0) {
-                logger.info("Found children for article record, so enqueuing that record explict");
-                logger.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
+                LOGGER.info("Found children for article record, so enqueuing that record explict");
+                LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
                 rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
             }
 
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
 
     }
@@ -110,13 +110,13 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      * Factory method to create a EnqueueRecordAction.
      */
     public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord marcRecord, Properties properties) {
-        logger.entry(globalActionState, marcRecord);
+        LOGGER.entry(globalActionState, marcRecord);
         EnqueueRecordAction enqueueRecordAction;
         try {
             enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, marcRecord);
             return enqueueRecordAction;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

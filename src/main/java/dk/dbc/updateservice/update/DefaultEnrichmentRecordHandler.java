@@ -13,7 +13,7 @@ import org.slf4j.ext.XLoggerFactory;
 import java.util.*;
 
 public class DefaultEnrichmentRecordHandler {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
 
     private static final List<String> CAT_CODES = Arrays.asList("DBF", "DLF", "DBI", "DMF", "DMO", "DPF", "BKM", "GBF", "GMO", "GPF", "FPF", "DBR", "UTI");
 
@@ -33,24 +33,24 @@ public class DefaultEnrichmentRecordHandler {
      *
      */
     public static boolean shouldCreateEnrichmentRecordsResult(ResourceBundle resourceBundle, MarcRecord updatingCommonRecord, MarcRecord currentCommonRecord) {
-        logger.entry(updatingCommonRecord, currentCommonRecord);
+        LOGGER.entry(updatingCommonRecord, currentCommonRecord);
         boolean result = true;
         try {
             MarcRecordReader updatingCommonRecordReader = new MarcRecordReader(updatingCommonRecord);
             MarcRecordReader currentCommonRecordReader = new MarcRecordReader(currentCommonRecord);
 
             if (matchesNoClassification(currentCommonRecordReader.getValue("652", "m"))) {
-                logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
                 return result = false;
             }
 
             if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "x"))) {
-                logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
                 return result = false;
             }
 
             if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "a"))) {
-                logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
                 return result = false;
             }
 
@@ -61,18 +61,18 @@ public class DefaultEnrichmentRecordHandler {
                 if (updatingCommonRecordReader.hasValue("008", "u", "r")) {
                     if (matchKatCodes(currentCommonRecord, updatingCommonRecord)) {
                         // 032 not changed
-                        logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
+                        LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
                         return result = false;
                     }
                 } else {
-                    logger.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
+                    LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
                     return result = false;
                 }
             }
 
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -84,7 +84,7 @@ public class DefaultEnrichmentRecordHandler {
      * @return list of "subfield.name:subfield.value" text
      */
     static List<String> collectProductionCodes(MarcRecord record) {
-        logger.entry(record);
+        LOGGER.entry(record);
         List<String> result = new ArrayList<>();
         MarcRecordReader reader = new MarcRecordReader(record);
 
@@ -100,7 +100,7 @@ public class DefaultEnrichmentRecordHandler {
 
             return result;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -112,7 +112,7 @@ public class DefaultEnrichmentRecordHandler {
      * @return true if the 032 fields are identical (unsorted), otherwise false
      */
     static boolean matchKatCodes(MarcRecord actualRec, MarcRecord newRec) {
-        logger.entry(actualRec, newRec);
+        LOGGER.entry(actualRec, newRec);
 
         boolean result = false;
 
@@ -123,17 +123,17 @@ public class DefaultEnrichmentRecordHandler {
             Collections.sort(oldValues);
             Collections.sort(newValues);
 
-            logger.debug("oldValues: {}", oldValues);
-            logger.debug("newValues: {}", newValues);
+            LOGGER.debug("oldValues: {}", oldValues);
+            LOGGER.debug("newValues: {}", newValues);
 
             if (oldValues.size() != newValues.size()) {
-                logger.debug("oldValues.length !== newValues.length");
+                LOGGER.debug("oldValues.length !== newValues.length");
                 return result = false;
             } else {
-                logger.debug("oldValues.length === newValues.length");
+                LOGGER.debug("oldValues.length === newValues.length");
                 for (int i = 0; i < oldValues.size(); i++) {
                     if (!oldValues.get(i).equals(newValues.get(i))) {
-                        logger.debug("oldValues[i] !== newValues[i]: {} {} {}", oldValues.get(i), "!==", newValues.get(i));
+                        LOGGER.debug("oldValues[i] !== newValues[i]: {} {} {}", oldValues.get(i), "!==", newValues.get(i));
                         return result = false;
                     }
                 }
@@ -141,7 +141,7 @@ public class DefaultEnrichmentRecordHandler {
 
             return result = true;
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

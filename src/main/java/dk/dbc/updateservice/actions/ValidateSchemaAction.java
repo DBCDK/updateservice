@@ -28,7 +28,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </p>
  */
 public class ValidateSchemaAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ValidateSchemaAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ValidateSchemaAction.class);
 
     Properties settings;
 
@@ -45,7 +45,7 @@ public class ValidateSchemaAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate");
         ServiceResult result = null;
         validateData();
@@ -62,18 +62,18 @@ public class ValidateSchemaAction extends AbstractAction {
                     state.getTemplateGroup(),
                     trackingId);
             if (validateSchemaFound) {
-                logger.info("Validating schema '{}' successfully", state.getSchemaName());
+                LOGGER.info("Validating schema '{}' successfully", state.getSchemaName());
                 return result = ServiceResult.newOkResult();
             }
-            logger.error("Validating schema '{}' failed", state.getSchemaName());
+            LOGGER.error("Validating schema '{}' failed", state.getSchemaName());
             String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
-            logger.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
+            LOGGER.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

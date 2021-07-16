@@ -34,7 +34,7 @@ import java.util.Map;
  * </p>
  */
 public class ServiceEngine {
-    private static final XLogger logger = XLoggerFactory.getXLogger(ServiceEngine.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ServiceEngine.class);
 
     private Map<String, String> loggerKeys = new HashMap<>();
     MetricsHandlerBean metricsHandlerBean;
@@ -108,7 +108,7 @@ public class ServiceEngine {
      * @throws UpdateException Throwed in case of an error.
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
-        logger.entry();
+        LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         final Tag methodTag;
         if (action != null && action.name() != null) {
@@ -132,12 +132,12 @@ public class ServiceEngine {
             action.setTimeElapsed(watch.getElapsedTime());
             action.setServiceResult(serviceResult);
 
-            logger.info("");
+            LOGGER.info("");
             if (stopExecution(serviceResult)) {
-                logger.info("Action failed before sub actions: {}", serviceResult);
+                LOGGER.info("Action failed before sub actions: {}", serviceResult);
                 return serviceResult;
             } else {
-                logger.info("Action success before sub actions: {}", serviceResult);
+                LOGGER.info("Action success before sub actions: {}", serviceResult);
             }
             List<ServiceAction> children = action.children();
             if (children != null) {
@@ -162,7 +162,7 @@ public class ServiceEngine {
             metricsHandlerBean.update(serviceEngineTimingMetrics,
                     Duration.ofMillis(watch.getElapsedTime()),
                     methodTag);
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -171,7 +171,7 @@ public class ServiceEngine {
      * <code>ERROR</code>
      */
     private boolean stopExecution(ServiceResult actionResult) {
-        logger.entry();
+        LOGGER.entry();
         try {
             if (actionResult == null) {
                 throw new IllegalArgumentException("actionResult must not be (null)");
@@ -184,15 +184,15 @@ public class ServiceEngine {
             }
             return true;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     public void printActionHeader(ServiceAction action) {
         String line = StringUtils.repeat("=", 50);
-        logger.info("");
-        logger.info("Action: {}", action.name());
-        logger.info(line);
+        LOGGER.info("");
+        LOGGER.info("Action: {}", action.name());
+        LOGGER.info(line);
     }
 
     public void printActions(ServiceAction action) {
@@ -200,9 +200,9 @@ public class ServiceEngine {
     }
 
     private void printActions(ServiceAction action, String indent) {
-        logger.entry();
+        LOGGER.entry();
         try {
-            logger.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
+            LOGGER.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
             List<ServiceAction> children = action.children();
             if (children != null) {
                 for (ServiceAction child : children) {
@@ -210,7 +210,7 @@ public class ServiceEngine {
                 }
             }
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 }

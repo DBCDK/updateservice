@@ -33,7 +33,7 @@ import java.util.Properties;
  * Action to store a record in the rawrepo.
  */
 public class StoreRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(StoreRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(StoreRecordAction.class);
 
     Encoder encoder = new Encoder();
     private String mimetype;
@@ -75,14 +75,14 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             if (mimetype == null || mimetype.isEmpty()) {
                 throw new UpdateException("MimeType must be set");
             }
 
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recId = reader.getRecordId();
             int agencyId = reader.getAgencyIdAsInt();
@@ -98,14 +98,14 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             }
             rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
             rawRepo.saveRecord(rawRepoRecord);
-            logger.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
-            logger.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
+            LOGGER.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
+            LOGGER.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
             return result = ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {
-            logger.error("Error when trying to save record. ", ex);
+            LOGGER.error("Error when trying to save record. ", ex);
             return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 
@@ -132,7 +132,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        logger.entry(globalActionState, marcRecord);
+        LOGGER.entry(globalActionState, marcRecord);
         try {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
 
@@ -157,18 +157,18 @@ public class StoreRecordAction extends AbstractRawRepoAction {
 
             return storeRecordAction;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        logger.entry(globalActionState, marcRecord);
+        LOGGER.entry(globalActionState, marcRecord);
         try {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
             storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
             return storeRecordAction;
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 

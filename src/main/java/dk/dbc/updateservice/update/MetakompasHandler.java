@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class MetakompasHandler {
-    private static final XLogger logger = XLoggerFactory.getXLogger(MetakompasHandler.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(MetakompasHandler.class);
 
     private static final String INDEX_NAME = "phrase.vla";
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
@@ -60,7 +60,7 @@ public class MetakompasHandler {
     private static String callUrl(String url) throws UpdateException {
         try {
 
-            logger.info("Numberroll url : {}", url);
+            LOGGER.info("Numberroll url : {}", url);
             URL numberUrl = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
             conn.setRequestMethod("GET");
@@ -68,10 +68,10 @@ public class MetakompasHandler {
             InputStream is;
             int response = conn.getResponseCode();
             if (response == 200) {
-                logger.info("Ok Went Well");
+                LOGGER.info("Ok Went Well");
                 is = conn.getInputStream();
             } else {
-                logger.info("DIDNT Went Well {}", response);
+                LOGGER.info("DIDNT Went Well {}", response);
                 is = conn.getErrorStream();
             }
             JsonReader jReader = Json.createReader(is);
@@ -79,13 +79,13 @@ public class MetakompasHandler {
             conn.disconnect();
 
             if (response == 200) {
-                logger.info("Numberroll response {} ==> {}", url, jObj.toString());
+                LOGGER.info("Numberroll response {} ==> {}", url, jObj.toString());
             } else {
                 String s = String.format("Numberroll response {%s} ==> {%s}", url, jObj.toString());
-                logger.warn(s);
+                LOGGER.warn(s);
                 if (jObj.containsKey("error")) {
                     s = String.format("Numberroll returned error code : %s", jObj.getJsonObject("error").toString());
-                    logger.warn(s);
+                    LOGGER.warn(s);
                 }
                 throw new UpdateException(s);
             }
@@ -95,7 +95,7 @@ public class MetakompasHandler {
                 throw new UpdateException("Numberroll request did not contain a rollnumber");
             }
         } catch (IOException e) {
-            logger.info("IOException {}", e.getMessage());
+            LOGGER.info("IOException {}", e.getMessage());
             throw new UpdateException(e.getMessage());
         }
     }
@@ -103,11 +103,11 @@ public class MetakompasHandler {
     private static String getNewIdNumber(Properties properties, String rollName) throws UpdateException {
         if (properties.containsKey(JNDIResources.OPENNUMBERROLL_URL)) {
             String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
-            logger.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
+            LOGGER.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
             if (properties.containsKey(rollName)) {
-                logger.info("Numberroll name {}", properties.getProperty(rollName));
+                LOGGER.info("Numberroll name {}", properties.getProperty(rollName));
                 String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(rollName) + "&outputType=json");
-                logger.info("Got new id number {} ", res);
+                LOGGER.info("Got new id number {} ", res);
                 return res;
             } else throw new UpdateException("No configuration numberroll");
         } else throw new UpdateException("No configuration for opennumberroll service");
@@ -212,7 +212,7 @@ public class MetakompasHandler {
                 children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
             }
         } catch (UpdateException | UnsupportedEncodingException e) {
-            logger.info("Updating subject record(s) failed {}", e.getMessage());
+            LOGGER.info("Updating subject record(s) failed {}", e.getMessage());
             throw e;
 
         }
@@ -248,7 +248,7 @@ public class MetakompasHandler {
             writer.addOrReplaceSubfield("x09", "q", metaCompassId);
             children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
         } catch (UpdateException e) {
-            logger.info("Creating subject record(s) failed {}", e.getMessage());
+            LOGGER.info("Creating subject record(s) failed {}", e.getMessage());
             throw e;
         }
 

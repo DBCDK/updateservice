@@ -29,7 +29,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * Action to check a record for double records, and if one exists return a warning to the user.
  */
 public class DoubleRecordFrontendAction extends AbstractAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(DoubleRecordFrontendAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordFrontendAction.class);
 
     Properties settings;
 
@@ -46,22 +46,22 @@ public class DoubleRecordFrontendAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
         ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            logger.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
             result = doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
             return result;
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
             String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
-            logger.error(message, e);
+            LOGGER.error(message, e);
             return result = ServiceResult.newOkResult();
         } finally {
             watch.stop();
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

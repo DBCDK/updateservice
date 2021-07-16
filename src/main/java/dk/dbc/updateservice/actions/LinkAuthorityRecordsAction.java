@@ -17,7 +17,7 @@ import org.slf4j.ext.XLoggerFactory;
 
 public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsAction {
 
-    private static final XLogger logger = XLoggerFactory.getXLogger(LinkAuthorityRecordsAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(LinkAuthorityRecordsAction.class);
 
     public LinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(LinkAuthorityRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -25,7 +25,7 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -50,7 +50,7 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
 
             return result = ServiceResult.newOkResult();
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 

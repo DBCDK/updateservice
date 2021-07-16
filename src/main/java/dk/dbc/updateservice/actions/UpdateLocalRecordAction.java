@@ -33,7 +33,7 @@ import java.util.Set;
  * </p>
  */
 public class UpdateLocalRecordAction extends AbstractRawRepoAction {
-    private static final XLogger logger = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
+    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
 
     private final Properties settings;
 
@@ -51,10 +51,10 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult res = null;
         try {
-            logger.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
 
             MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
             String parentId = reader.getParentRecordId();
@@ -71,7 +71,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
             return res = performUpdateVolumeRecordAction(parentId);
         } finally {
-            logger.exit(res);
+            LOGGER.exit(res);
         }
     }
 
@@ -90,7 +90,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @return OK.
      */
     private ServiceResult performUpdateSingleRecordAction() {
-        logger.entry();
+        LOGGER.entry();
 
         try {
             StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
@@ -104,7 +104,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
 
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -124,7 +124,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performUpdateVolumeRecordAction(String parentId) throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
 
         try {
             MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
@@ -150,7 +150,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
             children.add(enqueueRecordAction);
             return ServiceResult.newOkResult();
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
@@ -170,7 +170,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performSingleDeleteAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         try {
             if (!rawRepo.children(marcRecord).isEmpty()) {
                 MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
@@ -198,12 +198,12 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         } catch (VipCoreException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit();
+            LOGGER.exit();
         }
     }
 
     private ServiceResult performVolumeDeleteAction() throws UpdateException {
-        logger.entry();
+        LOGGER.entry();
         ServiceResult result = null;
         try {
             result = performSingleDeleteAction();
@@ -226,7 +226,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         } finally {
-            logger.exit(result);
+            LOGGER.exit(result);
         }
     }
 }
