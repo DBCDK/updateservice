@@ -146,9 +146,8 @@ public class UpdateServiceCore {
      * @throws EJBException in the case of an error.
      */
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
-        LOGGER.entry();
-        StopWatch watch = new Log4JStopWatch();
-        ServiceResult serviceResult = null;
+        final StopWatch watch = new Log4JStopWatch();
+        ServiceResult serviceResult;
         final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
         logMdcUpdateMethodEntry(state);
         UpdateRequestAction updateRequestAction = null;
@@ -203,7 +202,6 @@ public class UpdateServiceCore {
                 }
             }
             updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
-            LOGGER.exit(serviceResult);
         }
     }
 
@@ -219,9 +217,7 @@ public class UpdateServiceCore {
      * @throws EJBException In case of an error.
      */
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        LOGGER.entry();
-
-        StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch();
         SchemasResponseDTO schemasResponseDTO = null;
 
         try {
@@ -269,14 +265,13 @@ public class UpdateServiceCore {
                 LOGGER.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
             }
             watch.stop(GET_SCHEMAS_WATCHTAG);
-            LOGGER.exit();
         }
     }
 
     public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) {
         try {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
-            MarcRecord marcRecord = getRecord(recordDataDTO);
+            final MarcRecord marcRecord = getRecord(recordDataDTO);
 
             ServiceResult serviceResult = ServiceResult.newOkResult();
             if (marcRecord != null) {
@@ -323,12 +318,11 @@ public class UpdateServiceCore {
     public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) {
         try {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
-            MarcRecord marcRecord = getRecord(recordDataDTO);
-
+            final MarcRecord marcRecord = getRecord(recordDataDTO);
 
             ServiceResult serviceResult;
             if (marcRecord != null) {
-                MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
@@ -354,18 +348,12 @@ public class UpdateServiceCore {
     }
 
     public boolean isServiceReady() {
-        LOGGER.entry();
-        boolean res = true;
-        try {
-            return res;
-        } finally {
-            LOGGER.exit(res);
-        }
+        return true;
     }
 
     private void logMdcUpdateMethodEntry(GlobalActionState globalActionState) {
-        UpdateServiceRequestDTO updateServiceRequestDTO = globalActionState.getUpdateServiceRequestDTO();
-        UUID prefixId = UUID.randomUUID();
+        final UpdateServiceRequestDTO updateServiceRequestDTO = globalActionState.getUpdateServiceRequestDTO();
+        final UUID prefixId = UUID.randomUUID();
         MDC.put(MDC_REQUEST_ID_LOG_CONTEXT, updateServiceRequestDTO.getTrackingId());
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
 
@@ -407,7 +395,7 @@ public class UpdateServiceCore {
     }
 
     private ServiceResult convertUpdateErrorToResponse(Throwable ex) {
-        Throwable throwable = findServiceException(ex);
+        final Throwable throwable = findServiceException(ex);
         return ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, throwable.getMessage());
     }
 
@@ -420,14 +408,8 @@ public class UpdateServiceCore {
     }
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(recordId, agencyId);
-        MarcRecord result = null;
-        try {
-            Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = RecordContentTransformer.decodeRecord(record.getContent());
-        } finally {
-            LOGGER.exit(result);
-        }
+        final Record record = rawRepo.fetchRecord(recordId, agencyId);
+        return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
     public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) {
@@ -453,7 +435,7 @@ public class UpdateServiceCore {
     private MarcRecord getRecord(RecordDataDTO recordDataDTO) {
         MarcRecord marcRecord = null;
         if (recordDataDTO != null) {
-            List<Object> list = recordDataDTO.getContent();
+            final List<Object> list = recordDataDTO.getContent();
             for (Object o : list) {
                 if (o instanceof Node) {
                     marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));

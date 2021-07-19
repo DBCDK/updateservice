@@ -70,7 +70,6 @@ public class OpenBuildRest {
         final SimpleTimer buildTimer = metricRegistry.simpleTimer(buildTimerMetadata);
 
         new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
-        LOGGER.entry();
         BuildResponseDTO buildResponseDTO = null;
         try {
             LOGGER.info("Build request: {}", buildRequestDTO);
@@ -84,7 +83,6 @@ public class OpenBuildRest {
         } finally {
             LOGGER.info("Build response: {}", buildResponseDTO);
             watch.stop();
-            LOGGER.exit();
             DBCTrackedLogContext.remove();
             buildTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }

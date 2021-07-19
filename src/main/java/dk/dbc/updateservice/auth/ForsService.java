@@ -95,9 +95,9 @@ public class ForsService {
 
     @PostConstruct
     public void init() {
-        StopWatch watch = new Log4JStopWatch("service.forsrights.init");
+        final StopWatch watch = new Log4JStopWatch("service.forsrights.init");
         try {
-            ForsRights.RightsCache forsRightsCache = new ForsRights.RightsCache(CACHE_ENTRY_TIMEOUT);
+            final ForsRights.RightsCache forsRightsCache = new ForsRights.RightsCache(CACHE_ENTRY_TIMEOUT);
             ForsRightsServiceFromURL.Builder builder = ForsRightsServiceFromURL.builder();
             builder = builder.connectTimeout(CONNECT_TIMEOUT).requestTimeout(REQUEST_TIMEOUT);
             forsRights = builder.build(settings.getProperty(JNDIResources.FORSRIGHTS_URL)).forsRights(forsRightsCache);
@@ -113,9 +113,8 @@ public class ForsService {
      * @return A response from forsrights.
      */
     public ForsRights.RightSet forsRights(GlobalActionState globalActionState) throws ForsRightsException {
-        LOGGER.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
-        StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
-        Tag methodTag = new Tag(METHOD_NAME_KEY, "lookupRight");
+        final StopWatch watch = new Log4JStopWatch("service.forsrights.rights");
+        final Tag methodTag = new Tag(METHOD_NAME_KEY, "lookupRight");
 
         try {
             LOGGER.info("Authenticating user {}/{} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), settings.getProperty(JNDIResources.FORSRIGHTS_URL));
@@ -130,7 +129,6 @@ public class ForsService {
             metricsHandlerBean.update(forsServiceTimingMetrics,
                     Duration.ofMillis(watch.getElapsedTime()),
                     methodTag);
-            LOGGER.exit();
         }
     }
 
@@ -142,9 +140,8 @@ public class ForsService {
      * @return A response from forsrights.
      */
     public ForsRights.RightSet forsRightsWithIp(GlobalActionState globalActionState, String ipAddress) throws ForsRightsException {
-        LOGGER.entry(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****", ipAddress);
-        StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
-        Tag methodTag = new Tag(METHOD_NAME_KEY, "forsRightsWithIp");
+        final StopWatch watch = new Log4JStopWatch("service.forsrights.rightsWithIp");
+        final Tag methodTag = new Tag(METHOD_NAME_KEY, "forsRightsWithIp");
         try {
             LOGGER.info("Authenticating user {}/{} with ip-address {} against forsright at {}", globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), ipAddress, settings.getProperty(JNDIResources.FORSRIGHTS_URL));
             return forsRights.lookupRight(globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), globalActionState.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword(), ipAddress);
@@ -157,7 +154,6 @@ public class ForsService {
             watch.stop();
             metricsHandlerBean.update(forsServiceTimingMetrics,
                      Duration.ofMillis(watch.getElapsedTime()), methodTag);
-            LOGGER.exit();
         }
     }
 }

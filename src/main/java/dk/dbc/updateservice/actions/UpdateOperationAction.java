@@ -345,25 +345,20 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, int parentAgencyId) throws UpdateException {
-        LOGGER.entry();
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(rec);
-            final String recordId = reader.getRecordId();
-            if (rawRepo.recordExists(recordId, parentAgencyId)) {
+        final MarcRecordReader reader = new MarcRecordReader(rec);
+        final String recordId = reader.getRecordId();
+        if (rawRepo.recordExists(recordId, parentAgencyId)) {
+            return true;
+        }
+        for (MarcRecord marcRecord : records) {
+            final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
+            final String checkRecordId = recordReader.getRecordId();
+            final int checkAgencyId = recordReader.getAgencyIdAsInt();
+            if (recordId.equals(checkRecordId) && parentAgencyId == checkAgencyId) {
                 return true;
             }
-            for (MarcRecord marcRecord : records) {
-                final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-                final String checkRecordId = recordReader.getRecordId();
-                final int checkAgencyId = recordReader.getAgencyIdAsInt();
-                if (recordId.equals(checkRecordId) && parentAgencyId == checkAgencyId) {
-                    return true;
-                }
-            }
-            return false;
-        } finally {
-            LOGGER.exit();
         }
+        return false;
     }
 
     private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException {

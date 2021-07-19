@@ -206,7 +206,6 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     Produktion : Hvis 032*a/x har en kode ude i fremtiden så er posten under produktion - samme hvis den indeholder 999999
      */
     private void performActionsFor002Links() throws UpdateException, SolrException, UnsupportedEncodingException, VipCoreException {
-        LOGGER.entry("performActionsFor002Links");
         try {
             final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
             final String recordIdForRecordToDelete = recordReader.getValue("001", "a");

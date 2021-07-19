@@ -41,7 +41,7 @@ public class DoubleRecordCheckServiceRest {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("doubleRecordCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
         }
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
+        final UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("doubleRecordCheck result is: {}", updateRecordResponseDTO.toString());
         }

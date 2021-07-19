@@ -12,10 +12,16 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import java.util.List;
 
 public class UpdateRecordResponseDTOWriter {
+
+    private UpdateRecordResponseDTOWriter() {
+
+    }
+
     public static UpdateRecordResponseDTO newInstance(ServiceResult serviceResult) {
-        UpdateRecordResponseDTO updateRecordResponseDTO = new UpdateRecordResponseDTO();
+        final UpdateRecordResponseDTO updateRecordResponseDTO = new UpdateRecordResponseDTO();
         return updateWithServiceResult(serviceResult, updateRecordResponseDTO);
     }
+
     private static UpdateRecordResponseDTO updateWithServiceResult(ServiceResult serviceResult, UpdateRecordResponseDTO updateRecordResponseDTO) {
         if (serviceResult != null) {
             updateRecordResponseDTO.setUpdateStatusEnumDTO(serviceResult.getStatus());

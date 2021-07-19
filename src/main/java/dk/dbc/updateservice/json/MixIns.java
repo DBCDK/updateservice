@@ -16,18 +16,18 @@ import java.util.Map;
  * Provides access to all JSON mixins
  */
 public class MixIns {
-    private static final Map<Class<?>, Class<?>> mixIns = new HashMap<>();
+    private static final Map<Class<?>, Class<?>> MIX_INS = new HashMap<>();
 
     static {
-        mixIns.put(MarcRecord.class, MarcRecordMixIn.class);
-        mixIns.put(MarcField.class, MarcFieldMixIn.class);
-        mixIns.put(MarcSubField.class, MarcSubFieldMixIn.class);
+        MIX_INS.put(MarcRecord.class, MarcRecordMixIn.class);
+        MIX_INS.put(MarcField.class, MarcFieldMixIn.class);
+        MIX_INS.put(MarcSubField.class, MarcSubFieldMixIn.class);
     }
 
     private MixIns() {
     }
 
     public static Map<Class<?>, Class<?>> getMixIns() {
-        return mixIns;
+        return MIX_INS;
     }
 }

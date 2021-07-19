@@ -279,71 +279,49 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     MarcRecord loadCurrentRecord() throws UpdateException, RawRepoException, UnsupportedEncodingException {
-        LOGGER.entry();
-        MarcRecord result = null;
-        try {
-            if (this.currentMarcRecord == null) {
-                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-                final String recordId = reader.getRecordId();
-                final int agencyId = reader.getAgencyIdAsInt();
-                if (RawRepo.AUTHORITY_AGENCY == agencyId) {
-                    final Record currentRecord = rawRepo.fetchRecord(recordId, agencyId);
+        if (this.currentMarcRecord == null) {
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recordId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
+            if (RawRepo.AUTHORITY_AGENCY == agencyId) {
+                final Record currentRecord = rawRepo.fetchRecord(recordId, agencyId);
 
-                    this.currentMarcRecord = RecordContentTransformer.decodeRecord(currentRecord.getContent());
-                } else {
-                    final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
+                this.currentMarcRecord = RecordContentTransformer.decodeRecord(currentRecord.getContent());
+            } else {
+                final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
 
-                    this.currentMarcRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId));
-                }
+                this.currentMarcRecord = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recordId));
             }
-
-            result = this.currentMarcRecord;
-            return result;
-        } finally {
-            LOGGER.exit(result);
         }
+
+        return this.currentMarcRecord;
     }
 
     protected MarcRecord loadRecord(String recordId, int agencyId) throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(recordId, agencyId);
-        MarcRecord result = null;
-        try {
-            Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = RecordContentTransformer.decodeRecord(record.getContent());
-        } finally {
-            LOGGER.exit(result);
-        }
+        final Record record = rawRepo.fetchRecord(recordId, agencyId);
+        return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
     MarcRecord expandRecord() throws UpdateException, UnsupportedEncodingException, RawRepoException {
-        LOGGER.entry();
-        MarcRecord result = null;
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final String recordId = reader.getRecordId();
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
 
-            final Map<String, MarcRecord> newRecordCollection = new HashMap<>();
-            newRecordCollection.put(recordId, marcRecord);
+        final Map<String, MarcRecord> newRecordCollection = new HashMap<>();
+        newRecordCollection.put(recordId, marcRecord);
 
-            for (MarcField field : marcRecord.getFields()) {
-                final MarcFieldReader fieldReader = new MarcFieldReader(field);
+        for (MarcField field : marcRecord.getFields()) {
+            final MarcFieldReader fieldReader = new MarcFieldReader(field);
 
-                if (fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
-                    final String autRecordId = fieldReader.getValue("6");
+            if (fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
+                final String autRecordId = fieldReader.getValue("6");
 
-                    final Record extRecord = rawRepo.fetchRecord(autRecordId, RawRepo.AUTHORITY_AGENCY);
-                    final MarcRecord autRecord = RecordContentTransformer.decodeRecord(extRecord.getContent());
-                    newRecordCollection.put(autRecordId, autRecord);
-                }
+                final Record extRecord = rawRepo.fetchRecord(autRecordId, RawRepo.AUTHORITY_AGENCY);
+                final MarcRecord autRecord = RecordContentTransformer.decodeRecord(extRecord.getContent());
+                newRecordCollection.put(autRecordId, autRecord);
             }
-
-            result = state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId));
-
-            return result;
-        } finally {
-            LOGGER.exit(result);
         }
 
+        return state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId));
     }
 
     boolean hasMinusEnrichment() {
@@ -354,8 +332,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord marcRecord, MarcRecord currentRecord) throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(marcRecord);
-        List<ServiceAction> result = new ArrayList<>();
+        final List<ServiceAction> result = new ArrayList<>();
         try {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
@@ -395,36 +372,24 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             return result;
         } catch (VipCoreException ex) {
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit(result);
         }
     }
 
     private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord marcRecord, MarcRecord currentRecord, String id) {
-        LOGGER.entry(extRecordData, currentRecord, id);
-        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = null;
-        try {
-            updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, id);
+            final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
+                    new UpdateClassificationsInEnrichmentRecordAction(state, settings, id);
             updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(extRecordData);
             updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(currentRecord);
             updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(marcRecord);
             return updateClassificationsInEnrichmentRecordAction;
-        } finally {
-            LOGGER.exit(updateClassificationsInEnrichmentRecordAction);
-        }
     }
 
     private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord marcRecord, MarcRecord currentRecord, String holdingAgencyId) {
-        LOGGER.entry(marcRecord, holdingAgencyId, currentRecord);
-        CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = null;
-        try {
-            createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
+            final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction =
+                    new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
             createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(currentRecord);
             createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(marcRecord);
             return createEnrichmentRecordWithClassificationsAction;
-        } finally {
-            LOGGER.exit(createEnrichmentRecordWithClassificationsAction);
-        }
     }
 
 }

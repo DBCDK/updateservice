@@ -40,7 +40,7 @@ public class ClassificationCheckServiceRest {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("classificationCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
         }
-        UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.classificationCheck(bibliographicRecordDTO);
+        final UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.classificationCheck(bibliographicRecordDTO);
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("classificationCheck result is: {}", updateRecordResponseDTO.toString());
         }

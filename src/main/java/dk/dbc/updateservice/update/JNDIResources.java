@@ -56,7 +56,7 @@ public class JNDIResources {
     }
 
     public static Properties getProperties() {
-        Properties properties = new Properties();
+        final Properties properties = new Properties();
 
         for (String key: System.getenv().keySet()) {
             properties.setProperty(key, System.getenv(key));

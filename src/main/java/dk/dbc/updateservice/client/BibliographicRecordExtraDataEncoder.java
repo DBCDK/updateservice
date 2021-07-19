@@ -5,8 +5,6 @@
 
 package dk.dbc.updateservice.client;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBContext;
@@ -20,32 +18,25 @@ import javax.xml.parsers.ParserConfigurationException;
  * Encoder to encode a BibliographicRecordExtraData to XML.
  */
 public class BibliographicRecordExtraDataEncoder {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(BibliographicRecordExtraDataEncoder.class);
 
-    public BibliographicRecordExtraDataEncoder() {
+    private BibliographicRecordExtraDataEncoder() {
+
     }
 
     public static Document toXmlDocument(BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException {
-        LOGGER.entry();
+        final JAXBContext jc = JAXBContext.newInstance(BibliographicRecordExtraData.class);
+        final Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, BibliographicRecordExtraData.NAMESPACE);
 
-        Document result = null;
-        try {
-            JAXBContext jc = JAXBContext.newInstance(BibliographicRecordExtraData.class);
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, BibliographicRecordExtraData.NAMESPACE);
+        final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
 
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
+        final DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+        final Document document = documentBuilder.newDocument();
 
-            DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-            Document document = documentBuilder.newDocument();
+        marshaller.marshal(data, document);
 
-            marshaller.marshal(data, document);
-
-            return result = document;
-        } finally {
-            LOGGER.exit(result);
-        }
+        return document;
     }
 
 }

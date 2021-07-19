@@ -101,33 +101,27 @@ public class HoldingsItems {
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsFor(MarcRecord marcRecord) throws UpdateException {
-        LOGGER.entry(marcRecord);
-        StopWatch watch = new Log4JStopWatch();
-        Set<Integer> result = new HashSet<>();
+        final StopWatch watch = new Log4JStopWatch();
         try {
-            result.addAll(getAgenciesThatHasHoldingsForId(new MarcRecordReader(marcRecord).getRecordId()));
-            MarcRecordReader mm = new MarcRecordReader(marcRecord);
-            List<String> aliasIds = mm.getCentralAliasIds();
+            final Set<Integer> result = new HashSet<>(getAgenciesThatHasHoldingsForId(new MarcRecordReader(marcRecord).getRecordId()));
+            final MarcRecordReader mm = new MarcRecordReader(marcRecord);
+            final List<String> aliasIds = mm.getCentralAliasIds();
             for (String s : aliasIds) {
                 result.addAll(getAgenciesThatHasHoldingsForId(s));
             }
             return result;
         } finally {
             watch.stop("holdingsItems.getAgenciesThatHasHoldingsForId.MarcRecord");
-            LOGGER.exit(result);
         }
     }
 
     public Set<Integer> getAgenciesThatHasHoldingsForId(String recordId) throws UpdateException {
-        Tag methodTag = new Tag(METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId");
-        LOGGER.entry(recordId);
+        final Tag methodTag = new Tag(METHOD_NAME_KEY, "getAgenciesThatHasHoldingsForId");
         LOGGER.info("getAgenciesThatHasHoldingsForId: {}", recordId);
-        StopWatch watch = new Log4JStopWatch();
-        Set<Integer> result = new HashSet<>();
+        final StopWatch watch = new Log4JStopWatch();
         try (Connection conn = dataSource.getConnection()) {
-            HoldingsItemsDAO dao = createDAO(conn);
-            result = dao.getAgenciesThatHasHoldingsFor(recordId);
-            return result;
+            final HoldingsItemsDAO dao = createDAO(conn);
+            return dao.getAgenciesThatHasHoldingsFor(recordId);
         } catch (SQLException | HoldingsItemsException ex) {
             LOGGER.error(ex.getMessage(), ex);
             metricsHandlerBean.increment(holdingsItemsErrorCounterMetrics,
@@ -144,8 +138,6 @@ public class HoldingsItems {
             metricsHandlerBean.update(holdingsItemsTimingMetrics,
                 Duration.ofMillis(watch.getElapsedTime()),
                 methodTag);
-
-            LOGGER.exit(result);
         }
     }
 

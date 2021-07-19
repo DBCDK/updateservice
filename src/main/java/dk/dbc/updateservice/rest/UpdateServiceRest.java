@@ -127,7 +127,6 @@ public class UpdateServiceRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateRecordRequest) {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch();
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
         UpdateRecordResponseDTO updateRecordResponseDTO = null;
@@ -164,7 +163,6 @@ public class UpdateServiceRest {
 
             incrementGroupIdCounter(updateRecordRequest);
 
-            LOGGER.exit();
             MDC.clear();
         }
     }
@@ -186,7 +184,6 @@ public class UpdateServiceRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
         SchemasResponseDTO schemasResponseDTO = null;
@@ -213,7 +210,6 @@ public class UpdateServiceRest {
         } finally {
             LOGGER.info("getSchemas REST returns: {}", schemasResponseDTO);
             watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
-            LOGGER.exit();
             MDC.clear();
             if (schemasResponseDTO != null && schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
                 getSchemasErrorCounter.inc();

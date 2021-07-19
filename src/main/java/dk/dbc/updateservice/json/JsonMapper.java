@@ -6,16 +6,14 @@
 package dk.dbc.updateservice.json;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.type.TypeFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 public class JsonMapper {
-    private static JsonMapper instance = new JsonMapper();
-    private ObjectMapper mapper;
+    private static final JsonMapper instance = new JsonMapper();
+    private final ObjectMapper mapper;
 
     public JsonMapper() {
         this.mapper = new ObjectMapper();
@@ -31,14 +29,6 @@ public class JsonMapper {
 
     public <T> T readValue(File src, Class<T> clazz) throws IOException {
         return mapper.readValue(src, clazz);
-    }
-
-    public <T> List<T> readArrayValue(String content, Class<T> clazz) throws IOException {
-        return mapper.readValue(content, TypeFactory.defaultInstance().constructCollectionType(List.class, clazz));
-    }
-
-    public <T> List<T> readArrayValue(File src, Class<T> clazz) throws IOException {
-        return mapper.readValue(src, TypeFactory.defaultInstance().constructCollectionType(List.class, clazz));
     }
 
     public String writeValue(Object value) throws IOException {

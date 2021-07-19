@@ -59,14 +59,13 @@ public class MetakompasHandler {
 
     private static String callUrl(String url) throws UpdateException {
         try {
-
             LOGGER.info("Numberroll url : {}", url);
-            URL numberUrl = new URL(url);
-            HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
+            final URL numberUrl = new URL(url);
+            final HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
             InputStream is;
-            int response = conn.getResponseCode();
+            final int response = conn.getResponseCode();
             if (response == 200) {
                 LOGGER.info("Ok Went Well");
                 is = conn.getInputStream();
@@ -74,8 +73,8 @@ public class MetakompasHandler {
                 LOGGER.info("DIDNT Went Well {}", response);
                 is = conn.getErrorStream();
             }
-            JsonReader jReader = Json.createReader(is);
-            JsonObject jObj = jReader.readObject();
+            final JsonReader jReader = Json.createReader(is);
+            final JsonObject jObj = jReader.readObject();
             conn.disconnect();
 
             if (response == 200) {
@@ -102,15 +101,19 @@ public class MetakompasHandler {
 
     private static String getNewIdNumber(Properties properties, String rollName) throws UpdateException {
         if (properties.containsKey(JNDIResources.OPENNUMBERROLL_URL)) {
-            String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
+            final String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
             LOGGER.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
             if (properties.containsKey(rollName)) {
                 LOGGER.info("Numberroll name {}", properties.getProperty(rollName));
-                String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(rollName) + "&outputType=json");
+                final String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(rollName) + "&outputType=json");
                 LOGGER.info("Got new id number {} ", res);
                 return res;
-            } else throw new UpdateException("No configuration numberroll");
-        } else throw new UpdateException("No configuration for opennumberroll service");
+            } else {
+                throw new UpdateException("No configuration numberroll");
+            }
+        } else {
+            throw new UpdateException("No configuration for opennumberroll service");
+        }
     }
 
     private static String getMoodCategoryCode(String subfieldContent) {
@@ -148,8 +151,8 @@ public class MetakompasHandler {
     }
 
     private static String getWeekCode() {
-        LocalDate ld = LocalDate.now();
-        DateTimeFormatter ywFormat = DateTimeFormatter.ofPattern("yyyyww");
+        final LocalDate ld = LocalDate.now();
+        final DateTimeFormatter ywFormat = DateTimeFormatter.ofPattern("yyyyww");
         return ld.format(ywFormat);
     }
 
@@ -161,7 +164,7 @@ public class MetakompasHandler {
         List<MarcField> fields;
 
         try {
-            MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
+            final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
             fields = mainRecord.getFields();
             for (MarcField field : fields) {
                 if (field.getName().equals("670")) {
@@ -170,13 +173,13 @@ public class MetakompasHandler {
                 }
             }
             if (makeCommon) {
-                MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
+                final MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
                 mWriter.setChangedTimestamp();
                 mWriter.addFieldSubfield("670", "a", id);
                 children.add(new UpdateCommonRecordAction(state, properties, mainRecord));
             }
 
-            MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 191919).getContent());
+            final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 191919).getContent());
             if (subFieldName.equals("n")) {
                 shortValue = getMoodCategoryCode(category);
             } else {
@@ -185,11 +188,11 @@ public class MetakompasHandler {
             fields = enrichmentRecord.getFields();
             for (MarcField field : fields) {
                 if (field.getName().equals("d09")) {
-                    List<MarcSubField> subFields = field.getSubfields();
+                    final   List<MarcSubField> subFields = field.getSubfields();
                     subFields.add(new MarcSubField("z", "EMK" + getWeekCode()));
                 }
                 if (field.getName().equals("x09")) {
-                    List<MarcSubField> subFields = field.getSubfields();
+                    final List<MarcSubField> subFields = field.getSubfields();
                     for (MarcSubField subField : subFields) {
                         if (subField.getName().equals("p") && subField.getValue().equals(shortValue))
                             makeEnrich = false;
@@ -198,16 +201,16 @@ public class MetakompasHandler {
                 }
             }
             if (makeEnrich) {
-                MarcField x09Field = new MarcField();
+                final MarcField x09Field = new MarcField();
                 x09Field.setName("x09");
                 x09Field.setIndicator("00");
-                List<MarcSubField> x09subFields = x09Field.getSubfields();
+                final List<MarcSubField> x09subFields = x09Field.getSubfields();
                 x09subFields.add(new MarcSubField("p", shortValue));
-                String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+                final String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
                 x09subFields.add(new MarcSubField("q", metaCompassId));
                 fields.add(x09Field);
                 enrichmentRecord.setFields(fields);
-                MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+                final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                 writer.setChangedTimestamp();
                 children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
             }
@@ -221,9 +224,9 @@ public class MetakompasHandler {
     private static void doCreateMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, String id, String subFieldName, String subfieldContent, String category, Properties properties)
             throws UpdateException {
         try {
-            MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(COMMON_RECORD_TEMPLATE);
-            MarcRecordWriter writer = new MarcRecordWriter(commonSubjectRecord);
-            String newId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
+            final MarcRecord commonSubjectRecord = MarcRecordFactory.readRecord(COMMON_RECORD_TEMPLATE);
+            final MarcRecordWriter writer = new MarcRecordWriter(commonSubjectRecord);
+            final String newId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
             writer.addOrReplaceSubfield("001", "a", newId);
             writer.setChangedTimestamp();
             writer.setCreationTimestamp();
@@ -231,21 +234,21 @@ public class MetakompasHandler {
             writer.addOrReplaceSubfield("670", "a", id);
             children.add(new CreateSingleRecordAction(state, properties, commonSubjectRecord));
 
-            MarcRecord enrichmentRecord = MarcRecordFactory.readRecord(ENRICHMENT_RECORD_TEMPLATE);
-            writer = new MarcRecordWriter(enrichmentRecord);
-            writer.addOrReplaceSubfield("001", "a", newId);
-            writer.setChangedTimestamp();
-            writer.setCreationTimestamp();
-            writer.addOrReplaceSubfield("d09", "z", "EMK" + getWeekCode());
+            final MarcRecord enrichmentRecord = MarcRecordFactory.readRecord(ENRICHMENT_RECORD_TEMPLATE);
+            final MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
+            enrichmentWriter.addOrReplaceSubfield("001", "a", newId);
+            enrichmentWriter.setChangedTimestamp();
+            enrichmentWriter.setCreationTimestamp();
+            enrichmentWriter.addOrReplaceSubfield("d09", "z", "EMK" + getWeekCode());
             // This gets complicated - put different things in here depending on subfield
             if (atmosphereSubjectSubFields.contains(subFieldName)) {
                 String shortValue = getMoodCategoryCode(category);
-                writer.addOrReplaceSubfield("x09", "p", shortValue);
+                enrichmentWriter.addOrReplaceSubfield("x09", "p", shortValue);
             } else {
-                writer.addOrReplaceSubfield("x09", "p", subFieldName);
+                enrichmentWriter.addOrReplaceSubfield("x09", "p", subFieldName);
             }
-            String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
-            writer.addOrReplaceSubfield("x09", "q", metaCompassId);
+            final String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+            enrichmentWriter.addOrReplaceSubfield("x09", "q", metaCompassId);
             children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
         } catch (UpdateException e) {
             LOGGER.info("Creating subject record(s) failed {}", e.getMessage());
@@ -258,8 +261,8 @@ public class MetakompasHandler {
             throws UpdateException, SolrException, UnsupportedEncodingException {
         if (!(atmosphereSubjectSubFields.contains(subFieldName) || nonAtmosphereSubjectSubFields.contains(subFieldName)))
             return;
-        String solrQuery = SolrServiceIndexer.createGetSubjectId(INDEX_NAME, subfieldContent);
-        String subjectId = state.getSolrBasis().getSubjectIdNumber(solrQuery);
+        final String solrQuery = SolrServiceIndexer.createGetSubjectId(INDEX_NAME, subfieldContent);
+        final String subjectId = state.getSolrBasis().getSubjectIdNumber(solrQuery);
         if (subjectId.equals("")) {
             // create new subject record
             doCreateMetakompasSubjectRecords(children, state, id, subFieldName, subfieldContent, category, properties);
@@ -276,9 +279,9 @@ public class MetakompasHandler {
      */
     public static void createMetakompasSubjectRecords(List<ServiceAction> children, GlobalActionState state, RawRepo rawRepo, MarcRecord minimalMetakompasRecord, Properties properties)
             throws UpdateException, SolrException, UnsupportedEncodingException {
-        MarcRecordReader reader = new MarcRecordReader(minimalMetakompasRecord);
-        String id = reader.getRecordId();
-        List<MarcField> listOf665 = reader.getFieldAll("665");
+        final MarcRecordReader reader = new MarcRecordReader(minimalMetakompasRecord);
+        final String id = reader.getRecordId();
+        final List<MarcField> listOf665 = reader.getFieldAll("665");
         for (MarcField field : listOf665) {
             String category = "";
             if (field.getSubfields().stream().
@@ -289,7 +292,7 @@ public class MetakompasHandler {
                     }
                 }
                 for (MarcSubField subfield : field.getSubfields()) {
-                    String subFieldName = subfield.getName();
+                    final String subFieldName = subfield.getName();
                     if (!"&".equals(subFieldName)) {
                         identifyAction(children, state, id, subFieldName, subfield.getValue(), category, properties, rawRepo);
                     }
