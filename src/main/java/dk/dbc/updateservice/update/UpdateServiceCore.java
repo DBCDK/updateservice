@@ -53,6 +53,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -222,7 +223,9 @@ public class UpdateServiceCore {
 
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
-            LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
+            }
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
@@ -233,7 +236,7 @@ public class UpdateServiceCore {
                 }
             }
 
-            final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
+            final String groupId = Objects.requireNonNull(schemasRequestDTO.getAuthenticationDTO()).getGroupId();
             final String templateGroup = vipCoreService.getTemplateGroup(groupId);
             final Set<String> allowedLibraryRules = vipCoreService.getAllowedLibraryRules(groupId);
             final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(templateGroup, allowedLibraryRules);
@@ -260,7 +263,9 @@ public class UpdateServiceCore {
             return schemasResponseDTO;
         } finally {
             try {
-                LOGGER.info("getSchemas returning SchemasResponseDTO: {}", JsonMapper.encodePretty(schemasResponseDTO));
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("getSchemas returning SchemasResponseDTO: {}", JsonMapper.encodePretty(schemasResponseDTO));
+                }
             } catch (IOException e) {
                 LOGGER.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
             }

@@ -50,6 +50,10 @@ public class JNDIResources {
     public static final String OPENNUMBERROLL_NAME_FAUST_8 = "OPENNUMBERROLL_NAME_FAUST_8";
     public static final String OPENNUMBERROLL_NAME_FAUST = "OPENNUMBERROLL_NAME_FAUST";
 
+    private JNDIResources() {
+
+    }
+
     // List of required resources
     public static List<String> getListOfRequiredJNDIResources() {
         return new ArrayList<>();

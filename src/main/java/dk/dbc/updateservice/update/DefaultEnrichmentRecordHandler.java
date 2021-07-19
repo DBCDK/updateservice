@@ -5,12 +5,20 @@
 
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.CatalogExtractionCode;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcSubField;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ResourceBundle;
 
 public class DefaultEnrichmentRecordHandler {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
@@ -39,17 +47,23 @@ public class DefaultEnrichmentRecordHandler {
         final MarcRecordReader currentCommonRecordReader = new MarcRecordReader(currentCommonRecord);
 
         if (matchesNoClassification(currentCommonRecordReader.getValue("652", "m"))) {
-            LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
+            }
             return false;
         }
 
         if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "x"))) {
-            LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
+            }
             return false;
         }
 
         if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "a"))) {
-            LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
+            }
             return false;
         }
 
@@ -60,11 +74,15 @@ public class DefaultEnrichmentRecordHandler {
             if (updatingCommonRecordReader.hasValue("008", "u", "r")) {
                 if (matchKatCodes(currentCommonRecord, updatingCommonRecord)) {
                     // 032 not changed
-                    LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info(resourceBundle.getString("do.not.create.enrichments.inproduction.reason"));
+                    }
                     return false;
                 }
             } else {
-                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.inproduction.reason")));
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info(resourceBundle.getString("do.not.create.enrichments.inproduction.reason"));
+                }
                 return false;
             }
         }
@@ -76,12 +94,12 @@ public class DefaultEnrichmentRecordHandler {
      * The purpose of this function is to generate a list of string of every 032 subfield (a and x)
      * The list can be used to compare the 032 field from two records
      *
-     * @param record to extract the 032 field from
+     * @param marcRecord to extract the 032 field from
      * @return list of "subfield.name:subfield.value" text
      */
-    static List<String> collectProductionCodes(MarcRecord record) {
+    static List<String> collectProductionCodes(MarcRecord marcRecord) {
         final List<String> result = new ArrayList<>();
-        final MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         final MarcField field = reader.getField("032");
         if (field != null) {

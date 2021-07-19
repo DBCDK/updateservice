@@ -57,6 +57,10 @@ public class MetakompasHandler {
                     "x08 00 *ps\n" +
                     "x09 00 *p*q";
 
+    private MetakompasHandler() {
+
+    }
+
     private static String callUrl(String url) throws UpdateException {
         try {
             LOGGER.info("Numberroll url : {}", url);

@@ -15,8 +15,12 @@ public class MDCUtil {
     public static final String MDC_REQUEST_PRIORITY = "priority";
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
 
-    public static void setupContextForRecord(MarcRecord record) {
-        MarcRecordReader reader = new MarcRecordReader(record);
+    private MDCUtil() {
+        
+    }
+
+    public static void setupContextForRecord(MarcRecord marcRecord) {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
         String recordId = reader.getValue("001", "a");
         String agencyId = reader.getValue("001", "b");
 

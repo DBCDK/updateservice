@@ -11,6 +11,10 @@ import java.util.ResourceBundle;
 public class ResourceBundles {
     public static final Locale DANISH = new Locale("da", "DK");
 
+    private ResourceBundles() {
+
+    }
+
     public static ResourceBundle getBundle(String bundleName) {
         return getBundle(bundleName, DANISH);
     }

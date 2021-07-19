@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 public abstract class SolrBase {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrBase.class);
     private static final String ERROR_CODE = "error";
+    private static final String NUM_FOUND = "numFound";
 
     protected ResourceBundle messages;
 
@@ -90,8 +91,8 @@ public abstract class SolrBase {
         try {
             final URL solrUrl = setUrl(query, "");
             final JsonObject response = callSolr(solrUrl);
-            if (response.containsKey("numFound")) {
-                return response.getInt("numFound");
+            if (response.containsKey(NUM_FOUND)) {
+                return response.getInt(NUM_FOUND);
             }
             final String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
             LOGGER.warn(s);
@@ -106,8 +107,8 @@ public abstract class SolrBase {
         try {
             final URL solrUrl = setUrl(query, "&fl=marc.001a");
             final JsonObject response = callSolr(solrUrl);
-            if (response.containsKey("numFound")) {
-                if (response.getInt("numFound") == 0) return "";
+            if (response.containsKey(NUM_FOUND)) {
+                if (response.getInt(NUM_FOUND) == 0) return "";
                 else {
                     // Message from LJL - if more than one records, then treat the first
                     if (response.containsKey("docs")) {
@@ -128,7 +129,7 @@ public abstract class SolrBase {
                     }
                 }
             }
-            String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
+            String s = String.format("Unable to locate 'numFound' in Solr response %s", response);
             LOGGER.warn(s);
             throw new UpdateException(s);
         } finally {
