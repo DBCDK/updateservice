@@ -30,6 +30,11 @@ public class SolrFBS extends SolrBase {
 
     private final Properties settings;
 
+    // EJB initialization will fail if there is no default constructor
+    public SolrFBS() {
+        this(JNDIResources.getProperties());
+    }
+
     public SolrFBS(Properties settings) {
         this.settings = settings;
         messages = ResourceBundles.getBundle("messages");
