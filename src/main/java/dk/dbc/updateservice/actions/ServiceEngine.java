@@ -108,7 +108,6 @@ public class ServiceEngine {
      * @throws UpdateException Throwed in case of an error.
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
-        LOGGER.entry();
         StopWatch watch = new Log4JStopWatch();
         final Tag methodTag;
         if (action != null && action.name() != null) {
@@ -162,7 +161,6 @@ public class ServiceEngine {
             metricsHandlerBean.update(serviceEngineTimingMetrics,
                     Duration.ofMillis(watch.getElapsedTime()),
                     methodTag);
-            LOGGER.exit();
         }
     }
 
@@ -171,28 +169,23 @@ public class ServiceEngine {
      * <code>ERROR</code>
      */
     private boolean stopExecution(ServiceResult actionResult) {
-        LOGGER.entry();
-        try {
-            if (actionResult == null) {
-                throw new IllegalArgumentException("actionResult must not be (null)");
-            }
-            if (actionResult.getServiceErrorList() != null) {
-                return true;
-            }
-            if (actionResult.getStatus() == UpdateStatusEnumDTO.OK) {
-                return false;
-            }
-            return true;
-        } finally {
-            LOGGER.exit();
+        if (actionResult == null) {
+            throw new IllegalArgumentException("actionResult must not be (null)");
         }
+        if (actionResult.getServiceErrorList() != null) {
+            return true;
+        }
+
+        return actionResult.getStatus() != UpdateStatusEnumDTO.OK;
     }
 
     public void printActionHeader(ServiceAction action) {
-        String line = StringUtils.repeat("=", 50);
-        LOGGER.info("");
-        LOGGER.info("Action: {}", action.name());
-        LOGGER.info(line);
+        if (LOGGER.isInfoEnabled()) {
+            final String line = StringUtils.repeat("=", 50);
+            LOGGER.info("");
+            LOGGER.info("Action: {}", action.name());
+            LOGGER.info(line);
+        }
     }
 
     public void printActions(ServiceAction action) {
@@ -200,17 +193,12 @@ public class ServiceEngine {
     }
 
     private void printActions(ServiceAction action, String indent) {
-        LOGGER.entry();
-        try {
-            LOGGER.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
-            List<ServiceAction> children = action.children();
-            if (children != null) {
-                for (ServiceAction child : children) {
-                    printActions(child, indent + "  ");
-                }
+        LOGGER.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
+        List<ServiceAction> children = action.children();
+        if (children != null) {
+            for (ServiceAction child : children) {
+                printActions(child, indent + "  ");
             }
-        } finally {
-            LOGGER.exit();
         }
     }
 }

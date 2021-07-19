@@ -77,15 +77,15 @@ public class ValidateRecordAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
-        ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            }
 
             final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
-            result = new ServiceResult();
+            final ServiceResult result = new ServiceResult();
             result.addMessageEntryDtos(errors);
 
             final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
@@ -103,10 +103,9 @@ public class ValidateRecordAction extends AbstractAction {
         } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             LOGGER.error(message, ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 

@@ -46,22 +46,20 @@ public class DoubleRecordFrontendAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
-        ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+            }
             final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
-            result = doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
-            return result;
+            return doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
-            String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
+            final String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
             LOGGER.error(message, e);
-            return result = ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 

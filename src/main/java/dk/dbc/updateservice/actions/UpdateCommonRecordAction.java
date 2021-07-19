@@ -51,15 +51,16 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        LOGGER.entry();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
 
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
                 LOGGER.info("Update single");
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
-                    String message = state.getMessages().getString("update.record.with.002.links");
+                    final String message = state.getMessages().getString("update.record.with.002.links");
                     LOGGER.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
@@ -75,11 +76,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // - Cicero client doesn't understand authority fields
             //
             // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
-            String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
             if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-                MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(marcRecord, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(marcRecord));
+                final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+                final MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(marcRecord, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(marcRecord));
                 recordToStore = state.getRecordSorter().sortRecord(collapsedRecord);
             } else {
                 recordToStore = marcRecord;
@@ -87,10 +88,10 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
             // At this point we have the collapsed record with authority fields, so perform validation on those now
             for (MarcField field : recordToStore.getFields()) {
-                MarcFieldReader fieldReader = new MarcFieldReader(field);
+                final MarcFieldReader fieldReader = new MarcFieldReader(field);
                 if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
-                    String authRecordId = fieldReader.getValue("6");
-                    int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+                    final String authRecordId = fieldReader.getValue("6");
+                    final int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
                     if (!state.getRawRepo().recordExists(authRecordId, authAgencyId)) {
                         String message = String.format(state.getMessages().getString("ref.record.doesnt.exist"), authRecordId, authAgencyId);
                         LOGGER.error(message);
@@ -107,7 +108,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // It is here we decide whether it's a single record or a volume/section record
             // If there is a field 014 either without a subfield x or if the content of subfield x is ANM
             // then the record is part of a volume/section/head structure.
-            String parentId = reader.getParentRecordId();
+            final String parentId = reader.getParentRecordId();
             if (parentId != null && !parentId.isEmpty()) {
                 LOGGER.info("Update vol: {}", parentId);
                 children.add(new UpdateVolumeRecord(state, settings, recordToStore));
@@ -119,34 +120,27 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         } catch (VipCoreException | UnsupportedEncodingException e) {
             LOGGER.catching(e);
             throw new UpdateException("Exception while collapsing record", e);
-        } finally {
-            LOGGER.exit();
         }
     }
 
     private void rewriteIndicators() {
-        LOGGER.entry();
-        try {
-            MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
-            for (MarcField field : writer.getRecord().getFields()) {
-                if (field.getName().equals("700")) {
-                    boolean write02 = false;
-                    for (MarcSubField sf : field.getSubfields()) {
-                        if (sf.getName().equals("g") && sf.getValue().equals("1")) {
-                            field.setIndicator("01");
-                            write02 = false;
-                            break;
-                        } else if (sf.getName().equals("4") && sf.getValue().equals("led")) {
-                            write02 = true;
-                        }
-                    }
-                    if (write02) {
-                        field.setIndicator("02");
+        final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
+        for (MarcField field : writer.getRecord().getFields()) {
+            if (field.getName().equals("700")) {
+                boolean write02 = false;
+                for (MarcSubField sf : field.getSubfields()) {
+                    if (sf.getName().equals("g") && sf.getValue().equals("1")) {
+                        field.setIndicator("01");
+                        write02 = false;
+                        break;
+                    } else if (sf.getName().equals("4") && sf.getValue().equals("led")) {
+                        write02 = true;
                     }
                 }
+                if (write02) {
+                    field.setIndicator("02");
+                }
             }
-        } finally {
-            LOGGER.exit();
         }
     }
 

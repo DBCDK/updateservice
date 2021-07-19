@@ -75,17 +75,18 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
         try {
             if (mimetype == null || mimetype.isEmpty()) {
                 throw new UpdateException("MimeType must be set");
             }
 
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
             recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
@@ -100,12 +101,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepo.saveRecord(rawRepoRecord);
             LOGGER.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
             LOGGER.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
-            return result = ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {
             LOGGER.error("Error when trying to save record. ", ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            LOGGER.exit(result);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
@@ -132,44 +131,33 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        LOGGER.entry(globalActionState, marcRecord);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
-                    RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
-            } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
-            } else if (RawRepo.LITTOLK_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.LITANALYSIS);
-            } else if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.MATVURD);
-            } else if (RawRepo.HOSTPUB_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.HOSTPUB);
-            } else if (RawRepo.SIMPLE_AGENCIES.contains(reader.getAgencyIdAsInt())) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.SIMPLE);
-            } else {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-            }
-
-            return storeRecordAction;
-        } finally {
-            LOGGER.exit();
+        if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
+                RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
+        } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
+        } else if (RawRepo.LITTOLK_AGENCY == reader.getAgencyIdAsInt()) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.LITANALYSIS);
+        } else if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.MATVURD);
+        } else if (RawRepo.HOSTPUB_AGENCY == reader.getAgencyIdAsInt()) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.HOSTPUB);
+        } else if (RawRepo.SIMPLE_AGENCIES.contains(reader.getAgencyIdAsInt())) {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.SIMPLE);
+        } else {
+            storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         }
+
+        return storeRecordAction;
     }
 
     static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        LOGGER.entry(globalActionState, marcRecord);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
-            return storeRecordAction;
-        } finally {
-            LOGGER.exit();
-        }
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
+        return storeRecordAction;
     }
 
     void updateModifiedDate(MarcRecord marcRecord) {

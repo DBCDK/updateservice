@@ -83,30 +83,29 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        LOGGER.entry();
         try {
             LOGGER.info("Handling record: {}", marcRecord);
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 return performDeletionAction();
             }
 
-            String wrkRecordId = reader.getRecordId();
-            String wrkParentId = reader.getParentRecordId();
+            final String wrkRecordId = reader.getRecordId();
+            final String wrkParentId = reader.getParentRecordId();
             if (wrkParentId != null && !wrkParentId.isEmpty()) {
-                String agencyId = reader.getAgencyId();
-                String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
+                final String agencyId = reader.getAgencyId();
+                final String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
                 LOGGER.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!rawRepo.recordExists(wrkRecordId, getParentAgencyId())) {
-                String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
+                final String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
                 LOGGER.warn("Unable to update enrichment record due to an error: {}", message);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
-            MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
-            MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
+            final Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
+            final MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
+            final MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
 
             LOGGER.info("Correct content of enrichment record.");
             LOGGER.info("Old content:\n{}", marcRecord);
@@ -121,8 +120,6 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             LOGGER.error("Update error: " + ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit();
         }
     }
 
@@ -141,19 +138,14 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return OK.
      */
     private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
-        LOGGER.entry();
-        try {
-            String recordId = new MarcRecordReader(marcRecord).getRecordId();
+        final String recordId = new MarcRecordReader(marcRecord).getRecordId();
+        children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
+        final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
+        linkRecordAction.setLinkToRecordId(new RecordId(recordId, getParentAgencyId()));
+        children.add(linkRecordAction);
+        children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
 
-            children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
-            LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-            linkRecordAction.setLinkToRecordId(new RecordId(recordId, getParentAgencyId()));
-            children.add(linkRecordAction);
-            children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
-        }
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -172,27 +164,22 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performDeletionAction() throws UpdateException {
-        LOGGER.entry();
-        try {
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recordId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
 
-            if (!rawRepo.recordExists(recordId, agencyId)) {
-                LOGGER.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
-                return ServiceResult.newOkResult();
-            }
-            LOGGER.info("Creating sub actions to delete enrichment record successfully");
-            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
-            children.add(new RemoveLinksAction(state, marcRecord));
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
-            deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
-            children.add(deleteRecordAction);
-
+        if (!rawRepo.recordExists(recordId, agencyId)) {
+            LOGGER.info("The enrichment record {{}:{}} does not exist, so no actions is added for deletion.", recordId, agencyId);
             return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
         }
+        LOGGER.info("Creating sub actions to delete enrichment record successfully");
+        children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+        children.add(new RemoveLinksAction(state, marcRecord));
+        final DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
+        deleteRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
+        children.add(deleteRecordAction);
+
+        return ServiceResult.newOkResult();
 
     }
 

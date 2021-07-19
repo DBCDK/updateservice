@@ -52,21 +52,19 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = ServiceResult.newOkResult();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();
             } else {
                 performActionDefault();
             }
-            return result;
+            return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | RawRepoException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            LOGGER.exit(result);
         }
     }
 

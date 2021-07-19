@@ -108,13 +108,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        LOGGER.entry();
-        ServiceResult result = null;
         try {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
-            ServiceResult serviceResult = checkRecordForUpdatability();
+            final ServiceResult serviceResult = checkRecordForUpdatability();
             if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
                 LOGGER.info("Unable to update record: {}", serviceResult);
                 return serviceResult;
@@ -123,13 +121,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             setCreatedDate(reader);
             children.add(new AuthenticateRecordAction(state, marcRecord));
             handleSetCreateOverwriteDate();
-            MarcRecordReader updReader = state.getMarcRecordReader();
-            String updRecordId = updReader.getRecordId();
-            int updAgencyId = updReader.getAgencyIdAsInt();
+            final MarcRecordReader updReader = state.getMarcRecordReader();
+            final String updRecordId = updReader.getRecordId();
+            final int updAgencyId = updReader.getAgencyIdAsInt();
 
             // Perform check of 002a and b,c - 870970 only
             if (RawRepo.COMMON_AGENCY == updAgencyId) {
-                String validatePreviousFaustMessage = validatePreviousFaust(updReader);
+                final String validatePreviousFaustMessage = validatePreviousFaust(updReader);
                 if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage);
                 }
@@ -158,11 +156,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             for (MarcRecord rec : records) {
                 LOGGER.info("Create sub actions for record:\n{}", rec);
                 reader = new MarcRecordReader(rec);
-                String recordId = reader.getRecordId();
-                int agencyId = reader.getAgencyIdAsInt();
+                final String recordId = reader.getRecordId();
+                final int agencyId = reader.getAgencyIdAsInt();
 
                 if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
-                    String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
+                    final String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
 
@@ -170,7 +168,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     if (!updReader.markedForDeletion() &&
                             !state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+                        final String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
@@ -213,20 +211,15 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                     } else {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-                        result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                        return result;
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
             }
-            result = ServiceResult.newOkResult();
-            return result;
+            return ServiceResult.newOkResult();
         } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
-            result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
-            return result;
-        } finally {
-            LOGGER.exit(result);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
         }
     }
 
@@ -263,7 +256,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         LOGGER.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
 
         // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
-        String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
             if (!state.isAdmin()) {
                 if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
@@ -293,11 +286,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
     // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
     private void setCreationDateToExistingCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
 
-        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-        String existingCreatedDate = existingReader.getValue("001", "d");
+        final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        final String existingCreatedDate = existingReader.getValue("001", "d");
         if (!StringUtils.isEmpty(existingCreatedDate)) {
             new MarcRecordWriter(marcRecord).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
@@ -305,28 +298,28 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
     // Set 001 *d to today's date if the field doesn't have a value
     private void setCreationDateToToday(MarcRecord marcRecord) {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        String createdDate = reader.getValue("001", "d");
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String createdDate = reader.getValue("001", "d");
         if (StringUtils.isEmpty(createdDate)) {
             new MarcRecordWriter(marcRecord).setCreationTimestamp();
         }
     }
 
     private void setCreationDateToParentCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
 
-        MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-        String existingCreatedDate = existingReader.getValue("001", "d");
+        final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+        final String existingCreatedDate = existingReader.getValue("001", "d");
         if (!StringUtils.isEmpty(existingCreatedDate)) {
             new MarcRecordWriter(marcRecord).addOrReplaceSubfield("001", "d", existingCreatedDate);
         }
     }
 
     private void addDoubleRecordFrontendActionIfNecessary() throws UpdateException {
-        boolean doubleRecordPossible = state.isDoubleRecordPossible();
-        boolean fbsMode = state.getLibraryGroup().isFBS();
-        boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
+        final boolean doubleRecordPossible = state.isDoubleRecordPossible();
+        final boolean fbsMode = state.getLibraryGroup().isFBS();
+        final boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
         if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
             // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
             children.add(new DoubleRecordFrontendAction(state, settings));
@@ -354,15 +347,15 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec, int parentAgencyId) throws UpdateException {
         LOGGER.entry();
         try {
-            MarcRecordReader reader = new MarcRecordReader(rec);
-            String recordId = reader.getRecordId();
+            final MarcRecordReader reader = new MarcRecordReader(rec);
+            final String recordId = reader.getRecordId();
             if (rawRepo.recordExists(recordId, parentAgencyId)) {
                 return true;
             }
             for (MarcRecord marcRecord : records) {
-                MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-                String checkRecordId = recordReader.getRecordId();
-                int checkAgencyId = recordReader.getAgencyIdAsInt();
+                final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
+                final String checkRecordId = recordReader.getRecordId();
+                final int checkAgencyId = recordReader.getAgencyIdAsInt();
                 if (recordId.equals(checkRecordId) && parentAgencyId == checkAgencyId) {
                     return true;
                 }
@@ -374,40 +367,35 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private ServiceResult checkRecordForUpdatability() throws UpdateException, SolrException {
-        LOGGER.entry();
-        try {
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            if (!reader.markedForDeletion()) {
-                return ServiceResult.newOkResult();
-            }
-            String recordId = reader.getRecordId();
-            String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId));
-            if (!motherRecordId.equals("")) {
-                return ServiceResult.newOkResult();
-            }
-            int agencyId = reader.getAgencyIdAsInt();
-            int rawRepoAgencyId = agencyId;
-            if (agencyId == RawRepo.DBC_ENRICHMENT) {
-                rawRepoAgencyId = RawRepo.COMMON_AGENCY;
-            }
-            RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
-            LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
-            Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
-            LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
-            if (!recordIdSet.isEmpty()) {
-                for (RecordId childRecordId : recordIdSet) {
-                    // If all child records are 870974 littolk then the record can be deleted anyway
-                    // The littolk children will be marked for deletion later in the flow
-                    if (childRecordId.getAgencyId() != 870974) {
-                        String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        if (!reader.markedForDeletion()) {
+            return ServiceResult.newOkResult();
+        }
+        final String recordId = reader.getRecordId();
+        final String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordId));
+        if (!motherRecordId.equals("")) {
+            return ServiceResult.newOkResult();
+        }
+        final int agencyId = reader.getAgencyIdAsInt();
+        int rawRepoAgencyId = agencyId;
+        if (agencyId == RawRepo.DBC_ENRICHMENT) {
+            rawRepoAgencyId = RawRepo.COMMON_AGENCY;
+        }
+        final RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
+        LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
+        final Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
+        LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
+        if (!recordIdSet.isEmpty()) {
+            for (RecordId childRecordId : recordIdSet) {
+                // If all child records are 870974 littolk then the record can be deleted anyway
+                // The littolk children will be marked for deletion later in the flow
+                if (childRecordId.getAgencyId() != 870974) {
+                    String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
         }
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -419,92 +407,87 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException when UTF8 doesn't work
      */
     private String validatePreviousFaust(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, SolrException {
-        LOGGER.entry();
-        try {
-            String readerRecordId = reader.getRecordId();
-            int readerAgencyId = reader.getAgencyIdAsInt();
-            if (reader.markedForDeletion()) {
-                // Handle deletion of existing record
-                if (rawRepo.recordExists(readerRecordId, readerAgencyId)) {
-                    Record existingRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
-                    MarcRecord existingMarc = RecordContentTransformer.decodeRecord(existingRecord.getContent());
-                    MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
+        final String readerRecordId = reader.getRecordId();
+        final int readerAgencyId = reader.getAgencyIdAsInt();
+        if (reader.markedForDeletion()) {
+            // Handle deletion of existing record
+            if (rawRepo.recordExists(readerRecordId, readerAgencyId)) {
+                final Record existingRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
+                final MarcRecord existingMarc = RecordContentTransformer.decodeRecord(existingRecord.getContent());
+                final MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
-                    // Deletion of 002a - check for holding on 001a
-                    Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
-                    if (!holdingAgencies001.isEmpty()) {
-                        for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
-                            if (!state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
-                                return state.getMessages().getString("delete.record.holdings.on.002a");
-                            }
-                        }
-                    }
-
-                    // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
+                // Deletion of 002a - check for holding on 001a
+                final Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
+                if (!holdingAgencies001.isEmpty()) {
                     for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
-                        Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
-                        if (!holdingAgencies002.isEmpty() && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
+                        if (!state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
                             return state.getMessages().getString("delete.record.holdings.on.002a");
                         }
                     }
                 }
-            } else {
-                // No matter if it's a new record or updating an existing, none of eventual 002a may contain the records id
-                for (String aValue : reader.getValues("002", "a")) {
-                    if (aValue.equals(readerRecordId)) {
-                        return state.getMessages().getString("update.record.with.001.equals.002a.links");
-                    }
-                }
-                // Handle either new record or update of existing record
-                boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
-                for (String aValue : reader.getValues("002", "a")) {
-                    String solrQuery = createSolrQuery(recordExists, readerRecordId, "002a", aValue);
-
-                    if (state.getSolrFBS().hasDocuments(solrQuery)) {
-                        return state.getMessages().getString("update.record.with.002.links");
-                    }
-                }
-
-                for (String xValue : reader.getValues("002", "x")) {
-                    String solrQuery = createSolrQuery(recordExists, readerRecordId, "002x", xValue);
-
-                    if (state.getSolrFBS().hasDocuments(solrQuery)) {
-                        return state.getMessages().getString("update.record.with.002.links");
-                    }
-                }
-
-                // Removal of 002a reference is allowed if either the referenced post still exists (no matter if there is holding or not)
-                // or if the referenced record is deleted/non-existent and does NOT have holdings
-                if (recordExists) {
-                    Record currentRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
-                    MarcRecord currentMarc = RecordContentTransformer.decodeRecord(currentRecord.getContent());
-                    MarcRecordReader currentReader = new MarcRecordReader(currentMarc);
-                    List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
-                    List<String> previousFaustList = reader.getCentralAliasIds();
-
-                    // The 002 field is repeatable but *a is not
-                    // So we need to compare the list of 002a fields between new and current
-                    List<String> removedPreviousFaust = new ArrayList<>();
-                    for (String f : currentPreviousFaustList) {
-                        if (!previousFaustList.contains(f)) {
-                            removedPreviousFaust.add(f);
-                        }
-                    }
-
-                    for (String m : removedPreviousFaust) {
-                        if (state.getRawRepo().recordDoesNotExistOrIsDeleted(m, RawRepo.COMMON_AGENCY) &&
-                                !state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).isEmpty()) {
-                            return state.getMessages().getString("update.record.holdings.on.002a");
-                        }
+                // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
+                for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
+                    final Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
+                    if (!holdingAgencies002.isEmpty() && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
+                        return state.getMessages().getString("delete.record.holdings.on.002a");
                     }
                 }
             }
+        } else {
+            // No matter if it's a new record or updating an existing, none of eventual 002a may contain the records id
+            for (String aValue : reader.getValues("002", "a")) {
+                if (aValue.equals(readerRecordId)) {
+                    return state.getMessages().getString("update.record.with.001.equals.002a.links");
+                }
+            }
+            // Handle either new record or update of existing record
+            final boolean recordExists = rawRepo.recordExists(readerRecordId, readerAgencyId);
 
-            return null;
-        } finally {
-            LOGGER.exit();
+            for (String aValue : reader.getValues("002", "a")) {
+                final String solrQuery = createSolrQuery(recordExists, readerRecordId, "002a", aValue);
+
+                if (state.getSolrFBS().hasDocuments(solrQuery)) {
+                    return state.getMessages().getString("update.record.with.002.links");
+                }
+            }
+
+            for (String xValue : reader.getValues("002", "x")) {
+                final String solrQuery = createSolrQuery(recordExists, readerRecordId, "002x", xValue);
+
+                if (state.getSolrFBS().hasDocuments(solrQuery)) {
+                    return state.getMessages().getString("update.record.with.002.links");
+                }
+            }
+
+            // Removal of 002a reference is allowed if either the referenced post still exists (no matter if there is holding or not)
+            // or if the referenced record is deleted/non-existent and does NOT have holdings
+            if (recordExists) {
+                final Record currentRecord = rawRepo.fetchRecord(readerRecordId, readerAgencyId);
+                final MarcRecord currentMarc = RecordContentTransformer.decodeRecord(currentRecord.getContent());
+                final MarcRecordReader currentReader = new MarcRecordReader(currentMarc);
+                final List<String> currentPreviousFaustList = currentReader.getCentralAliasIds();
+                final List<String> previousFaustList = reader.getCentralAliasIds();
+
+                // The 002 field is repeatable but *a is not
+                // So we need to compare the list of 002a fields between new and current
+                final List<String> removedPreviousFaust = new ArrayList<>();
+                for (String f : currentPreviousFaustList) {
+                    if (!previousFaustList.contains(f)) {
+                        removedPreviousFaust.add(f);
+                    }
+                }
+
+                for (String m : removedPreviousFaust) {
+                    if (state.getRawRepo().recordDoesNotExistOrIsDeleted(m, RawRepo.COMMON_AGENCY) &&
+                            !state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).isEmpty()) {
+                        return state.getMessages().getString("update.record.holdings.on.002a");
+                    }
+                }
+            }
         }
+
+        return null;
     }
 
     private String createSolrQuery(boolean recordExists, String recordId, String subfieldName, String subfieldValue) {
@@ -523,16 +506,16 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     private void handleSetCreateOverwriteDate() throws UpdateException {
         LOGGER.debug("Checking for n55 field");
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
         if (reader.hasSubfield("n55", "a")) {
-            String dateString = reader.getValue("n55", "a");
+            final String dateString = reader.getValue("n55", "a");
             if (dateString != null && !dateString.isEmpty()) {
-                boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
+                final boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
                 // We only want to set the created date to a specific value if the record is new
                 if (!recordExists) {
-                    Instant instant = formatter.parse(dateString, Instant::from);
+                    final Instant instant = formatter.parse(dateString, Instant::from);
 
                     state.setCreateOverwriteDate(instant);
                     LOGGER.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
@@ -553,8 +536,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException If the record can't be decoded
      */
     private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry("performActionsForRemovedLITWeekNumber");
-
         try {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             LOGGER.debug("GOT REC {}", marcRecord);

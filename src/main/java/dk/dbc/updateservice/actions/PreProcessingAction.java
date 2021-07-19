@@ -33,7 +33,6 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -51,7 +50,6 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 
