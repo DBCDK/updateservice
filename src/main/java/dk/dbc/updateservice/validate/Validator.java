@@ -32,20 +32,17 @@ public class Validator {
     private OpencatBusinessConnector opencatBusinessConnector;
 
     public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.getValidateSchemas");
-        List<SchemaDTO> result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             final List<SchemaDTO> names = opencatBusinessConnector.getValidateSchemas(templateGroup, allowedLibraryRules, trackingId);
-            result = new ArrayList<>(names);
+            final List<SchemaDTO> result = new ArrayList<>(names);
             LOGGER.trace("Number of templates: {}", result.size());
             return result;
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: getValidateSchemas", ex);
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 }

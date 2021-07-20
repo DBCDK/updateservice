@@ -45,17 +45,15 @@ public class ValidateSchemaAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate");
-        ServiceResult result = null;
         validateData();
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             if (state.getSchemaName() == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty");
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty");
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
             final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
                     state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
@@ -63,17 +61,16 @@ public class ValidateSchemaAction extends AbstractAction {
                     trackingId);
             if (validateSchemaFound) {
                 LOGGER.info("Validating schema '{}' successfully", state.getSchemaName());
-                return result = ServiceResult.newOkResult();
+                return ServiceResult.newOkResult();
             }
             LOGGER.error("Validating schema '{}' failed", state.getSchemaName());
-            String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            final String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         } catch (OpencatBusinessConnectorException | JSONBException ex) {
             LOGGER.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 

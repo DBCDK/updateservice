@@ -79,43 +79,29 @@ public class AssertActionsUtil {
     public static final String EXPANDED_VOLUME = "actions/expanded-volume.marc";
 
     public static MarcRecord loadRecord(String filename) throws IOException {
-        InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
+        final InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
         return MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
     }
 
     public static MarcRecord loadRecord(String filename, String newRecordId) throws IOException {
-        LOGGER.entry();
+        final MarcRecord record = loadRecord(filename);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
 
-        MarcRecord record = null;
-        try {
-            record = loadRecord(filename);
-            new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
-
-            return record;
-        } finally {
-            LOGGER.exit(record);
-        }
+        return record;
     }
 
     public static MarcRecord loadRecordAndMarkForDeletion(String filename) throws IOException {
-        MarcRecord record = loadRecord(filename);
+        final MarcRecord record = loadRecord(filename);
         new MarcRecordWriter(record).markForDeletion();
 
         return record;
     }
 
     public static MarcRecord loadRecordAndMarkForDeletion(String filename, String newRecordId) throws IOException {
-        LOGGER.entry();
+        final MarcRecord record = loadRecordAndMarkForDeletion(filename);
+        new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
 
-        MarcRecord record = null;
-        try {
-            record = loadRecordAndMarkForDeletion(filename);
-            new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
-
-            return record;
-        } finally {
-            LOGGER.exit(record);
-        }
+        return record;
     }
 
     public static BibliographicRecordDTO constructBibliographicRecordDTO(MarcRecord record, BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException {
@@ -139,7 +125,7 @@ public class AssertActionsUtil {
     }
 
     public static Set<RecordId> createRecordSet(MarcRecord... records) {
-        Set<RecordId> result = new HashSet<>();
+        final Set<RecordId> result = new HashSet<>();
 
         for (MarcRecord record : records) {
             result.add(new RecordId(getRecordId(record), getAgencyIdAsInt(record)));
@@ -153,7 +139,7 @@ public class AssertActionsUtil {
     }
 
     public static Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
-        RawRepoRecordMock result = new RawRepoRecordMock(getRecordId(record), getAgencyIdAsInt(record));
+        final RawRepoRecordMock result = new RawRepoRecordMock(getRecordId(record), getAgencyIdAsInt(record));
         result.setMimeType(mimetype);
         result.setDeleted(false);
         result.setContent(RecordContentTransformer.encodeRecord(record));
@@ -177,7 +163,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(AuthenticateRecordAction.class.getName()));
 
-        AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
+        final AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
         assertThat(authenticateRecordAction.state.readRecord(), is(record));
         assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
         assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
@@ -187,7 +173,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateCommonRecordAction.class.getName()));
 
-        UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction) action;
+        final UpdateCommonRecordAction updateCommonRecordAction = (UpdateCommonRecordAction) action;
         assertThat(updateCommonRecordAction.getRawRepo(), is(rawRepo));
         assertThat(updateCommonRecordAction.getRecord(), is(record));
         assertThat(updateCommonRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(groupId));
@@ -200,7 +186,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(CreateSingleRecordAction.class.getName()));
 
-        CreateSingleRecordAction createSingleRecordAction = (CreateSingleRecordAction) action;
+        final CreateSingleRecordAction createSingleRecordAction = (CreateSingleRecordAction) action;
         assertThat(createSingleRecordAction.getRawRepo(), is(rawRepo));
         assertThat(createSingleRecordAction.getRecord(), is(record));
         assertThat(createSingleRecordAction.state.getSolrFBS(), is(solrService));
@@ -211,7 +197,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(CreateVolumeRecordAction.class.getName()));
 
-        CreateVolumeRecordAction createVolumeRecordAction = (CreateVolumeRecordAction) action;
+        final CreateVolumeRecordAction createVolumeRecordAction = (CreateVolumeRecordAction) action;
         assertThat(createVolumeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(createVolumeRecordAction.getRecord(), is(record));
         assertThat(createVolumeRecordAction.state.getHoldingsItems(), is(holdingsItems));
@@ -223,7 +209,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(OverwriteVolumeRecordAction.class.getName()));
 
-        OverwriteVolumeRecordAction overwriteVolumeRecordAction = (OverwriteVolumeRecordAction) action;
+        final OverwriteVolumeRecordAction overwriteVolumeRecordAction = (OverwriteVolumeRecordAction) action;
         assertThat(overwriteVolumeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(overwriteVolumeRecordAction.getRecord(), is(record));
         assertThat(overwriteVolumeRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(groupId));
@@ -235,7 +221,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateLocalRecordAction.class.getName()));
 
-        UpdateLocalRecordAction updateLocalRecordAction = (UpdateLocalRecordAction) action;
+        final UpdateLocalRecordAction updateLocalRecordAction = (UpdateLocalRecordAction) action;
         assertThat(updateLocalRecordAction.getRawRepo(), is(rawRepo));
         assertThat(updateLocalRecordAction.getRecord(), is(record));
         assertThat(updateLocalRecordAction.state.getHoldingsItems(), is(holdingsItems));
@@ -245,7 +231,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateEnrichmentRecordAction.class.getName()));
 
-        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction) action;
+        final UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction) action;
         assertThat(updateEnrichmentRecordAction.getRawRepo(), is(rawRepo));
         assertThat(updateEnrichmentRecordAction.getRecord(), is(record));
         assertThat(updateEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
@@ -256,7 +242,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateSchoolCommonRecord.class.getName()));
 
-        UpdateSchoolCommonRecord updateSchoolCommonRecord = (UpdateSchoolCommonRecord) action;
+        final UpdateSchoolCommonRecord updateSchoolCommonRecord = (UpdateSchoolCommonRecord) action;
         assertThat(updateSchoolCommonRecord.getRawRepo(), is(rawRepo));
         assertThat(updateSchoolCommonRecord.getRecord(), is(record));
         assertThat(updateSchoolCommonRecord.state.getLibraryRecordsHandler(), is(recordsHandler));
@@ -268,7 +254,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateSchoolEnrichmentRecordAction.class.getName()));
 
-        UpdateSchoolEnrichmentRecordAction updateSchoolEnrichmentRecordAction = (UpdateSchoolEnrichmentRecordAction) action;
+        final UpdateSchoolEnrichmentRecordAction updateSchoolEnrichmentRecordAction = (UpdateSchoolEnrichmentRecordAction) action;
         assertThat(updateSchoolEnrichmentRecordAction.getRawRepo(), is(rawRepo));
         assertThat(updateSchoolEnrichmentRecordAction.getRecord(), is(record));
         assertThat(updateSchoolEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
@@ -280,7 +266,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(StoreRecordAction.class.getName()));
 
-        StoreRecordAction storeRecordAction = (StoreRecordAction) action;
+        final StoreRecordAction storeRecordAction = (StoreRecordAction) action;
         assertThat(storeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(storeRecordAction.getRecord(), is(record));
         assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.MARCXCHANGE));
@@ -290,7 +276,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(StoreRecordAction.class.getName()));
 
-        StoreRecordAction storeRecordAction = (StoreRecordAction) action;
+        final StoreRecordAction storeRecordAction = (StoreRecordAction) action;
         assertThat(storeRecordAction.getRawRepo(), is(rawRepo));
         assertThat(storeRecordAction.getRecord(), is(record));
         assertThat(storeRecordAction.getMimetype(), is(mimetype));
@@ -300,7 +286,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(DeleteRecordAction.class.getName()));
 
-        DeleteRecordAction deleteRecordAction = (DeleteRecordAction) action;
+        final DeleteRecordAction deleteRecordAction = (DeleteRecordAction) action;
         assertThat(deleteRecordAction.getRawRepo(), is(rawRepo));
         assertThat(deleteRecordAction.getRecord(), is(record));
         assertThat(deleteRecordAction.getMimetype(), is(mimetype));
@@ -310,7 +296,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(DeleteCommonRecordAction.class.getName()));
 
-        DeleteCommonRecordAction deleteCommonRecordAction = (DeleteCommonRecordAction) action;
+        final DeleteCommonRecordAction deleteCommonRecordAction = (DeleteCommonRecordAction) action;
         assertThat(deleteCommonRecordAction.getRawRepo(), is(rawRepo));
         assertThat(deleteCommonRecordAction.getRecord(), is(record));
         assertThat(deleteCommonRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
@@ -322,7 +308,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(LinkRecordAction.class.getName()));
 
-        LinkRecordAction linkRecordAction = (LinkRecordAction) action;
+        final LinkRecordAction linkRecordAction = (LinkRecordAction) action;
         assertThat(linkRecordAction.getRawRepo(), is(rawRepo));
         assertThat(linkRecordAction.getRecord(), is(record));
 
@@ -335,7 +321,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(LinkAuthorityRecordsAction.class.getName()));
 
-        LinkAuthorityRecordsAction linkAuthorityRecordsAction = (LinkAuthorityRecordsAction) action;
+        final LinkAuthorityRecordsAction linkAuthorityRecordsAction = (LinkAuthorityRecordsAction) action;
         assertThat(linkAuthorityRecordsAction.getRawRepo(), is(rawRepo));
         assertThat(linkAuthorityRecordsAction.getRecord(), is(record));
     }
@@ -344,7 +330,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(LinkMatVurdRecordsAction.class.getName()));
 
-        LinkMatVurdRecordsAction linkMatVurdRecordsAction = (LinkMatVurdRecordsAction) action;
+        final LinkMatVurdRecordsAction linkMatVurdRecordsAction = (LinkMatVurdRecordsAction) action;
         assertThat(linkMatVurdRecordsAction.getRawRepo(), is(rawRepo));
         assertThat(linkMatVurdRecordsAction.getRecord(), is(record));
     }
@@ -353,7 +339,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(RemoveLinksAction.class.getName()));
 
-        RemoveLinksAction removeLinksAction = (RemoveLinksAction) action;
+        final RemoveLinksAction removeLinksAction = (RemoveLinksAction) action;
         assertThat(removeLinksAction.getRawRepo(), is(rawRepo));
         assertThat(removeLinksAction.getRecord(), is(record));
     }
@@ -362,7 +348,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(CreateEnrichmentRecordWithClassificationsAction.class.getName()));
 
-        CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = (CreateEnrichmentRecordWithClassificationsAction) action;
+        final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = (CreateEnrichmentRecordWithClassificationsAction) action;
         assertThat(createEnrichmentRecordWithClassificationsAction.state.getRawRepo(), is(rawRepo));
         assertThat(createEnrichmentRecordWithClassificationsAction.getUpdatingCommonRecord(), is(commonRecord));
         assertThat(createEnrichmentRecordWithClassificationsAction.agencyId, is(agencyId));
@@ -373,7 +359,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateEnrichmentRecordAction.class.getName()));
 
-        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction) action;
+        final UpdateEnrichmentRecordAction updateEnrichmentRecordAction = (UpdateEnrichmentRecordAction) action;
         assertThat(updateEnrichmentRecordAction.getRawRepo(), is(rawRepo));
         assertThat(updateEnrichmentRecordAction.getRecord(), is(record));
         assertThat(updateEnrichmentRecordAction.state.getLibraryRecordsHandler(), is(recordsHandler));
@@ -385,7 +371,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(UpdateClassificationsInEnrichmentRecordAction.class.getName()));
 
-        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction) action;
+        final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction) action;
         assertThat(updateClassificationsInEnrichmentRecordAction.state.getRawRepo(), is(rawRepo));
         assertThat(updateClassificationsInEnrichmentRecordAction.getUpdatingCommonRecord(), is(commonRecord));
         assertThat(updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), is(record));
@@ -395,7 +381,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(DoubleRecordFrontendAction.class.getName()));
 
-        DoubleRecordFrontendAction doubleRecordFrontendAction = (DoubleRecordFrontendAction) action;
+        final DoubleRecordFrontendAction doubleRecordFrontendAction = (DoubleRecordFrontendAction) action;
         assertThat(doubleRecordFrontendAction.state.getMarcRecord(), is(record));
     }
 
@@ -403,7 +389,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(DoubleRecordCheckingAction.class.getName()));
 
-        DoubleRecordCheckingAction doubleRecordCheckingAction = (DoubleRecordCheckingAction) action;
+        final DoubleRecordCheckingAction doubleRecordCheckingAction = (DoubleRecordCheckingAction) action;
         assertThat(doubleRecordCheckingAction.record, is(record));
     }
 
@@ -411,7 +397,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(EnqueueRecordAction.class.getName()));
 
-        EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) action;
+        final EnqueueRecordAction enqueueRecordAction = (EnqueueRecordAction) action;
         assertThat(enqueueRecordAction.getRawRepo(), is(rawRepo));
         assertThat(enqueueRecordAction.getRecord(), is(record));
         assertThat(enqueueRecordAction.settings.getProperty(enqueueRecordAction.state.getRawRepoProviderId()), is(providerId));
@@ -421,7 +407,7 @@ public class AssertActionsUtil {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(OverwriteSingleRecordAction.class.getName()));
 
-        OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) action;
+        final OverwriteSingleRecordAction overwriteSingleRecordAction = (OverwriteSingleRecordAction) action;
         assertThat(overwriteSingleRecordAction.getRawRepo(), is(rawRepo));
         assertThat(overwriteSingleRecordAction.marcRecord, is(record));
         assertThat(overwriteSingleRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), is(groupId));
@@ -443,15 +429,15 @@ public class AssertActionsUtil {
         assertThat(actual.getFields().get(1), is(expected.getFields().get(1)));
 
         for (int f = 0; f < actual.getFields().size(); f++) {
-            MarcField actualField = actual.getFields().get(f);
-            MarcField expectedField = expected.getFields().get(f);
+            final MarcField actualField = actual.getFields().get(f);
+            final MarcField expectedField = expected.getFields().get(f);
             if ("001".equals(actualField.getName())) {
-                List<String> ignoredSubfields = Arrays.asList("c", "d");
+                final List<String> ignoredSubfields = Arrays.asList("c", "d");
                 assertThat(actualField.getSubfields().size(), is(expectedField.getSubfields().size()));
 
                 for (int s = 0; s < actualField.getSubfields().size(); s++) {
-                    MarcSubField actualSubfield = actualField.getSubfields().get(s);
-                    MarcSubField expectedSubfield = expectedField.getSubfields().get(s);
+                    final MarcSubField actualSubfield = actualField.getSubfields().get(s);
+                    final MarcSubField expectedSubfield = expectedField.getSubfields().get(s);
                     if (!ignoredSubfields.contains(actualSubfield.getName())) {
                         assertThat(actualSubfield, is(expectedSubfield));
                     }

@@ -29,17 +29,17 @@ public class ValidateOperationAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
+        final AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         children.add(authenticateUserAction);
 
-        ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
+        final ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
         children.add(validateSchemaAction);
 
         if (state.isDoubleRecordPossible() && state.getLibraryGroup().isFBS() && state.getUpdateServiceRequestDTO().getDoubleRecordKey() == null) {
-            DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, settings);
+            final DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, settings);
             children.add(doubleRecordFrontendAndValidateAction);
         } else {
-            ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+            final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
             children.add(validateRecordAction);
         }
         return ServiceResult.newOkResult();

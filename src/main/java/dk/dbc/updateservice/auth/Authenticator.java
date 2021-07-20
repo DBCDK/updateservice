@@ -43,13 +43,11 @@ public class Authenticator {
      * @throws AuthenticatorException AuthenticatorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
-        LOGGER.entry(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), "****");
-        boolean result = false;
         try {
-            String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL).toString();
+            final String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL).toString();
             LOGGER.debug("Using endpoint to forsrights webservice: {}", endpoint);
             ForsRights.RightSet rights;
-            Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
+            final Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
             if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString())) {
                 String ipAddress;
                 if (state.getRequest() != null) {
@@ -63,56 +61,46 @@ public class Authenticator {
             } else {
                 rights = forsService.forsRights(state);
             }
-            String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME);
+            final String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME);
             LOGGER.debug("Looking for product name: {}", productName);
-            return result = rights.hasRightName(productName);
+            return rights.hasRightName(productName);
         } catch (ForsRightsException ex) {
             LOGGER.error("Caught exception:", ex);
             throw new AuthenticatorException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit(result);
         }
     }
 
     private String getRemoteAddrFromMessage(HttpServletRequest request) {
         final String X_FORWARDED_FOR = "x-forwarded-for";
-        String result = "";
-        try {
-            String xForwaredForHeaderName = "";
-            Enumeration<String> headerNames = request.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String name = headerNames.nextElement();
+        String xForwaredForHeaderName = "";
+        final Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            final String name = headerNames.nextElement();
 
-                LOGGER.debug("Checking header: '{}'", name);
-                if (name.equalsIgnoreCase(X_FORWARDED_FOR)) {
-                    xForwaredForHeaderName = name;
-                    break;
-                }
+            LOGGER.debug("Checking header: '{}'", name);
+            if (name.equalsIgnoreCase(X_FORWARDED_FOR)) {
+                xForwaredForHeaderName = name;
+                break;
             }
-            if (xForwaredForHeaderName.isEmpty()) {
-                LOGGER.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
-
-                result = request.getRemoteAddr();
-                return result;
-            }
-            String xForwardedForValue = request.getHeader(xForwaredForHeaderName);
-            LOGGER.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
-            int index = xForwardedForValue.indexOf(",");
-            if (index > -1) {
-                result = xForwardedForValue.substring(0, index);
-                return result;
-            }
-            result = xForwardedForValue;
-            return result;
-        } finally {
-            LOGGER.exit(result);
         }
+        if (xForwaredForHeaderName.isEmpty()) {
+            LOGGER.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
+
+            return request.getRemoteAddr();
+        }
+        final String xForwardedForValue = request.getHeader(xForwaredForHeaderName);
+        LOGGER.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
+        int index = xForwardedForValue.indexOf(",");
+        if (index > -1) {
+            return xForwardedForValue.substring(0, index);
+        }
+        return xForwardedForValue;
     }
 
     private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
-        LOGGER.entry(wsContext);
-        MessageContext mc = wsContext.getMessageContext();
-        HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
+        final MessageContext mc = wsContext.getMessageContext();
+        final HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
+
         return getRemoteAddrFromMessage(req);
     }
 }

@@ -49,40 +49,33 @@ public class LinkRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recordId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
-            RecordId recordIdObj = new RecordId(recordId, agencyId);
-            if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
-                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-            LOGGER.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-            rawRepo.linkRecord(recordIdObj, linkToRecordId);
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
         }
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+        final RecordId recordIdObj = new RecordId(recordId, agencyId);
+        if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
+            final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        }
+        LOGGER.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+        rawRepo.linkRecord(recordIdObj, linkToRecordId);
+
+        return ServiceResult.newOkResult();
     }
 
     /**
      * Factory method to create a LinkRecordAction.
      */
     public static LinkRecordAction newLinkParentAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
-        LOGGER.entry();
-        try {
-            LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, marcRecord);
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String parentId = reader.getParentRecordId();
-            int agencyId = reader.getParentAgencyIdAsInt();
-            linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
-            return linkRecordAction;
-        } finally {
-            LOGGER.exit();
-        }
+        final LinkRecordAction linkRecordAction = new LinkRecordAction(globalActionState, marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String parentId = reader.getParentRecordId();
+        final int agencyId = reader.getParentAgencyIdAsInt();
+        linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
+
+        return linkRecordAction;
     }
 }

@@ -5,8 +5,6 @@
 
 package dk.dbc.updateservice.update;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Document;
 
 import javax.annotation.PostConstruct;
@@ -19,11 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 @Stateless
 @LocalBean
 public class DocumentFactory {
-    /**
-     * @brief initialize logging.
-     */
-    private XLogger logger;
-    
     /*
      * @brief initialize document builder factory.
     */
@@ -31,18 +24,12 @@ public class DocumentFactory {
 
     @PostConstruct
     public void init() {
-        logger = XLoggerFactory.getXLogger(this.getClass());
-        logger.entry();
         dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware( true );
-        logger.exit();
     }
 
     public Document getNewDocument() throws ParserConfigurationException {
-        logger.entry();
-        DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
-        Document document = documentBuilder.newDocument();
-        logger.exit();
-        return document;
+        final DocumentBuilder documentBuilder = dbf.newDocumentBuilder();
+        return documentBuilder.newDocument();
     }
 }

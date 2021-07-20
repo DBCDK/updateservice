@@ -58,16 +58,12 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            children.add(createDeleteEnrichmentAction());
-            children.add(createMoveEnrichmentToCommonRecordAction());
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
         }
+        children.add(createDeleteEnrichmentAction());
+        children.add(createMoveEnrichmentToCommonRecordAction());
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -76,19 +72,16 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of UpdateRecordAction
      */
     private ServiceAction createDeleteEnrichmentAction() {
-        LOGGER.entry();
-        try {
-            MarcRecord deleteRecord = new MarcRecord(marcRecord);
-            MarcRecordReader reader = new MarcRecordReader(deleteRecord);
-            String recordId = reader.getRecordId();
-            String agencyId = reader.getAgencyId();
-            LOGGER.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
-            MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
-            writer.markForDeletion();
-            return createUpdateRecordAction(deleteRecord);
-        } finally {
-            LOGGER.exit(null);
-        }
+        final MarcRecord deleteRecord = new MarcRecord(marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(deleteRecord);
+        final String recordId = reader.getRecordId();
+        final String agencyId = reader.getAgencyId();
+
+        LOGGER.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
+
+        final MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
+        writer.markForDeletion();
+        return createUpdateRecordAction(deleteRecord);
     }
 
     /**
@@ -97,25 +90,24 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of UpdateRecordAction or UpdateRecordAndClassificationsAction
      */
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
-        LOGGER.entry();
         try {
-            MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
-            MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
+            final MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
+            final MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", targetRecordId);
 
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recordId = reader.getRecordId();
-            String agencyId = reader.getAgencyId();
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recordId = reader.getRecordId();
+            final String agencyId = reader.getAgencyId();
             LOGGER.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
 
             if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
                 LOGGER.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-            MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
-            LOGGER.info("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
-            LOGGER.info("isLinkRecInProduction {} ", isLinkRecInProduction);
+            LOGGER.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
+            LOGGER.debug("isLinkRecInProduction {} ", isLinkRecInProduction);
 
             if (isClassificationChangedInCommonRecs) {
                 if (isLinkRecInProduction) {
@@ -131,8 +123,6 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             }
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit(null);
         }
     }
 
@@ -144,14 +134,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of UpdateEnrichmentRecordAction
      */
     private ServiceAction createUpdateRecordAction(MarcRecord updateRecord) {
-        LOGGER.entry();
-        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = null;
-        try {
-            updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, updateRecord);
-            return updateEnrichmentRecordAction;
-        } finally {
-            LOGGER.exit(updateEnrichmentRecordAction);
-        }
+        return new UpdateEnrichmentRecordAction(state, settings, updateRecord);
     }
 
     /**
@@ -163,17 +146,12 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of updateClassificationsInEnrichmentRecordAction
      */
     private ServiceAction createUpdateRecordAndClassificationsAction(MarcRecord updateRecord, MarcRecord commonRecord) {
-        LOGGER.entry();
-        UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = null;
-        try {
-            MarcRecordReader reader = new MarcRecordReader(updateRecord);
-            updateClassificationsInEnrichmentRecordAction = new UpdateClassificationsInEnrichmentRecordAction(state, settings, reader.getAgencyId());
-            updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(commonRecord);
-            updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
-            updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(updateRecord);
-            return updateClassificationsInEnrichmentRecordAction;
-        } finally {
-            LOGGER.exit(updateClassificationsInEnrichmentRecordAction);
-        }
+        final MarcRecordReader reader = new MarcRecordReader(updateRecord);
+        final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
+                new UpdateClassificationsInEnrichmentRecordAction(state, settings, reader.getAgencyId());
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(updateRecord);
+        return updateClassificationsInEnrichmentRecordAction;
     }
 }

@@ -5,9 +5,6 @@
 
 package dk.dbc.updateservice.utils;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +17,6 @@ import java.util.Properties;
  * @brief Implements utility functions for IO.
  */
 public class IOUtils {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(IOUtils.class);
 
     /**
      * @param name The name of the resource.
@@ -114,35 +110,23 @@ public class IOUtils {
      * The InputStream is assumed to be a text resource.
      */
     public static String readAll(InputStream in, String encoding) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-        byte[] buffer = new byte[1024];
+        final byte[] buffer = new byte[1024];
         int length;
         while ((length = in.read(buffer)) != -1) {
             baos.write(buffer, 0, length);
         }
 
-        return new String(baos.toByteArray(), encoding);
+        return baos.toString(encoding);
     }
 
     public static boolean exists(File baseDir, String filename) throws IOException {
-        LOGGER.entry(baseDir, filename);
-
-        try {
-            return exists(baseDir.getCanonicalPath() + "/" + filename);
-        } finally {
-            LOGGER.exit();
-        }
+        return exists(baseDir.getCanonicalPath() + "/" + filename);
     }
 
     public static boolean exists(String filename) {
-        LOGGER.entry(filename);
-
-        try {
-            return new File(filename).exists();
-        } finally {
-            LOGGER.exit();
-        }
+        return new File(filename).exists();
     }
 
 }

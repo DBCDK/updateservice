@@ -12,12 +12,8 @@ import dk.dbc.common.records.MarcSubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction {
-
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(LinkMatVurdRecordsAction.class);
 
     public LinkMatVurdRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(LinkMatVurdRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -25,36 +21,30 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final String recordId = reader.getRecordId();
-            final int agencyId = reader.getAgencyIdAsInt();
-            final RecordId recordIdObj = new RecordId(recordId, agencyId);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+        final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
-            for (MarcField field : marcRecord.getFields()) {
-                if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
-                    for (MarcSubField subField : field.getSubfields()) {
-                        if ("a".equals(subField.getName())) {
-                            final String refRecordId = subField.getValue();
-                            final int refAgencyId = RawRepo.COMMON_AGENCY;
+        for (MarcField field : marcRecord.getFields()) {
+            if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
+                for (MarcSubField subField : field.getSubfields()) {
+                    if ("a".equals(subField.getName())) {
+                        final String refRecordId = subField.getValue();
+                        final int refAgencyId = RawRepo.COMMON_AGENCY;
 
-                            result = checkIfReferenceExists(refRecordId, refAgencyId);
-                            if (result != null) {
-                                return result;
-                            }
-
-                            appendLinkReference(recordIdObj, new RecordId(refRecordId, refAgencyId));
+                        final ServiceResult result = checkIfReferenceExists(refRecordId, refAgencyId);
+                        if (result != null) {
+                            return result;
                         }
+
+                        appendLinkReference(recordIdObj, new RecordId(refRecordId, refAgencyId));
                     }
                 }
             }
-
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
         }
+
+        return ServiceResult.newOkResult();
     }
 
 }

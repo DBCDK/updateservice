@@ -75,13 +75,14 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
             MarcRecord recordToStore = recordToStore();
             recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
@@ -98,12 +99,10 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             rawRepo.saveRecord(rawRepoRecord);
             LOGGER.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
             LOGGER.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
-            return result = ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException ex) {
             LOGGER.error("Error when trying to save record. ", ex);
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            LOGGER.exit(result);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
@@ -130,17 +129,11 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        LOGGER.entry(globalActionState, marcRecord);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
-
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             storeRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
 
-            return storeRecordAction;
-        } finally {
-            LOGGER.exit();
-        }
+        return storeRecordAction;
     }
 
     static String getMarcXChangeMimetype(int agencyId) {
@@ -163,14 +156,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
-        LOGGER.entry(globalActionState, marcRecord);
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
-            return storeRecordAction;
-        } finally {
-            LOGGER.exit();
-        }
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
+        return storeRecordAction;
     }
 
     void updateModifiedDate(MarcRecord marcRecord) {

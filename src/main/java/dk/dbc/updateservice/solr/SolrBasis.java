@@ -21,8 +21,9 @@ import java.util.Properties;
 public class SolrBasis extends SolrBase {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrBasis.class);
 
-    private Properties settings;
+    private final Properties settings;
 
+    // EJB initialization will fail if there is no default constructor
     public SolrBasis() {
         this(JNDIResources.getProperties());
     }
@@ -35,13 +36,13 @@ public class SolrBasis extends SolrBase {
     @Override
     protected URL setUrl(String query, String queryParam) throws UpdateException {
         final String solrQueryUrl = "%s/select?q=%s&wt=json";
-        LOGGER.entry();
         try {
             if (settings.containsKey(JNDIResources.SOLR_BASIS_URL)) {
-                String url = settings.getProperty(JNDIResources.SOLR_BASIS_URL);
+                final String url = settings.getProperty(JNDIResources.SOLR_BASIS_URL);
                 LOGGER.info("Using basis solr url: {}", url);
-                URL solrUrl = new URL(String.format(solrQueryUrl, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
+                final URL solrUrl = new URL(String.format(solrQueryUrl, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
                 LOGGER.info("Solr call query: {} -> {}", query, solrUrl);
+
                 return solrUrl;
             } else {
                 throw new UpdateException("The key '" + JNDIResources.SOLR_BASIS_URL + "' does not exist in settings");

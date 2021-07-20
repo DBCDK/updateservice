@@ -53,70 +53,56 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
-            String providerId;
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
+        String providerId;
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
 
-            int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
+        int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
-            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
-                priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
-                LOGGER.info("Using override priority {}", priority);
-            }
-
-            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
-            } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
-            } else if (state.getLibraryGroup().isPH()) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
-            } else {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
-            }
-
-            if (providerId == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
-            }
-
-            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
-            rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
-
-            // Hack for handling missing enqueue of article (870971) records with child articles.
-            // The way changedRecord enqueues records with children in general is that if there are any children then
-            // the record itself is enqueued with leaf = false which means the record isn't queued for certain workers.
-            // That normally isn't a problem because of the way the records are dequeued by the different workers as the
-            // workers retrieve the necessary hierarchy for the child record.
-            // However there is a hole when it comes to article records as articles does not retrieve their parent
-            // article record during queue processing. Until this case is handled by changedRecord we have to explicit
-            // enqueue the parent article
-            if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && state.getRawRepo().children(marcRecord).size() > 0) {
-                LOGGER.info("Found children for article record, so enqueuing that record explict");
-                LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
-                rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
-            }
-
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
+        if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+            priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+            LOGGER.info("Using override priority {}", priority);
         }
 
+        if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
+            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
+        } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
+            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
+        } else if (state.getLibraryGroup().isPH()) {
+            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
+        } else {
+            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
+        }
+
+        if (providerId == null) {
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
+        }
+
+        LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
+        rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
+
+        // Hack for handling missing enqueue of article (870971) records with child articles.
+        // The way changedRecord enqueues records with children in general is that if there are any children then
+        // the record itself is enqueued with leaf = false which means the record isn't queued for certain workers.
+        // That normally isn't a problem because of the way the records are dequeued by the different workers as the
+        // workers retrieve the necessary hierarchy for the child record.
+        // However there is a hole when it comes to article records as articles does not retrieve their parent
+        // article record during queue processing. Until this case is handled by changedRecord we have to explicit
+        // enqueue the parent article
+        if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && !state.getRawRepo().children(marcRecord).isEmpty()) {
+            LOGGER.info("Found children for article record, so enqueuing that record explict");
+            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
+            rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
+        }
+
+        return ServiceResult.newOkResult();
     }
 
     /**
      * Factory method to create a EnqueueRecordAction.
      */
     public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord marcRecord, Properties properties) {
-        LOGGER.entry(globalActionState, marcRecord);
-        EnqueueRecordAction enqueueRecordAction;
-        try {
-            enqueueRecordAction = new EnqueueRecordAction(globalActionState, properties, marcRecord);
-            return enqueueRecordAction;
-        } finally {
-            LOGGER.exit();
-        }
+        return new EnqueueRecordAction(globalActionState, properties, marcRecord);
     }
 }
