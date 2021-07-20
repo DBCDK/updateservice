@@ -14,6 +14,7 @@ import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
@@ -231,8 +232,8 @@ public class UpdateServiceRest {
                     updateServiceRequestDTO.getAuthenticationDTO() != null &&
                     updateServiceRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
-                // Ignore DBC group id as it pollutes the metric
-                if (!"010100".equals(groupId)) {
+                // Ignore DBC group ids as it pollutes the metric
+                if (!RawRepo.DBC_AGENCY_ALL.contains(groupId)) {
                     metricRegistry.counter(groupIdCounterMetaData,
                             new Tag("groupId", groupId))
                             .inc();
@@ -249,8 +250,8 @@ public class UpdateServiceRest {
                     schemasRequestDTO.getAuthenticationDTO() != null &&
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-                // Ignore DBC group id as it pollutes the metric
-                if (!"010100".equals(groupId)) {
+                // Ignore DBC group ids as it pollutes the metric
+                if (!RawRepo.DBC_AGENCY_ALL.contains(groupId)) {
                     metricRegistry.counter(groupIdCounterMetaData,
                             new Tag("groupId", groupId))
                             .inc();
