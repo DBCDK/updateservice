@@ -319,17 +319,11 @@ public class GlobalActionState {
      * empty string otherwise.
      */
     public String getSchemaName() {
-        LOGGER.entry();
-        String result = "";
-        try {
-            if (updateServiceRequestDTO != null) {
-                result = updateServiceRequestDTO.getSchemaName();
-            } else {
-                LOGGER.warn("Unable to validate schema from request");
-            }
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        if (updateServiceRequestDTO != null) {
+            return updateServiceRequestDTO.getSchemaName();
+        } else {
+            LOGGER.warn("Unable to validate schema from request");
+            return "";
         }
     }
 
@@ -343,36 +337,31 @@ public class GlobalActionState {
      * if the can not be converted or if no records exists.
      */
     public MarcRecord readRecord() {
-        LOGGER.entry();
+        if (marcRecord == null) {
+            List<Object> list = null;
 
-        try {
-            if (marcRecord == null) {
-                List<Object> list = null;
-
-                if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
-                    list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
-                } else {
-                    LOGGER.warn("Unable to read record from request");
-                }
-                if (list != null) {
-                    for (Object o : list) {
-                        if (o instanceof Node) {
-                            marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
+                list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
+            } else {
+                LOGGER.warn("Unable to read record from request");
+            }
+            if (list != null) {
+                for (Object o : list) {
+                    if (o instanceof Node) {
+                        marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                        break;
+                    } else if (o instanceof String) {
+                        String marcString = (String) o;
+                        if (!"".equals(marcString.trim())) {
+                            marcRecord = MarcConverter.convertFromMarcXChange(marcString);
                             break;
-                        } else if (o instanceof String) {
-                            String marcString = (String) o;
-                            if (!"".equals(marcString.trim())) {
-                                marcRecord = MarcConverter.convertFromMarcXChange(marcString);
-                                break;
-                            }
                         }
                     }
                 }
             }
-            return marcRecord;
-        } finally {
-            LOGGER.exit(marcRecord);
         }
+
+        return marcRecord;
     }
 
     /**
@@ -385,18 +374,13 @@ public class GlobalActionState {
      * {@link #RECORD_SCHEMA_MARCXCHANGE_1_1}, <code>false</code> otherwise.
      */
     public boolean isRecordSchemaValid() {
-        LOGGER.entry();
         boolean result = false;
-        try {
-            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
-                result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
-            } else {
-                LOGGER.warn("Unable to record schema from request");
-            }
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
+            result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
+        } else {
+            LOGGER.warn("Unable to record schema from request");
         }
+        return result;
     }
 
     /**
@@ -409,18 +393,13 @@ public class GlobalActionState {
      * {@link #RECORD_PACKING_XML}, <code>false</code> otherwise.
      */
     public boolean isRecordPackingValid() {
-        LOGGER.entry();
         boolean result = false;
-        try {
-            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking() != null) {
-                result = RECORD_PACKING_XML.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking());
-            } else {
-                LOGGER.warn("Unable to record packing from request");
-            }
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking() != null) {
+            result = RECORD_PACKING_XML.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking());
+        } else {
+            LOGGER.warn("Unable to record packing from request");
         }
+        return result;
     }
 
     /**
@@ -433,32 +412,28 @@ public class GlobalActionState {
      * if the can not be converted or if no records exists.
      */
     public BibliographicRecordExtraData getRecordExtraData() {
-        LOGGER.entry();
         List<Object> list = null;
-        try {
-            if (bibliographicRecordExtraData == null) {
-                if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO() != null) {
-                    list = updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO().getContent();
-                }
-                if (list != null) {
-                    for (Object o : list) {
-                        if (o instanceof Node) {
-                            bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
+        if (bibliographicRecordExtraData == null) {
+            if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO() != null) {
+                list = updateServiceRequestDTO.getBibliographicRecordDTO().getExtraRecordDataDTO().getContent();
+            }
+            if (list != null) {
+                for (Object o : list) {
+                    if (o instanceof Node) {
+                        bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new DOMSource((Node) o));
+                        break;
+                    } else if (o instanceof String) {
+                        String extraRecordDataString = (String) o;
+                        if (!"".equals(extraRecordDataString.trim())) {
+                            bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(extraRecordDataString)));
                             break;
-                        } else if (o instanceof String) {
-                            String extraRecordDataString = (String) o;
-                            if (!"".equals(extraRecordDataString.trim())) {
-                                bibliographicRecordExtraData = BibliographicRecordExtraDataDecoder.fromXml(new StreamSource(new StringReader(extraRecordDataString)));
-                                break;
-                            }
                         }
                     }
                 }
             }
-            return bibliographicRecordExtraData;
-        } finally {
-            LOGGER.exit(bibliographicRecordExtraData);
         }
+
+        return bibliographicRecordExtraData;
     }
 
     public RecordSorter getRecordSorter() {
@@ -569,7 +544,7 @@ public class GlobalActionState {
 
     public LibraryGroup getLibraryGroup() throws UpdateException {
         if (libraryGroup == null) {
-            String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+            final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
                 libraryGroup = vipCoreService.getLibraryGroup(groupId);
@@ -584,7 +559,6 @@ public class GlobalActionState {
                 LOGGER.error(err);
                 throw new UpdateException(err);
             }
-
         }
 
         return libraryGroup;
@@ -592,7 +566,7 @@ public class GlobalActionState {
 
     public String getTemplateGroup() throws UpdateException {
         if (templateGroup == null) {
-            String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
+            final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
 
             try {
                 templateGroup = vipCoreService.getTemplateGroup(groupId);

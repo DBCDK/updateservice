@@ -35,48 +35,44 @@ public class AuthenticateUserAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
         try {
             validateNullableData();
             String msg;
-            ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
                 msg = resourceBundle.getString("auth.user.missing.arguments");
                 LOGGER.error(msg);
-                return result = ServiceResult.newAuthErrorResult(msg);
+                return ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
                 msg = resourceBundle.getString("auth.user.missing.username");
                 LOGGER.error(msg);
-                return result = ServiceResult.newAuthErrorResult(msg);
+                return ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
                 msg = resourceBundle.getString("auth.user.missing.groupname");
                 LOGGER.error(msg);
-                return result = ServiceResult.newAuthErrorResult(msg);
+                return ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
                 msg = resourceBundle.getString("auth.user.missing.password");
                 LOGGER.error(msg);
-                return result = ServiceResult.newAuthErrorResult(msg);
+                return ServiceResult.newAuthErrorResult(msg);
             }
             if (state.getAuthenticator().authenticateUser(state)) {
                 LOGGER.info("User {}/{} is authenticated successfully", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
-                return result = ServiceResult.newOkResult();
+                return ServiceResult.newOkResult();
             }
 
             LOGGER.error("User {}/{} could not be authenticated", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId());
 
-            return result = ServiceResult.newAuthErrorResult();
+            return ServiceResult.newAuthErrorResult();
         } catch (AuthenticatorException ex) {
             String message = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             LOGGER.error(message, ex);
             LOGGER.error("Critical error in authenticating user {}/{}: {}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), ex.getMessage());
-            return result = ServiceResult.newAuthErrorResult();
-        } finally {
-            LOGGER.exit(result);
+            return ServiceResult.newAuthErrorResult();
         }
     }
 
@@ -90,5 +86,6 @@ public class AuthenticateUserAction extends AbstractAction {
     }
 
     @Override
-    public void setupMDCContext() {}
+    public void setupMDCContext() {
+    }
 }

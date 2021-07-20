@@ -46,19 +46,20 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            Set<RecordId> recordChildren = rawRepo.children(marcRecord);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+            final Set<RecordId> recordChildren = rawRepo.children(marcRecord);
             if (!recordChildren.isEmpty()) {
                 if (checkForNotDeletableLittolkChildren(recordChildren)) {
                     deleteLittolkChildren(recordChildren);
                 } else {
-                    MarcRecordReader reader = new MarcRecordReader(marcRecord);
-                    String recordId = reader.getRecordId();
+                    final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                    final String recordId = reader.getRecordId();
 
-                    String message = state.getMessages().getString("delete.record.children.error");
-                    String errorMessage = String.format(message, recordId);
+                    final String message = state.getMessages().getString("delete.record.children.error");
+                    final String errorMessage = String.format(message, recordId);
 
                     LOGGER.error("Unable to create sub actions due to an error: {}", errorMessage);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage);
@@ -66,13 +67,13 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             }
 
             for (RecordId enrichmentId : rawRepo.enrichments(marcRecord)) {
-                Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
-                MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
+                final Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
+                final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
 
-                MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+                final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                 writer.markForDeletion();
 
-                UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
+                final UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
 
                 children.add(updateEnrichmentRecordAction);
             }
@@ -85,8 +86,6 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             LOGGER.error(ex.getMessage(), ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            LOGGER.exit();
         }
     }
 
@@ -112,17 +111,17 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      * This function deletes every record plus its enrichment in recordChildren input
      *
      * @param recordChildren The list of records to delete
-     * @throws UpdateException In case of an error.
+     * @throws UpdateException              In case of an error.
      * @throws UnsupportedEncodingException If the record can't be decoded
      */
     private void deleteLittolkChildren(Set<RecordId> recordChildren) throws UpdateException, UnsupportedEncodingException {
         for (RecordId recordId : recordChildren) {
-            MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+            final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
             LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT);
             new MarcRecordWriter(littolkEnrichment).markForDeletion();
             children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
 
-            MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+            final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
             LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY);
             children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
         }

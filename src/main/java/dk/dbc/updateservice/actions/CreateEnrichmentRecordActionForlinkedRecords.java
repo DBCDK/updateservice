@@ -50,7 +50,7 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
     private MarcRecord recordWithHoldings;
     private int agencyId;
     private MarcRecord record;
-    private Properties settings;
+    private final Properties settings;
 
     public CreateEnrichmentRecordActionForlinkedRecords(GlobalActionState globalActionState, Properties properties) {
         super(CreateEnrichmentRecordWithClassificationsAction.class.getSimpleName(), globalActionState);
@@ -81,34 +81,31 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
-
-            MarcRecord enrichmentRecord = createEnrichmentRecord();
-            if (enrichmentRecord.getFields().isEmpty()) {
-                LOGGER.info("No sub actions to create for an empty enrichment record.");
-                return ServiceResult.newOkResult();
-            }
-            LOGGER.info("Creating sub actions to store new enrichment record.");
-            LOGGER.info("Enrichment record:\n{}", enrichmentRecord);
-
-            String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
-            storeRecordAction.setMimetype(MIMETYPE);
-
-            children.add(storeRecordAction);
-
-            LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-            linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
-            children.add(linkRecordAction);
-
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
-            children.add(enqueueRecordAction);
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
         }
+
+        final MarcRecord enrichmentRecord = createEnrichmentRecord();
+        if (enrichmentRecord.getFields().isEmpty()) {
+            LOGGER.info("No sub actions to create for an empty enrichment record.");
+            return ServiceResult.newOkResult();
+        }
+        LOGGER.info("Creating sub actions to store new enrichment record.");
+        LOGGER.debug("Enrichment record:\n{}", enrichmentRecord);
+
+        final String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
+        storeRecordAction.setMimetype(MIMETYPE);
+        children.add(storeRecordAction);
+
+        final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
+        linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
+        children.add(linkRecordAction);
+
+        final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
+        children.add(enqueueRecordAction);
+
+        return ServiceResult.newOkResult();
     }
 
     @Override
@@ -117,91 +114,73 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
     }
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
-        LOGGER.entry(recordId, agencyId);
-        MarcRecord result = null;
         try {
-            Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = RecordContentTransformer.decodeRecord(record.getContent());
+            final Record record = rawRepo.fetchRecord(recordId, agencyId);
+            return RecordContentTransformer.decodeRecord(record.getContent());
         } catch (UnsupportedEncodingException e) {
             throw new UpdateException(e.getMessage(), e);
-        } finally {
-            LOGGER.exit(result);
         }
     }
 
     private MarcRecord createEnrichmentRecord() throws UpdateException {
-        LOGGER.entry();
         MarcRecord enrichmentRecord = new MarcRecord();
-        try {
-            MarcRecordReader recordReader = new MarcRecordReader(record);
-            String recordId = recordReader.getRecordId();
-            MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
-            if (rawRepo.recordExists(recordId, agencyId)) {
-                enrichmentRecord = loadRecord(recordId, agencyId);
-            } else {
-                enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
-                enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
-            }
-            enrichmentRecord.getFields().add(getFormattedY08Field(recordWithHoldings));
-            return enrichmentRecord;
-        } finally {
-            LOGGER.exit(enrichmentRecord);
+        final MarcRecordReader recordReader = new MarcRecordReader(record);
+        final String recordId = recordReader.getRecordId();
+        if (rawRepo.recordExists(recordId, agencyId)) {
+            enrichmentRecord = loadRecord(recordId, agencyId);
+        } else {
+            final MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
+            enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
+            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
         }
+        enrichmentRecord.getFields().add(getFormattedY08Field(recordWithHoldings));
+
+        return enrichmentRecord;
     }
 
     private MarcField getFormattedY08Field(MarcRecord rec) {
-        LOGGER.entry(rec);
-        MarcField yNoteField = new MarcField("y08", "00");
+        final MarcField yNoteField = new MarcField("y08", "00");
+        final MarcRecordReader reader = new MarcRecordReader(rec);
+        final String faust = reader.getValue("001", "a");
+        String faustWithIntro;
         try {
-            MarcRecordReader reader = new MarcRecordReader(rec);
-            String faust = reader.getValue("001", "a");
-            String faustWithIntro;
-            try {
-                MarcField noteField = state.getLibraryRecordsHandler().fetchNoteField(rec);
-                String yNoteFieldString = getNoteFieldString(noteField);
-                if (yNoteFieldString == null) {
-                    faustWithIntro = String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust);
-                } else {
-                    faustWithIntro = String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString);
-                    faustWithIntro = faustWithIntro.replace(RECATEGORIZATION_STRING_OBSOLETE, "");
-                }
-                yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
-                return yNoteField;
-            } catch (UpdateException e) {
-                LOGGER.error("Error : UpdateException, probably due to malformed record \n", e);
-                yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
-                return yNoteField;
+            final MarcField noteField = state.getLibraryRecordsHandler().fetchNoteField(rec);
+            final String yNoteFieldString = getNoteFieldString(noteField);
+            if (yNoteFieldString == null) {
+                faustWithIntro = String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust);
+            } else {
+                faustWithIntro = String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString);
+                faustWithIntro = faustWithIntro.replace(RECATEGORIZATION_STRING_OBSOLETE, "");
             }
-        } finally {
-            LOGGER.exit(yNoteField);
+            yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
+            return yNoteField;
+        } catch (UpdateException e) {
+            LOGGER.error("Error : UpdateException, probably due to malformed record \n", e);
+            yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
+            return yNoteField;
         }
     }
 
     private String getNoteFieldString(MarcField noteField) {
-        LOGGER.entry(noteField);
         String res = "";
-        try {
-            if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
-                return null;
-            }
-
-            List<MarcSubField> subFields = noteField.getSubfields();
-            for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
-                MarcSubField sf = mfIter.next();
-                LOGGER.trace("working on subfield: {}", sf);
-                if (mfIter.hasNext()) {
-                    if (sf.getName().equals("d")) {
-                        res = res.concat(sf.getValue() + ": ");
-                    } else {
-                        res = res.concat(sf.getValue() + " ");
-                    }
-                } else {
-                    res = res.concat(sf.getValue());
-                }
-            }
-            return res;
-        } finally {
-            LOGGER.exit(res);
+        if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
+            return null;
         }
+
+        final List<MarcSubField> subFields = noteField.getSubfields();
+        for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
+            MarcSubField sf = mfIter.next();
+            LOGGER.trace("working on subfield: {}", sf);
+            if (mfIter.hasNext()) {
+                if (sf.getName().equals("d")) {
+                    res = res.concat(sf.getValue() + ": ");
+                } else {
+                    res = res.concat(sf.getValue() + " ");
+                }
+            } else {
+                res = res.concat(sf.getValue());
+            }
+        }
+        return res;
     }
 }

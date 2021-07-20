@@ -30,8 +30,7 @@ public class VipCoreService {
     private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
     public boolean hasFeature(String agencyId, VipCoreLibraryRulesConnector.Rule feature) throws VipCoreException {
-        LOGGER.entry(agencyId, feature);
-        StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
 
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
@@ -48,13 +47,11 @@ public class VipCoreService {
             return false;
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 
     public LibraryGroup getLibraryGroup(String agencyId) throws VipCoreException, UpdateException {
-        LOGGER.entry(agencyId);
-        StopWatch watch = new Log4JStopWatch("service.vipcore.getLibraryGroup");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.getLibraryGroup");
         String reply = "";
         LibraryGroup result;
         try {
@@ -92,12 +89,10 @@ public class VipCoreService {
             return result;
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 
     public String getTemplateGroup(String agencyId) throws VipCoreException, UpdateException {
-        LOGGER.entry(agencyId);
         StopWatch watch = new Log4JStopWatch("service.vipcore.getTemplateGroup");
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
@@ -113,7 +108,6 @@ public class VipCoreService {
             throw new UpdateException("Could not find templateGroup for " + agencyId);
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 
@@ -130,26 +124,18 @@ public class VipCoreService {
     }
 
     private Set<String> getLibrariesByCatalogingTemplateSet(String catalogingTemplateSet) throws VipCoreException {
-        LOGGER.entry();
-        Set<String> result = null;
-        try {
-            final LibraryRule libraryRule = new LibraryRule();
-            libraryRule.setName(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue());
-            libraryRule.setString(catalogingTemplateSet);
-            final LibraryRulesRequest request = new LibraryRulesRequest();
-            request.setLibraryRule(Collections.singletonList(libraryRule));
+        final LibraryRule libraryRule = new LibraryRule();
+        libraryRule.setName(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue());
+        libraryRule.setString(catalogingTemplateSet);
+        final LibraryRulesRequest request = new LibraryRulesRequest();
+        request.setLibraryRule(Collections.singletonList(libraryRule));
 
-            result = vipCoreLibraryRulesConnector.getLibraries(request);
-            return result;
-        } finally {
-            LOGGER.exit(result);
-        }
+        return vipCoreLibraryRulesConnector.getLibraries(request);
     }
 
 
     public Set<String> getAllowedLibraryRules(String agencyId) throws VipCoreException {
-        LOGGER.entry(agencyId, agencyId);
-        StopWatch watch = new Log4JStopWatch("service.vipcore.getAllowedLibraryRules");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.getAllowedLibraryRules");
         final Set<String> result = new HashSet<>();
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
@@ -163,7 +149,6 @@ public class VipCoreService {
             return result;
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 

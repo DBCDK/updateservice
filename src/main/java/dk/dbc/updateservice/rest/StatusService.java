@@ -31,37 +31,25 @@ public class StatusService {
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getStatus() {
-        LOGGER.entry();
-        String res = "ST_OK";
-        try {
-            return Response.ok(res, MediaType.TEXT_PLAIN).build();
-        } finally {
-            LOGGER.exit(res);
-        }
+        return Response.ok("ST_OK", MediaType.TEXT_PLAIN).build();
     }
 
     @GET
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() {
-        LOGGER.entry();
-        try {
-            final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
-            final boolean updateServiceClientReady = updateServiceClient.isReady();
-            if (updateServiceClientReady) {
-                return Response.ok("UpdateService is initialized").build();
-            }
-            return Response.status(SERVICE_UNAVAILABLE).build();
-        } finally {
-            LOGGER.exit();
+        final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
+        final boolean updateServiceClientReady = updateServiceClient.isReady();
+        if (updateServiceClientReady) {
+            return Response.ok("UpdateService is initialized").build();
         }
+        return Response.status(SERVICE_UNAVAILABLE).build();
     }
 
     @GET
     @Path("/getrevision")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getRevision() {
-        LOGGER.entry();
         try {
             final URL path = StatusService.class.getClassLoader().getResource("build.properties");
             final Properties properties = new Properties();
@@ -73,8 +61,6 @@ public class StatusService {
         } catch (Exception e) {
             LOGGER.catching(e);
             return Response.serverError().build();
-        } finally {
-            LOGGER.exit();
         }
     }
 }

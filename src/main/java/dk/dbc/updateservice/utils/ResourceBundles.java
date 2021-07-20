@@ -5,28 +5,22 @@
 
 package dk.dbc.updateservice.utils;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class ResourceBundles {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ResourceBundles.class);
     public static final Locale DANISH = new Locale("da", "DK");
+
+    private ResourceBundles() {
+
+    }
 
     public static ResourceBundle getBundle(String bundleName) {
         return getBundle(bundleName, DANISH);
     }
 
     public static ResourceBundle getBundle(String bundleName, Locale locale) {
-        LOGGER.entry(bundleName, locale);
-
-        try {
-            return ResourceBundle.getBundle(bundleName, locale, new CharSetControl());
-        } finally {
-            LOGGER.exit();
-        }
+        return ResourceBundle.getBundle(bundleName, locale, new CharSetControl());
     }
 
     public static ResourceBundle getBundle(ClassLoader classloader, String bundleName) {
@@ -34,13 +28,7 @@ public class ResourceBundles {
     }
 
     public static ResourceBundle getBundle(ClassLoader classloader, String bundleName, Locale locale) {
-        LOGGER.entry(classloader, bundleName, locale);
-
-        try {
-            return ResourceBundle.getBundle(bundleName, locale, classloader, new CharSetControl());
-        } finally {
-            LOGGER.exit();
-        }
+        return ResourceBundle.getBundle(bundleName, locale, classloader, new CharSetControl());
     }
 
     /**

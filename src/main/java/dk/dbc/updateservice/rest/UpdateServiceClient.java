@@ -61,13 +61,12 @@ public class UpdateServiceClient {
     }
 
     private UpdateRecordResponseDTO callUpdate() {
-        final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
-
         final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId("725900");
         authenticationDTO.setPassword("");
         authenticationDTO.setUserId("");
 
+        final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         updateServiceRequestDTO.setSchemaName("boghoved");
         updateServiceRequestDTO.setTrackingId("k8s-warm-up");

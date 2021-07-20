@@ -13,8 +13,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
@@ -31,7 +29,6 @@ import java.util.Properties;
  * </p>
  */
 public class DeleteRecordAction extends StoreRecordAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DeleteRecordAction.class);
 
     public DeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(globalActionState, properties, marcRecord);
@@ -50,63 +47,46 @@ public class DeleteRecordAction extends StoreRecordAction {
      */
     @Override
     public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry();
-        MarcRecord result = null;
-        try {
-            result = loadCurrentRecord();
-            MarcRecordWriter currentWriter = new MarcRecordWriter(result);
-            MarcRecordReader currentReader = new MarcRecordReader(result);
-            if (currentReader.getField("004") == null) {
-                // This is done because the database by historical reasons are pestered with
-                // a large number of records without field 004
-                currentWriter.copyFieldFromRecord("004", marcRecord);
-            }
-            currentWriter.markForDeletion();
-            currentWriter.setChangedTimestamp();
-
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        final MarcRecord result = loadCurrentRecord();
+        final MarcRecordWriter currentWriter = new MarcRecordWriter(result);
+        final MarcRecordReader currentReader = new MarcRecordReader(result);
+        if (currentReader.getField("004") == null) {
+            // This is done because the database by historical reasons are pestered with
+            // a large number of records without field 004
+            currentWriter.copyFieldFromRecord("004", marcRecord);
         }
+        currentWriter.markForDeletion();
+        currentWriter.setChangedTimestamp();
+
+        return result;
     }
 
     /**
      * Factory method to create a DeleteRecordAction.
      */
     public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        LOGGER.entry(globalActionState, record);
-        try {
-            String mimeType;
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
+        String mimeType;
+        final DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
+        final MarcRecordReader reader = new MarcRecordReader(record);
 
-            MarcRecordReader reader = new MarcRecordReader(record);
-
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
-                mimeType = MarcXChangeMimeType.ARTICLE;
-            } else {
-                mimeType = MarcXChangeMimeType.MARCXCHANGE;
-            }
-
-            deleteRecordAction.setMimetype(mimeType);
-            return deleteRecordAction;
-        } finally {
-            LOGGER.exit();
+        if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
+            mimeType = MarcXChangeMimeType.ARTICLE;
+        } else {
+            mimeType = MarcXChangeMimeType.MARCXCHANGE;
         }
+
+        deleteRecordAction.setMimetype(mimeType);
+
+        return deleteRecordAction;
     }
 
     private MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry();
-        MarcRecord result = null;
-        try {
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recordId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
 
-            Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return result = RecordContentTransformer.decodeRecord(record.getContent());
-        } finally {
-            LOGGER.exit(result);
-        }
+        final Record record = rawRepo.fetchRecord(recordId, agencyId);
+        return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
     /**

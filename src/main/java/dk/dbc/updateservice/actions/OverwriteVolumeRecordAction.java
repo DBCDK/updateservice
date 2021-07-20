@@ -38,50 +38,47 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = ServiceResult.newOkResult();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();
+                return ServiceResult.newOkResult();
             } else {
-                result = performActionDefault();
+                return performActionDefault();
             }
-            return result;
-
         } catch (RawRepoException | UnsupportedEncodingException ex) {
-            return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            LOGGER.exit(result);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
     private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        String recordId = reader.getRecordId();
-        String parentId = reader.getParentRecordId();
-        int agencyId = reader.getAgencyIdAsInt();
-        int parentAgencyId = reader.getParentAgencyIdAsInt();
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        final String parentId = reader.getParentRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+        final int parentAgencyId = reader.getParentAgencyIdAsInt();
 
         if (recordId.equals(parentId)) {
             int errorAgencyId = agencyId;
             if (errorAgencyId == RawRepo.COMMON_AGENCY) {
                 errorAgencyId = RawRepo.DBC_ENRICHMENT;
             }
-            String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
+            final String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
             LOGGER.error("Unable to create sub actions due to an error: {}", message);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!rawRepo.recordExists(parentId, parentAgencyId)) {
-            String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
+            final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
             LOGGER.error("Unable to create sub actions due to an error: {}", message);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
-        MarcRecord currentExpandedRecord = loadCurrentRecord();
-        MarcRecord newExpandedRecord = expandRecord();
+        final MarcRecord currentExpandedRecord = loadCurrentRecord();
+        final MarcRecord newExpandedRecord = expandRecord();
 
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
         children.add(new RemoveLinksAction(state, marcRecord));

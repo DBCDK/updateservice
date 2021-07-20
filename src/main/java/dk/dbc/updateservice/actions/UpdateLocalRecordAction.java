@@ -51,28 +51,24 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult res = null;
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-
-            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-            String parentId = reader.getParentRecordId();
-            if (reader.markedForDeletion()) {
-                if (parentId == null) {
-                    return res = performSingleDeleteAction();
-                }
-                return res = performVolumeDeleteAction();
-            }
-
-            if (parentId == null) {
-                return res = performUpdateSingleRecordAction();
-            }
-
-            return res = performUpdateVolumeRecordAction(parentId);
-        } finally {
-            LOGGER.exit(res);
         }
+
+        MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+        String parentId = reader.getParentRecordId();
+        if (reader.markedForDeletion()) {
+            if (parentId == null) {
+                return performSingleDeleteAction();
+            }
+            return performVolumeDeleteAction();
+        }
+
+        if (parentId == null) {
+            return performUpdateSingleRecordAction();
+        }
+
+        return performUpdateVolumeRecordAction(parentId);
     }
 
     /**
@@ -90,22 +86,14 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @return OK.
      */
     private ServiceResult performUpdateSingleRecordAction() {
-        LOGGER.entry();
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        children.add(storeRecordAction);
+        children.add(new RemoveLinksAction(state, marcRecord));
+        final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
+        children.add(enqueueRecordAction);
 
-        try {
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-            children.add(storeRecordAction);
-
-            children.add(new RemoveLinksAction(state, marcRecord));
-
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
-            children.add(enqueueRecordAction);
-
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
-        }
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -124,34 +112,29 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performUpdateVolumeRecordAction(String parentId) throws UpdateException {
-        LOGGER.entry();
-
-        try {
-            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-            String recordId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
-            if (recordId.equals(parentId)) {
-                String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-            if (!rawRepo.recordExists(parentId, agencyId)) {
-                String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-            StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
-            storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-            children.add(storeRecordAction);
-
-            LinkRecordAction linkRecordAction = new LinkRecordAction(state, marcRecord);
-            linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
-            children.add(linkRecordAction);
-
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
-            children.add(enqueueRecordAction);
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
+        final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+        final String recordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+        if (recordId.equals(parentId)) {
+            final String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
+        if (!rawRepo.recordExists(parentId, agencyId)) {
+            final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        }
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, marcRecord);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
+        children.add(storeRecordAction);
+
+        final LinkRecordAction linkRecordAction = new LinkRecordAction(state, marcRecord);
+        linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
+        children.add(linkRecordAction);
+
+        final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
+        children.add(enqueueRecordAction);
+
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -170,63 +153,57 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of critical errors.
      */
     private ServiceResult performSingleDeleteAction() throws UpdateException {
-        LOGGER.entry();
         try {
             if (!rawRepo.children(marcRecord).isEmpty()) {
-                MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-                String recordId = reader.getRecordId();
-                String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+                final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+                final String recordId = reader.getRecordId();
+                final String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.marcRecord).isEmpty()) {
-                AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(marcRecord).getAgencyId());
+                final AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(marcRecord).getAgencyId());
                 if (state.getVipCoreService().hasFeature(agencyNumber.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)) {
-                    String message = state.getMessages().getString("delete.local.with.holdings.error");
+                    final String message = state.getMessages().getString("delete.local.with.holdings.error");
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
             children.add(new RemoveLinksAction(state, marcRecord));
 
-            DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
+            final DeleteRecordAction deleteRecordAction = new DeleteRecordAction(state, settings, marcRecord);
             deleteRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
             children.add(deleteRecordAction);
 
-            EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
+            final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, marcRecord);
             children.add(enqueueRecordAction);
 
             return ServiceResult.newOkResult();
         } catch (VipCoreException ex) {
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit();
         }
     }
 
     private ServiceResult performVolumeDeleteAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
         try {
-            result = performSingleDeleteAction();
+            final ServiceResult result = performSingleDeleteAction();
             if (result.getStatus() != UpdateStatusEnumDTO.OK) {
                 return result;
             }
-            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-            String parentRecordId = reader.getParentRecordId();
-            int parentAgencyId = reader.getParentAgencyIdAsInt();
-            Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));
+            final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+            final String parentRecordId = reader.getParentRecordId();
+            final int parentAgencyId = reader.getParentAgencyIdAsInt();
+            final Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));
             if (recordIdChildrenList.size() != 1) {
-                return result = ServiceResult.newOkResult();
+                return ServiceResult.newOkResult();
             }
-            MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
-            MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
+            final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
+            final MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
             writer.markForDeletion();
-            UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);
+            final UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);
             children.add(action);
+
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException ex) {
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit(result);
         }
     }
 }

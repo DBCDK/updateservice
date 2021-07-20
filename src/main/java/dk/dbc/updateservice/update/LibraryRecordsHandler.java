@@ -90,13 +90,7 @@ public class LibraryRecordsHandler {
      * <code>false</code> otherwise.
      */
     public boolean isRecordInProduction(MarcRecord marcRecord) {
-        LOGGER.entry(marcRecord);
-
-        try {
-            return CatalogExtractionCode.isUnderProduction(marcRecord);
-        } finally {
-            LOGGER.exit();
-        }
+        return CatalogExtractionCode.isUnderProduction(marcRecord);
     }
 
     /**
@@ -107,19 +101,13 @@ public class LibraryRecordsHandler {
      * <code>false</code> otherwise.
      */
     public boolean hasClassificationData(MarcRecord marcRecord) {
-        LOGGER.entry(marcRecord);
-        boolean result = false;
-        try {
-            List<MarcField> fields = marcRecord.getFields();
-            for (MarcField field : fields) {
-                if (CLASSIFICATION_FIELDS.contains(field.getName())) {
-                    return result = true;
-                }
+        final List<MarcField> fields = marcRecord.getFields();
+        for (MarcField field : fields) {
+            if (CLASSIFICATION_FIELDS.contains(field.getName())) {
+                return true;
             }
-            return result = false;
-        } finally {
-            LOGGER.exit(result);
         }
+        return false;
     }
 
     /**
@@ -842,7 +830,6 @@ public class LibraryRecordsHandler {
     }
 
     public MarcRecord correctLibraryExtendedRecord(MarcRecord commonRecord, MarcRecord enrichmentRecord) {
-        LOGGER.entry(commonRecord, enrichmentRecord);
         MarcRecord result = null;
         if (hasClassificationData(commonRecord)) {
             LOGGER.info("Enrichment has classificationData");
@@ -889,67 +876,43 @@ public class LibraryRecordsHandler {
      * @throws UpdateException              in case of an error
      */
     public List<MarcRecord> recordDataForRawRepo(MarcRecord marcRecord, String groupId, LibraryGroup libraryGroup, ResourceBundle messages, boolean isAdmin) throws VipCoreException, UnsupportedEncodingException, UpdateException {
-        LOGGER.entry(marcRecord, groupId, libraryGroup, messages);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
+                rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
+            final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+            UpdateOwnership.mergeRecord(marcRecord, existingRecord);
+        }
 
-        List<MarcRecord> result = new ArrayList<>();
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            if (!isAdmin && reader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY &&
-                    rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
-                final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                UpdateOwnership.mergeRecord(marcRecord, existingRecord);
-            }
-
-            if (libraryGroup.isFBS()) {
-                result = recordDataForRawRepoFBS(marcRecord, groupId, messages);
-            } else { // Assuming DataIO mode
-                result = recordDataForRawRepoDataIO(marcRecord, groupId);
-            }
-
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        if (libraryGroup.isFBS()) {
+            return recordDataForRawRepoFBS(marcRecord, groupId, messages);
+        } else { // Assuming DataIO mode
+            return recordDataForRawRepoDataIO(marcRecord, groupId);
         }
     }
 
     private List<MarcRecord> recordDataForRawRepoFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(marcRecord, groupId, messages);
-        List<MarcRecord> result = new ArrayList<>();
-        try {
-            result = splitRecordFBS(marcRecord, groupId, messages);
+        final List<MarcRecord> result = splitRecordFBS(marcRecord, groupId, messages);
 
-            for (MarcRecord r : result) {
-                final MarcRecordWriter writer = new MarcRecordWriter(r);
-                writer.setChangedTimestamp();
-            }
-
-            return result;
-        } finally {
-            LOGGER.exit(result);
+        for (MarcRecord r : result) {
+            final MarcRecordWriter writer = new MarcRecordWriter(r);
+            writer.setChangedTimestamp();
         }
+
+        return result;
     }
 
     private List<MarcRecord> recordDataForRawRepoDataIO(MarcRecord marcRecord, String groupId) throws VipCoreException {
-        LOGGER.entry(marcRecord, groupId);
-
-        List<MarcRecord> result = new ArrayList<>();
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        try {
-            if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
-                    vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS) ||
-                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) ||
-                            vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS))) {
+        if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId()) && (
+                vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS) ||
+                        vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) ||
+                        vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS))) {
 
-                LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
-                result = splitRecordDataIO(marcRecord, reader.getAgencyId());
-            } else {
-                LOGGER.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
-                result = Collections.singletonList(marcRecord);
-            }
-
-            return result;
-        } finally {
-            LOGGER.exit(result);
+            LOGGER.info("Record is 870970 and has either USE_ENRICHMENT, AUTH_ROOT or AUTH_METACOMPASS so calling splitRecordDataIO");
+            return splitRecordDataIO(marcRecord, reader.getAgencyId());
+        } else {
+            LOGGER.info("Record is not 870970 or has neither USE_ENRICHMENT, AUTH_ROOT nor AUTH_METACOMPASS so returning same record");
+            return Collections.singletonList(marcRecord);
         }
     }
 
@@ -965,64 +928,58 @@ public class LibraryRecordsHandler {
      * @throws UnsupportedEncodingException in case of an error
      */
     private List<MarcRecord> splitRecordFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException, UnsupportedEncodingException {
-        LOGGER.entry(marcRecord, groupId);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-
-            if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
-                LOGGER.info("Agency id of record is not 870970 - returning same record");
-                return Collections.singletonList(marcRecord);
-            }
-            final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
-
-            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(marcRecord, groupId);
-            final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
-            MarcRecord dbcEnrichmentRecord;
-
-            final String recId = correctedRecordReader.getRecordId();
-            final String owner = correctedRecordReader.getValue("996", "a");
-
-            if (owner == null) {
-                LOGGER.debug("No owner in record.");
-
-                return Collections.singletonList(correctedRecord);
-            } else {
-                LOGGER.info("Owner of record is {}", owner);
-            }
-
-            if (!rawRepo.recordExists(recId, RawRepo.DBC_ENRICHMENT)) {
-                LOGGER.debug("DBC enrichment record [{}:{}] does not exist.", recId, RawRepo.DBC_ENRICHMENT);
-                dbcEnrichmentRecord = new MarcRecord();
-                final MarcField corrected001Field = new MarcField(correctedRecordReader.getField("001"));
-                dbcEnrichmentRecord.getFields().add(corrected001Field);
-
-                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
-            } else {
-                LOGGER.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.DBC_ENRICHMENT);
-                dbcEnrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
-            }
-
-            final String recordStatus = correctedRecordReader.getValue("004", "r");
-            if (recordStatus != null) {
-                LOGGER.debug("Replace 004 *r in DBC enrichment record with: {}", recordStatus);
-                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "r", recordStatus);
-            }
-
-            final String recordType = correctedRecordReader.getValue("004", "a");
-            if (recordType != null) {
-                LOGGER.debug("Replace 004 *a in DBC enrichment record with: {}", recordType);
-                new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "a", recordType);
-            }
-
-
-            LOGGER.info("correctedRecord\n{}", correctedRecord);
-            LOGGER.info("dbcEnrichmentRecord\n{}", dbcEnrichmentRecord);
-
-            return Arrays.asList(correctedRecord, dbcEnrichmentRecord);
-        } finally {
-            LOGGER.exit();
+        if (reader.getAgencyIdAsInt() != RawRepo.COMMON_AGENCY) {
+            LOGGER.info("Agency id of record is not 870970 - returning same record");
+            return Collections.singletonList(marcRecord);
         }
+        final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
+
+        final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(marcRecord, groupId);
+        final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
+        MarcRecord dbcEnrichmentRecord;
+
+        final String recId = correctedRecordReader.getRecordId();
+        final String owner = correctedRecordReader.getValue("996", "a");
+
+        if (owner == null) {
+            LOGGER.debug("No owner in record.");
+
+            return Collections.singletonList(correctedRecord);
+        } else {
+            LOGGER.info("Owner of record is {}", owner);
+        }
+
+        if (!rawRepo.recordExists(recId, RawRepo.DBC_ENRICHMENT)) {
+            LOGGER.debug("DBC enrichment record [{}:{}] does not exist.", recId, RawRepo.DBC_ENRICHMENT);
+            dbcEnrichmentRecord = new MarcRecord();
+            final MarcField corrected001Field = new MarcField(correctedRecordReader.getField("001"));
+            dbcEnrichmentRecord.getFields().add(corrected001Field);
+
+            new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        } else {
+            LOGGER.debug("DBC enrichment record [{}:{}] found.", recId, RawRepo.DBC_ENRICHMENT);
+            dbcEnrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.DBC_ENRICHMENT).getContent());
+        }
+
+        final String recordStatus = correctedRecordReader.getValue("004", "r");
+        if (recordStatus != null) {
+            LOGGER.debug("Replace 004 *r in DBC enrichment record with: {}", recordStatus);
+            new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "r", recordStatus);
+        }
+
+        final String recordType = correctedRecordReader.getValue("004", "a");
+        if (recordType != null) {
+            LOGGER.debug("Replace 004 *a in DBC enrichment record with: {}", recordType);
+            new MarcRecordWriter(dbcEnrichmentRecord).addOrReplaceSubfield("004", "a", recordType);
+        }
+
+
+        LOGGER.info("correctedRecord\n{}", correctedRecord);
+        LOGGER.info("dbcEnrichmentRecord\n{}", dbcEnrichmentRecord);
+
+        return Arrays.asList(correctedRecord, dbcEnrichmentRecord);
     }
 
 
@@ -1034,46 +991,40 @@ public class LibraryRecordsHandler {
      * @return List containing common and DBC record
      */
     List<MarcRecord> splitRecordDataIO(MarcRecord marcRecord, String agencyId) {
-        LOGGER.entry(marcRecord);
+        final MarcRecord dbcRecord = new MarcRecord();
+        final MarcRecord commonRecord = new MarcRecord();
 
-        try {
-            final MarcRecord dbcRecord = new MarcRecord();
-            final MarcRecord commonRecord = new MarcRecord();
-
-            for (MarcField field : marcRecord.getFields()) {
-                if (field.getName().equals("001")) {
-                    final MarcField commonField = new MarcField(field);
-                    for (int c = 0; c < commonField.getSubfields().size(); c++) {
-                        if (commonField.getSubfields().get(c).getName().equals("b")) {
-                            commonField.getSubfields().get(c).setValue(agencyId);
-                        }
+        for (MarcField field : marcRecord.getFields()) {
+            if (field.getName().equals("001")) {
+                final MarcField commonField = new MarcField(field);
+                for (int c = 0; c < commonField.getSubfields().size(); c++) {
+                    if (commonField.getSubfields().get(c).getName().equals("b")) {
+                        commonField.getSubfields().get(c).setValue(agencyId);
                     }
-                    commonRecord.getFields().add(commonField);
-
-                    final MarcField dbcField = new MarcField(field);
-                    for (int d = 0; d < dbcField.getSubfields().size(); d++) {
-                        if (dbcField.getSubfields().get(d).getName().equals("b")) {
-                            dbcField.getSubfields().get(d).setValue(Integer.toString(RawRepo.DBC_ENRICHMENT));
-                        }
-                    }
-                    dbcRecord.getFields().add(dbcField);
-                } else if (field.getName().equals("004")) {
-                    dbcRecord.getFields().add(field);
-                    commonRecord.getFields().add(field);
-                } else if (field.getName().matches("[a-z].*")) {
-                    dbcRecord.getFields().add(field);
-                } else {
-                    commonRecord.getFields().add(field);
                 }
+                commonRecord.getFields().add(commonField);
+
+                final MarcField dbcField = new MarcField(field);
+                for (int d = 0; d < dbcField.getSubfields().size(); d++) {
+                    if (dbcField.getSubfields().get(d).getName().equals("b")) {
+                        dbcField.getSubfields().get(d).setValue(Integer.toString(RawRepo.DBC_ENRICHMENT));
+                    }
+                }
+                dbcRecord.getFields().add(dbcField);
+            } else if (field.getName().equals("004")) {
+                dbcRecord.getFields().add(field);
+                commonRecord.getFields().add(field);
+            } else if (field.getName().matches("[a-z].*")) {
+                dbcRecord.getFields().add(field);
+            } else {
+                commonRecord.getFields().add(field);
             }
-
-            LOGGER.info("commonRecord\n{}", commonRecord);
-            LOGGER.info("dbcRecord\n{}", dbcRecord);
-
-            return Arrays.asList(commonRecord, dbcRecord);
-        } finally {
-            LOGGER.exit();
         }
+
+        LOGGER.info("commonRecord\n{}", commonRecord);
+        LOGGER.info("dbcRecord\n{}", dbcRecord);
+
+        return Arrays.asList(commonRecord, dbcRecord);
     }
 
 
@@ -1087,7 +1038,6 @@ public class LibraryRecordsHandler {
      * @throws UpdateException Trouble calling js.
      */
     private MarcRecord recategorization(MarcRecord currentCommonRecord, MarcRecord updatingCommonRecord, MarcRecord extendedRecord) throws UpdateException {
-        LOGGER.entry(currentCommonRecord, updatingCommonRecord, extendedRecord);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.doRecategorizationThings");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
@@ -1097,7 +1047,6 @@ public class LibraryRecordsHandler {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: doRecategorizationThings", ex);
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 
@@ -1112,20 +1061,15 @@ public class LibraryRecordsHandler {
      */
 
     public MarcField fetchNoteField(MarcRecord marcRecord) throws UpdateException {
-        LOGGER.entry(marcRecord);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.recategorizationNoteFieldFactory");
-        MarcField mf = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            mf = opencatBusinessConnector.recategorizationNoteFieldFactory(marcRecord, trackingId);
-
-            return mf;
+            return opencatBusinessConnector.recategorizationNoteFieldFactory(marcRecord, trackingId);
         } catch (IOException | OpencatBusinessConnectorException | JSONBException | JAXBException ex) {
             throw new UpdateException("Error when executing OpencatBusinessConnector function: changeUpdateRecordForUpdate", ex);
         } finally {
             watch.stop();
-            LOGGER.exit(mf);
         }
     }
 }

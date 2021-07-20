@@ -38,21 +38,17 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recId = reader.getRecordId();
-            int agencyId = reader.getAgencyIdAsInt();
-
-            rawRepo.removeLinks(new RecordId(recId, agencyId));
-            LOGGER.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
-
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
         }
+
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+
+        rawRepo.removeLinks(new RecordId(recId, agencyId));
+        LOGGER.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
+
+        return ServiceResult.newOkResult();
     }
 }

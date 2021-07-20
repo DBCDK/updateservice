@@ -69,8 +69,7 @@ public class OpenBuildCore {
     }
 
     public BuildResponseDTO build(BuildRequestDTO parameters) {
-        LOGGER.entry();
-        StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
+        final StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
         BuildResponseDTO buildResponseDTO = null;
         try {
             if (!checkValidateSchema(parameters.getSchemaName())) {
@@ -80,7 +79,7 @@ public class OpenBuildCore {
                 return buildResponseDTO;
             }
 
-            BibliographicRecordDTO srcRecord = parameters.getBibliographicRecordDTO();
+            final BibliographicRecordDTO srcRecord = parameters.getBibliographicRecordDTO();
             // Validate source record schema.
             if (srcRecord != null && !srcRecord.getRecordSchema().equals(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1)) {
                 LOGGER.warn("Wrong record schema: {}", srcRecord.getRecordSchema());
@@ -104,7 +103,7 @@ public class OpenBuildCore {
             }
 
             MarcRecord marcRecord;
-            StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
+            final StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
             if (record != null) {
                 marcRecord = buildRecord(parameters.getSchemaName(), record);
             } else {
@@ -112,7 +111,7 @@ public class OpenBuildCore {
             }
             watchBuildRecord.stop();
 
-            StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
+            final StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
             buildResponseDTO = buildResult(marcRecord);
             watchBuildResult.stop();
             return buildResponseDTO;
@@ -124,120 +123,85 @@ public class OpenBuildCore {
         } finally {
             LOGGER.info("BuildResponseDTO: {}", buildResponseDTO);
             watch.stop();
-            LOGGER.exit();
         }
     }
 
     public static String createTrackingId() {
-        LOGGER.entry();
-        String uuid = null;
-        try {
-            return uuid = UUID.randomUUID().toString();
-        } finally {
-            LOGGER.exit(uuid);
-        }
+        return UUID.randomUUID().toString();
     }
 
     private boolean checkValidateSchema(String name) throws JSONBException, OpencatBusinessConnectorException {
-        LOGGER.entry(name);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplateBuild");
-        Boolean result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            result = opencatBusinessConnector.checkTemplateBuild(name, trackingId);
-
-            LOGGER.trace("Result checkTemplateBuild({}): {}", name, result);
-
-            return result;
+            return opencatBusinessConnector.checkTemplateBuild(name, trackingId);
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 
     private MarcRecord getMarcRecord(RecordDataDTO recordData) {
-        LOGGER.entry(recordData);
         MarcRecord res = null;
-        try {
-            if (recordData != null) {
-                List<Object> list = recordData.getContent();
-                for (Object o : list) {
-                    if (o instanceof Node) {
-                        res = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
-                        break;
-                    } else if (o instanceof String && o.toString().startsWith("<")) {
-                        res = MarcConverter.convertFromMarcXChange((String) o);
-                        break;
-                    }
+        if (recordData != null) {
+            final List<Object> list = recordData.getContent();
+            for (Object o : list) {
+                if (o instanceof Node) {
+                    res = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
+                    break;
+                } else if (o instanceof String && o.toString().startsWith("<")) {
+                    res = MarcConverter.convertFromMarcXChange((String) o);
+                    break;
                 }
             }
-            if (res != null && "".equals(res.toString().trim())) {
-                res = null;
-            }
-            return res;
-        } finally {
-            LOGGER.exit(res);
         }
+        if (res != null && "".equals(res.toString().trim())) {
+            res = null;
+        }
+        return res;
     }
 
     private MarcRecord buildRecord(String buildSchema, MarcRecord marcRecord) {
-        LOGGER.entry(buildSchema, marcRecord);
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.buildRecord");
-        MarcRecord result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
-            result = opencatBusinessConnector.buildRecord(buildSchema, marcRecord, trackingId);
-
-            return result;
+            return opencatBusinessConnector.buildRecord(buildSchema, marcRecord, trackingId);
         } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
             LOGGER.error(ex.getLocalizedMessage());
             throw new EJBException("Error calling OpencatBusinessConnector", ex);
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 
     private BuildResponseDTO buildResult(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
-        LOGGER.entry(marcRecord);
-        BuildResponseDTO buildResponseDTO = null;
-        try {
-            RecordDataDTO recordDataDTO = new RecordDataDTO();
-            buildResponseDTO = new BuildResponseDTO();
-            Document document = convertMarcRecordToDomDocument(marcRecord);
-            recordDataDTO.setContent(Collections.singletonList(document.getDocumentElement()));
-            BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
-            bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
-            bibliographicRecordDTO.setRecordPacking(JNDIResources.RECORD_PACKING_XML);
-            bibliographicRecordDTO.setRecordSchema(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1);
-            buildResponseDTO.setBibliographicRecordDTO(bibliographicRecordDTO);
-            buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.OK);
-            return buildResponseDTO;
-        } finally {
-            LOGGER.exit(buildResponseDTO);
-        }
+        final RecordDataDTO recordDataDTO = new RecordDataDTO();
+        final BuildResponseDTO buildResponseDTO = new BuildResponseDTO();
+        final Document document = convertMarcRecordToDomDocument(marcRecord);
+        recordDataDTO.setContent(Collections.singletonList(document.getDocumentElement()));
+        final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
+        bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
+        bibliographicRecordDTO.setRecordPacking(JNDIResources.RECORD_PACKING_XML);
+        bibliographicRecordDTO.setRecordSchema(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1);
+        buildResponseDTO.setBibliographicRecordDTO(bibliographicRecordDTO);
+        buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.OK);
+
+        return buildResponseDTO;
     }
 
     private Document convertMarcRecordToDomDocument(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
-        LOGGER.entry(marcRecord);
-        Document document = null;
-        try {
-            RecordType marcXhangeType = MarcXchangeFactory.createMarcXchangeFromMarc(marcRecord);
-            ObjectFactory objectFactory = new ObjectFactory();
-            JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXhangeType);
+        final RecordType marcXhangeType = MarcXchangeFactory.createMarcXchangeFromMarc(marcRecord);
+        final ObjectFactory objectFactory = new ObjectFactory();
+        final JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXhangeType);
 
-            JAXBContext jc = JAXBContext.newInstance(RecordType.class);
-            Marshaller marshaller = jc.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, JNDIResources.MARCXCHANGE_1_1_SCHEMA_LOCATION);
+        final JAXBContext jc = JAXBContext.newInstance(RecordType.class);
+        final Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, JNDIResources.MARCXCHANGE_1_1_SCHEMA_LOCATION);
 
-            document = documentFactory.getNewDocument();
-            marshaller.marshal(jAXBElement, document);
-            return document;
-        } finally {
-            LOGGER.exit(document);
-        }
+        final Document document = documentFactory.getNewDocument();
+        marshaller.marshal(jAXBElement, document);
+        return document;
     }
 
     /**
@@ -245,30 +209,20 @@ public class OpenBuildCore {
      * forsrights web-service.
      */
     private void addJacksonMixInAnnotations() {
-        LOGGER.entry();
-        // Initialize jackson with annotation classes
-        try {
-            for (Map.Entry<Class<?>, Class<?>> e : MixIns.getMixIns().entrySet()) {
-                jacksonObjectMapper.addMixIn(e.getKey(), e.getValue());
-            }
-        } finally {
-            LOGGER.exit();
+        for (Map.Entry<Class<?>, Class<?>> e : MixIns.getMixIns().entrySet()) {
+            jacksonObjectMapper.addMixIn(e.getKey(), e.getValue());
         }
     }
 
     private void validateProperties() {
-        try {
-            List<String> requiredProperties = new ArrayList<>();
-            requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
-            requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
-            requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST);
-            for (String s : requiredProperties) {
-                if (!buildProperties.containsKey(s)) {
-                    throw new IllegalArgumentException("Required Build property " + s + " not set");
-                }
+        final List<String> requiredProperties = new ArrayList<>();
+        requiredProperties.add(JNDIResources.OPENNUMBERROLL_URL);
+        requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST_8);
+        requiredProperties.add(JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+        for (String s : requiredProperties) {
+            if (!buildProperties.containsKey(s)) {
+                throw new IllegalArgumentException("Required Build property " + s + " not set");
             }
-        } finally {
-            LOGGER.exit();
         }
     }
 

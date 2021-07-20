@@ -41,10 +41,11 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         try {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (reader.markedForDeletion()) {
                 moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
                 children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
@@ -56,34 +57,27 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
         } catch (UnsupportedEncodingException ex) {
             LOGGER.error(ex.getMessage(), ex);
             throw new UpdateException(ex.getMessage(), ex);
-        } finally {
-            LOGGER.exit();
         }
     }
 
     private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {
-        LOGGER.entry();
-        try {
-            Set<Integer> agencies = rawRepo.agenciesForRecord(marcRecord);
-            if (agencies == null) {
-                return;
+        final Set<Integer> agencies = rawRepo.agenciesForRecord(marcRecord);
+        if (agencies == null) {
+            return;
+        }
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+        for (Integer agencyId : agencies) {
+            if (!RawRepo.isSchoolEnrichment(agencyId)) {
+                continue;
             }
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            String recordId = reader.getRecordId();
-            for (Integer agencyId : agencies) {
-                if (!RawRepo.isSchoolEnrichment(agencyId)) {
-                    continue;
-                }
-                Record rawRepoRecord = rawRepo.fetchRecord(recordId, agencyId);
-                MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+            final Record rawRepoRecord = rawRepo.fetchRecord(recordId, agencyId);
+            final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
-                LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-                linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));
-                children.add(linkRecordAction);
-                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
-            }
-        } finally {
-            LOGGER.exit();
+            final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));
+            children.add(linkRecordAction);
+            children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentRecord, settings));
         }
     }
 }

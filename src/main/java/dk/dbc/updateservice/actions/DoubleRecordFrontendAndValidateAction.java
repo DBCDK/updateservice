@@ -7,14 +7,10 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
 
 public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordFrontendAndValidateAction.class);
-
     Properties settings;
     DoubleRecordFrontendAction doubleRecordFrontendAction;
     ValidateRecordAction validateRecordAction;
@@ -28,15 +24,11 @@ public class DoubleRecordFrontendAndValidateAction extends AbstractAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = new ServiceResult();
-        try {
-            result.addServiceResult(doubleRecordFrontendAction.performAction());
-            result.addServiceResult(validateRecordAction.performAction());
-            return result;
-        } finally {
-            LOGGER.exit(result);
-        }
+        final ServiceResult result = new ServiceResult();
+        result.addServiceResult(doubleRecordFrontendAction.performAction());
+        result.addServiceResult(validateRecordAction.performAction());
+
+        return result;
     }
 
     @Override

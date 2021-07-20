@@ -49,29 +49,25 @@ public class UpdateRequestAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        try {
-            logRequest();
-            ServiceResult message = verifyData();
-            if (message != null) {
-                return message;
-            }
-            children.add(new PreProcessingAction(state));
-            children.add(new ValidateOperationAction(state, settings));
-            if (!hasValidateOnlyOption()) {
-                final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
-                if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
-                    // Since this can result in writing/creating the common part of the matvurd record even when there is an error
-                    // in the r01/r02 fields, it has to be done before any kind of writing in the records table
-                    // Information that needs check is in the enrichment part so we have to look at the full request record
-                    children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
-                }
-                children.add(createUpdateOperation());
-            }
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
+        logRequest();
+        final ServiceResult message = verifyData();
+        if (message != null) {
+            return message;
         }
+        children.add(new PreProcessingAction(state));
+        children.add(new ValidateOperationAction(state, settings));
+        if (!hasValidateOnlyOption()) {
+            final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+            if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+                // Since this can result in writing/creating the common part of the matvurd record even when there is an error
+                // in the r01/r02 fields, it has to be done before any kind of writing in the records table
+                // Information that needs check is in the enrichment part so we have to look at the full request record
+                children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
+            }
+            children.add(createUpdateOperation());
+        }
+
+        return ServiceResult.newOkResult();
     }
 
     private ServiceResult verifyData() throws UpdateException {
@@ -111,13 +107,8 @@ public class UpdateRequestAction extends AbstractAction {
      * @return boolean value.
      */
     public boolean hasValidateOnlyOption() {
-        LOGGER.entry();
-        try {
-            OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
-            return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
-        } finally {
-            LOGGER.exit();
-        }
+        final OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
+        return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
     }
 
     private ServiceAction createUpdateOperation() throws UpdateException {
@@ -183,30 +174,22 @@ public class UpdateRequestAction extends AbstractAction {
     }
 
     private boolean isAgencyIdAllowedToUseUpdateOnThisInstance() throws UpdateException {
-        LOGGER.entry();
-        boolean res = true;
-        try {
-            if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
-                throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
-            }
-            boolean isProduction = Boolean.parseBoolean(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
-            if (isProduction
-                    && state.getUpdateServiceRequestDTO() != null
-                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO() != null
-                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() != null
-                    && state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().startsWith("13")) {
-                res = false;
-            }
-            return res;
-        } finally {
-            LOGGER.exit(res);
+        if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
+            throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
         }
+        final boolean isProduction = Boolean.parseBoolean(settings.getProperty(JNDIResources.UPDATE_PROD_STATE));
+
+        return !isProduction
+                || state.getUpdateServiceRequestDTO() == null
+                || state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null
+                || state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null
+                || !state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().startsWith("13");
     }
 
     private boolean sanityCheckRecord() {
         try {
-            MarcRecord marcRecord = state.readRecord();
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final MarcRecord marcRecord = state.readRecord();
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
             if (reader.hasField("001")) { // If 001 is completely missing it will be caught in a later validation
                 if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {

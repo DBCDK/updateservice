@@ -28,8 +28,9 @@ import java.util.Properties;
 public class SolrFBS extends SolrBase {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrFBS.class);
 
-    private Properties settings;
+    private final Properties settings;
 
+    // EJB initialization will fail if there is no default constructor
     public SolrFBS() {
         this(JNDIResources.getProperties());
     }
@@ -41,12 +42,11 @@ public class SolrFBS extends SolrBase {
 
     @Override
     protected URL setUrl(String query, String queryParam) throws UpdateException {
-        String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
-        LOGGER.entry();
+        final String SOLR_QUERY_URL = "%s/select?q=%s&wt=json";
         try {
             if (settings.containsKey(JNDIResources.SOLR_URL)) {
-                String url = settings.getProperty(JNDIResources.SOLR_URL);
-                URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
+                final String url = settings.getProperty(JNDIResources.SOLR_URL);
+                final URL solrUrl = new URL(String.format(SOLR_QUERY_URL, url, URLEncoder.encode(query, "UTF-8")) + queryParam);
                 LOGGER.info("Solr call query: {} -> {}", query, solrUrl);
                 return solrUrl;
             } else {
@@ -59,25 +59,23 @@ public class SolrFBS extends SolrBase {
     }
 
     public String getOwnerOf002(String query) throws UpdateException, SolrException {
-        LOGGER.entry(query);
-        StopWatch watch = new Log4JStopWatch("service.solr.getownerof002");
-        URL solrUrl;
+        final StopWatch watch = new Log4JStopWatch("service.solr.getownerof002");
 
         String result = "";
         try {
-            solrUrl = setUrl(query, "&fl=marc.001a");
-            JsonObject response = callSolr(solrUrl);
+            final URL solrUrl = setUrl(query, "&fl=marc.001a");
+            final JsonObject response = callSolr(solrUrl);
             if (response.containsKey("docs")) {
-                JsonArray docsArray = response.getJsonArray("docs");
+                final JsonArray docsArray = response.getJsonArray("docs");
                 for (JsonObject jObj : docsArray.getValuesAs(JsonObject.class)) {
                     // Sometimes the value is an array and sometimes a string, so we need to check the type first
-                    JsonValue jsonValue = jObj.get("marc.001a");
+                    final JsonValue jsonValue = jObj.get("marc.001a");
                     if (jsonValue.getValueType() == JsonValue.ValueType.ARRAY) {
-                        JsonArray marc001aArray = (JsonArray) jsonValue;
+                        final JsonArray marc001aArray = (JsonArray) jsonValue;
                         result = marc001aArray.getString(0);
                         break;
                     } else if (jsonValue.getValueType() == JsonValue.ValueType.STRING) {
-                        JsonString marc001aString = (JsonString) jsonValue;
+                        final JsonString marc001aString = (JsonString) jsonValue;
                         result = marc001aString.getString();
                         break;
                     } else {
@@ -88,7 +86,6 @@ public class SolrFBS extends SolrBase {
             return result;
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 

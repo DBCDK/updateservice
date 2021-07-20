@@ -22,8 +22,8 @@ import java.util.ResourceBundle;
  */
 public class CharSetControl extends ResourceBundle.Control {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(CharSetControl.class);
-    private static String DEFAULT_CHARSET = "UTF-8";
-    private String charset;
+    private static final String DEFAULT_CHARSET = "UTF-8";
+    private final String charset;
 
     public CharSetControl() {
         this(DEFAULT_CHARSET);
@@ -46,43 +46,36 @@ public class CharSetControl extends ResourceBundle.Control {
      * @param loader   the ClassLoader to use to load the bundle
      * @param reload   the flag to indicate bundle reloading; true if reloading an expired resource bundle, false otherwise
      * @return the resource bundle instance, or null if none could be found.
-     * @throws IllegalAccessException if format is unknown, or if the resource found for the given parameters contains malformed data.
-     * @throws InstantiationException if the instantiation of a class fails for some other reason.
      * @throws IOException            if an error occurred when reading resources using any I/O operations
      */
+    @Override
     public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload)
-            throws IllegalAccessException, InstantiationException, IOException {
-        LOGGER.entry(baseName, locale, format, loader);
-
+            throws IOException {
         ResourceBundle bundle = null;
-        try {
-            String bundleName = toBundleName(baseName, locale);
-            String resourceName = toResourceName(bundleName, "properties");
-            InputStream stream = null;
-            if (reload) {
-                URL url = loader.getResource(resourceName);
-                if (url != null) {
-                    URLConnection connection = url.openConnection();
-                    if (connection != null) {
-                        connection.setUseCaches(false);
-                        stream = connection.getInputStream();
-                    }
-                }
-            } else {
-                stream = loader.getResourceAsStream(resourceName);
-            }
-            if (stream != null) {
-                try {
-                    LOGGER.trace("Reading properties with charset {}", this.charset);
-                    bundle = new PropertyResourceBundle(new InputStreamReader(stream, this.charset));
-                } finally {
-                    stream.close();
+        final String bundleName = toBundleName(baseName, locale);
+        final String resourceName = toResourceName(bundleName, "properties");
+        InputStream stream = null;
+        if (reload) {
+            URL url = loader.getResource(resourceName);
+            if (url != null) {
+                URLConnection connection = url.openConnection();
+                if (connection != null) {
+                    connection.setUseCaches(false);
+                    stream = connection.getInputStream();
                 }
             }
-            return bundle;
-        } finally {
-            LOGGER.exit();
+        } else {
+            stream = loader.getResourceAsStream(resourceName);
         }
+        if (stream != null) {
+            try {
+                LOGGER.trace("Reading properties with charset {}", this.charset);
+                bundle = new PropertyResourceBundle(new InputStreamReader(stream, this.charset));
+            } finally {
+                stream.close();
+            }
+        }
+        return bundle;
     }
 
 }

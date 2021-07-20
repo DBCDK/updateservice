@@ -30,21 +30,15 @@ public class EnqueuePHHoldingsRecordAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
-        ServiceResult result = null;
-        try {
-            String providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS;
+        final String providerId = JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS;
 
-            if (settings.getProperty(providerId) == null) {
-                return result = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
-            }
-
-            rawRepo.changedRecord(settings.getProperty(providerId), recordId);
-            LOGGER.info("The record {}:{} with provider '{}' was successfully enqueued", recordId.getBibliographicRecordId(), recordId.getAgencyId(), settings.getProperty(providerId));
-
-            return result = ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit(result);
+        if (settings.getProperty(providerId) == null) {
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
         }
+
+        rawRepo.changedRecord(settings.getProperty(providerId), recordId);
+        LOGGER.info("The record {}:{} with provider '{}' was successfully enqueued", recordId.getBibliographicRecordId(), recordId.getAgencyId(), settings.getProperty(providerId));
+
+        return ServiceResult.newOkResult();
     }
 }

@@ -46,21 +46,20 @@ public class DoubleRecordCheckingAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
-        ServiceResult result = null;
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
+            }
             state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
-            return result = ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
-            String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
+            final String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
             LOGGER.error(message, ex);
-            return result = ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
         } finally {
             watch.stop();
-            LOGGER.exit(result);
         }
     }
 

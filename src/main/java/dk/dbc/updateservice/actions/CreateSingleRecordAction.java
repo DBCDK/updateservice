@@ -43,47 +43,44 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        LOGGER.entry();
-
-        try {
+        if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-
-            if (!checkIfRecordCanBeRestored(state, marcRecord)) {
-                String message = state.getMessages().getString("create.record.with.locals");
-                LOGGER.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-
-            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
-                String message = state.getMessages().getString("update.record.with.002.links");
-                LOGGER.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-
-            children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
-            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
-            if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
-                // Information that needs check is in the enrichment part so we have to look at the full request record
-                children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
-            }
-            children.add(new LinkAuthorityRecordsAction(state, marcRecord));
-            return ServiceResult.newOkResult();
-        } finally {
-            LOGGER.exit();
         }
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+
+        if (!checkIfRecordCanBeRestored(state, marcRecord)) {
+            final String message = state.getMessages().getString("create.record.with.locals");
+            LOGGER.error("Unable to create sub actions due to an error: {}", message);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        }
+
+        if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
+            final String message = state.getMessages().getString("update.record.with.002.links");
+            LOGGER.error("Unable to create sub actions due to an error: {}", message);
+            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+        }
+
+        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
+        children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+        if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
+            // Information that needs check is in the enrichment part so we have to look at the full request record
+            children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
+        }
+        children.add(new LinkAuthorityRecordsAction(state, marcRecord));
+
+        return ServiceResult.newOkResult();
     }
 
     static boolean checkIfRecordCanBeRestored(GlobalActionState state, MarcRecord record) throws UpdateException {
-        MarcRecordReader reader = new MarcRecordReader(record);
+        final MarcRecordReader reader = new MarcRecordReader(record);
 
         // The only records we are interested in are MarcXchange and Articles with different recordId
-        Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
+        final Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
         agenciesForRecord.remove(reader.getAgencyIdAsInt());
 
-        Set<Integer> listToCheck = new HashSet<>();
+        final Set<Integer> listToCheck = new HashSet<>();
         for (Integer agencyId : agenciesForRecord) {
-            Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), agencyId);
+            final Record r = state.getRawRepo().fetchRecord(reader.getRecordId(), agencyId);
             if (!MarcXChangeMimeType.ENRICHMENT.equals(r.getMimeType())) {
                 listToCheck.add(agencyId);
             }
@@ -93,7 +90,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         // However, FFU and LokBib libraries are allowed to have overlapping posts as they never use enrichment posts
         if (!listToCheck.isEmpty()) {
             LOGGER.info("The agencies {} was found for {}. Checking if all agencies are FFU or lokbib - otherwise this action will fail", listToCheck, reader.getRecordId());
-            Set<String> allowedOverlappingAgencies = state.getFFULibraries();
+            final Set<String> allowedOverlappingAgencies = state.getFFULibraries();
             allowedOverlappingAgencies.addAll(state.getLokbibLibraries());
             boolean allAgenciesAreFFU = true;
             for (Integer agencyForRecord : listToCheck) {
@@ -104,9 +101,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            if (!allAgenciesAreFFU) {
-                return false;
-            }
+            return allAgenciesAreFFU;
         }
 
         return true;

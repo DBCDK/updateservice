@@ -36,7 +36,6 @@ public class RecordSorter {
     }
 
     public MarcRecord sortRecord(MarcRecord marcRecord) {
-        LOGGER.entry();
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
 
         try {
@@ -48,7 +47,6 @@ public class RecordSorter {
             return marcRecord;
         } finally {
             watch.stop();
-            LOGGER.exit();
         }
     }
 }
