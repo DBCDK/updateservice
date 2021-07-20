@@ -9,9 +9,7 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 
 import java.io.UnsupportedEncodingException;
@@ -65,17 +63,10 @@ public class DeleteRecordAction extends StoreRecordAction {
      * Factory method to create a DeleteRecordAction.
      */
     public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        String mimeType;
         final DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
         final MarcRecordReader reader = new MarcRecordReader(record);
 
-        if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
-            mimeType = MarcXChangeMimeType.ARTICLE;
-        } else {
-            mimeType = MarcXChangeMimeType.MARCXCHANGE;
-        }
-
-        deleteRecordAction.setMimetype(mimeType);
+        deleteRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
 
         return deleteRecordAction;
     }
