@@ -78,10 +78,6 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         LOGGER.entry();
         ServiceResult result = null;
         try {
-            if (mimetype == null || mimetype.isEmpty()) {
-                throw new UpdateException("MimeType must be set");
-            }
-
             LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
             String recId = reader.getRecordId();
@@ -91,7 +87,9 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             updateModifiedDate(recordToStore);
             final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
-            rawRepoRecord.setMimeType(mimetype);
+            if (mimetype != null && !mimetype.isEmpty()) {
+                rawRepoRecord.setMimeType(mimetype);
+            }
             rawRepoRecord.setDeleted(deletionMarkToStore());
             if (state.getCreateOverwriteDate() != null) {
                 rawRepoRecord.setCreated(state.getCreateOverwriteDate());
@@ -137,27 +135,30 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
 
             MarcRecordReader reader = new MarcRecordReader(marcRecord);
-
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt() ||
-                    RawRepo.RETRO_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.ARTICLE);
-            } else if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.AUTHORITY);
-            } else if (RawRepo.LITTOLK_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.LITANALYSIS);
-            } else if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.MATVURD);
-            } else if (RawRepo.HOSTPUB_AGENCY == reader.getAgencyIdAsInt()) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.HOSTPUB);
-            } else if (RawRepo.SIMPLE_AGENCIES.contains(reader.getAgencyIdAsInt())) {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.SIMPLE);
-            } else {
-                storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-            }
+            storeRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
 
             return storeRecordAction;
         } finally {
             LOGGER.exit();
+        }
+    }
+
+    static String getMarcXChangeMimetype(int agencyId) {
+        if (RawRepo.ARTICLE_AGENCY == agencyId ||
+                RawRepo.RETRO_AGENCY == agencyId) {
+            return MarcXChangeMimeType.ARTICLE;
+        } else if (RawRepo.AUTHORITY_AGENCY == agencyId) {
+            return MarcXChangeMimeType.AUTHORITY;
+        } else if (RawRepo.LITTOLK_AGENCY == agencyId) {
+            return MarcXChangeMimeType.LITANALYSIS;
+        } else if (RawRepo.MATVURD_AGENCY == agencyId) {
+            return MarcXChangeMimeType.MATVURD;
+        } else if (RawRepo.HOSTPUB_AGENCY == agencyId) {
+            return MarcXChangeMimeType.HOSTPUB;
+        } else if (RawRepo.SIMPLE_AGENCIES.contains(agencyId)) {
+            return MarcXChangeMimeType.SIMPLE;
+        } else {
+            return MarcXChangeMimeType.MARCXCHANGE;
         }
     }
 

@@ -9,9 +9,7 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
-import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -76,18 +74,12 @@ public class DeleteRecordAction extends StoreRecordAction {
     public static DeleteRecordAction newDeleteRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
         LOGGER.entry(globalActionState, record);
         try {
-            String mimeType;
             DeleteRecordAction deleteRecordAction = new DeleteRecordAction(globalActionState, properties, record);
 
             MarcRecordReader reader = new MarcRecordReader(record);
 
-            if (RawRepo.ARTICLE_AGENCY == reader.getAgencyIdAsInt()) {
-                mimeType = MarcXChangeMimeType.ARTICLE;
-            } else {
-                mimeType = MarcXChangeMimeType.MARCXCHANGE;
-            }
+            deleteRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
 
-            deleteRecordAction.setMimetype(mimeType);
             return deleteRecordAction;
         } finally {
             LOGGER.exit();
