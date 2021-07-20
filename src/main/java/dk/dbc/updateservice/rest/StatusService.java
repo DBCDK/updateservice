@@ -31,8 +31,7 @@ public class StatusService {
     @Path("/status")
     @Produces(MediaType.TEXT_PLAIN)
     public Response getStatus() {
-        final String res = "ST_OK";
-        return Response.ok(res, MediaType.TEXT_PLAIN).build();
+        return Response.ok("ST_OK", MediaType.TEXT_PLAIN).build();
     }
 
     @GET
