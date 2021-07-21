@@ -159,7 +159,7 @@ public class UpdateServiceCore {
                 if (LOGGER.isInfoEnabled()) {
                     LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
                     LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
-                    LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
+                    LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
                 }
 
                 updateRequestAction = new UpdateRequestAction(state, settings);
@@ -187,7 +187,7 @@ public class UpdateServiceCore {
         } catch (Throwable ex) {
             LOGGER.catching(ex);
             try {
-                LOGGER.error("Exception while processing request: {}", JsonMapper.encodePretty(updateServiceRequestDTO));
+                LOGGER.error("Exception while processing request: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
             } catch (IOException e) {
                 LOGGER.error("IOException while pretty printing updateServiceRequestDTO: {}", updateServiceRequestDTO);
             }
@@ -197,7 +197,7 @@ public class UpdateServiceCore {
         } finally {
             if (LOGGER.isInfoEnabled()) {
                 try {
-                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", JsonMapper.encodePretty(updateRecordResponseDTO));
+                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(updateRecordResponseDTO)));
                 } catch (IOException e) {
                     LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
                 }
@@ -224,7 +224,7 @@ public class UpdateServiceCore {
         try {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("getSchemas received SchemasRequestDTO: {}", JsonMapper.encodePretty(schemasRequestDTO));
+                LOGGER.info("getSchemas received SchemasRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasRequestDTO)));
             }
 
             if (schemasRequestDTO.getAuthenticationDTO() != null &&
@@ -264,7 +264,7 @@ public class UpdateServiceCore {
         } finally {
             try {
                 if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("getSchemas returning SchemasResponseDTO: {}", JsonMapper.encodePretty(schemasResponseDTO));
+                    LOGGER.info("getSchemas returning SchemasResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasResponseDTO)));
                 }
             } catch (IOException e) {
                 LOGGER.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
@@ -452,5 +452,18 @@ public class UpdateServiceCore {
             }
         }
         return marcRecord;
+    }
+
+    /*
+        When toString is called on AuthenticationDTO the password is scrambled. However then the DTO is pretty printed
+        with JsonMapper the original password is kept which means the password is shown in the log which is not
+        acceptable. This function takes the pretty printed Json (as a String) and replaced the password value with
+        '****' so the value is suitable for logging.
+     */
+    static String scramblePassword(String input) {
+        int start = input.indexOf("password\" : \"") + 14;
+        int end = input.indexOf("\"", start);
+
+        return input.substring(0, start - 1) + "****" + input.substring(end);
     }
 }
