@@ -461,9 +461,9 @@ public class UpdateServiceCore {
         '****' so the value is suitable for logging.
      */
     static String scramblePassword(String input) {
-        int start = input.indexOf("password\" : \"") + 14;
-        int end = input.indexOf("\"", start);
+        final int passwordValueStart = input.indexOf("password\" : \"") + 14;
+        final int passwordValueEnd = input.indexOf("\"", passwordValueStart);
 
-        return input.substring(0, start - 1) + "****" + input.substring(end);
+        return input.substring(0, passwordValueStart - 1) + "****" + input.substring(passwordValueEnd);
     }
 }
