@@ -229,7 +229,7 @@ public class UpdateServiceRest {
                     updateServiceRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
                 // Ignore DBC group ids as it pollutes the metric
-                if (!RawRepo.DBC_AGENCY_ALL.contains(groupId)) {
+                if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
                     metricRegistry.counter(groupIdCounterMetaData,
                             new Tag("groupId", groupId))
                             .inc();
@@ -247,7 +247,7 @@ public class UpdateServiceRest {
                     schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
                 final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
                 // Ignore DBC group ids as it pollutes the metric
-                if (!RawRepo.DBC_AGENCY_ALL.contains(groupId)) {
+                if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
                     metricRegistry.counter(groupIdCounterMetaData,
                             new Tag("groupId", groupId))
                             .inc();
