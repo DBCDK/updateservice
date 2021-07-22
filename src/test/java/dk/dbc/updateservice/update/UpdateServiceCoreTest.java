@@ -28,6 +28,28 @@ class UpdateServiceCoreTest {
     }
 
     @Test
+    void scrambleUpdateServiceRequestDTOTest_WeirdChars() throws Exception {
+        final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(new AuthenticationDTO());
+        updateServiceRequestDTO.getAuthenticationDTO().setPassword("sdf93\"\n{},'");
+
+        final String actual = UpdateServiceCore.scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO));
+        final String expected = "{\n  \"authenticationDTO\" : {\n    \"userId\" : null,\n    \"groupId\" : null,\n    \"password\" : \"****\"\n  },\n  \"schemaName\" : null,\n  \"bibliographicRecordDTO\" : null,\n  \"optionsDTO\" : null,\n  \"trackingId\" : null,\n  \"doubleRecordKey\" : null\n}";
+        assertThat(actual, is(expected));
+    }
+
+    @Test
+    void scrambleUpdateServiceRequestDTOTest_EmptyPassword() throws Exception {
+        final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
+        updateServiceRequestDTO.setAuthenticationDTO(new AuthenticationDTO());
+        updateServiceRequestDTO.getAuthenticationDTO().setPassword("");
+
+        final String actual = UpdateServiceCore.scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO));
+        final String expected = "{\n  \"authenticationDTO\" : {\n    \"userId\" : null,\n    \"groupId\" : null,\n    \"password\" : \"\"\n  },\n  \"schemaName\" : null,\n  \"bibliographicRecordDTO\" : null,\n  \"optionsDTO\" : null,\n  \"trackingId\" : null,\n  \"doubleRecordKey\" : null\n}";
+        assertThat(actual, is(expected));
+    }
+
+    @Test
     void scrambleSchemasRequestDTOTest() throws Exception {
         final SchemasRequestDTO schemasRequestDTO = new SchemasRequestDTO();
         schemasRequestDTO.setAuthenticationDTO(new AuthenticationDTO());
