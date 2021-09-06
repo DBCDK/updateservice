@@ -122,7 +122,7 @@ public class RawRepo {
     public static final int RETRO_AGENCY = 870978;
     public static final int AUTHORITY_AGENCY = 870979;
     public static final List<Integer> SIMPLE_AGENCIES = Collections.singletonList(190007);
-    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007");
+    public static final List<String> DBC_PRIVATE_AGENCY_LIST = Arrays.asList("870971", "870974", "870975", "870976", "870978", "870979", "190002", "190004", "190007", "190008");
     public static final List<String> DBC_AGENCY_LIST = Stream.concat(Stream.of("870970"), DBC_PRIVATE_AGENCY_LIST.stream()).collect(Collectors.toList());
     public static final List<String> DBC_AGENCY_ALL = Stream.concat(Stream.of("191919"), DBC_AGENCY_LIST.stream()).collect(Collectors.toList());
     public static final int DBC_ENRICHMENT = 191919;
