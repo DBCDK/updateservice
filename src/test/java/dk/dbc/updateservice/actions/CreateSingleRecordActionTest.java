@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -280,6 +281,91 @@ class CreateSingleRecordActionTest {
         AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
         AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record); // <- Here we assert the correct record is used by LinkMatVurdRecordsAction
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), recordWithoutEnrichmentFields);
+    }
+
+    @Test
+    void testCheckIfRecordCanBeRestored_FBS() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
+        final String recordId = AssertActionsUtil.getRecordId(record);
+
+        final Record rr1 = new RawRepoRecordMock(recordId, 111111);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Record rr2 = new RawRepoRecordMock(recordId, 222222);
+        rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 222222));
+
+        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 222222)).thenReturn(rr2);
+        when(state.getVipCoreService().getTemplateGroup("222222")).thenReturn("fbs");
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(new HashSet<>(Collections.singletonList("111111")));
+
+        assertThat(CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record), is(false));
+    }
+
+    @Test
+    void testCheckIfRecordCanBeRestored_FFU() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
+        final String recordId = AssertActionsUtil.getRecordId(record);
+
+        final Record rr1 = new RawRepoRecordMock(recordId, 111111);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Record rr2 = new RawRepoRecordMock(recordId, 333333);
+        rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 333333));
+
+        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 333333)).thenReturn(rr2);
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(new HashSet<>(Arrays.asList("111111", "333333")));
+
+        assertThat(CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record), is(true));
+    }
+
+    @Test
+    void testCheckIfRecordCanBeRestored_Deleted() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
+        final String recordId = AssertActionsUtil.getRecordId(record);
+
+        final Record rr1 = new RawRepoRecordMock(recordId, 111111);
+        rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Record rr2 = new RawRepoRecordMock(recordId, 555555);
+        rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
+
+        final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 555555));
+
+        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 555555)).thenReturn(rr2);
+        when(state.getVipCoreService().getTemplateGroup("555555")).thenReturn("ffu");
+        when(state.getVipCoreService().getFFULibraries()).thenReturn(new HashSet<>(Collections.singletonList("111111")));
+
+        assertThat(CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record), is(true));
+    }
+
+    @Test
+    void testCheckIfRecordCanBeRestored_enrichments() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
+        final String recordId = AssertActionsUtil.getRecordId(record);
+
+        final Record rr1 = new RawRepoRecordMock(recordId, 111111);
+        rr1.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+
+        final Record rr2 = new RawRepoRecordMock(recordId, 222222);
+        rr2.setMimeType(MarcXChangeMimeType.ENRICHMENT);
+
+        final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 222222));
+
+        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
+        when(state.getRawRepo().fetchRecord(recordId, 222222)).thenReturn(rr2);
+
+        assertThat(CreateSingleRecordAction.checkIfRecordCanBeRestored(state, record), is(true));
     }
 
 }

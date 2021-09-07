@@ -15,6 +15,7 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -95,9 +96,24 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
             boolean allAgenciesAreFFU = true;
             for (Integer agencyForRecord : listToCheck) {
                 if (!allowedOverlappingAgencies.contains(agencyForRecord.toString())) {
-                    LOGGER.info("The library {} is not a FFU or lokbib library.", agencyForRecord);
-                    allAgenciesAreFFU = false;
-                    break;
+                    // If the agency is marked as delete in vipcore it will not appear on the list of ffu agencies.
+                    // To make sure that an agency not in the list is not a deleted ffu agency we have to perform one
+                    // more lookup.
+                    final String templateGroup;
+                    try {
+                        templateGroup = state.getVipCoreService().getTemplateGroup(Integer.toString(agencyForRecord));
+                    } catch (VipCoreException e) {
+                        throw new UpdateException("Could not get template group for " + agencyForRecord, e);
+                    }
+                    if ("ffu".equals(templateGroup)) {
+                        state.getFFULibraries().add(Integer.toString(agencyForRecord));
+                    } else if ("lokbib".equals(templateGroup)) {
+                        state.getLokbibLibraries().add(Integer.toString(agencyForRecord));
+                    } else {
+                        LOGGER.info("The library {} is not a FFU or lokbib library.", agencyForRecord);
+                        allAgenciesAreFFU = false;
+                        break;
+                    }
                 }
             }
 
