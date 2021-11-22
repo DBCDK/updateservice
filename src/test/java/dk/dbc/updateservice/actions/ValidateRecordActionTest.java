@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -10,6 +5,7 @@ import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,6 +98,7 @@ class ValidateRecordActionTest {
 
         final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.WARNING, "warning");
         when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenReturn(jsReturnList);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         final ServiceResult expected = ServiceResult.newOkResult();
         expected.setEntries(jsReturnList);
@@ -133,6 +130,7 @@ class ValidateRecordActionTest {
 
         final List<MessageEntryDTO> jsReturnList = UpdateTestUtils.createMessageEntryList(TypeEnumDTO.ERROR, "error");
         when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenReturn(jsReturnList);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         final ServiceResult expected = ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         expected.setEntries(jsReturnList);
@@ -164,6 +162,7 @@ class ValidateRecordActionTest {
 
         final OpencatBusinessConnectorException ex = new OpencatBusinessConnectorException("error");
         when(state.getOpencatBusiness().validateRecord(SCHEMA_NAME, record, "ValidateRecordActionTest")).thenThrow(ex);
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
 
         final String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
