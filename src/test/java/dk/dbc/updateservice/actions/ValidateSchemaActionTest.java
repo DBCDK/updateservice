@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
@@ -56,7 +51,7 @@ class ValidateSchemaActionTest {
         state.getUpdateServiceRequestDTO().setSchemaName(null);
         state.getUpdateServiceRequestDTO().setAuthenticationDTO(new AuthenticationDTO());
         ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
-        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty")));
+        assertThat(validateSchemaAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "schemaName must not be empty")));
     }
 
     @Test

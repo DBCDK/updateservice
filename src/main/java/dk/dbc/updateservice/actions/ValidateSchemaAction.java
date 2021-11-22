@@ -1,14 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -50,23 +47,32 @@ public class ValidateSchemaAction extends AbstractAction {
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             if (state.getSchemaName() == null) {
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "validateSchema must not be empty");
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "schemaName must not be empty");
             }
-            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
+
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+            if (groupId == null) {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
-            final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
-                    state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
-                    state.getTemplateGroup(),
-                    trackingId);
-            if (validateSchemaFound) {
-                LOGGER.info("Validating schema '{}' successfully", state.getSchemaName());
+
+            if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) &&
+                    "superallowall".equals(state.getSchemaName())) {
+                LOGGER.info("Skipping checkTemplate() as groupId is root and template is superallowall");
                 return ServiceResult.newOkResult();
+            } else {
+                final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
+                        state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
+                        state.getTemplateGroup(),
+                        trackingId);
+                if (validateSchemaFound) {
+                    LOGGER.info("Validating schema '{}' successfully", state.getSchemaName());
+                    return ServiceResult.newOkResult();
+                }
             }
             LOGGER.error("Validating schema '{}' failed", state.getSchemaName());
             final String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        } catch (OpencatBusinessConnectorException | JSONBException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException | VipCoreException ex) {
             LOGGER.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
@@ -13,6 +8,8 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -84,9 +81,14 @@ public class ValidateRecordAction extends AbstractAction {
                 LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             }
 
-            final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
             final ServiceResult result = new ServiceResult();
-            result.addMessageEntryDtos(errors);
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+            if (!(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) &&
+                    "superallowall".equals(state.getSchemaName()))) {
+                final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
+                result.addMessageEntryDtos(errors);
+            }
 
             final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
             final String recordId = reader.getRecordId();
@@ -100,7 +102,7 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
+        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException | VipCoreException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             LOGGER.error(message, ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
