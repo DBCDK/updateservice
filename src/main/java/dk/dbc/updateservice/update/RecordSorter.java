@@ -40,8 +40,12 @@ public class RecordSorter {
 
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-
-            return opencatBusinessConnector.sortRecord(schemaName, marcRecord, trackingId);
+            // There no template called superallowall so we can't use it to sort with, so just return the same record
+            if ("superallowall".equals(schemaName)) {
+                return marcRecord;
+            } else {
+                return opencatBusinessConnector.sortRecord(schemaName, marcRecord, trackingId);
+            }
         } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
             LOGGER.error("Error when trying to sort the record. ", ex);
             return marcRecord;
