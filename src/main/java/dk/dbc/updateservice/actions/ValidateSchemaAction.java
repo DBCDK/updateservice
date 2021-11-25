@@ -4,8 +4,6 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.vipcore.exception.VipCoreException;
-import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
