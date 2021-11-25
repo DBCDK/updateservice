@@ -277,13 +277,14 @@ public class GlobalActionState {
             try {
                 this.isTemplateOverwrite = "superallowall".equals(this.getSchemaName()) &&
                         this.getVipCoreService().hasFeature(this.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
-                if (Boolean.TRUE.equals(this.isTemplateOverwrite)) {
-                    final String bibliographicRecordId = marcRecordReader.getValue("001", "a");
-                    final int agencyId = marcRecordReader.getAgencyIdAsInt();
-                    if (!rawRepo.recordExistsMaybeDeleted(bibliographicRecordId, agencyId)) {
-                        throw new UpdateException(String.format("superallowall is not allowed for records which don't exist (%s:%s)", bibliographicRecordId, agencyId));
-                    }
-                }
+                // Temporarily disable check
+//                if (Boolean.TRUE.equals(this.isTemplateOverwrite)) {
+//                    final String bibliographicRecordId = marcRecordReader.getValue("001", "a");
+//                    final int agencyId = marcRecordReader.getAgencyIdAsInt();
+//                    if (!rawRepo.recordExistsMaybeDeleted(bibliographicRecordId, agencyId)) {
+//                        throw new UpdateException(String.format("superallowall is not allowed for records which don't exist (%s:%s)", bibliographicRecordId, agencyId));
+//                    }
+//                }
             } catch (VipCoreException e) {
                 throw new UpdateException("Something went wrong when contacting vipcore", e);
             }
