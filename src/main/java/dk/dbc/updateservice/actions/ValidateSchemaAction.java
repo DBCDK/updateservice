@@ -55,8 +55,7 @@ public class ValidateSchemaAction extends AbstractAction {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
             }
 
-            if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) &&
-                    "superallowall".equals(state.getSchemaName())) {
+            if (state.getIsTemplateOverwrite()) {
                 LOGGER.info("Skipping checkTemplate() as groupId is root and template is superallowall");
                 return ServiceResult.newOkResult();
             } else {
@@ -72,7 +71,7 @@ public class ValidateSchemaAction extends AbstractAction {
             LOGGER.error("Validating schema '{}' failed", state.getSchemaName());
             final String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        } catch (OpencatBusinessConnectorException | JSONBException | VipCoreException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException ex) {
             LOGGER.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {

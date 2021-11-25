@@ -15,6 +15,7 @@ import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.MetakompasHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
@@ -149,9 +150,20 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             addDoubleRecordFrontendActionIfNecessary();
 
-            LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", state.getLibraryGroup().toString());
+            final String groupId;
+            final LibraryGroup libraryGroup;
+            if (state.getIsTemplateOverwrite()) {
+                groupId = reader.getAgencyId();
+                libraryGroup = state.getVipCoreService().getLibraryGroup(groupId);
+                LOGGER.info("Template overwrite is active so setting groupId to {} and libraryGroup to {}", groupId, libraryGroup);
+            } else {
+                groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+                libraryGroup = state.getLibraryGroup();
+            }
 
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), state.getLibraryGroup(), state.getMessages(), state.isAdmin());
+            LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", libraryGroup);
+
+            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, groupId, libraryGroup, state.getMessages(), state.isAdmin());
             LOGGER.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
                 LOGGER.info("Create sub actions for record:\n{}", rec);
@@ -166,9 +178,9 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
                     if (!updReader.markedForDeletion() &&
-                            !state.getVipCoreService().hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                            !state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
                             !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        final String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+                        final String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), groupId);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                     children.add(new UpdateCommonRecordAction(state, settings, rec));
@@ -182,8 +194,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
-                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
+                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                            state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
@@ -205,7 +217,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             }
             logRecordInfo(updReader);
             if (state.isDoubleRecordPossible()) {
-                if (state.getLibraryGroup().isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
+                if (libraryGroup.isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                     if (test) {
                         children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
@@ -213,7 +225,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                         String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                } else if (state.getLibraryGroup().isFBS() || state.getLibraryGroup().isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
+                } else if (libraryGroup.isFBS() || libraryGroup.isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
             }
@@ -317,12 +329,14 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void addDoubleRecordFrontendActionIfNecessary() throws UpdateException {
-        final boolean doubleRecordPossible = state.isDoubleRecordPossible();
-        final boolean fbsMode = state.getLibraryGroup().isFBS();
-        final boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-        if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
-            // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
-            children.add(new DoubleRecordFrontendAction(state, settings));
+        if (!state.getIsTemplateOverwrite()) {
+            final boolean doubleRecordPossible = state.isDoubleRecordPossible();
+            final boolean fbsMode = state.getLibraryGroup().isFBS();
+            final boolean doubleRecordKeyEmpty = StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
+            if (doubleRecordPossible && fbsMode && doubleRecordKeyEmpty) {
+                // This action must be run before the rest of the actions because we do not use xa compatible postgres connections
+                children.add(new DoubleRecordFrontendAction(state, settings));
+            }
         }
     }
 
