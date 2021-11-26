@@ -7,7 +7,7 @@ networks:
 services:
 
   update-systemtests-rawrepo-db:
-    image: docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:DIT-5016
+    image: docker-io.dbc.dk/rawrepo-postgres-ms3633-snapshot:MS-3633_improve_enqueue_performance-2
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo

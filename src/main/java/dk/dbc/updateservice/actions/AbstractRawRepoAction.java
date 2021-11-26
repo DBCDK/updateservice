@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.MDCUtil;
 
@@ -17,6 +18,7 @@ import dk.dbc.updateservice.utils.MDCUtil;
 public abstract class AbstractRawRepoAction extends AbstractAction {
     protected RawRepo rawRepo;
     protected MarcRecord marcRecord;
+    protected RecordId recordId;
 
     protected AbstractRawRepoAction(String name, GlobalActionState globalActionState) {
         this(name, globalActionState, globalActionState.readRecord());
@@ -26,6 +28,12 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
         super(name, globalActionState);
         rawRepo = globalActionState.getRawRepo();
         this.marcRecord = marcRecord;
+    }
+
+    protected AbstractRawRepoAction(String name, GlobalActionState globalActionState, RecordId recordId) {
+        super(name, globalActionState);
+        rawRepo = globalActionState.getRawRepo();
+        this.recordId = recordId;
     }
 
     public RawRepo getRawRepo() {
@@ -46,6 +54,10 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
 
     @Override
     public void setupMDCContext() {
-        MDCUtil.setupContextForRecord(marcRecord);
+        if (marcRecord != null) {
+            MDCUtil.setupContextForRecord(marcRecord);
+        } else {
+            MDCUtil.setupContextForRecord(recordId);
+        }
     }
 }

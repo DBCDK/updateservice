@@ -56,7 +56,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     }
 
     public StoreRecordAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
-        super(StoreRecordAction.class.getSimpleName(), globalActionState, null);
+        super(StoreRecordAction.class.getSimpleName(), globalActionState, recordId);
         this.properties = properties;
         this.recordId = recordId;
     }

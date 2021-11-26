@@ -51,7 +51,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     }
 
     public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
-        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, null);
+        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, recordId);
         this.settings = properties;
         this.recordId = recordId;
     }
