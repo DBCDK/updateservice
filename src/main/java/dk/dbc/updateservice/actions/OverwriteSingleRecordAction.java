@@ -91,26 +91,30 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 for (RecordId id : ids) {
                     LOGGER.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
-                    final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
 
                     if (shouldUpdateChildrenModifiedDate) {
                         // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
                         // don't actually have to change anything in the child record
-                        children.add(new UpdateCommonRecordAction(state, settings, currentChildRecord));
+                        //children.add(new UpdateCommonRecordAction(state, settings, currentChildRecord));
+                        children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, id));
+                        children.add(EnqueueRecordAction.newEnqueueAction(state, id, settings));
 
                         // We also need to change the modified date on all DBC enrichments and this way we also make sure to queue all the enrichments
                         final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
                         for (RecordId enrichmentToChild : enrichmentsToChild) {
                             if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
-                                final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
-                                        enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
-                                children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+//                                final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
+//                                        enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
+                                //children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
+                                children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentToChild));
+                                children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentToChild, settings));
                             }
                         }
                     }
 
 
                     if (authorityHasClassificationChange) {
+                        final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
                         // If there is classification change in the authority record we need to update all the child records
                         final Set<RecordId> parents = rawRepo.parents(id);
 

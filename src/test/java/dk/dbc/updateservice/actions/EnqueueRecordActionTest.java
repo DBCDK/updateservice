@@ -187,7 +187,7 @@ class EnqueueRecordActionTest {
         clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-bulk");
         clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
-        when(state.getRawRepo().children(record)).thenReturn(
+        when(state.getRawRepo().children(recordId)).thenReturn(
                 new HashSet<>(Collections.singletonList(new RecordId("child", 870971))));
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);

@@ -8,10 +8,10 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -38,6 +38,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     Encoder encoder = new Encoder();
     private String mimetype;
     Properties properties;
+    private RecordId recordId;
 
     private static final DateTimeFormatter modifiedFormatter = new DateTimeFormatterBuilder()
             .appendPattern("yyyyMMddHHmmss")
@@ -48,6 +49,16 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     public StoreRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(StoreRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.properties = properties;
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        String bibliographicRecordId = reader.getRecordId();
+        int agencyId = reader.getAgencyIdAsInt();
+        this.recordId = new RecordId(bibliographicRecordId, agencyId);
+    }
+
+    public StoreRecordAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
+        super(StoreRecordAction.class.getSimpleName(), globalActionState, null);
+        this.properties = properties;
+        this.recordId = recordId;
     }
 
     String getMimetype() {
@@ -76,18 +87,21 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
+            LOGGER.info("Handling record: {}:{}", recordId.getBibliographicRecordId(), recordId.getAgencyId());
 
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final String recId = reader.getRecordId();
-            final int agencyId = reader.getAgencyIdAsInt();
-            MarcRecord recordToStore = recordToStore();
+            final Record rawRepoRecord = rawRepo.fetchRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+
+            MarcRecord recordToStore;
+            if (this.marcRecord != null) {
+                recordToStore = recordToStore();
+            } else {
+                recordToStore = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+
+            }
             recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
-            final Record rawRepoRecord = rawRepo.fetchRecord(recId, agencyId);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
+
             if (mimetype != null && !mimetype.isEmpty()) {
                 rawRepoRecord.setMimeType(mimetype);
             }
@@ -131,8 +145,13 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, marcRecord);
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            storeRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
+        storeRecordAction.setMimetype(getMarcXChangeMimetype(reader.getAgencyIdAsInt()));
+        return storeRecordAction;
+    }
 
+    static StoreRecordAction newStoreMarcXChangeAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, recordId);
+        storeRecordAction.setMimetype(getMarcXChangeMimetype(recordId.getAgencyId()));
         return storeRecordAction;
     }
 
@@ -161,8 +180,15 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         return storeRecordAction;
     }
 
+    static StoreRecordAction newStoreEnrichmentAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
+        final StoreRecordAction storeRecordAction = new StoreRecordAction(globalActionState, properties, recordId);
+        storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
+        return storeRecordAction;
+    }
+
+
     void updateModifiedDate(MarcRecord marcRecord) {
-        final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         if (RawRepo.DBC_AGENCY_ALL.contains(reader.getAgencyId())) {
             final String modified = getModifiedDate();
