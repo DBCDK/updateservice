@@ -128,7 +128,7 @@ public class AssertActionsUtil {
         final Set<RecordId> result = new HashSet<>();
 
         for (MarcRecord record : records) {
-            result.add(new RecordId(getRecordId(record), getAgencyIdAsInt(record)));
+            result.add(new RecordId(getBibliographicRecordId(record), getAgencyIdAsInt(record)));
         }
 
         return result;
@@ -139,7 +139,7 @@ public class AssertActionsUtil {
     }
 
     public static Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
-        final RawRepoRecordMock result = new RawRepoRecordMock(getRecordId(record), getAgencyIdAsInt(record));
+        final RawRepoRecordMock result = new RawRepoRecordMock(getBibliographicRecordId(record), getAgencyIdAsInt(record));
         result.setMimeType(mimetype);
         result.setDeleted(false);
         result.setContent(RecordContentTransformer.encodeRecord(record));
@@ -147,7 +147,7 @@ public class AssertActionsUtil {
         return result;
     }
 
-    public static String getRecordId(MarcRecord record) {
+    public static String getBibliographicRecordId(MarcRecord record) {
         return new MarcRecordReader(record).getRecordId();
     }
 
@@ -157,6 +157,13 @@ public class AssertActionsUtil {
 
     public static int getAgencyIdAsInt(MarcRecord record) {
         return new MarcRecordReader(record).getAgencyIdAsInt();
+    }
+
+    public static RecordId getRecordId(MarcRecord record) {
+        final String bibliographicRecordId = new MarcRecordReader(record).getRecordId();
+        final int agencyId = new MarcRecordReader(record).getAgencyIdAsInt();
+
+        return new RecordId(bibliographicRecordId, agencyId);
     }
 
     public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) {
@@ -312,7 +319,7 @@ public class AssertActionsUtil {
         assertThat(linkRecordAction.getRawRepo(), is(rawRepo));
         assertThat(linkRecordAction.getRecord(), is(record));
 
-        String recordId = getRecordId(target);
+        String recordId = getBibliographicRecordId(target);
         int agencyId = getAgencyIdAsInt(target);
         assertThat(linkRecordAction.getLinkToRecordId(), is(new RecordId(recordId, agencyId)));
     }

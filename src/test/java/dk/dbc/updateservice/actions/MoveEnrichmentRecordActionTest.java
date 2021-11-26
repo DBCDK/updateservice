@@ -68,7 +68,7 @@ class MoveEnrichmentRecordActionTest {
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
         new MarcRecordWriter(c1).addOrReplaceSubfield("z98", "a", "testPerformAction_CommonRecordPublished");
 
@@ -125,7 +125,7 @@ class MoveEnrichmentRecordActionTest {
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c1RecordId);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         when(state.getRawRepo().recordExists(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);

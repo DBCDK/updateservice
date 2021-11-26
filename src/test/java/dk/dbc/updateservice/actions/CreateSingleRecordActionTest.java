@@ -68,9 +68,9 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_NoLocals_No002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
@@ -105,9 +105,9 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_NoLocals_With002Links() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
@@ -137,7 +137,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_WithLocal_NotFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
 
         Record rr1 = new RawRepoRecordMock(recordId, 700300);
@@ -145,7 +145,7 @@ class CreateSingleRecordActionTest {
         Record rr2 = new RawRepoRecordMock(recordId, 123456);
         rr2.setMimeType(MarcXChangeMimeType.ENRICHMENT);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
+        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
@@ -160,14 +160,14 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_WithLocal_WithFFU() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
         Record rr1 = new RawRepoRecordMock(recordId, 700300);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
@@ -184,7 +184,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_WithLocal_WithFFUAndFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
@@ -193,7 +193,7 @@ class CreateSingleRecordActionTest {
         Record rr2 = new RawRepoRecordMock(recordId, 800500);
         rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
+        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
@@ -209,14 +209,14 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_WithLocal_FromDifferentBase() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
         Record rr = new RawRepoRecordMock(recordId, 870971);
         rr.setMimeType(MarcXChangeMimeType.ARTICLE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
+        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870971)).thenReturn(rr);
@@ -230,7 +230,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testPerformAction_WithLocal_FBSEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         Set<String> ffuLibraries = new HashSet<>();
         ffuLibraries.add("700300");
 
@@ -241,7 +241,7 @@ class CreateSingleRecordActionTest {
         Record rr3 = new RawRepoRecordMock(recordId, 830020);
         rr3.setMimeType(MarcXChangeMimeType.ENRICHMENT);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
+        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870970)).thenReturn(rr1);
@@ -286,7 +286,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testCheckIfRecordCanBeRestored_FBS() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        final String recordId = AssertActionsUtil.getRecordId(record);
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         final Record rr1 = new RawRepoRecordMock(recordId, 111111);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
@@ -296,7 +296,7 @@ class CreateSingleRecordActionTest {
 
         final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 222222));
 
-        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(agencies);
         when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 222222)).thenReturn(rr2);
         when(state.getVipCoreService().getTemplateGroup("222222")).thenReturn("fbs");
@@ -308,7 +308,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testCheckIfRecordCanBeRestored_FFU() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        final String recordId = AssertActionsUtil.getRecordId(record);
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         final Record rr1 = new RawRepoRecordMock(recordId, 111111);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
@@ -318,7 +318,7 @@ class CreateSingleRecordActionTest {
 
         final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 333333));
 
-        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(agencies);
         when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 333333)).thenReturn(rr2);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(new HashSet<>(Arrays.asList("111111", "333333")));
@@ -329,7 +329,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testCheckIfRecordCanBeRestored_Deleted() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        final String recordId = AssertActionsUtil.getRecordId(record);
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         final Record rr1 = new RawRepoRecordMock(recordId, 111111);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
@@ -339,7 +339,7 @@ class CreateSingleRecordActionTest {
 
         final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 555555));
 
-        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(agencies);
         when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 555555)).thenReturn(rr2);
         when(state.getVipCoreService().getTemplateGroup("555555")).thenReturn("ffu");
@@ -351,7 +351,7 @@ class CreateSingleRecordActionTest {
     @Test
     void testCheckIfRecordCanBeRestored_enrichments() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        final String recordId = AssertActionsUtil.getRecordId(record);
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         final Record rr1 = new RawRepoRecordMock(recordId, 111111);
         rr1.setMimeType(MarcXChangeMimeType.ENRICHMENT);
@@ -361,7 +361,7 @@ class CreateSingleRecordActionTest {
 
         final Set<Integer> agencies = new HashSet<>(Arrays.asList(111111, 222222));
 
-        when(state.getRawRepo().agenciesForRecordAll(record)).thenReturn(agencies);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(agencies);
         when(state.getRawRepo().fetchRecord(recordId, 111111)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 222222)).thenReturn(rr2);
 

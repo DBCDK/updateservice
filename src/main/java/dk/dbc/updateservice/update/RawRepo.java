@@ -148,47 +148,24 @@ public class RawRepo {
     /**
      * Returns a Set of local agencies for a record.
      * <p/>
-     * The agency for common records is not returned in the set.
-     *
-     * @param marcRecord The record to lookup local agencies for.
-     * @return A Set of agency ids for the local agencies.
-     * @throws UpdateException In case of an error from RawRepo or an SQL exception.
-     */
-    public Set<Integer> agenciesForRecord(MarcRecord marcRecord) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
-        try {
-            if (marcRecord == null) {
-                throw new IllegalArgumentException("record can not be null");
-            }
-            return agenciesForRecord(getRecordId(marcRecord));
-        } finally {
-            watch.stop("rawrepo.agenciesForRecord.MarcRecord");
-        }
-    }
-
-    /**
-     * Returns a Set of local agencies for a record.
-     * <p/>
      * The agency for common records is not returned in the set nor is deleted records
      *
-     * @param marcRecord The record to lookup local agencies for.
+     * @param bibliographicRecordId The bibliographic record id to lookup local agencies for.
      * @return A Set of agency ids for the local agencies.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public Set<Integer> agenciesForRecordNotDeleted(MarcRecord marcRecord) throws UpdateException {
+    public Set<Integer> agenciesForRecordNotDeleted(String bibliographicRecordId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final Set<Integer> activeAgencies = new HashSet<>();
-        Set<Integer> allAgencies;
         try {
-            if (marcRecord == null) {
+            if (bibliographicRecordId == null) {
                 throw new IllegalArgumentException("record can not be null");
             }
-            allAgencies = agenciesForRecord(getRecordId(marcRecord));
+            final Set<Integer> allAgencies = agenciesForRecord(bibliographicRecordId);
 
             if (allAgencies != null) {
-                MarcRecordReader reader = new MarcRecordReader(marcRecord);
                 for (Integer agencyId : allAgencies) {
-                    if (recordExists(reader.getRecordId(), agencyId)) {
+                    if (recordExists(bibliographicRecordId, agencyId)) {
                         activeAgencies.add(agencyId);
                     }
                 }
@@ -197,20 +174,6 @@ public class RawRepo {
             return activeAgencies;
         } finally {
             watch.stop("rawrepo.agenciesForRecordNotDeleted");
-        }
-    }
-
-    public Set<Integer> agenciesForRecordAll(MarcRecord marcRecord) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
-        Set<Integer> result = null;
-        try {
-            if (marcRecord == null) {
-                throw new IllegalArgumentException("record can not be null");
-            }
-            result = agenciesForRecordAll(getRecordId(marcRecord));
-            return result;
-        } finally {
-            watch.stop("rawrepo.agenciesForRecordAll.MarcRecord");
         }
     }
 
@@ -239,7 +202,7 @@ public class RawRepo {
 
     public Set<Integer> agenciesForRecordAll(String recordId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
-        Set<Integer> result = null;
+        Set<Integer> result;
         final String methodName = "allAgenciesForBibliographicRecordId";
 
         try {
@@ -270,21 +233,6 @@ public class RawRepo {
         } finally {
             watch.stop("rawrepo.agenciesForRecordAll.String");
             updateSimpleTimerMetric(methodName, watch);
-        }
-    }
-
-    public Set<RecordId> children(MarcRecord record) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
-
-        try {
-            if (record == null) {
-                throw new IllegalArgumentException("record can not be null");
-            }
-
-            RecordId recordId = new RecordId(getRecordId(record), convertAgencyId(getAgencyId(record)));
-            return children(recordId);
-        } finally {
-            watch.stop("rawrepo.children.MarcRecord");
         }
     }
 
@@ -347,21 +295,6 @@ public class RawRepo {
         } finally {
             watch.stop("rawrepo.parents");
             updateSimpleTimerMetric(methodName, watch);
-        }
-    }
-
-    public Set<RecordId> enrichments(MarcRecord record) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
-
-        try {
-            if (record == null) {
-                throw new IllegalArgumentException("record can not be null");
-            }
-
-            final RecordId recordId = new RecordId(getRecordId(record), convertAgencyId(getAgencyId(record)));
-            return enrichments(recordId);
-        } finally {
-            watch.stop("rawrepo.enrichments.MarcRecord");
         }
     }
 
@@ -922,28 +855,8 @@ public class RawRepo {
         }
     }
 
-    public static String getRecordId(MarcRecord marcRecord) {
-        final MarcRecordReader mm = new MarcRecordReader(marcRecord);
-
-        return mm.getValue("001", "a");
-    }
-
-    public static String getAgencyId(MarcRecord marcRecord) {
-        final MarcRecordReader mm = new MarcRecordReader(marcRecord);
-
-        return mm.getValue("001", "b");
-    }
-
     public static boolean isSchoolEnrichment(int agencyId) {
         return MIN_SCHOOL_AGENCY <= agencyId && agencyId <= RawRepo.MAX_SCHOOL_AGENCY;
-    }
-
-    public static int convertAgencyId(String agencyId) throws UpdateException {
-        try {
-            return Integer.parseInt(agencyId, 10);
-        } catch (NumberFormatException ex) {
-            throw new UpdateException(String.format("Biblioteksnummeret '%s' er ikke et tal", agencyId), ex);
-        }
     }
 
     private void incrementErrorCounterMetric(String methodName, Exception e) {

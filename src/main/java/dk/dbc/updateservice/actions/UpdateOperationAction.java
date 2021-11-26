@@ -557,7 +557,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
             // There isn't a d09zLIT in incoming record and there is one in existing record
             if (!existingReader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
-                final Set<RecordId> childrenRecords = state.getRawRepo().children(existingRecord);
+                final Set<RecordId> childrenRecords = state.getRawRepo().children(new RecordId(existingReader.getRecordId(), existingReader.getAgencyIdAsInt()));
                 for (RecordId recordId : childrenRecords) {
                     if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
                         final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().

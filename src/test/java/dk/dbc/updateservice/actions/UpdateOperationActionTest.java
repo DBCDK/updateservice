@@ -83,7 +83,7 @@ class UpdateOperationActionTest {
     void testPerformAction_LocalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         state.setLibraryGroup(libraryGroupFBS);
@@ -107,7 +107,7 @@ class UpdateOperationActionTest {
     void testPerformAction_LocalRecordWith_n55() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(record);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("n55", "a", "20170602");
@@ -165,7 +165,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_EnrichmentRecord_WithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
@@ -219,7 +219,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_EnrichmentRecord_NotWithFeature_CreateEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(enrichmentRecord);
@@ -274,7 +274,7 @@ class UpdateOperationActionTest {
     void testPerformAction_CreateCommonRecord_test1() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
@@ -316,7 +316,7 @@ class UpdateOperationActionTest {
     void testPerformAction_CreateCommonRecord_test2() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
@@ -363,7 +363,7 @@ class UpdateOperationActionTest {
     void testPerformAction_CreateCommonRecord_test3() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
@@ -409,7 +409,7 @@ class UpdateOperationActionTest {
     void testPerformAction_CreateCommonRecord_test4() throws Exception {
         // Load a 191919 record - this is the rawrepo record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 870970 in 001*b
@@ -469,7 +469,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_DeleteCommonRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
@@ -521,7 +521,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_DeleteCommonRecord_NotExist() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.markForDeletion();
@@ -575,7 +575,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_CreateCommonSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(commonRecord);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
         MarcRecord commonSchoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
         state.setMarcRecord(commonSchoolRecord);
         state.setLibraryGroup(libraryGroupFBS);
@@ -624,7 +624,7 @@ class UpdateOperationActionTest {
     @Test
     void testPerformAction_CreateSchoolEnrichment() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(commonRecord);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
         MarcRecord schoolRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String groupId = AssertActionsUtil.getAgencyId(schoolRecord);
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(groupId);
@@ -1159,7 +1159,7 @@ class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 191919 in 001*b
@@ -1214,7 +1214,7 @@ class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 191919 in 001*b
@@ -1238,7 +1238,7 @@ class UpdateOperationActionTest {
         MarcRecordWriter littEnWriter = new MarcRecordWriter(littolkEnrichment);
         littEnWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
         littEnWriter.markForDeletion();
-        String littolkRecordId = AssertActionsUtil.getRecordId(littolkCommon);
+        String littolkRecordId = AssertActionsUtil.getBibliographicRecordId(littolkCommon);
 
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -1251,7 +1251,7 @@ class UpdateOperationActionTest {
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()),
                 eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
 
-        when(state.getRawRepo().children(eq(mergedRecord))).thenReturn(AssertActionsUtil.createRecordSet(littolkCommon));
+        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(mergedRecord)))).thenReturn(AssertActionsUtil.createRecordSet(littolkCommon));
         when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkCommon, MarcXChangeMimeType.MARCXCHANGE));
 

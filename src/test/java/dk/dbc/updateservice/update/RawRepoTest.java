@@ -73,7 +73,7 @@ class RawRepoTest {
     @Test
     void test_agenciesForRecord_MarcRecord_RecordIsNull() {
         RawRepo rawRepo = new MockRawRepo();
-        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((MarcRecord) (null)));
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord((String) (null)));
 
     }
 
@@ -81,14 +81,14 @@ class RawRepoTest {
     @Test
     void test_agenciesForRecord_MarcRecord_RecordIsNotFound() {
         RawRepo rawRepo = new MockRawRepo();
-        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(new MarcRecord()));
+        assertThrows(IllegalArgumentException.class, () -> rawRepo.agenciesForRecord(""));
     }
 
     @Test
     void test_errormetrics_and_invocation_timers() {
         RawRepo rawRepo = new MockRawRepo();
         try {
-            rawRepo.agenciesForRecord(new MarcRecord());
+            rawRepo.agenciesForRecord(null);
         } catch (Exception e) {
             System.out.println(e.getMessage().toLowerCase());
         } finally {
@@ -112,7 +112,7 @@ class RawRepoTest {
         when(rawRepoDAO.allAgenciesForBibliographicRecordId(eq(recId))).thenReturn(daoAgencies);
 
         RawRepo rawRepo = new MockRawRepo();
-        Set<Integer> agencies = rawRepo.agenciesForRecord(record);
+        Set<Integer> agencies = rawRepo.agenciesForRecord(recId);
         assertThat(agencies.size(), is(1));
         assertTrue(agencies.contains(700400));
     }

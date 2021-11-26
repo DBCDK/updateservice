@@ -71,7 +71,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_NoClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -80,7 +80,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -110,7 +110,7 @@ class OverwriteSingleRecordActionTest {
         final MarcRecordWriter writer = new MarcRecordWriter(recordWithoutEnrichmentFields);
         writer.removeFields(Arrays.asList("r01", "r02"));
 
-        final String recordId = AssertActionsUtil.getRecordId(record);
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         final Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -119,7 +119,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record); // <- Important! The original record is set on the state object
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -168,7 +168,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_SameClassifications() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -177,7 +177,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -228,7 +228,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -237,7 +237,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -292,7 +292,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -301,7 +301,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
@@ -357,7 +357,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_CreateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -366,7 +366,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
@@ -421,7 +421,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
@@ -429,7 +429,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
@@ -484,7 +484,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
@@ -495,7 +495,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
@@ -552,7 +552,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_UpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(recordId, record);
@@ -563,7 +563,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
@@ -632,7 +632,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -644,7 +644,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
@@ -713,7 +713,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_CreateAndUpdateEnrichment_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -725,7 +725,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
@@ -798,7 +798,7 @@ class OverwriteSingleRecordActionTest {
     void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -811,7 +811,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
@@ -882,7 +882,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_LocalAgencyNoEnrichments() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -894,7 +894,7 @@ class OverwriteSingleRecordActionTest {
         state.setMarcRecord(record);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().agenciesForRecord(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
@@ -971,7 +971,7 @@ class OverwriteSingleRecordActionTest {
 
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -1059,7 +1059,7 @@ class OverwriteSingleRecordActionTest {
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
 
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         state.setMarcRecord(record);
@@ -1135,7 +1135,7 @@ class OverwriteSingleRecordActionTest {
         new MarcRecordWriter(c1).addOrReplaceSubfield("002", "a", c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -1531,7 +1531,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
@@ -1616,7 +1616,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
-        String e1RecordId = AssertActionsUtil.getRecordId(e1);
+        String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();

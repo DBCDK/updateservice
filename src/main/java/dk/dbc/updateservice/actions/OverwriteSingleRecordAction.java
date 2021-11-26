@@ -87,7 +87,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             if (shouldUpdateChildrenModifiedDate || authorityHasClassificationChange) {
                 final Map<String, MarcRecord> otherAuthorityRecords = new HashMap<>();
-                final Set<RecordId> ids = state.getRawRepo().children(marcRecord);
+                final Set<RecordId> ids = state.getRawRepo().children(recordId);
 
                 for (RecordId id : ids) {
                     LOGGER.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId());
@@ -235,7 +235,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         } else {
             LOGGER.info("Getting holdings and agencies for volume {}", recordId);
             librariesWithPosts.addAll(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(marcRecord));
-            librariesWithPosts.addAll(state.getRawRepo().agenciesForRecordNotDeleted(marcRecord));
+            librariesWithPosts.addAll(state.getRawRepo().agenciesForRecordNotDeleted(reader.getRecordId()));
         }
     }
 

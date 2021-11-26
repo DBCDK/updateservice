@@ -98,7 +98,7 @@ class EnqueueRecordActionTest {
     @Test
     void testActionPerform_ProviderIdFBS() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        final String bibliographicRecordId = AssertActionsUtil.getRecordId(record);
+        final String bibliographicRecordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
