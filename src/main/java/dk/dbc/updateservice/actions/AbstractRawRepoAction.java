@@ -33,7 +33,9 @@ public abstract class AbstractRawRepoAction extends AbstractAction {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String bibliographicRecordId = reader.getRecordId();
         int agencyId = reader.getAgencyIdAsInt();
-        this.recordId = new RecordId(bibliographicRecordId, agencyId);
+        if (bibliographicRecordId != null) {
+            this.recordId = new RecordId(bibliographicRecordId, agencyId);
+        }
     }
 
     protected AbstractRawRepoAction(String name, GlobalActionState globalActionState, RecordId recordId) {
