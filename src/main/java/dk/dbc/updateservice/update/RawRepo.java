@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcXchangeFactory;
 import dk.dbc.common.records.marcxchange.CollectionType;
 import dk.dbc.common.records.marcxchange.ObjectFactory;
@@ -15,6 +14,7 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.commons.metricshandler.CounterMetric;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.commons.metricshandler.SimpleTimerMetric;
+import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.marcxmerge.FieldRules;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
@@ -22,7 +22,6 @@ import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RelationHintsVipCore;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.eclipse.microprofile.metrics.Metadata;
