@@ -27,6 +27,7 @@ import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
@@ -74,6 +75,7 @@ public class GlobalActionState {
     private RecordSorter recordSorter = null;
     private NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = null;
     private HttpServletRequest request;
+    private Boolean isTemplateOverwrite;
 
 
     public HttpServletRequest getRequest() {
@@ -258,6 +260,37 @@ public class GlobalActionState {
 
     public void setLibraryGroup(LibraryGroup libraryGroup) {
         this.libraryGroup = libraryGroup;
+    }
+
+    /*
+        During mass corrections (masseret) it is desired to:
+         - Use the same groupId for every record despite the record's agency
+         - Be allowed to update the record no matter how mangled the record is.
+
+        To this purpose a fake template can be used: superallowall
+        Using this template completely bypasses template validate and everything else related to a template (e.g. sorting)
+
+        Only libraries with auth_root permission can use this template and the record being updated must already exist.
+     */
+    public boolean getIsTemplateOverwrite() throws UpdateException {
+        if (this.isTemplateOverwrite == null) {
+            try {
+                this.isTemplateOverwrite = "superallowall".equals(this.getSchemaName()) &&
+                        this.getVipCoreService().hasFeature(this.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
+                // Temporarily disable check
+//                if (Boolean.TRUE.equals(this.isTemplateOverwrite)) {
+//                    final String bibliographicRecordId = marcRecordReader.getValue("001", "a");
+//                    final int agencyId = marcRecordReader.getAgencyIdAsInt();
+//                    if (!rawRepo.recordExistsMaybeDeleted(bibliographicRecordId, agencyId)) {
+//                        throw new UpdateException(String.format("superallowall is not allowed for records which don't exist (%s:%s)", bibliographicRecordId, agencyId));
+//                    }
+//                }
+            } catch (VipCoreException e) {
+                throw new UpdateException("Something went wrong when contacting vipcore", e);
+            }
+        }
+
+        return this.isTemplateOverwrite;
     }
 
     public void setTemplateGroup(String templateGroup) {

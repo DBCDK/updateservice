@@ -40,7 +40,7 @@ public class RecordSorter {
 
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            // There is no template called superallowall so we can't use it to sort with, so just return the same record
+            // There no template called superallowall so we can't use it to sort with, so just return the same record
             if ("superallowall".equals(schemaName)) {
                 return marcRecord;
             } else {

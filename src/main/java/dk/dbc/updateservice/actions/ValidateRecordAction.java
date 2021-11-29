@@ -8,8 +8,6 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
-import dk.dbc.vipcore.exception.VipCoreException;
-import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -82,10 +80,8 @@ public class ValidateRecordAction extends AbstractAction {
             }
 
             final ServiceResult result = new ServiceResult();
-            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-            if (!(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT) &&
-                    "superallowall".equals(state.getSchemaName()))) {
+            if (!state.getIsTemplateOverwrite()) {
                 final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
                 result.addMessageEntryDtos(errors);
             }
@@ -102,7 +98,7 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException | VipCoreException ex) {
+        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             LOGGER.error(message, ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
