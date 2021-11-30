@@ -334,25 +334,25 @@ public class RawRepo {
      * <p/>
      * If the record does not exist in the RawRepo then it will be created.
      *
-     * @param recId    String
+     * @param bibliographicRecordId    String
      * @param agencyId int
      * @return The RawRepo record.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
-    public Record fetchRecord(String recId, int agencyId) throws UpdateException {
+    public Record fetchRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         Record result = null;
         final String methodName = "fetchRecord";
 
         try {
-            if (recId == null) {
-                throw new IllegalArgumentException("recId can not be null");
+            if (bibliographicRecordId == null) {
+                throw new IllegalArgumentException("bibliographicRecordId can not be null");
             }
             try (Connection conn = dataSource.getConnection()) {
                 try {
                     final RawRepoDAO dao = createDAO(conn);
 
-                    result = dao.fetchRecord(recId, agencyId);
+                    result = dao.fetchRecord(bibliographicRecordId, agencyId);
                     return result;
                 } catch (RawRepoException ex) {
                     conn.rollback();
@@ -372,19 +372,19 @@ public class RawRepo {
         }
     }
 
-    public Record fetchMergedRecord(String recId, int agencyId) throws UpdateException {
+    public Record fetchMergedRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "fetchMergedRecord";
 
         try {
-            if (recId == null) {
-                throw new IllegalArgumentException("recId can not be null");
+            if (bibliographicRecordId == null) {
+                throw new IllegalArgumentException("bibliographicRecordId can not be null");
             }
             try (Connection conn = dataSource.getConnection()) {
                 try {
                     final RawRepoDAO dao = createDAO(conn);
                     final MarcXMerger merger = new MarcXMerger();
-                    return dao.fetchMergedRecord(recId, agencyId, merger, false);
+                    return dao.fetchMergedRecord(bibliographicRecordId, agencyId, merger, false);
                 } catch (RawRepoException | MarcXMergerException ex) {
                     conn.rollback();
                     LOGGER.error(ex.getMessage(), ex);
@@ -403,19 +403,19 @@ public class RawRepo {
         }
     }
 
-    public Map<String, MarcRecord> fetchRecordCollection(String recId, int agencyId) throws UpdateException {
+    public Map<String, MarcRecord> fetchRecordCollection(String bibliographicRecordId, int agencyId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "fetchRecordCollection";
         Map<String, MarcRecord> result = null;
         Map<String, Record> recordMap;
         try (Connection conn = dataSource.getConnection()) {
-            if (recId == null) {
-                throw new IllegalArgumentException("recId can not be null");
+            if (bibliographicRecordId == null) {
+                throw new IllegalArgumentException("bibliographicRecordId can not be null");
             }
             try {
                 final RawRepoDAO dao = createDAO(conn);
                 final MarcXMerger merger = new MarcXMerger();
-                recordMap = dao.fetchRecordCollection(recId, agencyId, merger);
+                recordMap = dao.fetchRecordCollection(bibliographicRecordId, agencyId, merger);
                 if (recordMap.size() > 0) {
                     result = new HashMap<>();
                     for (Map.Entry<String, Record> entry : recordMap.entrySet()) {
@@ -456,7 +456,7 @@ public class RawRepo {
         Record result = null;
         try {
             if (bibliographicRecordId == null) {
-                throw new IllegalArgumentException("recId can not be null");
+                throw new IllegalArgumentException("bibliographicRecordId can not be null");
             }
             try (Connection conn = dataSource.getConnection()) {
                 try {
@@ -633,14 +633,14 @@ public class RawRepo {
         }
     }
 
-    public void removeLinks(RecordId recId) throws UpdateException {
+    public void removeLinks(RecordId bibliographicRecordId) throws UpdateException {
         StopWatch watch = new Log4JStopWatch();
         final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 RawRepoDAO dao = createDAO(conn);
                 final HashSet<RecordId> references = new HashSet<>();
-                dao.setRelationsFrom(recId, references);
+                dao.setRelationsFrom(bibliographicRecordId, references);
             } catch (RawRepoException e) {
                 conn.rollback();
                 LOGGER.error(e.getMessage(), e);
@@ -662,18 +662,18 @@ public class RawRepo {
      * Creates a link between two records in rawrepo.
      *
      * @param id       Id of the record to link from.
-     * @param refer_id Id of the record to link to.
+     * @param referId Id of the record to link to.
      * @throws UpdateException In case of SQLException or RawRepoException, that exception
      *                         encapsulated in an UpdateException.
      */
-    public void linkRecord(RecordId id, RecordId refer_id) throws UpdateException {
+    public void linkRecord(RecordId id, RecordId referId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
                 final Set<RecordId> references = new HashSet<>();
-                references.add(refer_id);
+                references.add(referId);
                 dao.setRelationsFrom(id, references);
             } catch (RawRepoException e) {
                 conn.rollback();
@@ -693,21 +693,21 @@ public class RawRepo {
     }
 
     /**
-     * Loads the existing links from the id record and adds refer_id to that list
+     * Loads the existing links from the id record and adds referId to that list
      *
      * @param id       Id of the record to link from.
-     * @param refer_id Id of the record to link to.
+     * @param referId Id of the record to link to.
      * @throws UpdateException In case of SQLException or RawRepoException, that exception
      *                         encapsulated in an UpdateException.
      */
-    public void linkRecordAppend(RecordId id, RecordId refer_id) throws UpdateException {
+    public void linkRecordAppend(RecordId id, RecordId referId) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "linkRecordAppend";
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
                 final Set<RecordId> references = dao.getRelationsFrom(id);
-                references.add(refer_id);
+                references.add(referId);
                 dao.setRelationsFrom(id, references);
             } catch (RawRepoException e) {
                 conn.rollback();
@@ -726,18 +726,18 @@ public class RawRepo {
         }
     }
 
-    public void changedRecord(String provider, RecordId recId) throws UpdateException {
-        changedRecord(provider, recId, 1000);
+    public void changedRecord(String provider, RecordId recordId) throws UpdateException {
+        changedRecord(provider, recordId, 1000);
     }
 
-    public void changedRecord(String provider, RecordId recId, int priority) throws UpdateException {
+    public void changedRecord(String provider, RecordId recordId, int priority) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "changedRecord";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
-                dao.changedRecord(provider, recId, priority);
+                dao.changedRecord(provider, recordId, priority);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 LOGGER.error(ex.getMessage(), ex);
@@ -755,14 +755,14 @@ public class RawRepo {
         }
     }
 
-    public void enqueue(RecordId recId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
+    public void enqueue(RecordId recordId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
         final StopWatch watch = new Log4JStopWatch();
         final String methodName = "enqueue";
 
         try (Connection conn = dataSource.getConnection()) {
             try {
                 final RawRepoDAO dao = createDAO(conn);
-                dao.enqueue(recId, provider, changed, leaf, priority);
+                dao.enqueue(recordId, provider, changed, leaf, priority);
             } catch (RawRepoException ex) {
                 conn.rollback();
                 LOGGER.error(ex.getMessage(), ex);
