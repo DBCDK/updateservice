@@ -95,7 +95,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     if (shouldUpdateChildrenModifiedDate) {
                         // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
                         // don't actually have to change anything in the child record
-                        //children.add(new UpdateCommonRecordAction(state, settings, currentChildRecord));
                         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, id));
                         children.add(EnqueueRecordAction.newEnqueueAction(state, id, settings));
 
@@ -103,9 +102,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         final Set<RecordId> enrichmentsToChild = state.getRawRepo().enrichments(id);
                         for (RecordId enrichmentToChild : enrichmentsToChild) {
                             if (RawRepo.DBC_ENRICHMENT == enrichmentToChild.getAgencyId()) {
-//                                final MarcRecord dbcEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(
-//                                        enrichmentToChild.getBibliographicRecordId(), enrichmentToChild.getAgencyId()).getContent());
-                                //children.add(new UpdateEnrichmentRecordAction(state, settings, dbcEnrichment, id.getAgencyId()));
                                 children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentToChild));
                                 children.add(EnqueueRecordAction.newEnqueueAction(state, enrichmentToChild, settings));
                             }
@@ -380,20 +376,20 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord marcRecord, MarcRecord currentRecord, String id) {
-            final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
-                    new UpdateClassificationsInEnrichmentRecordAction(state, settings, id);
-            updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(extRecordData);
-            updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(currentRecord);
-            updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(marcRecord);
-            return updateClassificationsInEnrichmentRecordAction;
+        final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
+                new UpdateClassificationsInEnrichmentRecordAction(state, settings, id);
+        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(extRecordData);
+        updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(currentRecord);
+        updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(marcRecord);
+        return updateClassificationsInEnrichmentRecordAction;
     }
 
     private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord marcRecord, MarcRecord currentRecord, String holdingAgencyId) {
-            final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction =
-                    new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
-            createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(currentRecord);
-            createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(marcRecord);
-            return createEnrichmentRecordWithClassificationsAction;
+        final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction =
+                new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
+        createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(currentRecord);
+        createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(marcRecord);
+        return createEnrichmentRecordWithClassificationsAction;
     }
 
 }

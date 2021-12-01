@@ -101,7 +101,6 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
             rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
-
             if (mimetype != null && !mimetype.isEmpty()) {
                 rawRepoRecord.setMimeType(mimetype);
             }
@@ -185,7 +184,6 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
         return storeRecordAction;
     }
-
 
     void updateModifiedDate(MarcRecord marcRecord) {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);

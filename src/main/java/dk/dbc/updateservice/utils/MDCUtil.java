@@ -24,7 +24,6 @@ public class MDCUtil {
         setupContextForRecord(recordId.getBibliographicRecordId(), Integer.toString(recordId.getAgencyId()));
     }
 
-
     public static void setupContextForRecord(MarcRecord marcRecord) {
         MarcRecordReader reader = new MarcRecordReader(marcRecord);
         String recordId = reader.getValue("001", "a");

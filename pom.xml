@@ -128,7 +128,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-access</artifactId>
-            <version>ms3633-SNAPSHOT</version>
+            <version>1.15-SNAPSHOT</version>
         </dependency>
 
         <dependency>
