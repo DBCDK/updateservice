@@ -79,13 +79,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
         }
 
-        // It looks like 191919 enqueues everything the parent record does in addition to itself. This is a waste of
-        // time. So if the record is 191919 we only enqueue that specific record.
-        if (reader.getAgencyIdAsInt() == RawRepo.DBC_ENRICHMENT) {
-            rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
-            return ServiceResult.newOkResult();
-        }
-
         LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
         rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
 
