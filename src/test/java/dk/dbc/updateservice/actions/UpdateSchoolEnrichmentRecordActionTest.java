@@ -32,7 +32,7 @@ class UpdateSchoolEnrichmentRecordActionTest {
     @Test
     void testConstructor_NoCommonSchoolRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
 
@@ -43,7 +43,7 @@ class UpdateSchoolEnrichmentRecordActionTest {
     @Test
     void testConstructor_WithCommonSchoolRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
 

@@ -39,11 +39,23 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
 
     Properties settings;
+    private final RecordId recordId;
 
     public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(EnqueueRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String bibliographicRecordId = reader.getRecordId();
+        final int agencyId = reader.getAgencyIdAsInt();
+        this.recordId = new RecordId(bibliographicRecordId, agencyId);
     }
+
+    public EnqueueRecordAction(GlobalActionState globalActionState, Properties properties, RecordId recordId) {
+        super(EnqueueRecordAction.class.getSimpleName(), globalActionState, recordId);
+        this.settings = properties;
+        this.recordId = recordId;
+    }
+
 
     /**
      * Performs this actions and may create any child actions.
@@ -54,9 +66,6 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         String providerId;
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String recId = reader.getRecordId();
-        final int agencyId = reader.getAgencyIdAsInt();
 
         int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
@@ -81,13 +90,13 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
         // It looks like 191919 enqueues everything the parent record does in addition to itself. This is a waste of
         // time. So if the record is 191919 we only enqueue that specific record.
-        if (reader.getAgencyIdAsInt() == RawRepo.DBC_ENRICHMENT) {
-            rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
+        if (recordId.getAgencyId() == RawRepo.DBC_ENRICHMENT) {
+            rawRepo.enqueue(recordId, providerId, true, true, priority);
             return ServiceResult.newOkResult();
         }
 
-        LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, agencyId, providerId, priority);
-        rawRepo.changedRecord(providerId, new RecordId(recId, agencyId), priority);
+        LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), recordId.getAgencyId(), providerId, priority);
+        rawRepo.changedRecord(providerId, recordId, priority);
 
         // Hack for handling missing enqueue of article (870971) records with child articles.
         // The way changedRecord enqueues records with children in general is that if there are any children then
@@ -97,10 +106,10 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         // However there is a hole when it comes to article records as articles does not retrieve their parent
         // article record during queue processing. Until this case is handled by changedRecord we have to explicit
         // enqueue the parent article
-        if (reader.getAgencyIdAsInt() == RawRepo.ARTICLE_AGENCY && !state.getRawRepo().children(marcRecord).isEmpty()) {
+        if (recordId.getAgencyId() == RawRepo.ARTICLE_AGENCY && !state.getRawRepo().children(recordId).isEmpty()) {
             LOGGER.info("Found children for article record, so enqueuing that record explict");
-            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recId, RawRepo.DBC_ENRICHMENT, providerId, priority);
-            rawRepo.enqueue(new RecordId(recId, RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
+            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT, providerId, priority);
+            rawRepo.enqueue(new RecordId(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
         }
 
         return ServiceResult.newOkResult();
@@ -112,4 +121,9 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
     public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, MarcRecord marcRecord, Properties properties) {
         return new EnqueueRecordAction(globalActionState, properties, marcRecord);
     }
+
+    public static EnqueueRecordAction newEnqueueAction(GlobalActionState globalActionState, RecordId recordId, Properties properties) {
+        return new EnqueueRecordAction(globalActionState, properties, recordId);
+    }
+
 }

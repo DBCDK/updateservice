@@ -52,10 +52,10 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final String recordId = reader.getRecordId();
+            final String bibliographicRecordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
 
-            if (!rawRepo.recordExists(recordId, agencyId)) {
+            if (!rawRepo.recordExists(bibliographicRecordId, agencyId)) {
                 children.add(createCreateRecordAction());
                 return ServiceResult.newOkResult();
             }
@@ -70,11 +70,11 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 // 004 *a h = head record
                 // 004 *a s = section record
                 if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
-                    final Set<RecordId> children = state.getRawRepo().children(marcRecord);
+                    final Set<RecordId> children = state.getRawRepo().children(recordId);
                     for (RecordId childId : children) {
                         // 870971 records are okay as children but a 870970 means it is in volume hierarchy
                         if (RawRepo.COMMON_AGENCY == childId.getAgencyId()) {
-                            final String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), recordId, agencyId);
+                            final String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), bibliographicRecordId, agencyId);
 
                             LOGGER.info("Record can't be changed from head or section record single record. Returning error: {}", message);
                             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
@@ -93,12 +93,12 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                         final boolean hasAuthExportHoldings = state.getVipCoreService().hasFeature(agencyWithHoldings.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
                         if (hasAuthExportHoldings) {
                             LOGGER.info("Agency '{}' has feature '{}'", agencyWithHoldings, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
-                            final String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId);
+                            final String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", bibliographicRecordId);
                             final boolean has002Links = state.getSolrFBS().hasDocuments(solrQuery);
                             if (!has002Links) {
-                                final String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), recordId, agencyId, agencyWithHoldings);
+                                final String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), bibliographicRecordId, agencyId, agencyWithHoldings);
 
-                                LOGGER.info("Record '{}:{}' has no 002 links. Returning error: {}", recordId, reader.getAgencyId(), message);
+                                LOGGER.info("Record '{}:{}' has no 002 links. Returning error: {}", bibliographicRecordId, reader.getAgencyId(), message);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                             }
                         } else {

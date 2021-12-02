@@ -50,7 +50,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }
-            final Set<RecordId> recordChildren = rawRepo.children(marcRecord);
+            final Set<RecordId> recordChildren = rawRepo.children(recordId);
             if (!recordChildren.isEmpty()) {
                 if (checkForNotDeletableLittolkChildren(recordChildren)) {
                     deleteLittolkChildren(recordChildren);
@@ -66,7 +66,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            for (RecordId enrichmentId : rawRepo.enrichments(marcRecord)) {
+            for (RecordId enrichmentId : rawRepo.enrichments(recordId)) {
                 final Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
                 final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
 

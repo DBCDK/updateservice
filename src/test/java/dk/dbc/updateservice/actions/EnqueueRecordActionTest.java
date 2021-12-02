@@ -98,7 +98,7 @@ class EnqueueRecordActionTest {
     @Test
     void testActionPerform_ProviderIdFBS() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        final String bibliographicRecordId = AssertActionsUtil.getRecordId(record);
+        final String bibliographicRecordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, record);
@@ -187,7 +187,7 @@ class EnqueueRecordActionTest {
         clonedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, "dataio-bulk");
         clonedSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, "1000");
 
-        when(state.getRawRepo().children(record)).thenReturn(
+        when(state.getRawRepo().children(recordId)).thenReturn(
                 new HashSet<>(Collections.singletonList(new RecordId("child", 870971))));
 
         final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, clonedSettings, record);

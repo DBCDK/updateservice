@@ -54,7 +54,7 @@ public class UpdateRequestAction extends AbstractAction {
         if (message != null) {
             return message;
         }
-        children.add(new PreProcessingAction(state));
+        children.add(new PreProcessingAction(state, state.readRecord()));
         children.add(new ValidateOperationAction(state, settings));
         if (!hasValidateOnlyOption()) {
             final MarcRecordReader reader = new MarcRecordReader(state.readRecord());

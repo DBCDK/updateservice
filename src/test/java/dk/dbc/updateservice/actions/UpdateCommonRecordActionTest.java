@@ -61,7 +61,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateSingleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
@@ -106,7 +106,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
@@ -144,7 +144,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_DeleteSingleRecord_WithDoubleAlias() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
@@ -195,10 +195,10 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateVolumeRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
+        String mainRecordId = AssertActionsUtil.getBibliographicRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
+        String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
@@ -225,7 +225,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateSingleRecordFBS() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 

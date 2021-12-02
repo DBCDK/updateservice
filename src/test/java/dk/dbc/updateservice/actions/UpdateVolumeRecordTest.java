@@ -62,10 +62,10 @@ class UpdateVolumeRecordTest {
     @Test
     void testPerformAction_CreateRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
+        String mainRecordId = AssertActionsUtil.getBibliographicRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
+        String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
@@ -106,10 +106,10 @@ class UpdateVolumeRecordTest {
     @Test
     void testPerformAction_OverwriteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
+        String mainRecordId = AssertActionsUtil.getBibliographicRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
+        String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
@@ -150,10 +150,10 @@ class UpdateVolumeRecordTest {
     @Test
     void testPerformAction_DeleteRecord() throws Exception {
         MarcRecord mainRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_RECORD_RESOURCE);
-        String mainRecordId = AssertActionsUtil.getRecordId(mainRecord);
+        String mainRecordId = AssertActionsUtil.getBibliographicRecordId(mainRecord);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(mainRecord);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
-        String volumeRecordId = AssertActionsUtil.getRecordId(volumeRecord);
+        String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);

@@ -154,10 +154,8 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      */
     private ServiceResult performSingleDeleteAction() throws UpdateException {
         try {
-            if (!rawRepo.children(marcRecord).isEmpty()) {
-                final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-                final String recordId = reader.getRecordId();
-                final String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId);
+            if (!rawRepo.children(recordId).isEmpty()) {
+                final String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId.getBibliographicRecordId());
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
             if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.marcRecord).isEmpty()) {

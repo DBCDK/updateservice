@@ -61,7 +61,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
     }
 
     private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {
-        final Set<Integer> agencies = rawRepo.agenciesForRecord(marcRecord);
+        final Set<Integer> agencies = rawRepo.agenciesForRecord(recordId.getBibliographicRecordId());
         if (agencies == null) {
             return;
         }

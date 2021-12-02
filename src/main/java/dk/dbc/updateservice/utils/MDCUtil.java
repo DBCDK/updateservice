@@ -7,6 +7,7 @@ package dk.dbc.updateservice.utils;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.rawrepo.RecordId;
 import org.slf4j.MDC;
 
 public class MDCUtil {
@@ -17,6 +18,10 @@ public class MDCUtil {
 
     private MDCUtil() {
         
+    }
+
+    public static void setupContextForRecord(RecordId recordId) {
+        setupContextForRecord(recordId.getBibliographicRecordId(), Integer.toString(recordId.getAgencyId()));
     }
 
     public static void setupContextForRecord(MarcRecord marcRecord) {

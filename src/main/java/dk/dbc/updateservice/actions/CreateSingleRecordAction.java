@@ -76,7 +76,7 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
         final MarcRecordReader reader = new MarcRecordReader(record);
 
         // The only records we are interested in are MarcXchange and Articles with different recordId
-        final Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(record);
+        final Set<Integer> agenciesForRecord = state.getRawRepo().agenciesForRecordAll(reader.getRecordId());
         agenciesForRecord.remove(reader.getAgencyIdAsInt());
 
         final Set<Integer> listToCheck = new HashSet<>();

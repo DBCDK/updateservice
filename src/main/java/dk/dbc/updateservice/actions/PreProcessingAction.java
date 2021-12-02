@@ -27,8 +27,8 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 public class PreProcessingAction extends AbstractRawRepoAction {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
 
-    public PreProcessingAction(GlobalActionState globalActionState) {
-        super(PreProcessingAction.class.getSimpleName(), globalActionState);
+    public PreProcessingAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
+        super(PreProcessingAction.class.getSimpleName(), globalActionState, marcRecord);
     }
 
     @Override
@@ -38,10 +38,10 @@ public class PreProcessingAction extends AbstractRawRepoAction {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record
             // so it is better to not send the record in the first place.
-            if (!state.getMarcRecord().getFields().isEmpty()) {
-                final MarcRecord marcRecord = state.getOpencatBusiness().preprocess(state.getMarcRecord(), trackingId);
+            if (!marcRecord.getFields().isEmpty()) {
+                final MarcRecord preprocessedMarcRecord = state.getOpencatBusiness().preprocess(state.getMarcRecord(), trackingId);
                 // It doesn't work to reassign the object so instead we just overwrite the fields
-                state.getMarcRecord().setFields(marcRecord.getFields());
+                marcRecord.setFields(preprocessedMarcRecord.getFields());
             }
 
             return ServiceResult.newOkResult();

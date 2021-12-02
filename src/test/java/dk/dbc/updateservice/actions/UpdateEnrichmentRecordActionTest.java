@@ -272,8 +272,8 @@ class UpdateEnrichmentRecordActionTest {
     void testPerformAction_UpdateRecord_CommonRecordDoesNotExist() throws Exception {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(enrichmentRecord);
-        String commonRecordId = AssertActionsUtil.getRecordId(commonRecord);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(enrichmentRecord);
+        String commonRecordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
 
         when(state.getRawRepo().recordExists(eq(commonRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
@@ -311,7 +311,7 @@ class UpdateEnrichmentRecordActionTest {
     @Test
     void testPerformAction_UpdateRecord_OptimizedToEmpty() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
@@ -356,7 +356,7 @@ class UpdateEnrichmentRecordActionTest {
     @Test
     void testPerformAction_UpdateRecord_EncodingException() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         UpdateEnrichmentRecordAction.Decoder decoder = mock(UpdateEnrichmentRecordAction.Decoder.class);
 
@@ -399,7 +399,7 @@ class UpdateEnrichmentRecordActionTest {
     @Test
     void testPerformAction_DeleteRecord_NoHoldings() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        String recordId = AssertActionsUtil.getRecordId(record);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         new MarcRecordWriter(record).markForDeletion();
 
