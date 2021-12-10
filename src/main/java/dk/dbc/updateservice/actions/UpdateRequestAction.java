@@ -11,15 +11,14 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.ws.handler.MessageContext;
 import java.util.Enumeration;
 import java.util.Properties;
 
