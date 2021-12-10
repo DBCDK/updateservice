@@ -18,10 +18,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
-
-import java.time.Duration;
-import javax.inject.Inject;
-
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -40,6 +36,7 @@ import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -47,7 +44,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.xml.ws.WebServiceContext;
+import java.time.Duration;
 
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
@@ -60,12 +57,6 @@ public class UpdateServiceRest {
 
     @EJB
     UpdateServiceCore updateServiceCore;
-
-    @Context
-    private WebServiceContext wsContext;
-
-    @Context
-    private HttpServletRequest request;
 
     @Inject
     @RegistryType(type = MetricRegistry.Type.APPLICATION)
@@ -104,8 +95,6 @@ public class UpdateServiceRest {
     @PostConstruct
     protected void init() {
         globalActionState = new GlobalActionState();
-        globalActionState.setWsContext(wsContext);
-        globalActionState.setRequest(request);
     }
 
     /**
@@ -127,7 +116,8 @@ public class UpdateServiceRest {
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
-    public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateRecordRequest) {
+    public UpdateRecordResponseDTO updateRecord(@Context HttpServletRequest request,
+                                                UpdateServiceRequestDTO updateRecordRequest) {
         final StopWatch watch = new Log4JStopWatch();
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
         UpdateRecordResponseDTO updateRecordResponseDTO = null;
@@ -138,7 +128,7 @@ public class UpdateServiceRest {
                 LOGGER.info("Updateservice not ready yet, leaving");
                 return null;
             }
-
+            globalActionState.setRequest(request);
             updateRecordResponseDTO = updateServiceCore.updateRecord(updateRecordRequest, globalActionState);
 
             return updateRecordResponseDTO;
@@ -153,13 +143,13 @@ public class UpdateServiceRest {
             LOGGER.info("updateRecord REST returns: {}", updateRecordResponseDTO);
 
             metricRegistry.counter(updateRecordCounterMetaData,
-                    new Tag("schemaName", updateRecordRequest.getSchemaName()),
-                    new Tag("validateOnly", validateOnly))
+                            new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                            new Tag("validateOnly", validateOnly))
                     .inc();
 
             metricRegistry.simpleTimer(updateRecordDurationMetaData,
-                    new Tag("schemaName", updateRecordRequest.getSchemaName()),
-                    new Tag("validateOnly", validateOnly))
+                            new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                            new Tag("validateOnly", validateOnly))
                     .update(Duration.ofMillis(watch.getElapsedTime()));
 
             incrementGroupIdCounter(updateRecordRequest);
@@ -231,7 +221,7 @@ public class UpdateServiceRest {
                 // Ignore DBC group ids as it pollutes the metric
                 if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
                     metricRegistry.counter(groupIdCounterMetaData,
-                            new Tag("groupId", groupId))
+                                    new Tag("groupId", groupId))
                             .inc();
                 }
             }
@@ -249,7 +239,7 @@ public class UpdateServiceRest {
                 // Ignore DBC group ids as it pollutes the metric
                 if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
                     metricRegistry.counter(groupIdCounterMetaData,
-                            new Tag("groupId", groupId))
+                                    new Tag("groupId", groupId))
                             .inc();
                 }
             }

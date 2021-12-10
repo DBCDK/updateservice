@@ -49,7 +49,6 @@ class ValidateOperationActionTest {
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
-        assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertThat(child.getClass(), is(ValidateSchemaAction.class));
@@ -88,7 +87,6 @@ class ValidateOperationActionTest {
         AuthenticateUserAction authenticateUserAction = (AuthenticateUserAction) child;
         assertThat(authenticateUserAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(authenticateUserAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
-        assertThat(authenticateUserAction.state.getWsContext(), is(state.getWsContext()));
 
         child = children.get(1);
         assertThat(child.getClass(), is(ValidateSchemaAction.class));

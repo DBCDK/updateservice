@@ -142,9 +142,8 @@ public class UpdateRequestAction extends AbstractAction {
     }
 
     private void logRequest() {
-        if (state.getWsContext() != null && state.getWsContext().getMessageContext() != null) {
-            MessageContext mc = state.getWsContext().getMessageContext();
-            HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
+        if (state.getRequest() != null) {
+            final HttpServletRequest req = state.getRequest();
             LOGGER.info("REQUEST:");
             LOGGER.info("======================================");
             LOGGER.info("Auth type: {}", req.getAuthType());
@@ -153,7 +152,6 @@ public class UpdateRequestAction extends AbstractAction {
             LOGGER.info("Content length: {}", req.getContentLengthLong());
             LOGGER.info("URI: {}", req.getRequestURI());
             LOGGER.info("Client address: {}", req.getRemoteAddr());
-            // This takes 5 seconds ??
             LOGGER.info("Client host: {}", req.getRemoteHost());
             LOGGER.info("Client port: {}", req.getRemotePort());
             LOGGER.info("Headers");

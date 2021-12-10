@@ -35,7 +35,6 @@ import org.w3c.dom.Node;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.WebServiceContext;
 import java.io.StringReader;
 import java.time.Instant;
 import java.util.List;
@@ -48,7 +47,6 @@ public class GlobalActionState {
     private static final String RECORD_PACKING_XML = "xml";
 
     private UpdateServiceRequestDTO updateServiceRequestDTO = null;
-    private WebServiceContext wsContext = null;
     private Authenticator authenticator = null;
     private RawRepo rawRepo = null;
     private OpencatBusinessConnector opencatBusiness = null;
@@ -90,7 +88,6 @@ public class GlobalActionState {
     }
 
     public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO,
-                             WebServiceContext wsContext,
                              Authenticator authenticator,
                              RawRepo rawRepo,
                              HoldingsItems holdingsItems,
@@ -104,7 +101,6 @@ public class GlobalActionState {
                              HttpServletRequest request,
                              LibraryGroup libraryGroup) {
         this.updateServiceRequestDTO = updateServiceRequestDTO;
-        this.wsContext = wsContext;
         this.authenticator = authenticator;
         this.rawRepo = rawRepo;
         this.holdingsItems = holdingsItems;
@@ -121,7 +117,6 @@ public class GlobalActionState {
 
     public GlobalActionState(GlobalActionState globalActionState) {
         this(globalActionState.getUpdateServiceRequestDTO(),
-                globalActionState.getWsContext(),
                 globalActionState.getAuthenticator(),
                 globalActionState.getRawRepo(),
                 globalActionState.getHoldingsItems(),
@@ -152,14 +147,6 @@ public class GlobalActionState {
     public void setUpdateServiceRequestDTO(UpdateServiceRequestDTO updateServiceRequestDTO) {
         resetState();
         this.updateServiceRequestDTO = updateServiceRequestDTO;
-    }
-
-    public WebServiceContext getWsContext() {
-        return wsContext;
-    }
-
-    public void setWsContext(WebServiceContext wsContext) {
-        this.wsContext = wsContext;
     }
 
     public Authenticator getAuthenticator() {
@@ -494,7 +481,6 @@ public class GlobalActionState {
 
         if (updateServiceRequestDTO != null ? !updateServiceRequestDTO.equals(state.updateServiceRequestDTO) : state.updateServiceRequestDTO != null)
             return false;
-        if (wsContext != null ? !wsContext.equals(state.wsContext) : state.wsContext != null) return false;
         if (request != null ? !request.equals(state.request) : state.request != null) return false;
         if (authenticator != null ? !authenticator.equals(state.authenticator) : state.authenticator != null)
             return false;
@@ -518,7 +504,6 @@ public class GlobalActionState {
     @Override
     public int hashCode() {
         int result = updateServiceRequestDTO != null ? updateServiceRequestDTO.hashCode() : 0;
-        result = 31 * result + (wsContext != null ? wsContext.hashCode() : 0);
         result = 31 * result + (authenticator != null ? authenticator.hashCode() : 0);
         result = 31 * result + (rawRepo != null ? rawRepo.hashCode() : 0);
         result = 31 * result + (opencatBusiness != null ? opencatBusiness.hashCode() : 0);
@@ -541,7 +526,6 @@ public class GlobalActionState {
     public String toString() {
         return "GlobalActionState{" +
                 "updateServiceRequestDTO=" + updateServiceRequestDTO +
-                ", wsContext=" + wsContext +
                 ", authenticator=" + authenticator +
                 ", rawRepo=" + rawRepo +
                 ", opencatBusinessConnector=" + opencatBusiness +

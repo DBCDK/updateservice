@@ -420,7 +420,6 @@ class UpdateRequestActionTest {
     private void testValidateOperationActionOutput(ValidateOperationAction validateOperationAction) {
         assertThat(validateOperationAction.state.getAuthenticator(), is(state.getAuthenticator()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
-        assertThat(validateOperationAction.state.getWsContext(), is(state.getWsContext()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getSchemaName(), is(state.getUpdateServiceRequestDTO().getSchemaName()));
         assertThat(validateOperationAction.state.readRecord(), is(state.readRecord()));
         assertThat(validateOperationAction.settings, is(settings));

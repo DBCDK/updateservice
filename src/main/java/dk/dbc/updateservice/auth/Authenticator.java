@@ -48,15 +48,9 @@ public class Authenticator {
             LOGGER.debug("Using endpoint to forsrights webservice: {}", endpoint);
             ForsRights.RightSet rights;
             final Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
-            if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString())) {
-                String ipAddress;
-                if (state.getRequest() != null) {
-                    ipAddress = getRemoteAddrFromMessage(state.getRequest());
-                    LOGGER.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
-                } else {
-                    ipAddress = getRemoteAddrFromMessage(state.getWsContext());
-                    LOGGER.info("Soap service. wsContext used. Ip is: {}", ipAddress);
-                }
+            if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString()) && state.getRequest() != null) {
+                final String ipAddress = getRemoteAddrFromMessage(state.getRequest());
+                LOGGER.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
                 rights = forsService.forsRightsWithIp(state, ipAddress);
             } else {
                 rights = forsService.forsRights(state);

@@ -10,7 +10,6 @@
         <relativePath/>
     </parent>
 
-    <groupId>dk.dbc</groupId>
     <artifactId>updateservice</artifactId>
     <version>2.0-SNAPSHOT</version>
     <packaging>war</packaging>
@@ -31,7 +30,6 @@
         <webservices.api.version>2.0</webservices.api.version>
         <javax.json-api.version>1.1</javax.json-api.version>
         <javax.json.version>1.1</javax.json.version>
-        <log4j.over.slj4j.version>1.7.7</log4j.over.slj4j.version>
         <eclipselink.version>2.6.0</eclipselink.version>
         <wiremock.version>2.22.0</wiremock.version>
         <postgres.jdbc.version>9.4-1204-jdbc41</postgres.jdbc.version>
@@ -39,7 +37,7 @@
         <serviceutils.version>0.1-SNAPSHOT</serviceutils.version>
         <dto.version>2.1-SNAPSHOT</dto.version>
         <system-rules>1.19.0</system-rules>
-        <jersey.version>2.22.2</jersey.version>
+        <json-binding.version>0.1-SNAPSHOT</json-binding.version>
     </properties>
 
     <repositories>
@@ -92,7 +90,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>mavenrepo.dbc.dk</id>
-            <url>http://mavenrepo.dbc.dk/nexus/content/groups/public</url>
+            <url>https://mavenrepo.dbc.dk/nexus/content/groups/public</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -119,13 +117,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.glassfish.metro</groupId>
-            <artifactId>webservices-rt</artifactId>
-            <version>2.3</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-access</artifactId>
             <version>1.15-SNAPSHOT</version>
@@ -147,27 +138,6 @@
             <groupId>dk.dbc</groupId>
             <artifactId>forsrights-ws-client</artifactId>
             <version>1.2-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>dbc-jslib</artifactId>
-
-            <!--
-                This tells maven to not include log4j dependencies, even if
-                introduced by other depencencies. dbc-jsslib has such a dep in test
-                but here they are removed
-            -->
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -225,27 +195,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>${log4j.over.slj4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
-            <version>${jersey.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.media</groupId>
-            <artifactId>jersey-media-jaxb</artifactId>
-            <version>${jersey.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${jersey.version}</version>
-            <scope>provided</scope>
+            <version>${slf4j.version}</version>
         </dependency>
 
         <dependency>
@@ -338,13 +288,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.stefanbirkner</groupId>
-            <artifactId>system-rules</artifactId>
-            <version>${system-rules}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.microprofile.config</groupId>
             <artifactId>microprofile-config-api</artifactId>
         </dependency>
@@ -360,7 +303,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>dbc-commons-metrics-handler</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -374,6 +317,11 @@
             <artifactId>openagency</artifactId>
             <version>1.0.0-SNAPSHOT</version>
             <classifier>vipcore-httpclient</classifier>
+        </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>dataio-commons-utils-lang</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
