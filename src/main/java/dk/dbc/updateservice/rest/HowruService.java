@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.serviceutils.ServiceStatus;
@@ -26,7 +21,7 @@ public class HowruService implements ServiceStatus {
             // Creates a string that can be parsed as JSON
             dependencies = "[" +
                     "\"" + settings.getProperty("VIPCORE_ENDPOINT") + "\"," +
-                    "\"" + settings.getProperty(JNDIResources.FORSRIGHTS_URL) + "forsrights.wsdl" + "\"" +
+                    "\"" + settings.getProperty("IDP_SERVICE_URL") + "\"" +
                     "]";
         }
 

@@ -52,6 +52,7 @@ services:
       - providers.env
     environment:
       - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
+      - IDP_SERVICE_URL=http://ocb-tools-systemtests:8080
       - INSTANCE_NAME=${USER}_systemtest
       - JAVA_MAX_HEAP_SIZE=8G
       - UPDATE_BUILD_NO=lastSuccessfulBuild

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import java.util.ArrayList;
@@ -18,9 +13,7 @@ import java.util.Properties;
 public class JNDIResources {
     public static final String SOLR_URL = "SOLR_URL";
     public static final String SOLR_BASIS_URL = "SOLR_BASIS_URL";
-    public static final String FORSRIGHTS_URL = "FORSRIGHTS_URL";
     public static final String AUTH_PRODUCT_NAME = "AUTH_PRODUCT_NAME";
-    public static final String AUTH_USE_IP = "AUTH_USE_IP";
 
     public static final String RAWREPO_PROVIDER_ID_DBC = "RAWREPO_PROVIDER_ID_DBC";
     public static final String RAWREPO_PROVIDER_ID_FBS = "RAWREPO_PROVIDER_ID_FBS";

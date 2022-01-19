@@ -103,7 +103,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-   
+
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -132,12 +132,6 @@
             <groupId>dk.dbc</groupId>
             <artifactId>vipcore-connector</artifactId>
             <version>1.3-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>dk.dbc</groupId>
-            <artifactId>forsrights-ws-client</artifactId>
-            <version>1.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -323,24 +317,14 @@
             <artifactId>dataio-commons-utils-lang</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>dk.dbc</groupId>
+            <artifactId>idp-connector</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
-        <resources>
-            <resource>
-                <targetPath>META-INF/wsdl/forsrights</targetPath>
-                <directory>src/wsdl/forsrights</directory>
-                <includes>
-                    <include>jax-ws-catalog.xml</include>
-                    <include>*.wsdl</include>
-                    <include>*.xsd</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-            </resource>
-        </resources>
-
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -386,57 +370,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jvnet.jax-ws-commons</groupId>
-                <artifactId>jaxws-maven-plugin</artifactId>
-                <version>${jaxws.maven.plugin}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>wsimport</goal>
-                        </goals>
-                        <configuration>
-                            <wsdlFiles>
-                                <wsdlFile>forsrights.wsdl</wsdlFile>
-                            </wsdlFiles>
-                            <wsdlLocation>META-INF/wsdl/forsrights/forsrights.wsdl</wsdlLocation>
-                            <wsdlDirectory>${basedir}/src/wsdl/forsrights</wsdlDirectory>
-                            <packageName>dk.dbc.forsrights.service</packageName>
-                            <staleFile>${project.build.directory}/jaxws/stale/forsrights.stale</staleFile>
-                        </configuration>
-                        <id>wsimport-generate-forsrights</id>
-                        <phase>generate-sources</phase>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>javax.xml</groupId>
-                        <artifactId>webservices-api</artifactId>
-                        <version>${webservices.api.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.jvnet.jaxb2_commons</groupId>
-                        <artifactId>jaxb2-basics</artifactId>
-                        <version>${maven.jaxb2.common.plugin}</version>
-                    </dependency>
-                </dependencies>
-                <configuration>
-                    <xjcArgs>
-                        <xjcArg>-XtoString</xjcArg>
-                        <xjcArg>-Xequals</xjcArg>
-                        <xjcArg>-XhashCode</xjcArg>
-                    </xjcArgs>
-                    <sourceDestDir>${project.build.directory}/generated-sources/jaxws-wsimport</sourceDestDir>
-                    <xnocompile>true</xnocompile>
-                    <verbose>true</verbose>
-                    <extension>true</extension>
-                    <catalog>${basedir}/src/jax-ws-catalog.xml</catalog>
-                    <target>2.0</target>
-                    <vmArgs>
-                        <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
-                    </vmArgs>
-                </configuration>
             </plugin>
 
             <plugin>
