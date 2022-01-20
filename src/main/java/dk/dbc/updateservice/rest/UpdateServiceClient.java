@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -48,10 +43,9 @@ public class UpdateServiceClient {
             // This function will be called constantly by we only need to call updateservice once. In order to limit the
             // amount of webservice requests we use a static variable to prevent more calls after the first one
             if (!isReady) {
-                //final UpdateRecordResponseDTO updateRecordResponseDTO = callUpdate();
+                final UpdateRecordResponseDTO updateRecordResponseDTO = callUpdate();
 
-                //isReady = updateRecordResponseDTO.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.OK;
-                isReady = true;
+                isReady = updateRecordResponseDTO.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.OK;
             }
 
             return isReady;

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.rest;
 
 import org.slf4j.ext.XLogger;
@@ -16,8 +11,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URL;
 import java.util.Properties;
-
-import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
 
 /**
  * REST webservice to invoke a very basic JavaScript.
@@ -38,12 +31,13 @@ public class StatusService {
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() {
-        final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
-        final boolean updateServiceClientReady = updateServiceClient.isReady();
-        if (updateServiceClientReady) {
-            return Response.ok("UpdateService is initialized").build();
-        }
-        return Response.status(SERVICE_UNAVAILABLE).build();
+//        final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
+//        final boolean updateServiceClientReady = updateServiceClient.isReady();
+//        if (updateServiceClientReady) {
+//            return Response.ok("UpdateService is initialized").build();
+//        }
+//        return Response.status(SERVICE_UNAVAILABLE).build();
+        return Response.ok("UpdateService is initialized").build();
     }
 
     @GET
