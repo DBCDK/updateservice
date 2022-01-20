@@ -63,8 +63,8 @@ public class UpdateServiceClient {
     private UpdateRecordResponseDTO callUpdate() {
         final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId("725900");
-        authenticationDTO.setPassword("");
-        authenticationDTO.setUserId("");
+        authenticationDTO.setPassword("password");
+        authenticationDTO.setUserId("user");
 
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
