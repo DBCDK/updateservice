@@ -48,9 +48,10 @@ public class UpdateServiceClient {
             // This function will be called constantly by we only need to call updateservice once. In order to limit the
             // amount of webservice requests we use a static variable to prevent more calls after the first one
             if (!isReady) {
-                final UpdateRecordResponseDTO updateRecordResponseDTO = callUpdate();
+                //final UpdateRecordResponseDTO updateRecordResponseDTO = callUpdate();
 
-                isReady = updateRecordResponseDTO.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.OK;
+                //isReady = updateRecordResponseDTO.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.OK;
+                isReady = true;
             }
 
             return isReady;
