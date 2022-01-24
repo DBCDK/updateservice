@@ -12,6 +12,8 @@ import javax.ws.rs.core.Response;
 import java.net.URL;
 import java.util.Properties;
 
+import static javax.ws.rs.core.Response.Status.SERVICE_UNAVAILABLE;
+
 /**
  * REST webservice to invoke a very basic JavaScript.
  */
@@ -31,13 +33,11 @@ public class StatusService {
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() {
-//        final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
-//        final boolean updateServiceClientReady = updateServiceClient.isReady();
-//        if (updateServiceClientReady) {
-//            return Response.ok("UpdateService is initialized").build();
-//        }
-//        return Response.status(SERVICE_UNAVAILABLE).build();
-        return Response.ok("UpdateService is initialized").build();
+        final boolean updateServiceClientReady = UpdateServiceClient.isReady();
+        if (updateServiceClientReady) {
+            return Response.ok("UpdateService is initialized").build();
+        }
+        return Response.status(SERVICE_UNAVAILABLE).build();
     }
 
     @GET
