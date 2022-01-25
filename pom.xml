@@ -54,7 +54,7 @@
                     <name>env.BUILD_NUMBER</name>
                 </property>
             </activation>
-         </profile>
+        </profile>
     </profiles>
 
     <pluginRepositories>
@@ -331,6 +331,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+
             <plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
@@ -362,6 +363,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxws-maven-plugin</artifactId>
@@ -429,6 +431,7 @@
                     <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
@@ -444,25 +447,6 @@
                 <configuration>
                     <attach>true</attach>
                     <addOutputDirectoryToResources>true</addOutputDirectoryToResources>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.8</version>
-                <configuration>
-                    <sourceEncoding>utf-8</sourceEncoding>
-                    <minimumTokens>100</minimumTokens>
-                    <targetJdk>${jdk.target.version}</targetJdk>
-                    <excludes>
-                        <exclude>**/generated/*.java</exclude>
-                    </excludes>
-                    <excludeRoots>
-                        <excludeRoot>target/generated-sources/stubs</excludeRoot>
-                        <excludeRoot>${project.build.directory}/generated-sources/wsimport</excludeRoot>
-                        <excludeRoot>${project.build.directory}/generated-sources/jaxws-wsimport</excludeRoot>
-                    </excludeRoots>
                 </configuration>
             </plugin>
         </plugins>
