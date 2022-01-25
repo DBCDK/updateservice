@@ -32,9 +32,10 @@ pipeline {
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
     }
 
-    tools {
-        maven 'maven 3.5'
-    }
+	tools {
+		jdk 'jdk11'
+		maven 'Maven 3'
+	}
 
     stages {
         stage('Clear workspace') {
