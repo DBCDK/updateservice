@@ -49,7 +49,7 @@ public abstract class SolrBase {
                 is = conn.getErrorStream();
             }
 
-            try (final JsonReader jReader = Json.createReader(is)) {
+            try (JsonReader jReader = Json.createReader(is)) {
                 final JsonObject jObj = jReader.readObject();
 
                 conn.disconnect();

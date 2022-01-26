@@ -22,7 +22,8 @@ pipeline {
     }
 
     triggers {
-        pollSCM('H/20 * * * *')
+        upstream(upstreamProjects: "Docker-payara5-bump-trigger",
+            threshold: hudson.model.Result.SUCCESS)
     }
 
     environment {
@@ -32,9 +33,10 @@ pipeline {
         GITLAB_PRIVATE_TOKEN = credentials("metascrum-gitlab-api-token")
     }
 
-    tools {
-        maven 'maven 3.5'
-    }
+	tools {
+		jdk 'jdk11'
+		maven 'Maven 3'
+	}
 
     stages {
         stage('Clear workspace') {
@@ -44,40 +46,29 @@ pipeline {
             }
         }
 
-        stage('Build updateservice') {
-            steps {
-                withMaven(maven: 'maven 3.5', options: [
-                        findbugsPublisher(disabled: true),
-                        openTasksPublisher(highPriorityTaskIdentifiers: 'todo', ignoreCase: true, lowPriorityTaskIdentifiers: 'review', normalPriorityTaskIdentifiers: 'fixme,fix')
-                ]) {
-                    sh "mvn verify pmd:pmd findbugs:findbugs"
-                    archiveArtifacts(artifacts: "target/*.war,target/*.log", onlyIfSuccessful: true, fingerprint: true)
-                    junit "**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml"
-                }
-            }
-        }
+		stage("Verify") {
+			steps {
+				sh "mvn verify pmd:pmd pmd:cpd spotbugs:spotbugs javadoc:aggregate"
 
-        stage('Warnings') {
-            steps {
-                warnings consoleParsers: [
-                        [parserName: "Java Compiler (javac)"],
-                        [parserName: "JavaDoc Tool"]
-                ],
-                        unstableTotalAll: "0",
-                        failedTotalAll: "0"
-            }
-        }
+				junit testResults: '**/target/surefire-reports/TEST-*.xml,**/target/failsafe-reports/TEST-*.xml'
 
-        stage('PMD') {
-            steps {
-                step([
-                        $class          : 'hudson.plugins.pmd.PmdPublisher',
-                        pattern         : '**/target/pmd.xml',
-                        unstableTotalAll: "0",
-                        failedTotalAll  : "0"
-                ])
-            }
-        }
+				script {
+                    def java = scanForIssues tool: [$class: 'Java']
+                    def javadoc = scanForIssues tool: [$class: 'JavaDoc']
+                    publishIssues issues: [java, javadoc], unstableTotalAll:1
+
+                    def pmd = scanForIssues tool: [$class: 'Pmd']
+                    publishIssues issues: [pmd], unstableTotalAll:1
+
+                    // spotbugs still has some outstanding issues with regard
+                    // to analyzing Java 11 bytecode.
+                    // def spotbugs = scanForIssues tool: [$class: 'SpotBugs']
+                    // publishIssues issues:[spotbugs], unstableTotalAll:1
+
+                    archiveArtifacts artifacts: 'target/*.war,target/*.log', onlyIfSuccessful: 'true', fingerprint: 'true'
+				}
+			}
+		}
 
         stage('Docker') {
             when {
