@@ -1,28 +1,22 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.auth;
 
-import dk.dbc.forsrights.client.ForsRights;
-import dk.dbc.forsrights.client.ForsRightsException;
+import dk.dbc.idp.connector.IDPConnector;
+import dk.dbc.idp.connector.IDPConnectorException;
 import dk.dbc.updateservice.actions.GlobalActionState;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.update.JNDIResources;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.ejb.EJB;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.ws.WebServiceContext;
-import javax.xml.ws.handler.MessageContext;
-import java.util.Enumeration;
+import javax.inject.Inject;
 import java.util.Properties;
 
 /**
- * EJB to authenticate users against the forsrights service.
+ * EJB to authenticate users against the idp service.
  */
 @Stateless
 @LocalBean
@@ -31,70 +25,33 @@ public class Authenticator {
 
     private final Properties settings = JNDIResources.getProperties();
 
-    @EJB
-    private ForsService forsService;
+    @Inject
+    private IDPConnector idpConnector;
 
     /**
-     * Calls the forsrights service and checks if the user has the proper rights.
+     * Calls the idp service and checks if the user has the proper rights.
      *
      * @param state {@link GlobalActionState}
      * @return <code>true</code> if the user is authenticated, <code>false</code>
      * otherwise.
-     * @throws AuthenticatorException AuthenticatorException
+     * @throws IDPConnectorException idpConnectorException
      */
     public boolean authenticateUser(GlobalActionState state) throws AuthenticatorException {
+        final StopWatch watch = new Log4JStopWatch("idp.authorize");
         try {
-            final String endpoint = settings.get(JNDIResources.FORSRIGHTS_URL).toString();
-            LOGGER.debug("Using endpoint to forsrights webservice: {}", endpoint);
-            ForsRights.RightSet rights;
-            final Object useIpSetting = settings.get(JNDIResources.AUTH_USE_IP);
-            if (useIpSetting != null && Boolean.parseBoolean(useIpSetting.toString()) && state.getRequest() != null) {
-                final String ipAddress = getRemoteAddrFromMessage(state.getRequest());
-                LOGGER.info("jax-rs service detected. wsContext not used. Clients Ip is:{}", ipAddress);
-                rights = forsService.forsRightsWithIp(state, ipAddress);
-            } else {
-                rights = forsService.forsRights(state);
-            }
+            final AuthenticationDTO authenticationDTO = state.getUpdateServiceRequestDTO().getAuthenticationDTO();
+            final IDPConnector.RightSet rights = idpConnector.lookupRight(authenticationDTO.getUserId(),
+                    authenticationDTO.getGroupId(),
+                    authenticationDTO.getPassword());
             final String productName = settings.getProperty(JNDIResources.AUTH_PRODUCT_NAME);
             LOGGER.debug("Looking for product name: {}", productName);
             return rights.hasRightName(productName);
-        } catch (ForsRightsException ex) {
+        } catch (IDPConnectorException ex) {
             LOGGER.error("Caught exception:", ex);
             throw new AuthenticatorException(ex.getMessage(), ex);
+        } finally {
+            watch.stop();
         }
     }
 
-    private String getRemoteAddrFromMessage(HttpServletRequest request) {
-        final String X_FORWARDED_FOR = "x-forwarded-for";
-        String xForwaredForHeaderName = "";
-        final Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            final String name = headerNames.nextElement();
-
-            LOGGER.debug("Checking header: '{}'", name);
-            if (name.equalsIgnoreCase(X_FORWARDED_FOR)) {
-                xForwaredForHeaderName = name;
-                break;
-            }
-        }
-        if (xForwaredForHeaderName.isEmpty()) {
-            LOGGER.debug("No header for '{}' found. Using client address from request: {}", X_FORWARDED_FOR, request.getRemoteAddr());
-
-            return request.getRemoteAddr();
-        }
-        final String xForwardedForValue = request.getHeader(xForwaredForHeaderName);
-        LOGGER.debug("Found header for '{}' -> '{}'", X_FORWARDED_FOR, xForwardedForValue);
-        int index = xForwardedForValue.indexOf(",");
-        if (index > -1) {
-            return xForwardedForValue.substring(0, index);
-        }
-        return xForwardedForValue;
-    }
-
-    private String getRemoteAddrFromMessage(WebServiceContext wsContext) {
-        final MessageContext mc = wsContext.getMessageContext();
-        final HttpServletRequest req = (HttpServletRequest) mc.get(MessageContext.SERVLET_REQUEST);
-
-        return getRemoteAddrFromMessage(req);
-    }
 }

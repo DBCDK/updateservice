@@ -53,6 +53,11 @@ if [ ${DEV_VIPCORE_ENDPOINT} = "NOTSET" ]
 then
     export DEV_VIPCORE_ENDPOINT="http://${HOST_IP}:${SOLR_PORT_NR}"
 fi
+DEV_IDP_SERVICE_URL=${DEV_IDP_SERVICE_URL:-NOTSET}
+if [ ${DEV_IDP_SERVICE_URL} = "NOTSET" ]
+then
+    export DEV_IDP_SERVICE_URL="http://${HOST_IP}:${SOLR_PORT_NR}"
+fi
 
 
 # Solr FBS settings

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.rest;
 
 import dk.dbc.httpclient.FailSafeHttpClient;
@@ -12,12 +7,15 @@ import dk.dbc.httpclient.PathBuilder;
 import dk.dbc.jsonb.JSONBContext;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
+import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
+import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.UpdateException;
 import net.jodah.failsafe.RetryPolicy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -42,15 +40,20 @@ public class UpdateServiceClient {
             .withMaxRetries(1);
     private static boolean isReady;
     private static final JSONBContext jsonbContext = new JSONBContext();
+    private static final String EXPECTED_MESSAGE = "Authentication error";
 
-    public boolean isReady() {
+    private UpdateServiceClient() {
+        throw new IllegalStateException("Static class");
+    }
+
+    public static synchronized boolean isReady() {
         try {
             // This function will be called constantly by we only need to call updateservice once. In order to limit the
             // amount of webservice requests we use a static variable to prevent more calls after the first one
             if (!isReady) {
                 final UpdateRecordResponseDTO updateRecordResponseDTO = callUpdate();
 
-                isReady = updateRecordResponseDTO.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.OK;
+                isReady = assertUpdateRecordResponse(updateRecordResponseDTO);
             }
 
             return isReady;
@@ -60,11 +63,11 @@ public class UpdateServiceClient {
         }
     }
 
-    private UpdateRecordResponseDTO callUpdate() {
+    private static UpdateRecordResponseDTO callUpdate() {
         final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId("725900");
-        authenticationDTO.setPassword("");
-        authenticationDTO.setUserId("");
+        authenticationDTO.setPassword("password");
+        authenticationDTO.setUserId("user");
 
         final UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
@@ -119,27 +122,42 @@ public class UpdateServiceClient {
         }
     }
 
-    private <T> T readResponseEntity(Response response, Class<T> type)
-            throws Exception {
+    private static <T> T readResponseEntity(Response response, Class<T> type)
+            throws UpdateException {
         final T entity = response.readEntity(type);
         if (entity == null) {
-            throw new Exception(
+            throw new UpdateException(
                     String.format("Update returned with null-valued %s entity",
                             type.getName()));
         }
         return entity;
     }
 
-    private void assertResponseStatus(Response response)
-            throws Exception {
+    private static void assertResponseStatus(Response response)
+            throws UpdateException {
         final Response.Status actualStatus =
                 Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != Response.Status.OK) {
-            throw new Exception(
+            throw new UpdateException(
                     String.format("Update returned with '%s' status code: %s",
                             actualStatus,
                             actualStatus.getStatusCode()));
         }
+    }
+
+    /*
+        We are not able to call update service with a proper request due to the username and password validation.
+
+        But the purpose of this call is to initialize the bean dependency hierarchy and this it achieved even though
+        the request doesn't return OK.
+     */
+    private static boolean assertUpdateRecordResponse(UpdateRecordResponseDTO dto) {
+        if (dto.getUpdateStatusEnumDTO() == UpdateStatusEnumDTO.FAILED && dto.getMessageEntryDTOS().size() == 1) {
+            final MessageEntryDTO messageEntryDTO = dto.getMessageEntryDTOS().get(0);
+            return messageEntryDTO.getMessage().equals(EXPECTED_MESSAGE) && messageEntryDTO.getType() == TypeEnumDTO.ERROR;
+        }
+
+        return false;
     }
 
 }

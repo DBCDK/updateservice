@@ -2,9 +2,7 @@
 
 # UpdateService
 
-UpdaterService er en SOAP webservice som bruges til at validerer og indlægge poster i råpostrepositoriet.
-Servicen er udviklet med Java EE og kræver en Java EE 7 container for at kunne afvikles. Servicen er blevet testet
-med Payara 4.0.
+Updateservice is a REST webservice which is used for validating and persisting marc records send to rawrepo.
 
 ### Developers how-to
 
@@ -20,83 +18,42 @@ Next you have to run transpile-templates in opencat-business. If you are running
 Now you are ready to start working on updateservice.
 
 Bootstrapping the environment (first ever run only):
-* docker/bin/create_update_network.sh
-* docker/bin/build-update-docker-parent.sh
+* `docker/bin/create_update_network.sh`
+* `docker/bin/build-update-docker-parent.sh`
 
 Then start work by doing:
-* docker/bin/start_dev_docker.sh
+* `docker/bin/start_dev_docker.sh`
 
 And then, after each change in the code:
-* docker/bin/start-local-docker.sh
+* `docker/bin/start-local-docker.sh`
 
 When you are done, remove your test containers by running:
-* docker/bin/stop_dev_docker.sh
+* `docker/bin/stop_dev_docker.sh`
 
-### Endpoint
+### Endpoints
 
-Når servicen er deployet kan den tilgås via følgende:
+When the service is deployed the following endpoints are available:
 
-* SOAP-operationer: http://&lt;server&gt;:&lt;port&gt;/CatalogingUpdateServices/UpdateService
-* WSDL: http://&lt;server&gt;:&lt;port&gt;/CatalogingUpdateServices/UpdateService?wsdl
+```
+/UpdateService/rest/api/v1/updateservice
+/UpdateService/rest/api/v1/getschemas
+/UpdateService/rest/api/v1/openbuildservice
+```
 
-### System properties
+### Environment variables
 
-Servicen bruger følgende properties:
-* **UPDATE_LOGBACK_FILENAME**: Bruges af logback til at definere den fulde sti samt filnavn på log filen ekslusiv suffix. Kunne f.eks. være /home/thl/gf-logs/update
+The following environment variables must be defined:
 
-### JDBC Resources
+- **VIPCORE_CACHE_AGE** Amount of hours to cache results from vipcore (default 8 hours)
+- **VIPCORE_ENDPOINT** Url to vipcore rest service
+- **OPENNUMBERROLL_URL** Url to opennumberroll service
+- **IDP_SERVICE_URL** Url to IDP rest service
+- **HOLDINGS_ITEMS_DB_URL** Url to the holdings items database
+- **RAWREPO_DB_URL URL** Url to the rawrepo database
+- **SOLR_URL** Url to the update/FBS solr
+- **SOLR_BASIS_URL** Url to the basis solr
+- **UPDATE_DB_URL** Url to the update database
+- **OPENCAT_BUSINESS_URL** Url to the opencat-business rest service
+- **JAVA_MAX_HEAP_SIZE** Amount of memory which the underlying payara allocates, e.g. `8G`
 
-* **jdbc/updateservice/raw-repo-readonly**: Readonly JDBC-resource til råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
-* **jdbc/updateservice/raw-repo-writable**: Skrivbar JDBC-resource til råpostrepositoriet. Denne resource skal være
-transaktionssikker, da den bruges til at ændre råpostrepositoriet. Det anbefaldes at anvende klassen *org.postgresql.xa.PGXADataSource*.
-* **jdbc/updateservice/holdingitems**: JDBC-resource til Holding+ databasen. UpdateService læser kun fra denne database,
-så resourcen behøver ikke være transaktionssikker. Det anbefaldes at anvende klassen *org.postgresql.ds.PGPoolingDataSource*.
-* **jdbc/updateservice/updateservicestore**: JDBC-resource til dobbeltpostkontrol frontend nøgledatabase.
-    * **Pool Name**: *jdbc/updateservice/updateservicestore/pool*
-
-### JDBC Connection pools
-
-* **jdbc/updateservice/updateservicestore/pool**: Denne forbindelse er sat op med følgende værdier:
-    * **datasource-classname**: org.postgresql.ds.PGSimpleDataSource
-    * **driverClass**: org.postgresql.Driver
-    * **ServerName**: <addresse på postgres maskine>
-    * **PortNumber**: <portnummer på postgres maskine>
-    * **DatabaseName**: <databasenavn på postgresmaskine>
-    * **User**: <brugernavn på database bruger>
-    * **Password**: <password på database bruger>
-
-### JNDI Resources
-
-Servicen bruger disse resourcer:
-
-* **update-log/logback**: Indeholder en url til logback configureringen. kunne f.eks. være file:///home/thl/gf-logs/update-logback-include.xml
-* **updateservice/settings**: Custom resource med ekstra settings.
-
-**updateservice/settings** skal være af typen *Properties* med følgende værdier:
-
-* *solr.url*: Angiver den fulde url til SOLR-indekset inkl. core.
-* *solr.basis.url*: Angiver den fulde url til Basis SOLR-indekset inkl. core.
-* *forsrights.url*: Angiver den fulde url til forsrights webservicen. Pt er det vigtigt at huske at afslutte url'en
-med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan updateservice ikke håndterer.
-* *openagency.url*: Angiver den fulde url til openagency webservicen. Pt er det vigtigt at huske at afslutte url'en
-                    med "/" da forsrights har redirect (http kode 301) på url'en uden "/". Og det tilfælde kan
-                    updateservice ikke håndterer.
-* *auth.product.name*: Angiver navnet på det produkt, som forsrights skal returnerer for at brugeren har adgang til
-at bruge denne webservice.
-* *auth.use.ip*: Angiver om klientens IP-adresse skal sendes videre til forsrights webservice ved authentikation af
-brugere. Angives værdien *True* sendes IP-adressen med. Hvis settingen indeholder en anden værdi eller hvis den er
-helt udeladt så sendes IP-adressen *ikke* videre til forsrights.
-* *rawrepo.provider.id*: Angiver hvilket provide id som skal anvendes hvis det ikke er angivet i posten på requestet.
-* *prod.state*: Angiver om update kører i produktion eller ej, og derfor om 13 biblioteker må sende poster ind. Kan være True/true eller False/false.
-
-#### PostgreSQL
-
-For at JDBC-forbindelserne virker med transaktioner skal featuren *prepared_transactions* være aktiveret i PostgreSQL.
-Ellers vil transaktioner blive afbrudt når UpdateService forsøger at opdaterer en post i råpostrepositoriet.
-
-### Logging
-
-Til logning af diverse beskeder anvendes logback. Servicen 2 system properties til det:
-
-* **LOGDIR**: Angiver den fulde path til den folder hvor logfilerne skal placeres.
-* **logback.configurationFile**: Den fulde path til logback.xml konfigurationsfilen.
+Database urls must be of the format `username:password@database-host:post/database-name`

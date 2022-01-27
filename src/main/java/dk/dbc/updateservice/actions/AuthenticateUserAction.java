@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.utils.ResourceBundles;
@@ -16,7 +11,7 @@ import java.util.ResourceBundle;
 /**
  * Action to authenticate the user from the request.
  * <p>
- * The authentication is done against the forsright webservice by the parsed
+ * The authentication is done against the IDP webservice by the parsed
  * Authenticator EJB.
  * </p>
  */

@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.rest;
 
 import org.slf4j.ext.XLogger;
@@ -38,8 +33,7 @@ public class StatusService {
     @Path("/isready")
     @Produces(MediaType.TEXT_PLAIN)
     public Response isReady() {
-        final UpdateServiceClient updateServiceClient = new UpdateServiceClient();
-        final boolean updateServiceClientReady = updateServiceClient.isReady();
+        final boolean updateServiceClientReady = UpdateServiceClient.isReady();
         if (updateServiceClientReady) {
             return Response.ok("UpdateService is initialized").build();
         }
