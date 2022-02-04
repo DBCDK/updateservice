@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.update;
 
@@ -40,7 +36,7 @@ public class MetakompasHandler {
 
     private static final String INDEX_NAME = "phrase.vla";
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
-    private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t");
+    private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t", "v");
     private static final String COMMON_RECORD_TEMPLATE =
             "001 00 *a*b190004*c*d*fa*tFAUST\n" +
                     "004 00 *rn*ae*xm\n" +
