@@ -13,7 +13,6 @@ import java.util.Properties;
 public class JNDIResources {
     public static final String SOLR_URL = "SOLR_URL";
     public static final String SOLR_BASIS_URL = "SOLR_BASIS_URL";
-    public static final String AUTH_PRODUCT_NAME = "AUTH_PRODUCT_NAME";
 
     public static final String RAWREPO_PROVIDER_ID_DBC = "RAWREPO_PROVIDER_ID_DBC";
     public static final String RAWREPO_PROVIDER_ID_FBS = "RAWREPO_PROVIDER_ID_FBS";
