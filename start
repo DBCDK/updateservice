@@ -12,7 +12,8 @@ docker run --rm --name update-service -d -p ${update_service_port}:8080 \
     -e OPENNUMBERROLL_NAME_FAUST_8=faust \
     -e OPENNUMBERROLL_URL=https://opennumberroll.addi.dk/1.1/ \
     -e UPDATE_PROD_STATE="false" \
-    -e AUTH_PRODUCT_NAME=netpunkt.dk \
+    -e AUTH_PRODUCT_NAME=DANBIB \
+    -e AUTH_PRODUCT_RIGHT=WRITE \
     -e IDP_SERVICE_URL=${IDP_SERVICE_URL} \
     -e RAWREPO_PROVIDER_ID_DBC=dataio-update \
     -e RAWREPO_PROVIDER_ID_FBS=fbs-update \

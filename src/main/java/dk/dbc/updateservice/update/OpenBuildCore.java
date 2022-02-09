@@ -5,7 +5,6 @@
 
 package dk.dbc.updateservice.update;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcXchangeFactory;
@@ -19,7 +18,6 @@ import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
-import dk.dbc.updateservice.json.MixIns;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -43,7 +41,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -53,7 +50,6 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 public class OpenBuildCore {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildCore.class);
     private static final Properties buildProperties = JNDIResources.getProperties();
-    private static final ObjectMapper jacksonObjectMapper = new ObjectMapper();
 
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
@@ -64,7 +60,6 @@ public class OpenBuildCore {
 
     @PostConstruct
     public void init() {
-        addJacksonMixInAnnotations();
         validateProperties();
     }
 
@@ -202,16 +197,6 @@ public class OpenBuildCore {
         final Document document = documentFactory.getNewDocument();
         marshaller.marshal(jAXBElement, document);
         return document;
-    }
-
-    /**
-     * PostConstruct method to initialize javascript environment, setup jackson mixins and initialize
-     * forsrights web-service.
-     */
-    private void addJacksonMixInAnnotations() {
-        for (Map.Entry<Class<?>, Class<?>> e : MixIns.getMixIns().entrySet()) {
-            jacksonObjectMapper.addMixIn(e.getKey(), e.getValue());
-        }
     }
 
     private void validateProperties() {
