@@ -59,8 +59,6 @@ public class Authenticator {
     }
 
     /**
-     * This is a hack to handle differences between dbckat authenticated users and which group id requests to update are
-     * made with.
      * <p>
      * When users log in to dbckat they use the credentials dbc/username but when a request is made to update the groupId
      * is replaced with an agency id based on the 001 *b value of the record. As of right now that agency id is always
