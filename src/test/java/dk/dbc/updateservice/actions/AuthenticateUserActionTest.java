@@ -15,6 +15,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class AuthenticateUserActionTest {
@@ -69,22 +70,72 @@ class AuthenticateUserActionTest {
 
     @Test
     void testAuthentication_AuthOk() throws Exception {
-        when(state.getAuthenticator().authenticateUser(state)).thenReturn(true);
+        when(state.getAuthenticator().authenticateUser(any(AuthenticationDTO.class))).thenReturn(true);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), is(ServiceResult.newOkResult()));
     }
 
     @Test
     void testAuthentication_AuthFailure() throws Exception {
-        when(state.getAuthenticator().authenticateUser(state)).thenReturn(false);
+        when(state.getAuthenticator().authenticateUser(any(AuthenticationDTO.class))).thenReturn(false);
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), is(ServiceResult.newAuthErrorResult()));
     }
 
     @Test
     void testAuthentication_AuthThrowsException() throws Exception {
-        when(state.getAuthenticator().authenticateUser(state)).thenThrow(new AuthenticatorException("message", null));
+        when(state.getAuthenticator().authenticateUser(any(AuthenticationDTO.class))).thenThrow(new AuthenticatorException("message", null));
         AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
         assertThat(authenticateUserAction.performAction(), is(ServiceResult.newAuthErrorResult()));
+    }
+
+    @Test
+    void testOverwriteAuthenticationDTO_netpunkt() throws Exception {
+        final AuthenticationDTO netpunkt = new AuthenticationDTO();
+        netpunkt.setUserId("netpunkt-DATAIO");
+        netpunkt.setGroupId("010100");
+        netpunkt.setPassword("password");
+
+        when(state.getAuthenticator().authenticateUser(any(AuthenticationDTO.class))).thenReturn(false);
+        when(state.getAuthenticator().authenticateUser(netpunkt)).thenReturn(true);
+
+        // Test with "correct" group id
+        state.getUpdateServiceRequestDTO().setAuthenticationDTO(netpunkt);
+        AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
+        assertThat(authenticateUserAction.performAction(), is(ServiceResult.newOkResult()));
+
+        // Test with netpunkt-DATAIO for a different group id
+        final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setUserId("netpunkt-DATAIO");
+        authenticationDTO.setGroupId("710010");
+        authenticationDTO.setPassword("password");
+
+        state.getUpdateServiceRequestDTO().setAuthenticationDTO(authenticationDTO);
+        assertThat(authenticateUserAction.performAction(), is(ServiceResult.newOkResult()));
+    }
+
+    @Test
+    void testOverwriteAuthenticationDTO_dbc() throws Exception {
+        final AuthenticationDTO dbc = new AuthenticationDTO();
+        dbc.setUserId("abc");
+        dbc.setGroupId("dbc");
+        dbc.setPassword("password");
+
+        when(state.getAuthenticator().authenticateUser(any(AuthenticationDTO.class))).thenReturn(false);
+        when(state.getAuthenticator().authenticateUser(dbc)).thenReturn(true);
+
+        // Test with "correct" group id
+        state.getUpdateServiceRequestDTO().setAuthenticationDTO(dbc);
+        AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
+        assertThat(authenticateUserAction.performAction(), is(ServiceResult.newOkResult()));
+
+        // Test with dbc group id
+        final AuthenticationDTO authenticationDTO = new AuthenticationDTO();
+        authenticationDTO.setUserId("abc");
+        authenticationDTO.setGroupId("010100");
+        authenticationDTO.setPassword("password");
+
+        state.getUpdateServiceRequestDTO().setAuthenticationDTO(authenticationDTO);
+        assertThat(authenticateUserAction.performAction(), is(ServiceResult.newOkResult()));
     }
 }
