@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 
@@ -183,6 +178,23 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("652", "00", Collections.singletonList(new MarcSubField("m", "Grydesteg"))));
 
         assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(expected));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"DBC, 123456, true",
+            "800010, 123456, true",
+            "654321, 123456, false",
+    })
+    void testDecentralOwnerChange(String updatingOwner, String currentOwner, boolean expected) {
+        final MarcRecord updatingCommonRecord = new MarcRecord();
+        updatingCommonRecord.getFields().add(new MarcField("032", "00", Collections.singletonList(new MarcSubField("a", "DBI211542"))));
+        updatingCommonRecord.getFields().add(new MarcField("996", "00", Collections.singletonList(new MarcSubField("a", updatingOwner))));
+
+        final MarcRecord currentCommonRecord = new MarcRecord();
+        currentCommonRecord.getFields().add(new MarcField("996", "00", Collections.singletonList(new MarcSubField("a", currentOwner))));
+
+        assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(expected));
+
     }
 
 }

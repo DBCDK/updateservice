@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.CatalogExtractionCode;
@@ -24,6 +19,7 @@ public class DefaultEnrichmentRecordHandler {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
 
     private static final List<String> CAT_CODES = Arrays.asList("DBF", "DLF", "DBI", "DMF", "DMO", "DPF", "BKM", "GBF", "GMO", "GPF", "FPF", "DBR", "UTI");
+    private static final List<String> CENTRAL_OWNERS = Arrays.asList("DBC", "800010");
 
     private DefaultEnrichmentRecordHandler() {
 
@@ -35,6 +31,7 @@ public class DefaultEnrichmentRecordHandler {
      * - The current record doesn't have classification (opstilling)
      * - The new record does not have a temporary production date
      * - The current record is not under production
+     * - The owner changes from decentral to DBC or KB, even if the record is under production
      * <p>
      * In case no enrichment should be created a log is added with an reason
      *
@@ -65,6 +62,17 @@ public class DefaultEnrichmentRecordHandler {
                 LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
             }
             return false;
+        }
+
+
+        // If the existing record is decentral, and it changes owner to either DBC or KB then we must trigger enrichment logic
+        final String currentOwner = currentCommonRecordReader.getValue("996", "a");
+        final String updatingOwner = updatingCommonRecordReader.getValue("996", "a");
+        if (updatingOwner != null && currentOwner != null &&
+                CENTRAL_OWNERS.contains(updatingOwner) && !updatingOwner.equals(currentOwner)) {
+            LOGGER.info("Detected owner change from decentral to DBC or KB");
+
+            return true;
         }
 
         // Check if record has been published before today - ie. is it still in production.
