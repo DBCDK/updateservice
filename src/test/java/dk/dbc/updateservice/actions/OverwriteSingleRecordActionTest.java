@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -1770,13 +1765,13 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffSame110410510() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "510 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "510 00 *a Mernild *h Sebastian I.\n" +
@@ -1795,13 +1790,13 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffChanged110410510() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "510 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "510 00 *a Mernild *h Sebastian I .\n" + // Space after I
@@ -1820,7 +1815,7 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffSame110410510Repeated() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1828,7 +1823,7 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1849,14 +1844,14 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffRemoved510() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
                 "510 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1877,14 +1872,14 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffAdded510() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
                 "510 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1905,7 +1900,7 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffMinusAdjourCorp() throws Exception {
-        String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1913,7 +1908,7 @@ class OverwriteSingleRecordActionTest {
                 "996 00 *a DBCAUT";
 
 
-        String stateRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String stateRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.\n" +
                 "410 00 *a Mernild *h Sebastian\n" +
                 "410 00 *a Mernild *h Sebastian A.\n" +
@@ -1922,7 +1917,7 @@ class OverwriteSingleRecordActionTest {
                 "996 00 *a DBCAUT \n" +
                 "s13 00 *a minusAJOUR";
 
-        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2006,13 +2001,13 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffSame100400500() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "500 00 *a Mernild *h Sebastian I.\n" +
@@ -2031,13 +2026,13 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffChanged100400500() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "500 00 *a Mernild *h Sebastian I .\n" + // Space after I
@@ -2056,7 +2051,7 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffSame100400500Repeated() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2064,7 +2059,7 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2085,14 +2080,14 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffRemoved500() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
                 "500 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2113,14 +2108,14 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffAdded500() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
                 "500 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2141,7 +2136,7 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasProofPrintingDiffMinusAdjour() throws Exception {
-        String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existingRecord = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2149,7 +2144,7 @@ class OverwriteSingleRecordActionTest {
                 "996 00 *a DBCAUT";
 
 
-        String stateRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String stateRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2158,7 +2153,7 @@ class OverwriteSingleRecordActionTest {
                 "996 00 *a DBCAUT \n" +
                 "s13 00 *a minusAJOUR";
 
-        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n" +
                 "400 00 *a Mernild *h Sebastian\n" +
                 "400 00 *a Mernild *h Sebastian A.\n" +
@@ -2180,10 +2175,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100Identical() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2199,10 +2194,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100Missing() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n";
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
         MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
@@ -2217,9 +2212,9 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100MissingReverse() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n";
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2235,9 +2230,9 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_FieldMissingBoth() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n";
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n";
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
         MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
@@ -2252,10 +2247,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100IDiff() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian J.\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2271,10 +2266,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100IDiffReverse() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian J.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2290,10 +2285,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field110IDiff() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian J.\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2309,10 +2304,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testAuthorityRecordHasClassificationChange_Field100110IDiff() throws Exception {
-        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a *t FAUST\n" +
+        String existing = "001 00 *a 19257355 *b 870979 *c 20181210134226 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian H.";
 
-        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
         MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
@@ -2328,12 +2323,12 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testHasMinusEnrichmentHasz98WithMinusEnrichment() {
-        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a Minus korrekturprint\n" +
                 "z98 00 *b Minus påhængspost";
 
-        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT";
 
         state.setMarcRecord(MarcRecordFactory.readRecord(record));
@@ -2345,11 +2340,11 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() {
-        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT\n" +
                 "z98 00 *a minus korrekturprint";
 
-        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT";
 
         state.setMarcRecord(MarcRecordFactory.readRecord(record));
@@ -2361,10 +2356,10 @@ class OverwriteSingleRecordActionTest {
 
     @Test
     void testHasMinusEnrichmentHasNoz98() {
-        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT";
 
-        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a *t FAUST\n" +
+        String commonRecord = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "996 00 *a DBCAUT";
 
         state.setMarcRecord(MarcRecordFactory.readRecord(record));

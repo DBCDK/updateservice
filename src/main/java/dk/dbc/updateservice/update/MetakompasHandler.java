@@ -38,7 +38,7 @@ public class MetakompasHandler {
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
     private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t", "v");
     private static final String COMMON_RECORD_TEMPLATE =
-            "001 00 *a*b190004*c*d*fa*tFAUST\n" +
+            "001 00 *a*b190004*c*d*fa\n" +
                     "004 00 *rn*ae*xm\n" +
                     "008 00 *th*v0\n" +
                     "040 00 *bdan*fDBC\n" +
@@ -46,7 +46,7 @@ public class MetakompasHandler {
                     "670 00 *a\n" +
                     "996 00 *aDBC\n";
     private static final String ENRICHMENT_RECORD_TEMPLATE =
-            "001 00 *a*b191919*c*d*fa*tFAUST\n" +
+            "001 00 *a*b191919*c*d*fa\n" +
                     "004 00 *rn*ae*xm\n" +
                     "d08 00 *aMetakompas\n" +
                     "d09 00 *z\n" +
