@@ -124,6 +124,7 @@ public class UpdateTestUtils {
         settings.put(JNDIResources.RAWREPO_PROVIDER_ID_PH, "RAWREPO_PROVIDER_ID_PH");
         settings.put(JNDIResources.RAWREPO_PROVIDER_ID_PH_HOLDINGS, "RAWREPO_PROVIDER_ID_PH_HOLDINGS");
         settings.put(JNDIResources.UPDATE_PROD_STATE, "true");
+        settings.put(JNDIResources.DBC_OVERWRITE_AGENCIES, "010100;700300");
         return settings;
     }
 

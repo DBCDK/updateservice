@@ -14,11 +14,11 @@ import java.util.Properties;
  * Action that setup actions to validate a record.
  */
 public class ValidateOperationAction extends AbstractAction {
-    Properties settings;
+    Properties properties;
 
     public ValidateOperationAction(GlobalActionState globalActionState, Properties properties) {
         super(ValidateOperationAction.class.getSimpleName(), globalActionState);
-        settings = properties;
+        this.properties = properties;
     }
 
     /**
@@ -29,17 +29,17 @@ public class ValidateOperationAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state);
+        final AuthenticateUserAction authenticateUserAction = new AuthenticateUserAction(state, properties);
         children.add(authenticateUserAction);
 
-        final ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, settings);
+        final ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, properties);
         children.add(validateSchemaAction);
 
         if (state.isDoubleRecordPossible() && state.getLibraryGroup().isFBS() && state.getUpdateServiceRequestDTO().getDoubleRecordKey() == null) {
-            final DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, settings);
+            final DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, properties);
             children.add(doubleRecordFrontendAndValidateAction);
         } else {
-            final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+            final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, properties);
             children.add(validateRecordAction);
         }
         return ServiceResult.newOkResult();

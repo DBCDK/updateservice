@@ -2,11 +2,14 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.List;
+import java.util.Properties;
 import java.util.ResourceBundle;
 
 /**
@@ -18,10 +21,13 @@ import java.util.ResourceBundle;
  */
 public class AuthenticateUserAction extends AbstractAction {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(AuthenticateUserAction.class);
-    private static final String INTERNAL_GROUP_ID = "010100";
+    private final List<String> dbcOverwriteAgencies;
 
-    public AuthenticateUserAction(GlobalActionState globalActionState) {
+    public AuthenticateUserAction(GlobalActionState globalActionState, Properties properties) {
         super(AuthenticateUserAction.class.getSimpleName(), globalActionState);
+
+        final String listAsString = properties.getProperty(JNDIResources.DBC_OVERWRITE_AGENCIES);
+        dbcOverwriteAgencies = List.of(listAsString.split(";"));
     }
 
     /**
@@ -94,15 +100,15 @@ public class AuthenticateUserAction extends AbstractAction {
                     when validating against the identity provider service
                  */
             LOGGER.info("Detected dataIO username so overwriting groupId to '010100' for authentication");
-            result.setGroupId(INTERNAL_GROUP_ID);
-        } else if (INTERNAL_GROUP_ID.equals(original.getGroupId())) {
+            result.setGroupId("010100");
+        } else if (dbcOverwriteAgencies.contains(original.getGroupId())) {
                 /*
                     When users log in to dbckat they use the credentials dbc/username but when a request is made to
                     update the groupId is replaced with an agency id based on the 001 *b value of the record. As of
                     right now that agency id is always 010100. So unless we are going to duplicate users (which we are
                     not) we have to overwrite the incoming groupId if the value is 010100.
                  */
-            LOGGER.info("Detected 010100 groupId so overwriting groupId to 'dbc' for authentication");
+            LOGGER.info("Detected {} groupId so overwriting groupId to 'dbc' for authentication", original.getGroupId());
             result.setGroupId("dbc");
         } else {
                 /*
