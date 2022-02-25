@@ -422,7 +422,7 @@ class UpdateRequestActionTest {
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(state.getUpdateServiceRequestDTO().getAuthenticationDTO()));
         assertThat(validateOperationAction.state.getUpdateServiceRequestDTO().getSchemaName(), is(state.getUpdateServiceRequestDTO().getSchemaName()));
         assertThat(validateOperationAction.state.readRecord(), is(state.readRecord()));
-        assertThat(validateOperationAction.settings, is(settings));
+        assertThat(validateOperationAction.properties, is(settings));
     }
 
     private void testUpdateOperationAction(UpdateOperationAction updateOperationAction, Properties properties) {

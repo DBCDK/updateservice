@@ -42,6 +42,8 @@ public class JNDIResources {
     public static final String OPENNUMBERROLL_NAME_FAUST_8 = "OPENNUMBERROLL_NAME_FAUST_8";
     public static final String OPENNUMBERROLL_NAME_FAUST = "OPENNUMBERROLL_NAME_FAUST";
 
+    public static final String DBC_OVERWRITE_AGENCIES = "DBC_OVERWRITE_AGENCIES";
+
     private JNDIResources() {
 
     }
