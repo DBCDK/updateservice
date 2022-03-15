@@ -135,7 +135,10 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
             if (!reclassificationMessages.isEmpty()) {
                 final List<String> translatedReclassificationMessages = new ArrayList<>();
                 for (String reclassificationMessage : reclassificationMessages) {
-                    translatedReclassificationMessages.add(state.getMessages().getString(reclassificationMessage));
+                    final String translatedReclassificationMessage = state.getMessages().getString(reclassificationMessage);
+                    // The translated messages are used elsewhere, so we can't change them now
+                    // Since we want a slightly different message displayed in y08 we have to use string replace
+                    translatedReclassificationMessages.add(translatedReclassificationMessage.replace(" er ændret", ""));
                 }
                 sb.append(" pga. ");
                 sb.append(String.join(", ", translatedReclassificationMessages));
