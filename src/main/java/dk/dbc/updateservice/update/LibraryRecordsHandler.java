@@ -325,20 +325,31 @@ public class LibraryRecordsHandler {
         // It is wanted to compare the full data content when deciding if classification has changed.
         // This would normally mean removal of this variable and fix things where it has effect.
         // Though, it has been mentioned that it could change in the future, so we don't do the nice stuff.
-        int compareLength = 0;
+        final int compareLength = 0;
 
         LOGGER.debug("Old record\n{}", oldRecord);
         LOGGER.debug("New record\n{}", newRecord);
 
-        return check008(oldReader, newReader, classificationsChangedMessage) ||
-                check009(oldReader, newReader, classificationsChangedMessage) ||
-                check038(oldReader, newReader, classificationsChangedMessage) ||
-                check039(oldReader, newReader, classificationsChangedMessage) ||
-                check100(oldReader, newReader, classificationsChangedMessage) ||
-                check110(oldReader, newReader, classificationsChangedMessage) ||
-                check239And245(oldReader, newReader, compareLength, classificationsChangedMessage) ||
-                check245(oldReader, newReader, compareLength, classificationsChangedMessage) ||
-                check652(oldReader, newReader, compareLength, classificationsChangedMessage);
+        // We call each of the classification check functions in order to get every change message
+        final boolean resultCheck008 = check008(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck009 = check009(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck038 = check038(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck039 = check039(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck100 = check100(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck110 = check110(oldReader, newReader, classificationsChangedMessage);
+        final boolean resultCheck239And245 = check239And245(oldReader, newReader, compareLength, classificationsChangedMessage);
+        final boolean resultCheck245 = check245(oldReader, newReader, compareLength, classificationsChangedMessage);
+        final boolean resultCheck652 = check652(oldReader, newReader, compareLength, classificationsChangedMessage);
+
+        return resultCheck008 ||
+                resultCheck009 ||
+                resultCheck038 ||
+                resultCheck039 ||
+                resultCheck100 ||
+                resultCheck110 ||
+                resultCheck239And245 ||
+                resultCheck245 ||
+                resultCheck652;
     }
 
     private boolean check008(MarcRecordReader oldReader, MarcRecordReader newReader, List<String> classificationsChangedMessage) {

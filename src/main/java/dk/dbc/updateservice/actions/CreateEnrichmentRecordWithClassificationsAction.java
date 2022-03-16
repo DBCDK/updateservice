@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -17,6 +12,8 @@ import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -46,6 +43,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     MarcRecord currentCommonRecord = null;
     MarcRecord updatingCommonRecord = null;
     private String targetRecordId = null;
+    private List<String> reclassificationMessages = new ArrayList<>();
 
     public CreateEnrichmentRecordWithClassificationsAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
         super(CreateEnrichmentRecordWithClassificationsAction.class.getSimpleName(), globalActionState);
@@ -71,6 +69,14 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
     void setTargetRecordId(String targetRecordId) {
         this.targetRecordId = targetRecordId;
+    }
+
+    public List<String> getReclassificationMessages() {
+        return reclassificationMessages;
+    }
+
+    public void setReclassificationMessages(List<String> reclassificationMessages) {
+        this.reclassificationMessages = reclassificationMessages;
     }
 
     /**
@@ -124,7 +130,21 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
 
         // Fix for story #1910 , 1911
         if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
-            writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
+            final StringBuilder sb = new StringBuilder();
+            sb.append(RECLASSIFICATION_STRING);
+            if (!reclassificationMessages.isEmpty()) {
+                final List<String> translatedReclassificationMessages = new ArrayList<>();
+                for (String reclassificationMessage : reclassificationMessages) {
+                    final String translatedReclassificationMessage = state.getMessages().getString(reclassificationMessage);
+                    // The translated messages are used elsewhere, so we can't change them now
+                    // Since we want a slightly different message displayed in y08 we have to use string replace
+                    translatedReclassificationMessages.add(translatedReclassificationMessage.replace(" er ændret", ""));
+                }
+                sb.append(" pga. ");
+                sb.append(String.join(", ", translatedReclassificationMessages));
+                sb.append(".");
+            }
+            writer.addOrReplaceSubfield("y08", "a", sb.toString());
         }
 
         // While tempting, this cannot be done by changing the agency in the createLibraryExtendedRecord call - it will give a null result

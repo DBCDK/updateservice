@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
@@ -337,10 +332,11 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
+            final List<String> classificationMessages = new ArrayList<>();
 
             if (!hasMinusEnrichment() && state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                     state.getLibraryRecordsHandler().hasClassificationData(marcRecord) &&
-                    state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, marcRecord)) {
+                    state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, marcRecord, classificationMessages)) {
                 LOGGER.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);
 
                 final Set<Integer> librariesWithPosts = new HashSet<>();
@@ -362,7 +358,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     } else {
                         if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), marcRecord, currentRecord)) {
                             LOGGER.info("Create new enrichment library record: [{}:{}].", recordId, id);
-                            result.add(getActionDataForEnrichmentWithClassification(marcRecord, currentRecord, Integer.toString(id)));
+                            result.add(getActionDataForEnrichmentWithClassification(marcRecord, currentRecord, Integer.toString(id), classificationMessages));
                         } else {
                             LOGGER.warn("Enrichment record {{}:{}} was not created, because none of the common records was published.", recordId, id);
                         }
@@ -384,11 +380,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return updateClassificationsInEnrichmentRecordAction;
     }
 
-    private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(MarcRecord marcRecord, MarcRecord currentRecord, String holdingAgencyId) {
+    private CreateEnrichmentRecordWithClassificationsAction getActionDataForEnrichmentWithClassification(
+            MarcRecord marcRecord, MarcRecord currentRecord, String holdingAgencyId, List<String> classificationMessages) {
         final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction =
                 new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
         createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(currentRecord);
         createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(marcRecord);
+        createEnrichmentRecordWithClassificationsAction.setReclassificationMessages(classificationMessages);
         return createEnrichmentRecordWithClassificationsAction;
     }
 
