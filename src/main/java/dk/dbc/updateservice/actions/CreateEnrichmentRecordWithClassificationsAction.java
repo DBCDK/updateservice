@@ -142,7 +142,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
                 }
                 sb.append(" pga. ");
                 sb.append(String.join(", ", translatedReclassificationMessages));
-                sb.append(".");
             }
             writer.addOrReplaceSubfield("y08", "a", sb.toString());
         }
