@@ -9,8 +9,6 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
