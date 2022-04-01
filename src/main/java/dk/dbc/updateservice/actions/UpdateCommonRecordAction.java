@@ -9,8 +9,6 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -100,11 +98,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
             }
 
-            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
-                LOGGER.info("Rewriting indicators");
-                rewriteIndicators();
-            }
-
             // It is here we decide whether it's a single record or a volume/section record
             // If there is a field 014 either without a subfield x or if the content of subfield x is ANM
             // then the record is part of a volume/section/head structure.
@@ -120,27 +113,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         } catch (VipCoreException | UnsupportedEncodingException e) {
             LOGGER.catching(e);
             throw new UpdateException("Exception while collapsing record", e);
-        }
-    }
-
-    private void rewriteIndicators() {
-        final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
-        for (MarcField field : writer.getRecord().getFields()) {
-            if (field.getName().equals("700")) {
-                boolean write02 = false;
-                for (MarcSubField sf : field.getSubfields()) {
-                    if (sf.getName().equals("g") && sf.getValue().equals("1")) {
-                        field.setIndicator("01");
-                        write02 = false;
-                        break;
-                    } else if (sf.getName().equals("4") && sf.getValue().equals("led")) {
-                        write02 = true;
-                    }
-                }
-                if (write02) {
-                    field.setIndicator("02");
-                }
-            }
         }
     }
 
