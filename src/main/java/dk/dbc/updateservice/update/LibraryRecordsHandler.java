@@ -524,7 +524,7 @@ public class LibraryRecordsHandler {
             oldSubfieldList = oldField == null ? null : oldField.getSubfields();
             newSubfieldList = newField == null ? null : newField.getSubfields();
             if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkeft\u00F8", true, cut)) {
-                classificationsChangedMessage.add("classificationchanged.reason.110saceikjå.difference");
+                classificationsChangedMessage.add("classificationchanged.reason.239ahkeftø.difference");
                 LOGGER.info("Classification has changed - reason 239ahkeft\u00F8 difference");
                 return true;
             }
