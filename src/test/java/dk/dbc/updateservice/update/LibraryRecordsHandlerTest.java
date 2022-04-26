@@ -236,7 +236,7 @@ class LibraryRecordsHandlerTest {
         newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
-        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("100 ahkef er ændret"));
+        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("100 er ændret"));
 
         classificationMessages = new ArrayList<>();
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
@@ -262,7 +262,7 @@ class LibraryRecordsHandlerTest {
         newRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
-        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("110 saceikj er ændret"));
+        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("110 er ændret"));
     }
 
     @Test
@@ -276,7 +276,7 @@ class LibraryRecordsHandlerTest {
         newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 117. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
-        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 ahkeftø er ændret"));
+        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 er ændret"));
 
         classificationMessages = new ArrayList<>();
         oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
@@ -289,7 +289,7 @@ class LibraryRecordsHandlerTest {
         newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*aYoung Frankenstein*\u00F8Lee");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
-        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 ahkeftø er ændret"));
+        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 er ændret"));
     }
 
     @Test

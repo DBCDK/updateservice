@@ -434,7 +434,7 @@ public class LibraryRecordsHandler {
         final List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
 
         if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkef", true, 0)) {
-            classificationsChangedMessage.add("classificationchanged.reason.100ahkef.difference");
+            classificationsChangedMessage.add("classificationchanged.reason.100.difference");
             LOGGER.info("Classification has changed - reason 100ahkef difference");
             return true;
         } else {
@@ -451,7 +451,7 @@ public class LibraryRecordsHandler {
         final List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
 
         if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "saceikj", true, 0)) {
-            classificationsChangedMessage.add("classificationchanged.reason.110saceikj.difference");
+            classificationsChangedMessage.add("classificationchanged.reason.110.difference");
             LOGGER.info("Classification has changed - reason 110saceikj difference");
             return true;
         } else {
@@ -524,7 +524,7 @@ public class LibraryRecordsHandler {
             oldSubfieldList = oldField == null ? null : oldField.getSubfields();
             newSubfieldList = newField == null ? null : newField.getSubfields();
             if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "ahkeft\u00F8", true, cut)) {
-                classificationsChangedMessage.add("classificationchanged.reason.239ahkeftø.difference");
+                classificationsChangedMessage.add("classificationchanged.reason.239.difference");
                 LOGGER.info("Classification has changed - reason 239ahkeft\u00F8 difference");
                 return true;
             }
