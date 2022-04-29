@@ -1,0 +1,19 @@
+001 00 *a 47579562 *b 870970 *c 20200910124524 *d 20200103 *f a
+004 00 *r n *a e
+008 00 *t m *u f *a 2019 *b dk *d y *l dan *x 04 *v 0
+009 00 *a a *g xx
+021 00 *e 9788787409391 *c ib.
+032 00 *x ACC202001 *a DBF202006 *x BKM202006
+245 00 *a Sommerliv ved Vestkysten *c ꜳlborgensiske landliggere fra Blokhus til Løkken 1900-1945
+260 00 *a [Ꜳlborg] *b Selskabet for Ꜳlborgs Historie *b Ꜳlborg Stadsarkiv *b Ꜳlborg Historiske Museum *c [2019]
+300 00 *a 117 sider *b ill.
+521 00 *b 1. oplag *c [2019]
+532 00 *& 1 *a Med litteraturhenvisninger
+652 00 *m 46.4 *b Løkken
+652 00 *p 46.4 *b Blokhus
+700 00 *5 870979 *6 68484499 *4 aut
+700 00 *5 870979 *6 68493579 *4 aut
+710 00 *a Selskabet for Ꜳlborgs Historie
+710 00 *a Ꜳlborg Stadsarkiv
+710 00 *a Ꜳlborg Historiske Museum
+996 00 *a DBC

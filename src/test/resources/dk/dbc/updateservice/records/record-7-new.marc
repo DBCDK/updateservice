@@ -1,0 +1,20 @@
+001 00 *a 05415292 *b 870970 *c 20111025130638 *d 20111020 *f a
+004 00 *r n *a e
+008 00 *t m *u f *a 1978 *b dk *d å *l dan *v 0
+009 00 *a a *g xx
+021 00 *c Hf. *d kr 15.00 net. (kun mod forudbetaling)
+032 00 *a DBF197935 *x SFD197935 *x DAT201144
+100 00 *a Kann Rasmussen *h A.
+245 00 *a De ¤skikkelige enker på Tersløsegꜳrd *c indledt med en beretning om opretholdelsen af det enkesæde Ludvig Holberg oprettede på Tersløsegꜳrd *e sammenskrevet af A. Kann Rasmussen
+260 00 *a [Dianalund] *d [Tersløse, 4293] *b Den Holbergske Stiftelse Tersløsegꜳrd *c 1978 *k Bagge, KB
+300 00 *a 39 sider, [4] tavler *c 22 cm
+504 00 *& 714700 *a Historien bag Den Holbergske enkestiftelse Tersløsegꜳrd og biografiske oplysninger om de enker der har boet på gården
+631 00 *a enker
+631 00 *& 714700 *a enkestand
+631 00 *& 714700 *a enkestiftelser
+652 00 *n 46.4 *z 0 *b Tersløsegård
+652 00 *o 46.4 *b Tersløsegård
+666 00 *& 714700 *f slægtshistorie
+666 00 *& 714700 *o biografier
+900 00 *a Rasmussen *h A. Kann *z 100
+996 00 *a DBC
