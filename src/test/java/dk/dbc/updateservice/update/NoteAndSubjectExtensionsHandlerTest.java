@@ -729,24 +729,6 @@ class NoteAndSubjectExtensionsHandlerTest {
     }
 
     @Test
-    void testNewNoteAndSubjectFieldRules2022_2() throws Exception {
-        final MarcRecord existingRecord = AssertActionsUtil.loadRecord("records/record-2-existing.marc");
-        final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-2-expected.marc");
-        final MarcRecord newRecord = AssertActionsUtil.loadRecord("records/record-2-new.marc");
-        final String bibliographicRecordId = "27616968";
-        final String groupId = "785100";
-
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
-        when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
-
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
-    }
-
-    @Test
     void testNewNoteAndSubjectFieldRules2022_3() throws Exception {
         final MarcRecord existingRecord = AssertActionsUtil.loadRecord("records/record-3-existing.marc");
         final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-3-expected.marc");
@@ -830,7 +812,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         final MarcRecord newRecord2 = AssertActionsUtil.loadRecord("records/record-6-new-2.marc");
 
         assertThat(instance.recordDataForRawRepo(newRecord2, groupId), is(expectedRecord));
-
     }
 
     @Test
@@ -858,24 +839,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         final MarcRecord newRecord = AssertActionsUtil.loadRecord("records/record-8-new.marc");
         final String bibliographicRecordId = "05415292";
         final String groupId = "710100";
-
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
-        when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-
-        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
-
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
-    }
-
-    @Test
-    void testNewNoteAndSubjectFieldRules2022_9() throws Exception {
-        final MarcRecord existingRecord = AssertActionsUtil.loadRecord("records/record-9-existing.marc");
-        final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-9-expected.marc");
-        final MarcRecord newRecord = AssertActionsUtil.loadRecord("records/record-9-new.marc");
-        final String bibliographicRecordId = "27616968";
-        final String groupId = "785100";
 
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
