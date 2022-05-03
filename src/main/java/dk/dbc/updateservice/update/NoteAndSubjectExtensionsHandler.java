@@ -45,7 +45,7 @@ public class NoteAndSubjectExtensionsHandler {
     static final String EXTENDABLE_NOTE_FIELDS = "504|530";
     static final String EXTENDABLE_CONTROLLED_SUBJECT_FIELDS = "600|610|630|666";
     static final String EXTENDABLE_SUBJECT_FIELDS = "631|664|665";
-    private static final String EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND = "652";
+    private static final String CLASSIFICATION_FIELDS = "652";
     private static final String NO_CLASSIFICATION = "uden klassemærke";
 
     public NoteAndSubjectExtensionsHandler(VipCoreService vipCoreService, RawRepo rawRepo, ResourceBundle messages) {
@@ -88,7 +88,7 @@ public class NoteAndSubjectExtensionsHandler {
             LOGGER.info("Agency {} doesn't have permission to edit notes or subject fields - returning same record", groupId);
             return marcRecord;
         }
-        extendableFieldsRx += "|" + EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND;
+        extendableFieldsRx += "|" + CLASSIFICATION_FIELDS;
         LOGGER.info("Extendable fields: {} ", extendableFieldsRx);
 
         // Start by handling all the not-note/subject fields in the existing record
@@ -99,13 +99,15 @@ public class NoteAndSubjectExtensionsHandler {
             }
         }
 
-        // Handle note fields
+        // Handle note fields. These fields are handled individually
+        // Each field can only be changed if either the field is missing in the existing record or if the field is owner
+        // be another FBS library
         final List<MarcField> newNoteFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
         final List<MarcField> currentNoteFields = curRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
 
-        if (newNoteFields.equals(currentNoteFields)) {
+        if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
             result.getFields().addAll(currentNoteFields);
         } else {
             for (MarcField newNoteField : newNoteFields) {
@@ -115,6 +117,7 @@ public class NoteAndSubjectExtensionsHandler {
                     for (MarcField currentNoteField : currentNoteFields) {
                         if (newNoteField.getName().equals(currentNoteField.getName())) {
                             final MarcFieldReader currentNoteFieldReader = new MarcFieldReader(currentNoteField);
+                            // No *& means the field is owner be DBC
                             if (!currentNoteFieldReader.hasSubfield("&") || !currentNoteFieldReader.getValue("&").startsWith("7")) {
                                 final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
                                 LOGGER.error("Unable to create sub actions due to an error: {}", msg);
@@ -128,7 +131,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
         }
 
-        // Handle controlled subject fields.
+        // Handle controlled subject fields. These fields are handled as a collection.
         // Fields are allowed to be updated if either there isn't a *& subfield or the value of *& starts with 7 (folkebibliotek)
         // If there are changes all fields will have *& updated to be the current library
         final List<MarcField> newControlledSubjectFields = marcRecord.getFields().stream()
@@ -140,6 +143,7 @@ public class NoteAndSubjectExtensionsHandler {
             // Controlled subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentControlledSubjectFields);
         } else {
+            // If there are changes then we need to see if one or more subject fields doesn't originate from an FBS library
             for (MarcField currentControlledSubjectField : currentControlledSubjectFields) {
                 final MarcFieldReader currentControlledSubjectFieldReader = new MarcFieldReader(currentControlledSubjectField);
                 if (currentControlledSubjectFieldReader.hasSubfield("&") && !currentControlledSubjectFieldReader.getValue("&").startsWith("7")) {
@@ -148,58 +152,58 @@ public class NoteAndSubjectExtensionsHandler {
                     throw new UpdateException(msg);
                 }
             }
-            // Now we know the fields can be overwritten - same owner is set on all controlled subject fields
+            // Now we know the fields can be overwritten - same owner is set on all controlled subject fields even if the value existed before
             for (MarcField newControlledSubjectField : newControlledSubjectFields) {
                 result.getFields().add(copyWithNewAmpersand(newControlledSubjectField, groupId));
             }
         }
 
-        // Handle (non-controlled) subject fields
-
+        // Handle (non-controlled) subject fields. These fields are handled individually
         final List<MarcField> newSubjectFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
         final List<MarcField> currentSubjectFields = curRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
 
-        // This is handling that records received from Cicero won't contain *&
-        final List<MarcField> currentSubjectFieldsCloned = new ArrayList<>();
-        currentSubjectFields.forEach(f -> currentSubjectFieldsCloned.add(new MarcField(f)));
-        currentSubjectFieldsCloned.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
-        for (MarcField newSubjectField : newSubjectFields) {
-            final MarcField newSubjectFieldClone = new MarcField(newSubjectField);
-            new MarcFieldWriter(newSubjectFieldClone).removeSubfield("&");
-            boolean addNewSubjectField = true;
-            for (int i = 0; i < currentSubjectFieldsCloned.size(); i++) {
-                if (currentSubjectFieldsCloned.get(i).equals(newSubjectFieldClone)) {
-                    result.getFields().add(currentSubjectFields.get(i));
-                    addNewSubjectField = false;
-                    break;
+        if (marcFieldsEqualsIgnoreAmpersand(newSubjectFields, currentSubjectFields)) {
+            // Subject field are identical, so just copy the existing ones over
+            result.getFields().addAll(currentSubjectFields);
+        } else {
+            final List<MarcField> currentSubjectFieldsCloned = new ArrayList<>();
+            currentSubjectFields.forEach(f -> currentSubjectFieldsCloned.add(new MarcField(f)));
+            currentSubjectFieldsCloned.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
+            // If the existing field is unchanged then we need to keep the value of *& which might not be included in the incoming record
+            for (MarcField newSubjectField : newSubjectFields) {
+                final MarcField newSubjectFieldClone = new MarcField(newSubjectField);
+                new MarcFieldWriter(newSubjectFieldClone).removeSubfield("&");
+                boolean addNewSubjectField = true;
+                for (int i = 0; i < currentSubjectFieldsCloned.size(); i++) {
+                    // The position of the fields are the same. If we match a field in the list without ampersand then
+                    // copy the existing field from the list with ampersand
+                    if (currentSubjectFieldsCloned.get(i).equals(newSubjectFieldClone)) {
+                        result.getFields().add(currentSubjectFields.get(i));
+                        addNewSubjectField = false;
+                        break;
+                    }
                 }
-            }
-            if (addNewSubjectField) {
-                newSubjectFieldClone.getSubfields().add(0, new MarcSubField("&", groupId));
-                result.getFields().add(newSubjectFieldClone);
+                if (addNewSubjectField) {
+                    newSubjectFieldClone.getSubfields().add(0, new MarcSubField("&", groupId));
+                    result.getFields().add(newSubjectFieldClone);
+                }
             }
         }
 
-        // Handle field 652
+        // Handle classification field. Classification is only allowed to be updated if the existing record contains "uden klassemærke".
+        // At this point in the code we know that either the field is unchanged or the library is allowed to update the field,
+        // so we only have to check if the classification is changed or not.
         final List<MarcField> new652Fields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND)).collect(Collectors.toList());
+                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
         final List<MarcField> current652Fields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS_NO_AMPERSAND)).collect(Collectors.toList());
-
-        final String value652m = curReader.getValue("652", "m");
-        if (value652m != null && value652m.equalsIgnoreCase(NO_CLASSIFICATION)) {
+                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+        if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
+            result.getFields().addAll(current652Fields);
+        } else {
             for (MarcField new652Field : new652Fields) {
                 result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
-            }
-        } else {
-            if (!new652Fields.equals(current652Fields)) {
-                final String msg = messages.getString("update.dbc.record.dbc.subjects");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                throw new UpdateException(msg);
-            } else {
-                result.getFields().addAll(current652Fields);
             }
         }
 
