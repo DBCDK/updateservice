@@ -68,7 +68,7 @@ public class NoteAndSubjectExtensionsHandler {
             return marcRecord;
         }
 
-        // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the post
+        // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
         // However that has already been verified by AuthenticateRecordAction so at this point we assume everything is fine
 
         LOGGER.info("Checking for altered classifications for disputas type material");
@@ -100,8 +100,8 @@ public class NoteAndSubjectExtensionsHandler {
         }
 
         // Handle note fields. These fields are handled individually
-        // Each field can only be changed if either the field is missing in the existing record or if the field is owner
-        // be another FBS library
+        // Each field can only be changed if either the field is missing in the existing record or if the field is owned
+        // by another FBS library
         final List<MarcField> newNoteFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
         final List<MarcField> currentNoteFields = curRecord.getFields().stream()
@@ -117,7 +117,7 @@ public class NoteAndSubjectExtensionsHandler {
                     for (MarcField currentNoteField : currentNoteFields) {
                         if (newNoteField.getName().equals(currentNoteField.getName())) {
                             final MarcFieldReader currentNoteFieldReader = new MarcFieldReader(currentNoteField);
-                            // No *& means the field is owner be DBC
+                            // No *& means the field is owned by DBC
                             if (!currentNoteFieldReader.hasSubfield("&") || !currentNoteFieldReader.getValue("&").startsWith("7")) {
                                 final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
                                 LOGGER.error("Unable to create sub actions due to an error: {}", msg);
