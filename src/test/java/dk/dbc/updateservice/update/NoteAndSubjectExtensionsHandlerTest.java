@@ -20,7 +20,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -37,6 +35,7 @@ import static org.mockito.Mockito.when;
 
 class NoteAndSubjectExtensionsHandlerTest {
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
+    private static final ResourceBundle resourceBundleMessages = ResourceBundles.getBundle("messages");
 
     @Mock
     VipCoreService vipCoreService;
@@ -423,7 +422,7 @@ class NoteAndSubjectExtensionsHandlerTest {
             instance.recordDataForRawRepo(record, groupId);
             fail(); // To make sure we never hit this branch
         } catch (UpdateException ex) {
-            assertThat(ex.getMessage(), is("Posten må ikke beriges, da den i forvejen er emnebehandlet"));
+            assertThat(ex.getMessage(), is(resourceBundle.getString("update.dbc.record.dbc.subjects")));
         }
     }
 
@@ -489,7 +488,7 @@ class NoteAndSubjectExtensionsHandlerTest {
             instance.recordDataForRawRepo(record, groupId);
             fail(); // To make sure we never hit this branch
         } catch (UpdateException ex) {
-            assertThat(ex.getMessage(), is("Posten må ikke beriges, da den i forvejen er emnebehandlet"));
+            assertThat(ex.getMessage(), is(resourceBundle.getString("update.dbc.record.dbc.subjects")));
         }
     }
 
@@ -634,7 +633,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
         messageEntryDTO.setType(TypeEnumDTO.ERROR);
-        messageEntryDTO.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '530' i posten '20611529'");
+        messageEntryDTO.setMessage(String.format(resourceBundleMessages.getString("notes.subjects.edit.field.error"), groupId, "530", currentReader.getRecordId()));
         expected.add(messageEntryDTO);
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
@@ -665,7 +664,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
         messageEntryDTO.setType(TypeEnumDTO.ERROR);
-        messageEntryDTO.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '666' i posten '20611529'");
+        messageEntryDTO.setMessage(String.format(resourceBundleMessages.getString("notes.subjects.edit.field.error"), groupId, "666", currentReader.getRecordId()));
         expected.add(messageEntryDTO);
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
@@ -698,11 +697,11 @@ class NoteAndSubjectExtensionsHandlerTest {
         final List<MessageEntryDTO> expected = new ArrayList<>();
         final MessageEntryDTO messageEntryDTO530 = new MessageEntryDTO();
         messageEntryDTO530.setType(TypeEnumDTO.ERROR);
-        messageEntryDTO530.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '530' i posten '20611529'");
+        messageEntryDTO530.setMessage(String.format(resourceBundleMessages.getString("notes.subjects.edit.field.error"), groupId, "530", currentReader.getRecordId()));
         expected.add(messageEntryDTO530);
         final MessageEntryDTO messageEntryDTO666 = new MessageEntryDTO();
         messageEntryDTO666.setType(TypeEnumDTO.ERROR);
-        messageEntryDTO666.setMessage("Brugeren '830010' har ikke ret til at rette/tilføje feltet '666' i posten '20611529'");
+        messageEntryDTO666.setMessage(String.format(resourceBundleMessages.getString("notes.subjects.edit.field.error"), groupId, "666", currentReader.getRecordId()));
         expected.add(messageEntryDTO666);
 
         final List<MessageEntryDTO> actual = instance.authenticateCommonRecordExtraFields(record, groupId);
@@ -805,7 +804,7 @@ class NoteAndSubjectExtensionsHandlerTest {
             instance.recordDataForRawRepo(newRecord1, groupId);
             fail();
         } catch (UpdateException ex) {
-            assertThat(ex.getMessage(), is("Posten må ikke beriges med felt 504, da feltet indgår i DBCs registrering"));
+            assertThat(ex.getMessage(), is(String.format(resourceBundle.getString("update.dbc.record.dbc.notes"), "504")));
         }
 
         final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-6-expected.marc");
