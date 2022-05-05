@@ -17,16 +17,17 @@ function collect_logs () {
 
 function removeImages() {
   echo "systest ---> Removing old images"
-  docker rmi docker-io.dbc.dk/rawrepo-postgres-1.13-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/holdings-items-postgres-1.1.4:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-i.dbc.dk/fakesmtp:latest
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-1.3:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-externals.artifacts.dbccloud.dk/fakesmtp:latest
 }
 
 function startContainers () {
   echo "systest ---> Starting containers"
+  pwd
   docker-compose up -d update-systemtests-rawrepo-db                  || die "docker-compose up -d update-systemtests-rawrepo-db"
   docker-compose up -d update-systemtests-holdingsitems-db            || die "docker-compose up -d update-systemtests-holdingsitems-db"
   docker-compose up -d update-systemtests-update-db                   || die "docker-compose up -d update-systemtests-update-db"
@@ -39,21 +40,21 @@ function startContainers () {
 
 function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
-  RAWREPO_DB_VERSION=1.12
-  HOLDINGS_DB_VERION=1.1.4
-  UPDATESERVICE_FACADE_TAG=master-31
+  RAWREPO_DB_VERSION=1.15
+  HOLDINGS_DB_VERION=1.3
+  UPDATESERVICE_FACADE_TAG=master-34
   OPENCAT_BUSINESS_SERVICE_TAG=latest
-  RAWREPO_RECORD_SERVICE_TAG=DIT-271
-  docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
-  docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
-  docker tag docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-io.dbc.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
-  docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
-  docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
+  RAWREPO_RECORD_SERVICE_TAG=DIT-330
+  docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
+  docker tag docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
+  docker tag docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
+  docker tag docker-metascrum.artifacts.dbccloud.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-metascrum.artifacts.dbccloud.dk/opencat-business:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+  docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
+  docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 }
 
 function setupLogAndLogdir () {

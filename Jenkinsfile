@@ -84,31 +84,31 @@ pipeline {
                     echo "BUILD_NUMBER: \"${env.BUILD_NUMBER}\""
                     echo "IMAGE VERSION: \"${DOCKER_IMAGE_VERSION}\""
 
-                    docker.build("docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}",
+                    docker.build("docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
                                     "--pull --no-cache docker/update-postgres/")
 
-                    docker.build("docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}",
+                    docker.build("docker-metascrum.artifacts.dbccloud.dk/update-payara:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
                                     "--pull --no-cache docker/update-payara/")
 
-                    docker.build("docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}",
+                    docker.build("docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
                                     "--label user=isworker " +
-                                    "--build-arg PARENT_IMAGE=docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION} " +
+                                    "--build-arg PARENT_IMAGE=docker-metascrum.artifacts.dbccloud.dk/update-payara:${DOCKER_IMAGE_VERSION} " +
                                     "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} " +
                                     "--build-arg BRANCH_NAME=${env.BRANCH_NAME} " +
                                     "--no-cache docker/update-payara-deployer/")
 
-                    docker.build("docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}",
+                    docker.build("docker-metascrum.artifacts.dbccloud.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}",
                             "--label jobname=${env.JOB_NAME} " +
                                     "--label gitcommit=${env.GIT_COMMIT} " +
                                     "--label buildnumber=${env.BUILD_NUMBER} " +
@@ -146,24 +146,24 @@ pipeline {
             steps {
                 script {
                     sh """
-                        docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
-                        docker push docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
-                        docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
+                        docker push docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_VERSION}
+                        docker push docker-metascrum.artifacts.dbccloud.dk/update-payara:${DOCKER_IMAGE_VERSION}
+                        docker push docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
                     """
 
                     if (env.BRANCH_NAME == 'master') {
                         sh """
-                            docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
-                            docker push docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                            docker tag docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                            docker push docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
 
-                            docker tag docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-postgres:staging
-                            docker push docker-i.dbc.dk/update-postgres:staging
+                            docker tag docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_VERSION} docker-metascrum.artifacts.dbccloud.dk/update-postgres:staging
+                            docker push docker-metascrum.artifacts.dbccloud.dk/update-postgres:staging
 
-                            docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
-                            docker push docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                            docker tag docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                            docker push docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
 
-                            docker tag docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-i.dbc.dk/update-payara-deployer:staging
-                            docker push docker-i.dbc.dk/update-payara-deployer:staging
+                            docker tag docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION} docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:staging
+                            docker push docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:staging
                         """
                     }
                 }
@@ -212,17 +212,17 @@ pipeline {
         }
         always {
             sh """
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-postgres:staging
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-postgres:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-postgres:staging
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-payara:${DOCKER_IMAGE_VERSION}
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
-                docker/bin/remove-image.sh docker-i.dbc.dk/update-payara-deployer:staging
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${DOCKER_IMAGE_DIT_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:staging
 
-                docker/bin/remove-image.sh docker-i.dbc.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
+                docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
 
             deleteDir()
