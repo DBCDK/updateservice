@@ -37,7 +37,7 @@ mvn verify install -Dmaven.test.skip=true
 rm ${DOCKER_FOLDER}/*.war
 cp ${IDEA_ROOT}/target/updateservice-2.0-SNAPSHOT.war ${DOCKER_FOLDER}
 
-docker build -t docker-i.dbc.dk/update-payara-dev:latest ${DOCKER_FOLDER}
+docker build -t docker-metascrum.artifacts.dbccloud.dk/update-payara-dev:latest ${DOCKER_FOLDER}
 
 cd docker/deployments/dev
 

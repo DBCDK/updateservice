@@ -1,4 +1,4 @@
-ARG PARENT_IMAGE=docker-io.dbc.dk/update-payara:latest
+ARG PARENT_IMAGE=docker-metascrum.artifacts.dbccloud.dk/update-payara:latest
 FROM $PARENT_IMAGE
 
 ARG BRANCH_NAME=master

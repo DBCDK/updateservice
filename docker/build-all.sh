@@ -1,5 +1,6 @@
 #!/bin/bash
-
+oecho "This script is dead"
+exit 1
 function box_out() {
     echo "---------------"
     echo $*

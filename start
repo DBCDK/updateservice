@@ -27,7 +27,7 @@ docker run --rm --name update-service -d -p ${update_service_port}:8080 \
     -e UPDATE_DB_URL=${UPDATE_DB_URL} \
     -e OPENCAT_BUSINESS_URL=${OPENCAT_BUSINESS_URL} \
     -e JAVA_MAX_HEAP_SIZE=8G \
-    docker-i.dbc.dk/update-payara-dev:devel
+    docker-metascrum.artifacts.dbccloud.dk/update-payara-dev:devel
 
 attempts=0
 max_attempts=60

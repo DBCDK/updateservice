@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -x
 
 DOCKER_FOLDER=docker/update-payara-dev
 
@@ -7,9 +8,9 @@ case "$1" in
         echo "### building update-service docker ###"
         rm ${DOCKER_FOLDER}/*.war
         cp target/updateservice-2.0-SNAPSHOT.war ${DOCKER_FOLDER}
-        docker build -t docker-i.dbc.dk/update-payara-dev:devel ${DOCKER_FOLDER} || exit 1
+        docker build -t docker-metascrum.artifacts.dbccloud.dk/update-payara-dev:devel ${DOCKER_FOLDER} || exit 1
         if [[ ! -z "$BUILD_NUMBER" ]]; then
-            docker tag docker-io.dbc.dk/update-service:devel docker-io.dbc.dk/update-service:${BRANCH_NAME}-${BUILD_NUMBER}
+            docker tag docker-metascrum.artifacts.dbccloud.dk/update-service:devel docker-metascrum.artifacts.dbccloud.dk/update-service:${BRANCH_NAME}-${BUILD_NUMBER}
         fi
         ;;
 
