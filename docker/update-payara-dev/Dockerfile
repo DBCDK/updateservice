@@ -1,4 +1,4 @@
-FROM docker-i.dbc.dk/update-payara:latest
+FROM docker-metascrum.artifacts.dbccloud.dk/update-payara:latest
 
 COPY updateservice-2.0-SNAPSHOT.war deployments/
 

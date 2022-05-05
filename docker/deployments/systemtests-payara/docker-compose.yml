@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   update-systemtests-rawrepo-db:
-    image: docker-io.dbc.dk/rawrepo-postgres-1.15-snapshot:DIT-5151
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:DIT-5151
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
@@ -12,7 +12,7 @@ services:
       - "13132:5432"
 
   update-systemtests-holdingsitems-db:
-    image: docker-os.dbc.dk/holdings-items-postgres-1.1.4:latest
+    image: docker-de.artifacts.dbccloud.dk/holdings-items-postgres-1.3:latest
     environment:
       - POSTGRES_DB=holdingsitems
       - POSTGRES_USER=holdingsitems
@@ -23,12 +23,12 @@ services:
       - "13232:5432"
 
   update-systemtests-fake-smtp:
-    image: docker-i.dbc.dk/fakesmtp:latest
+    image: docker-externals.artifacts.dbccloud.dk/fakesmtp:latest
     volumes:
       - "./logs/fakesmtp:/output"
 
   update-systemtests-update-db:
-    image: docker-i.dbc.dk/update-postgres:${SUBST_IMAGE_NAME}
+    image: docker-metascrum.artifacts.dbccloud.dk/update-postgres:latest
     environment:
       - POSTGRES_DB=updateservice
       - POSTGRES_USER=updateservice
@@ -39,7 +39,7 @@ services:
       - "14332:5432"
 
   update-systemtests-updateservice:
-    image: docker-i.dbc.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
+    image: docker-metascrum.artifacts.dbccloud.dk/update-payara-deployer:${SUBST_IMAGE_NAME}
     env_file:
       - settings.env
       - db.env
@@ -65,7 +65,7 @@ services:
       - "18148:4848"
 
   update-systemtests-updateservice-facade:
-    image: docker-io.dbc.dk/updateservice-facade:master-31
+    image: docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:master-34
     environment:
       - UPDATE_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
       - BUILD_SERVICE_URL=http://update-systemtests-updateservice:8080/UpdateService/rest
@@ -76,7 +76,7 @@ services:
       - "4848"
 
   update-systemtests-opencat-business-service:
-    image: docker-io.dbc.dk/opencat-business:latest
+    image: docker-metascrum.artifacts.dbccloud.dk/opencat-business:latest
     environment:
       - VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       - RAWREPO_RECORD_SERVICE_URL=http://update-systemtests-rawrepo-record-service:8080
@@ -92,7 +92,7 @@ services:
       - "4848"
 
   update-systemtests-rawrepo-record-service:
-    image: docker-io.dbc.dk/rawrepo-record-service:DIT-287
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-330
     environment:
       -  INSTANCE_NAME=${USER}_systemtest
       -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
@@ -106,7 +106,7 @@ services:
 
 
   ocb-tools-systemtests:
-    image: docker-i.dbc.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
+    image: docker-metascrum.artifacts.dbccloud.dk/ocb-tools-deployer:${SUBST_IMAGE_NAME}
     env_file:
       - ./db.env
     environment:
