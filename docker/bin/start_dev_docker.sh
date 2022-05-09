@@ -2,12 +2,12 @@
 #set -x
 
 # If this is set different from N then also change
-# image: docker-i.dbc.dk/update-payara:latest
+# image: docker-metascrum.artifacts.dbccloud.dk/update-payara:latest
 # to
-# image: docker-i.dbc.dk/update-payara:mib (or whomever you are)
+# image: docker-metascrum.artifacts.dbccloud.dk/update-payara:mib (or whomever you are)
 # in docker-compos.yml
 # also go to updateservice/docker/update-payara and make :
-# docker build -t docker-i.dbc.dk/update-payara:mib .
+# docker build -t docker-metascrum.artifacts.dbccloud.dk/update-payara:mib .
 USE_LOCAL_PAYARA="Y"
 
 SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
@@ -15,14 +15,14 @@ SOLR_BASIS_PORT_NR=${SOLR_BASIS_PORT_NR:-WHAT}
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
 RAWREPO_VERSION=1.15-snapshot
-RAWREPO_DIT_TAG=DIT-5151
-HOLDINGS_ITEMS_VERSION=1.1.4-snapshot
+RAWREPO_DIT_TAG=DIT-5165
+HOLDINGS_ITEMS_VERSION=1.3
 OPENCAT_BUSINESS_SERVICE_TAG=latest
-RAWREPO_RECORD_SERVICE_TAG=DIT-271
+RAWREPO_RECORD_SERVICE_TAG=DIT-330
 
 cd ${IDEA_ROOT}/docker
 
-docker build -t docker-i.dbc.dk/update-payara:latest update-payara
+docker build -t docker-metascrum.artifacts.dbccloud.dk/update-payara:latest update-payara
 
 res=$?
 if [ ${res} -ne 0 ]
@@ -73,14 +73,14 @@ docker-compose down
 docker-compose ps
 echo "docker ps : $?"
 
-docker rmi -f docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
-docker rmi -f docker-io.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
-docker rmi -f docker-i.dbc.dk/update-postgres:${USER}
-docker rmi -f docker-io.dbc.dk/opencat-business:${USER}
-docker rmi -f docker-io.dbc.dk/rawrepo-record-service:${USER}
+docker rmi -f docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
+docker rmi -f docker-metascrum.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
+docker rmi -f docker-metascrum.artifacts.dbccloud.dk/update-postgres:${USER}
+docker rmi -f docker-metascrum.artifacts.dbccloud.dk/opencat-business:${USER}
+docker rmi -f docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${USER}
 if [ "$USE_LOCAL_PAYARA" = "N" ]
 then
-    docker rmi -f docker-i.dbc.dk/update-payara:${USER}
+    docker rmi -f docker-metascrum.artifacts.dbccloud.dk/update-payara:${USER}
 fi
 docker-compose pull
 docker-compose up -d rawrepoDb
@@ -88,12 +88,12 @@ docker-compose up -d updateserviceDb
 docker-compose up -d holdingsitemsDb
 docker-compose up -d fakeSmtp
 
-docker tag docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
-docker rmi docker-io.dbc.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
-docker tag docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
-docker rmi docker-os.dbc.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest
-docker tag docker-i.dbc.dk/update-postgres:latest docker-i.dbc.dk/update-postgres:${USER}
-docker rmi docker-i.dbc.dk/update-postgres:latest
+docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
+docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
+docker tag docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:${USER}
+docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_ITEMS_VERSION}:latest
+docker tag docker-metascrum.artifacts.dbccloud.dk/update-postgres:latest docker-metascrum.artifacts.dbccloud.dk/update-postgres:${USER}
+docker rmi docker-metascrum.artifacts.dbccloud.dk/update-postgres:latest
 
 RAWREPO_IMAGE=`docker-compose ps -q rawrepoDb`
 export RAWREPO_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${RAWREPO_IMAGE} `
@@ -153,10 +153,10 @@ export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .
 echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
 echo "opencat.business.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
 
-docker tag docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-io.dbc.dk/opencat-business:${USER}
-docker rmi docker-io.dbc.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
-docker tag docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-io.dbc.dk/rawrepo-record-service:${USER}
-docker rmi docker-io.dbc.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
+docker tag docker-metascrum.artifacts.dbccloud.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-metascrum.artifacts.dbccloud.dk/opencat-business:${USER}
+docker rmi docker-metascrum.artifacts.dbccloud.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG}
+docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG} docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${USER}
+docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${RAWREPO_RECORD_SERVICE_TAG}
 
 #Look in start-local-docker.sh for final configuration
 echo "updateservice.url = dummy" >> ${HOME}/.ocb-tools/testrun.properties

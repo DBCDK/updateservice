@@ -1,4 +1,4 @@
-FROM docker.dbc.dk/dbc-postgres:9.6
+FROM docker-dbc.artifacts.dbccloud.dk/dbc-postgres-13:latest
 
 # postgres on docker registry defines that user and pass must be defined.
 ENV POSTGRES_DB=updatestore
