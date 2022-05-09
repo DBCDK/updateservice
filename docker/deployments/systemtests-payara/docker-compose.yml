@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   update-systemtests-rawrepo-db:
-    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:DIT-5151
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:DIT-5165
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
