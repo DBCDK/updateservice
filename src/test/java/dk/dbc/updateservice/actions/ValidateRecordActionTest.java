@@ -1,6 +1,8 @@
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcFieldWriter;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -167,6 +169,22 @@ class ValidateRecordActionTest {
         final String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
         ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         assertThat(validateRecordAction.performAction(), is(expected));
+    }
+
+    @Test
+    void testDeleteCommonRecordNotAuthRoot() throws Exception {
+        final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
+        record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("004", "r", "d");
+        state.setMarcRecord(record);
+
+        final String message = state.getMessages().getString("delete.record.common.record.missing.rights");
+        ServiceResult expected = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+
+
+        when(state.getVipCoreService().hasFeature(GROUP_ID, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
+        assertThat(validateRecordAction.performAction(), is(expected));
+
     }
 
 }
