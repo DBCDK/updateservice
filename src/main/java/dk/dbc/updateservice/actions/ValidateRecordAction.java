@@ -6,8 +6,11 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.MDCUtil;
+import dk.dbc.vipcore.exception.VipCoreException;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
@@ -75,20 +78,35 @@ public class ValidateRecordAction extends AbstractAction {
         final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+            final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+            final String recordId = reader.getRecordId();
+            final String agencyId = reader.getAgencyId();
+
             if (LOGGER.isInfoEnabled()) {
                 LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
             }
 
             final ServiceResult result = new ServiceResult();
 
+            // If the record is marked for deletion the validateRecord function will only check if the schema supports
+            // deleting records. If so, ok is returned without further validation.
+            // If we want to check if the groupId has permission to delete a record we have to check it before validateRecord
+            if (reader.markedForDeletion()) {
+                final String owner = reader.getAgencyId();
+                if (RawRepo.DBC_AGENCY_ALL.contains(owner)) {
+                    final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+                    if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
+                        final String message = state.getMessages().getString("delete.record.common.record.missing.rights");
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                    }
+                }
+            }
+
             if (!state.getIsTemplateOverwrite()) {
                 final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
                 result.addMessageEntryDtos(errors);
             }
 
-            final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
-            final String recordId = reader.getRecordId();
-            final String agencyId = reader.getAgencyId();
 
             if (result.hasErrors()) {
                 LOGGER.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
@@ -98,7 +116,8 @@ public class ValidateRecordAction extends AbstractAction {
                 result.setStatus(UpdateStatusEnumDTO.OK);
             }
             return result;
-        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException ex) {
+        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException |
+                 VipCoreException ex) {
             String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
             LOGGER.error(message, ex);
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
