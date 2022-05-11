@@ -143,7 +143,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
             List<MessageEntryDTO> validationErrors;
 
-            if (noteAndSubjectExtensionsHandler.isNationalCommonRecord(marcRecord)) {
+            if (noteAndSubjectExtensionsHandler.isPublishedDBCRecord(marcRecord)) {
                 LOGGER.info("Record is national common record");
                 validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(marcRecord, groupId);
             } else {

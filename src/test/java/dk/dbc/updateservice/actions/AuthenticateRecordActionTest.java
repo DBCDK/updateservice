@@ -154,7 +154,7 @@ class AuthenticateRecordActionTest {
 
         List<MessageEntryDTO> validationErrors = new ArrayList<>();
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(true);
         when(state.getNoteAndSubjectExtensionsHandler().authenticateCommonRecordExtraFields(record, groupId)).thenReturn(validationErrors);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -179,7 +179,7 @@ class AuthenticateRecordActionTest {
         messageEntryDTO.setMessage("fejl");
         validationErrors.add(messageEntryDTO);
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(true);
         when(state.getNoteAndSubjectExtensionsHandler().authenticateCommonRecordExtraFields(record, groupId)).thenReturn(validationErrors);
 
         ServiceResult expected = new ServiceResult();
@@ -209,7 +209,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -232,7 +232,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -255,7 +255,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -278,7 +278,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
@@ -303,7 +303,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(true);
@@ -328,7 +328,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(false);
@@ -354,7 +354,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
@@ -383,7 +383,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
@@ -409,7 +409,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
@@ -438,7 +438,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
@@ -467,7 +467,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -497,7 +497,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -528,7 +528,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -559,7 +559,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -590,7 +590,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -621,7 +621,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
@@ -653,7 +653,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -685,7 +685,7 @@ class AuthenticateRecordActionTest {
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isNationalCommonRecord(record)).thenReturn(false);
+        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);

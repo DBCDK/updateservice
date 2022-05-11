@@ -1,0 +1,18 @@
+001 00 *a 29044481 *b 870970 *c 20111121181134 *d 20111031 *f a
+004 00 *r n *a e
+008 00 *t m *u f *a 2011 *b dk *d y *l dan *x 04 *v 0
+009 00 *a a *g xx
+021 00 *e 9788771015201 *c ringordner *d kr. 250,00
+032 00 *x ACC201144 *a DBF201147
+100 00 *5 870979 *6 68997526 *4 aut
+245 00 *a Historier fra Norden *c kopimappe med opgaver
+260 00 *a [Holbæk] *b Gullhoj *c [2011]
+300 00 *a [12] sider, 20 løsblade *b ill. *c 32 cm
+504 00 *& 785100 *a Sikke en note
+521 00 *b 1. oplag *c [2011] *k k-35
+526 00 *i Knytter sig til serien *t Historier fra Norden
+534 00 *& 1 *a Af indholdet: Facit
+652 00 *m 89.69
+666 00 *& 785100 *f historie
+990 00 *o 201147 *b s *u nt
+996 00 *a DBC
