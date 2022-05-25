@@ -908,6 +908,24 @@ class NoteAndSubjectExtensionsHandlerTest {
         assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
+    @Test
+    void testNewNoteAndSubjectFieldRules2022_51256875() throws Exception {
+        final MarcRecord existingRecord = AssertActionsUtil.loadRecord("records/record-51256875-existing.marc");
+        final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-51256875-expected.marc");
+        final MarcRecord newRecord = AssertActionsUtil.loadRecord("records/record-51256875-new.marc");
+        final String bibliographicRecordId = "51256875";
+        final String groupId = "773000";
+
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+        when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
+
+        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+    }
+
     private MarcRecord sortRecord(MarcRecord record) {
         record.getFields().sort(Comparator.comparing(MarcField::getName));
 
