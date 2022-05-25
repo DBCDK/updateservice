@@ -106,12 +106,17 @@ public class NoteAndSubjectExtensionsHandler {
                 .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
         final List<MarcField> currentNoteFields = curRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
+        final List<MarcField> currentNoteFieldsNoAmpersand = new ArrayList<>();
+        currentNoteFields.forEach(f -> currentNoteFieldsNoAmpersand.add(new MarcField(f)));
+        currentNoteFieldsNoAmpersand.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
 
         if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
             result.getFields().addAll(currentNoteFields);
         } else {
             for (MarcField newNoteField : newNoteFields) {
-                if (currentNoteFields.contains(newNoteField)) {
+                MarcField newNoteFieldNoAmpersand = new MarcField(newNoteField);
+                new MarcFieldWriter(newNoteFieldNoAmpersand).removeSubfield("&");
+                if (currentNoteFieldsNoAmpersand.contains(newNoteFieldNoAmpersand)) {
                     result.getFields().add(newNoteField);
                 } else {
                     for (MarcField currentNoteField : currentNoteFields) {
@@ -120,7 +125,8 @@ public class NoteAndSubjectExtensionsHandler {
                             // No *& means the field is owned by DBC
                             if (!currentNoteFieldReader.hasSubfield("&") || !currentNoteFieldReader.getValue("&").startsWith("7")) {
                                 final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
-                                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                                // Business exception which means we don't want the error in the errorlog, so only log as info
+                                LOGGER.info("Unable to create sub actions due to an error: {}", msg);
                                 throw new UpdateException(msg);
                             }
                         }
