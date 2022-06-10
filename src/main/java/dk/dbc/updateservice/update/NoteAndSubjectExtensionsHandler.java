@@ -354,7 +354,11 @@ public class NoteAndSubjectExtensionsHandler {
                 final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
 
                 final Set<RecordId> children = rawRepo.children(recordId);
-                for (RecordId child : children) {
+                // Children includes both enrichment and other record types, e.g. article. Underlying records of a 870970
+                // record will always have agency id 870970 therefor we filter records with that agency id
+                final Set<RecordId> commonChildren = children.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
+
+                for (RecordId child : commonChildren) {
                     final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
                     final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
 
@@ -368,7 +372,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
         } else {
             return reader.hasValue("996", "a", "DBC") &&
-                    CatalogExtractionCode.isPublished(marcRecord);
+                    CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord);
         }
     }
 
@@ -450,7 +454,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
         }
 
-        if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublished(marcRecord)) {
+        if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord)) {
             final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
             result.add(createMessageDTO(message));
         }
