@@ -9,5 +9,6 @@ cd $IDEA_ROOT/docker/deployments/dev
 export COMPOSE_PROJECT_NAME=${USER}
 export HOST_IP=$(ip addr show | grep inet | grep -o '[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}' | head -1)
 
-docker-compose down
+DOCKER_COMPOSE_CMD="$(command -v docker-compose && echo docker-compose || echo docker compose)"
+${DOCKER_COMPOSE_CMD} down
 
