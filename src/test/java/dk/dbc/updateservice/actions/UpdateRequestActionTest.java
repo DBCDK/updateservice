@@ -1,11 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
@@ -60,10 +57,60 @@ class UpdateRequestActionTest {
      */
     @Test
     void testEmptyRequest() throws Exception {
-        state.setMarcRecord(new MarcRecord());
+        // Technically, the next line is superfluous since the variable is borne as null, but if anyone changed that, it will now be caught
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(null);
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("request.record.is.missing");
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
+    }
+
+    @Test
+    void testNoField001() throws Exception {
+        MarcRecord record = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addFieldSubfield("004", "r", "n");
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
+        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
+        String message = state.getMessages().getString("sanity.check.failed.no.001");
+        assertThat(updateRequestAction.sanityCheckRecord(), is(message));
+    }
+
+    @Test
+    void testEmptyField001() throws Exception {
+        MarcRecord record = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addFieldSubfield("001", "a", "");
+        writer.addFieldSubfield("001", "b", "870970");
+        writer.addFieldSubfield("004", "r", "n");
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
+        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
+        String message = state.getMessages().getString("sanity.check.failed.empty.001");
+        assertThat(updateRequestAction.sanityCheckRecord(), is(message));
+    }
+
+    @Test
+    void testSpacesInId() throws Exception {
+        MarcRecord record = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addFieldSubfield("001", "a", "1 234 567 8");
+        writer.addFieldSubfield("001", "b", "870970");
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
+        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
+        String message = state.getMessages().getString("sanity.check.failed.spaces.001");
+        assertThat(updateRequestAction.sanityCheckRecord(), is( message));
+    }
+
+    // this test is a bit awkward since the reader.getAgencyAsInt throws an exception
+    @Test
+    void testBadLibraryNo() throws Exception {
+        MarcRecord record = new MarcRecord();
+        MarcRecordWriter writer = new MarcRecordWriter(record);
+        writer.addFieldSubfield("001", "a", "12345678");
+        writer.addOrReplaceSubfield("001", "b", "0");
+        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
+        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
+        String message = state.getMessages().getString("sanity.check.failed.libraryno.001");
+        assertThat(updateRequestAction.sanityCheckRecord(), is( message));
     }
 
     @Test

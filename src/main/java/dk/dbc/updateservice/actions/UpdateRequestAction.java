@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.actions;
 
@@ -25,7 +21,7 @@ import java.util.Properties;
 /**
  * Action to handle a complete Update request.
  * <p/>
- * This action verifies the request and and creates a new action:
+ * This action verifies the request and creates a new action:
  * <ol>
  * <li>ValidateOperationAction: To validate the record from the request.</li>
  * </ol>
@@ -59,8 +55,8 @@ public class UpdateRequestAction extends AbstractAction {
             final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
             if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
                 // Since this can result in writing/creating the common part of the matvurd record even when there is an error
-                // in the r01/r02 fields, it has to be done before any kind of writing in the records table
-                // Information that needs check is in the enrichment part so we have to look at the full request record
+                // in the r01/r02 fields, it has to be done before any kind of writing in the records' table
+                // Information that needs check is in the enrichment part, so we have to look at the full request record
                 children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
             }
             children.add(createUpdateOperation());
@@ -85,8 +81,8 @@ public class UpdateRequestAction extends AbstractAction {
             LOGGER.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
             return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
         }
-        if (!sanityCheckRecord()) {
-            String message = state.getMessages().getString("sanity.check.failed");
+        String message = sanityCheckRecord();
+        if (!message.isEmpty()) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
         return null;
@@ -98,7 +94,7 @@ public class UpdateRequestAction extends AbstractAction {
     }
 
     /**
-     * Checks if the request is a validate only request.
+     * Checks if the request is a validation only request.
      * <p>
      * It is declared public so {@link dk.dbc.updateservice.update.UpdateServiceCore} can use it.
      * </p>
@@ -124,7 +120,7 @@ public class UpdateRequestAction extends AbstractAction {
                         LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
                         newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
                     } else {
-                        LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.");
+                        LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
                         throw new UpdateException("Provider " + providerName + " findes ikke.");
                     }
                 }
@@ -183,25 +179,32 @@ public class UpdateRequestAction extends AbstractAction {
                 || !state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().startsWith("13");
     }
 
-    private boolean sanityCheckRecord() {
+    String sanityCheckRecord() {
+        String message = "";
         try {
             final MarcRecord marcRecord = state.readRecord();
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-            if (reader.hasField("001")) { // If 001 is completely missing it will be caught in a later validation
+            if (reader.hasField("001")) {
                 if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {
-                    return false;
+                    message = state.getMessages().getString("sanity.check.failed.empty.001");
+                }
+                if (reader.getRecordId().strip().contains(" ")) {
+                    message = state.getMessages().getString("sanity.check.failed.spaces.001");
                 }
 
                 if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
-                    return false;
+                    message = state.getMessages().getString("sanity.check.failed.libraryno.001");
                 }
+            } else {
+                message = state.getMessages().getString("sanity.check.failed.no.001");
+
             }
         } catch (Exception ex) {
+            message = state.getMessages().getString("sanity.check.failed.exception");
             LOGGER.error("Caught exception during sanity check", ex);
-            return false;
         }
 
-        return true;
+        return message;
     }
 }
