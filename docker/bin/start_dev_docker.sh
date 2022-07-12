@@ -14,7 +14,7 @@ SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
 SOLR_BASIS_PORT_NR=${SOLR_BASIS_PORT_NR:-WHAT}
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
-DOCKER_COMPOSE_CMD="$(command -v docker-compose && echo docker-compose || echo docker compose)"
+DOCKER_COMPOSE_CMD="$(command -v docker-compose > /dev/null && echo docker-compose || echo docker compose)"
 
 RAWREPO_VERSION=1.15-snapshot
 RAWREPO_DIT_TAG=DIT-5165

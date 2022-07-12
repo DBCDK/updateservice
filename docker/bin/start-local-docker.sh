@@ -6,7 +6,7 @@ function die() {
   exit 1
 }
 
-DOCKER_COMPOSE_CMD="$(command -v docker-compose && echo docker-compose || echo docker compose)"
+DOCKER_COMPOSE_CMD="$(command -v docker-compose > /dev/null && echo docker-compose || echo docker compose)"
 
 if [[ -e ${HOME}/.ocb-tools/testrun.properties ]]
 then
@@ -109,6 +109,7 @@ echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Opencat-business url : ${DEV_OPENCAT_BUSINESS_URL}"
 
+echo "BONGO $DOCKER_COMPOSE_CMD"
 ${DOCKER_COMPOSE_CMD} stop updateservice
 ${DOCKER_COMPOSE_CMD} stop updateservice-facade
 ${DOCKER_COMPOSE_CMD} up -d updateservice
