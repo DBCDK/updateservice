@@ -74,6 +74,7 @@
         </dependencies>
     </dependencyManagement>
 
+
     <dependencies>
         <dependency>
             <groupId>javax</groupId>
@@ -94,7 +95,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>rawrepo-access</artifactId>
-            <version>1.15-SNAPSHOT</version>
+            <version>1.16-SNAPSHOT</version>
         </dependency>
 
         <dependency>
