@@ -13,7 +13,15 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsAction {
+    private static final Stream<String> AUTHORITY_RELATION_FIELDS = Stream.of("200", "210", "230", "232", "233", "234");
+    private static final Set<String> AUTHORITY_ALL_FIELDS = Stream.concat(RawRepo.AUTHORITY_FIELDS.stream(), AUTHORITY_RELATION_FIELDS)
+            .collect(Collectors.toUnmodifiableSet());
+
     public LinkAuthorityRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(LinkAuthorityRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
     }
@@ -27,7 +35,7 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
 
         for (MarcField field : marcRecord.getFields()) {
             final MarcFieldReader fieldReader = new MarcFieldReader(field);
-            if (RawRepo.AUTHORITY_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
+            if (AUTHORITY_ALL_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
                 final String authRecordId = fieldReader.getValue("6");
                 final int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
 

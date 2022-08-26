@@ -6,6 +6,8 @@ function die() {
   exit 1
 }
 
+DOCKER_COMPOSE_CMD="$(command -v docker-compose > /dev/null && echo docker-compose || echo docker compose)"
+
 if [[ -e ${HOME}/.ocb-tools/testrun.properties ]]
 then
     echo "Found testrun.properties so starting"
@@ -107,11 +109,12 @@ echo -e "Holdings db : ${DEV_HOLDINGS_ITEMS_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Opencat-business url : ${DEV_OPENCAT_BUSINESS_URL}"
 
-docker-compose stop updateservice
-docker-compose stop updateservice-facade
-docker-compose up -d updateservice
+echo "BONGO $DOCKER_COMPOSE_CMD"
+${DOCKER_COMPOSE_CMD} stop updateservice
+${DOCKER_COMPOSE_CMD} stop updateservice-facade
+${DOCKER_COMPOSE_CMD} up -d updateservice
 
-UPDATESERVICE_IMAGE=`docker-compose ps -q updateservice`
+UPDATESERVICE_IMAGE=`${DOCKER_COMPOSE_CMD} ps -q updateservice`
 UPDATESERVICE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
 echo -e "UPDATESERVICE_PORT_8080 is ${UPDATESERVICE_PORT_8080}\n"
 UPDATESERVICE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8686/tcp") 0).HostPort}}' ${UPDATESERVICE_IMAGE} `
@@ -122,9 +125,9 @@ echo -e "UPDATESERVICE_PORT_4848 is ${UPDATESERVICE_PORT_4848}\n"
 export UPDATE_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
 export BUILD_SERVICE_URL="http://${HOST_IP}:${UPDATESERVICE_PORT_8080}/UpdateService/rest"
 
-docker-compose up -d updateservice-facade
+${DOCKER_COMPOSE_CMD} up -d updateservice-facade
 
-UPDATESERVICE_FACADE_IMAGE=`docker-compose ps -q updateservice-facade`
+UPDATESERVICE_FACADE_IMAGE=`${DOCKER_COMPOSE_CMD} ps -q updateservice-facade`
 UPDATESERVICE_FACADE_PORT_8080=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `
 echo -e "UPDATESERVICE_FACADE_PORT_8080 is ${UPDATESERVICE_FACADE_PORT_8080}\n"
 UPDATESERVICE_FACADE_PORT_8686=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8686/tcp") 0).HostPort}}' ${UPDATESERVICE_FACADE_IMAGE} `

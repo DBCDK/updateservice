@@ -416,7 +416,7 @@ public class RawRepo {
                 final RawRepoDAO dao = createDAO(conn);
                 final MarcXMerger merger = new MarcXMerger();
                 recordMap = dao.fetchRecordCollection(bibliographicRecordId, agencyId, merger);
-                if (recordMap.size() > 0) {
+                if (!recordMap.isEmpty()) {
                     result = new HashMap<>();
                     for (Map.Entry<String, Record> entry : recordMap.entrySet()) {
                         final Record record = entry.getValue();
