@@ -14,6 +14,8 @@ SOLR_PORT_NR=${SOLR_PORT_NR:-WHAT}     # silencing annoying intellij quibble
 SOLR_BASIS_PORT_NR=${SOLR_BASIS_PORT_NR:-WHAT}
 export IDEA_ROOT=$(dirname $(dirname $(dirname $(realpath ${0}))))
 
+DOCKER_COMPOSE_CMD="$(command -v docker-compose > /dev/null && echo docker-compose || echo docker compose)"
+
 RAWREPO_VERSION=1.15-snapshot
 RAWREPO_DIT_TAG=DIT-5165
 HOLDINGS_ITEMS_VERSION=1.3
@@ -69,8 +71,8 @@ fi
 
 echo "HOST_IP: $HOST_IP"
 
-docker-compose down
-docker-compose ps
+${DOCKER_COMPOSE_CMD} down
+${DOCKER_COMPOSE_CMD} ps
 echo "docker ps : $?"
 
 docker rmi -f docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
@@ -82,11 +84,11 @@ if [ "$USE_LOCAL_PAYARA" = "N" ]
 then
     docker rmi -f docker-metascrum.artifacts.dbccloud.dk/update-payara:${USER}
 fi
-docker-compose pull
-docker-compose up -d rawrepoDb
-docker-compose up -d updateserviceDb
-docker-compose up -d holdingsitemsDb
-docker-compose up -d fakeSmtp
+${DOCKER_COMPOSE_CMD} pull
+${DOCKER_COMPOSE_CMD} up -d rawrepoDb
+${DOCKER_COMPOSE_CMD} up -d updateserviceDb
+${DOCKER_COMPOSE_CMD} up -d holdingsitemsDb
+${DOCKER_COMPOSE_CMD} up -d fakeSmtp
 
 docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG} docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${USER}
 docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_VERSION}:${RAWREPO_DIT_TAG}
@@ -95,15 +97,15 @@ docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_IT
 docker tag docker-metascrum.artifacts.dbccloud.dk/update-postgres:latest docker-metascrum.artifacts.dbccloud.dk/update-postgres:${USER}
 docker rmi docker-metascrum.artifacts.dbccloud.dk/update-postgres:latest
 
-RAWREPO_IMAGE=`docker-compose ps -q rawrepoDb`
+RAWREPO_IMAGE=`${DOCKER_COMPOSE_CMD} ps -q rawrepoDb`
 export RAWREPO_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${RAWREPO_IMAGE} `
 echo -e "RAWREPO_PORT is $RAWREPO_PORT\n"
 
-HOLDINGSITEMSDB_IMAGE=`docker-compose ps -q holdingsitemsDb`
+HOLDINGSITEMSDB_IMAGE=`${DOCKER_COMPOSE_CMD} ps -q holdingsitemsDb`
 export HOLDINGSITEMSDB_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${HOLDINGSITEMSDB_IMAGE} `
 echo -e "HOLDINGSITEMSDB_PORT is $HOLDINGSITEMSDB_PORT\n"
 
-UPDATESERVICEDB_IMAGE=`docker-compose ps -q updateserviceDb`
+UPDATESERVICEDB_IMAGE=`${DOCKER_COMPOSE_CMD} ps -q updateserviceDb`
 export UPDATESERVICEDB_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "5432/tcp") 0).HostPort}}' ${UPDATESERVICEDB_IMAGE} `
 echo -e "UPDATESERVICEDB_PORT is $UPDATESERVICEDB_PORT\n"
 
@@ -137,8 +139,8 @@ export DEV_RAWREPO_DB_URL="rawrepo:thePassword@${HOST_IP}:${RAWREPO_PORT}/rawrep
 export DEV_HOLDINGS_ITEMS_DB_URL="holdingsitems:thePassword@${HOST_IP}:${HOLDINGSITEMSDB_PORT}/holdingsitems"
 
 #opencat-business-service
-docker-compose up -d rawrepo-record-service
-RAWREPO_RECORD_SERVICE_CONTAINER=`docker-compose ps -q rawrepo-record-service`
+${DOCKER_COMPOSE_CMD} up -d rawrepo-record-service
+RAWREPO_RECORD_SERVICE_CONTAINER=`${DOCKER_COMPOSE_CMD} ps -q rawrepo-record-service`
 export RAWREPO_RECORD_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${RAWREPO_RECORD_SERVICE_CONTAINER} `
 echo -e "RAWREPO_RECORD_SERVICE_PORT is ${RAWREPO_RECORD_SERVICE_PORT}\n"
 echo "rawrepo.record.service.url = http://${HOST_IP}:${RAWREPO_RECORD_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
@@ -147,8 +149,8 @@ export DEV_RAWREPO_RECORD_SERVICE_URL="http://${HOST_IP}:${RAWREPO_RECORD_SERVIC
 export DEV_SOLR_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/raapost-index"
 export DEV_SOLR_BASIS_URL="http://${HOST_IP}:${SOLR_PORT_NR}/solr/basis-index"
 
-docker-compose up -d opencat-business-service
-OPENCAT_BUSINESS_SERVICE_CONTAINER=`docker-compose ps -q opencat-business-service`
+${DOCKER_COMPOSE_CMD} up -d opencat-business-service
+OPENCAT_BUSINESS_SERVICE_CONTAINER=`${DOCKER_COMPOSE_CMD} ps -q opencat-business-service`
 export OPENCAT_BUSINESS_SERVICE_PORT=`docker inspect --format='{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}' ${OPENCAT_BUSINESS_SERVICE_CONTAINER} `
 echo -e "OPENCAT_BUSINESS_SERVICE_PORT is ${OPENCAT_BUSINESS_SERVICE_PORT}\n"
 echo "opencat.business.url = http://${HOST_IP}:${OPENCAT_BUSINESS_SERVICE_PORT}" >> ${HOME}/.ocb-tools/testrun.properties
