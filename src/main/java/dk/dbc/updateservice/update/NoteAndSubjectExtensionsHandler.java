@@ -186,17 +186,14 @@ public class NoteAndSubjectExtensionsHandler {
         final String recId = reader.getRecordId();
         if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
             LOGGER.info("No existing record - returning same record");
-            if (!"DBC".equals(reader.getValue("996", "a"))) {
-                if (reader.hasField("032")) {
-
-                    if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
-                        final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
-                        LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                        throw new UpdateException(msg);
-                    }
-                    validateCatalogCodes(marcRecord);
-                    addCatalogField(marcRecord, marcRecord, new MarcRecord(), groupId);
+            if (!"DBC".equals(reader.getValue("996", "a")) && reader.hasField("032")) {
+                if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
+                    final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
+                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
                 }
+                validateCatalogCodes(marcRecord);
+                addCatalogField(marcRecord, marcRecord, new MarcRecord(), groupId);
             }
             return marcRecord;
         }
@@ -295,9 +292,7 @@ public class NoteAndSubjectExtensionsHandler {
 
     private String getOveCode(MarcField newCatalogField) {
         for (MarcSubField subField : newCatalogField.getSubfields()) {
-            if ("x".equals(subField.getName())) {
-                if (subField.getValue().startsWith("OVE")) return subField.getValue();
-            }
+            if ("x".equals(subField.getName()) && subField.getValue().startsWith("OVE")) return subField.getValue();
         }
         return "";
     }
@@ -307,9 +302,7 @@ public class NoteAndSubjectExtensionsHandler {
         List<MarcSubField> subs = field.getSubfields();
         for (MarcSubField s1 : subs) {
             if ("&".equals(s1.getName())) continue;
-            if ("x".equals(s1.getName())) {
-                if (s1.getValue().startsWith("OVE")) continue;
-            }
+            if ("x".equals(s1.getName()) && s1.getValue().startsWith("OVE")) continue;
             newList.add(s1);
         }
         if (!oveCode.isEmpty()) {
@@ -327,9 +320,7 @@ public class NoteAndSubjectExtensionsHandler {
         } else {
             for (MarcSubField s1 : subs) {
                 if ("&".equals(s1.getName())) continue;
-                if ("x".equals(s1.getName())) {
-                    if (s1.getValue().startsWith("OVE")) continue;
-                }
+                if ("x".equals(s1.getName()) && s1.getValue().startsWith("OVE")) continue;
                 newList.add(s1);
             }
         }
