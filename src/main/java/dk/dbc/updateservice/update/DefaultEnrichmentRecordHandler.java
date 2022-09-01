@@ -112,6 +112,10 @@ public class DefaultEnrichmentRecordHandler {
         final MarcField field = reader.getField("032");
         if (field != null) {
             for (MarcSubField subfield : field.getSubfields()) {
+                if (subfield.getValue().length() > 2 && "OVE".matches(subfield.getValue().substring(0,3))) {
+                    // OVE codes is not a part of the codes that define production state for a record owned by DBC
+                    continue;
+                }
                 if (matchesCatCodeAndDate(subfield.getValue())) {
                     result.add(subfield.getName() + ":" + subfield.getValue());
                 }
