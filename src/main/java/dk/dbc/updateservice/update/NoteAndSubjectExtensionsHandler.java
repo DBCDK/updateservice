@@ -33,7 +33,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// TODO kald den her noget andet - forvirrende navn ellers
 public class NoteAndSubjectExtensionsHandler {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
     private final VipCoreService vipCoreService;

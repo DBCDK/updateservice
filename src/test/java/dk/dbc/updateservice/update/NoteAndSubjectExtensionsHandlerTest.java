@@ -625,7 +625,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final MarcRecord actual = instance.recordDataForRawRepo(record, groupId);
-        // TODO her skal 032 jamres over
         resultWriter.removeField("032");
         MarcField addField = new MarcField("032", "00");
         addField.getSubfields().add(new MarcSubField("&", groupId));
