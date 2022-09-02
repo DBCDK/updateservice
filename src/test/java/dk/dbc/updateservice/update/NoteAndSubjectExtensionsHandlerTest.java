@@ -585,6 +585,110 @@ class NoteAndSubjectExtensionsHandlerTest {
     }
 
     @Test
+    void testLibraryCreateNewCatalogCodeNotCb() throws Exception {
+        final String groupId = "830010";
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(false);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.OVE_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(record);
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), record);
+        when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
+
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
+        // final MarcRecord actual = instance.recordDataForRawRepo(record, groupId);
+
+        try {
+            instance.recordDataForRawRepo(record, groupId);
+            fail();
+        } catch (UpdateException ex) {
+            assertThat(ex.getMessage(), is(resourceBundle.getString("update.library.record.catalog.codes.not.cb")));
+        }
+    }
+    @Test
+    void testLibraryCreateNewCatalogCode() throws Exception {
+        final String groupId = "830010";
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.OVE_RECORD);
+        final MarcRecord result = new MarcRecord(record);
+        final MarcRecordReader currentReader = new MarcRecordReader(record);
+        final MarcRecordWriter resultWriter = new MarcRecordWriter(result);
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), record);
+        when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
+        final MarcRecord actual = instance.recordDataForRawRepo(record, groupId);
+        resultWriter.removeField("032");
+        MarcField addField = new MarcField("032", "00");
+        addField.getSubfields().add(new MarcSubField("&", groupId));
+        addField.getSubfields().add(new MarcSubField("x", "OVE199746"));
+        result.getFields().add(addField);
+        System.out.println("ORI = " + record);
+        System.out.println("NEW = " + actual);
+        assertThat(actual, is(result));
+    }
+
+    @Test
+    void testCreateCatalogField() throws Exception {
+        final String groupId = "830010";
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
+        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+        when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
+
+        final MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
+        final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+        final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
+        curRecordCollection.put(currentReader.getRecordId(), currentRecord);
+        when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
+    }
+
+    // Ok, hvad er det egentlig vi vil teste ?
+    // hvad fås hvis der ikke er et 032 i den nye post
+    // hvad fås hvis der ikke er et 032 i den gamle post
+    // har den nye post andet end OVE kode i sig ?
+    // og hvis den ikke har ?
+    // hvad fås hvis gammel og ny er ens bortset fra en ny
+
+    @Test
+    void testCompareCatalogSubfields() {
+
+        // Verifies that the content is the same despite order and existence of *& and OVE code
+        final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
+        MarcField m1 = new MarcField();
+        m1.setName("032");
+        MarcField m2 = new MarcField();
+        m2.setName("032");
+        MarcSubField s1 = new MarcSubField("a", "tekst1");
+        MarcSubField s2 = new MarcSubField("b", "tekst2");
+        MarcSubField s3 = new MarcSubField("c", "tekst3");
+        MarcSubField s4 = new MarcSubField("&", "875100");
+        MarcSubField s5 = new MarcSubField("x", "OVE202218");
+        m1.getSubfields().add(s1);
+        m1.getSubfields().add(s2);
+        m1.getSubfields().add(s3);
+        assertThat(instance.compareCatalogSubFields(m1, m2, true), is(false));
+        m2.getSubfields().add(s1);
+        m2.getSubfields().add(s3);
+        m2.getSubfields().add(s2);
+        assertThat(instance.compareCatalogSubFields(m1, m2, true), is(true));
+        assertThat(instance.compareCatalogSubFields(m1, m2, false), is(true));
+        m2.getSubfields().add(s4);
+        m2.getSubfields().add(s5);
+        assertThat(instance.compareCatalogSubFields(m1, m2, true), is(false));
+        assertThat(instance.compareCatalogSubFields(m1, m2, false), is(true));
+
+    }
+
+    @Test
     void testAuthenticateCommonRecordExtraFields_AllowedNote_NotAllowedSubject_AddNoteField() throws Exception {
         final String groupId = "830010";
 
