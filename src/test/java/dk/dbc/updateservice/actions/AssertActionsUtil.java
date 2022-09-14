@@ -67,6 +67,7 @@ public class AssertActionsUtil {
     public static final String VOLUME_RECORD_RESOURCE = "actions/volume.marc";
     public static final String COMMON_RECORD_CLASSIFICATION = "actions/common_classification.marc";
     public static final String NATIONAL_COMMON_RECORD = "actions/national-common-record.marc";
+    public static final String OVE_RECORD = "actions/ove-record.marc";
     public static final String LITTOLK_COMMON = "actions/littolk-common.marc";
     public static final String LITTOLK_ENRICHMENT = "actions/littolk-enrichment.marc";
     public static final String MATVURD_1 = "actions/matvurd1.marc";
