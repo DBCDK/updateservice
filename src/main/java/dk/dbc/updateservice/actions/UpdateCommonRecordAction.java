@@ -14,7 +14,6 @@ import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.vipcore.exception.VipCoreException;
-import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
