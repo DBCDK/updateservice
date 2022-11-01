@@ -14,7 +14,6 @@ import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.vipcore.exception.VipCoreException;
-import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -73,7 +72,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 }
                 if (gotOve) {
                     final VipCoreService vipCoreService = state.getVipCoreService();
-                    if (!vipCoreService.hasFeature(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(), VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
+                    if (!vipCoreService.isAuthRootOrCB(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId())) {
                         final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
                         LOGGER.error("Unable to create sub actions due to an error: {}", message);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
