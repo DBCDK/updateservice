@@ -15,7 +15,7 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.update.HoldingsItems;
+import dk.dbc.updateservice.update.HoldingsItemsConnector;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -50,7 +50,7 @@ public class GlobalActionState {
     private Authenticator authenticator = null;
     private RawRepo rawRepo = null;
     private OpencatBusinessConnector opencatBusiness = null;
-    private HoldingsItems holdingsItems = null;
+    private HoldingsItemsConnector holdingsItems = null;
     private VipCoreService vipCoreService = null;
     private SolrFBS solrService = null;
     private SolrBasis solrBasis = null;
@@ -90,7 +90,7 @@ public class GlobalActionState {
     public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO,
                              Authenticator authenticator,
                              RawRepo rawRepo,
-                             HoldingsItems holdingsItems,
+                             HoldingsItemsConnector holdingsItems,
                              VipCoreService vipCoreService,
                              SolrFBS solrService,
                              SolrBasis solrBasis,
@@ -173,11 +173,11 @@ public class GlobalActionState {
         this.opencatBusiness = opencatBusiness;
     }
 
-    public HoldingsItems getHoldingsItems() {
+    public HoldingsItemsConnector getHoldingsItems() {
         return holdingsItems;
     }
 
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
+    public void setHoldingsItems(HoldingsItemsConnector holdingsItems) {
         this.holdingsItems = holdingsItems;
     }
 

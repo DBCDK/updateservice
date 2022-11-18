@@ -77,7 +77,7 @@ public class UpdateServiceCore {
     private OpencatBusinessConnector opencatBusiness;
 
     @EJB
-    private HoldingsItems holdingsItems;
+    private HoldingsItemsConnector holdingsItems;
 
     @EJB
     private VipCoreService vipCoreService;
