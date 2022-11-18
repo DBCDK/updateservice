@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.actions;
 
@@ -16,11 +12,13 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -63,6 +61,24 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
+            if (!"DBC".equals(reader.getValue("996", "a"))) {
+                List<String> katalogCodes = reader.getValues("032", "x");
+                boolean gotOve = false;
+                for (String katalogCode : katalogCodes) {
+                    if (katalogCode.contains("OVE")) {
+                        gotOve = true;
+                        break;
+                    }
+                }
+                if (gotOve) {
+                    final VipCoreService vipCoreService = state.getVipCoreService();
+                    if (!vipCoreService.isAuthRootOrCB(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId())) {
+                        final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
+                        LOGGER.error("Unable to create sub actions due to an error: {}", message);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                    }
+                }
+            }
 
             MarcRecord recordToStore;
 
@@ -73,7 +89,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             // We also know that:
             // - Cicero client doesn't understand authority fields
             //
-            // Therefor we need to collapse the incoming expanded record and pass that record to the later actions
+            // Therefore we need to collapse the incoming expanded record and pass that record to the later actions
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
             if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {

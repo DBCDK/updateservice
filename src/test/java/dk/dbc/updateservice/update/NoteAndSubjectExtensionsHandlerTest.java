@@ -585,9 +585,9 @@ class NoteAndSubjectExtensionsHandlerTest {
     }
 
     @Test
-    void testLibraryCreateNewCatalogCodeNotCb() throws Exception {
+    void testLibraryCreateNewCatalogCodeNotCbAndNotAuthRoot() throws Exception {
         final String groupId = "830010";
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(false);
+        when(vipCoreService.isAuthRootOrCB(groupId)).thenReturn(false);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
@@ -611,7 +611,7 @@ class NoteAndSubjectExtensionsHandlerTest {
     @Test
     void testLibraryCreateNewCatalogCode() throws Exception {
         final String groupId = "830010";
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+        when(vipCoreService.isAuthRootOrCB(groupId)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
@@ -638,7 +638,7 @@ class NoteAndSubjectExtensionsHandlerTest {
     @Test
     void testCreateCatalogField() throws Exception {
         final String groupId = "830010";
-        when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+        when(vipCoreService.isAuthRootOrCB(groupId)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(vipCoreService.getLibraryGroup(groupId)).thenReturn(LibraryGroup.FBS);
