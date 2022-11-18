@@ -86,6 +86,7 @@ public class HoldingsItemsConnector {
 
     protected static final String ERROR_TYPE = "errortype";
 
+    @SuppressWarnings("unused")
     public HoldingsItemsConnector() {
     }
 
