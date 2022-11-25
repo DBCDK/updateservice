@@ -158,7 +158,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
                 final String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId.getBibliographicRecordId());
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
             }
-            if (!state.getHoldingsItems().getAgenciesThatHasHoldingsFor(this.marcRecord).isEmpty()) {
+            if (!state.getHoldingsItems().getAgenciesWithHoldings(new MarcRecordReader(marcRecord).getRecordId()).isEmpty()) {
                 final AgencyNumber agencyNumber = new AgencyNumber(new MarcRecordReader(marcRecord).getAgencyId());
                 if (state.getVipCoreService().hasFeature(agencyNumber.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)) {
                     final String message = state.getMessages().getString("delete.local.with.holdings.error");

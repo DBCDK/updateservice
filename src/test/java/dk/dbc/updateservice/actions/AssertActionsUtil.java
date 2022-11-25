@@ -13,6 +13,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.holdingitems.content.HoldingsItemsConnector;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -24,15 +25,12 @@ import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.update.HoldingsItemsConnector;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.IOUtils;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -53,7 +51,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Utility functions to reuse code in different test classes.
  */
 public class AssertActionsUtil {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AssertActionsUtil.class);
     public static final String COMMON_SINGLE_RECORD_RESOURCE = "actions/common_enrichment.marc";
     public static final String COMMON_MAIN_RECORD_RESOURCE = "actions/rawrepo-main.marc";
     public static final String COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE = "actions/rawrepo-main-enrichment.marc";
