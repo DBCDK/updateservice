@@ -40,7 +40,7 @@ services:
       - SOLR_URL=${DEV_SOLR_URL}
       - SOLR_BASIS_URL=${DEV_SOLR_BASIS_URL}
       - OPENCAT_BUSINESS_URL=${DEV_OPENCAT_BUSINESS_URL}
-      - HOLDINGS_URL=${DEV_HOLDINGS_URL}
+      - HOLDING_ITEMS_CONTENT_SERVICE_URL=${DEV_HOLDINGS_URL}
     extra_hosts:
       - "solrserver:${HOST_IP}"
       - "solrbasis:${HOST_IP}"
