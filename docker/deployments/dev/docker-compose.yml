@@ -82,7 +82,7 @@ services:
       - "4848"
 
   rawrepo-record-service:
-    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-330
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-349
     environment:
       -  INSTANCE_NAME=${USER}_dev
       -  VIPCORE_ENDPOINT=${DEV_VIPCORE_ENDPOINT}
