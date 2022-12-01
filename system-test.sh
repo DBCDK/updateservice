@@ -38,7 +38,7 @@ function startContainers () {
 
 function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
-  RAWREPO_DB_VERSION=1.15
+  RAWREPO_DB_VERSION=1.16
   UPDATESERVICE_FACADE_TAG=master-34
   OPENCAT_BUSINESS_SERVICE_TAG=latest
   RAWREPO_RECORD_SERVICE_TAG=DIT-349

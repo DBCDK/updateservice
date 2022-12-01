@@ -19,7 +19,7 @@ HOLDINGS_PORT=$(getFreePort)
 
 DOCKER_COMPOSE_CMD="$(command -v docker-compose > /dev/null && echo docker-compose || echo docker compose)"
 
-RAWREPO_VERSION=1.15-snapshot
+RAWREPO_VERSION=1.16-snapshot
 RAWREPO_DIT_TAG=DIT-5165
 OPENCAT_BUSINESS_SERVICE_TAG=latest
 RAWREPO_RECORD_SERVICE_TAG=DIT-349
