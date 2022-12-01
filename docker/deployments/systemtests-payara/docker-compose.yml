@@ -97,7 +97,7 @@ services:
       -  INSTANCE_NAME=${USER}_systemtest
       -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       -  RAWREPO_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
-      -  HOLDINGS_URL=http://ocb-tools-systemtests:8081/api
+      -  HOLDING_ITEMS_CONTENT_SERVICE_URL=http://ocb-tools-systemtests:8081/api
       -  JAVA_MAX_HEAP_SIZE=2G
     ports:
       - "8080"
