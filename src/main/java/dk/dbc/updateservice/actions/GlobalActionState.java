@@ -37,9 +37,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GlobalActionState {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(GlobalActionState.class);
@@ -176,6 +179,18 @@ public class GlobalActionState {
     public HoldingsItemsConnector getHoldingsItems() {
         return holdingsItems;
     }
+
+    public Set<Integer> getAgenciesWithHoldings(MarcRecord marcRecord) {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        Set<Integer> result = Stream.concat(
+                Stream.of(reader.getRecordId()),
+                reader.getCentralAliasIds().stream())
+                .map(id -> getHoldingsItems().getAgenciesWithHoldings(id))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        return result;
+    }
+
 
     public void setHoldingsItems(HoldingsItemsConnector holdingsItems) {
         this.holdingsItems = holdingsItems;

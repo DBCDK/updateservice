@@ -86,7 +86,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             if (reader.markedForDeletion()) {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
-                final Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesWithHoldings(new MarcRecordReader(marcRecord).getRecordId());
+                final Set<Integer> agenciesWithHoldings = state.getAgenciesWithHoldings(marcRecord);
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         LOGGER.info("Found holdings for agency '{}'", agencyWithHoldings);
