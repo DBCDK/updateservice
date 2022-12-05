@@ -6,6 +6,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.holdingitems.content.HoldingsItemsConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -14,7 +15,6 @@ import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -79,7 +79,7 @@ public class UpdateTestUtils {
         AuthenticationDTO.setPassword("passwd");
         globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
-        globalActionState.setHoldingsItems(mock(HoldingsItems.class));
+        globalActionState.setHoldingsItems(mock(HoldingsItemsConnector.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setOpencatBusiness(mock(OpencatBusinessConnector.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
@@ -102,7 +102,7 @@ public class UpdateTestUtils {
         GlobalActionState globalActionState = new GlobalActionState();
         globalActionState.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         globalActionState.setAuthenticator(mock(Authenticator.class));
-        globalActionState.setHoldingsItems(mock(HoldingsItems.class));
+        globalActionState.setHoldingsItems(mock(HoldingsItemsConnector.class));
         globalActionState.setSolrService(mock(SolrFBS.class));
         globalActionState.setMessages(ResourceBundles.getBundle("actions"));
         globalActionState.setRawRepo(mock(RawRepo.class));

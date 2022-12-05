@@ -258,7 +258,7 @@ class UpdateLocalRecordActionTest {
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
         when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -315,8 +315,8 @@ class UpdateLocalRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(bibliographicRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().children(eq(new RecordId(mainRecordId, agencyId)))).thenReturn(AssertActionsUtil.createRecordSet(record));
         when(state.getRawRepo().children(eq(recordId))).thenReturn(AssertActionsUtil.createRecordSet());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(mainRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -358,7 +358,7 @@ class UpdateLocalRecordActionTest {
 
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId.getBibliographicRecordId()))).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
@@ -406,7 +406,7 @@ class UpdateLocalRecordActionTest {
         when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId.getBibliographicRecordId()))).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
@@ -449,7 +449,7 @@ class UpdateLocalRecordActionTest {
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
         when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -487,7 +487,7 @@ class UpdateLocalRecordActionTest {
 
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
@@ -534,7 +534,7 @@ class UpdateLocalRecordActionTest {
         when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);

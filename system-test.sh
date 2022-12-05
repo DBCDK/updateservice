@@ -18,7 +18,6 @@ function collect_logs () {
 function removeImages() {
   echo "systest ---> Removing old images"
   docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-1.3:${COMPOSE_PROJECT_NAME}
   docker rmi docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
   docker rmi docker-metascrum.artifacts.dbccloud.dk/opencat-business:${COMPOSE_PROJECT_NAME}
   docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:${COMPOSE_PROJECT_NAME}
@@ -29,7 +28,6 @@ function startContainers () {
   echo "systest ---> Starting containers"
   pwd
   docker-compose up -d update-systemtests-rawrepo-db                  || die "docker-compose up -d update-systemtests-rawrepo-db"
-  docker-compose up -d update-systemtests-holdingsitems-db            || die "docker-compose up -d update-systemtests-holdingsitems-db"
   docker-compose up -d update-systemtests-update-db                   || die "docker-compose up -d update-systemtests-update-db"
   docker-compose up -d update-systemtests-fake-smtp                   || die "docker-compose up -d update-systemtests-fake-smtp"
   docker-compose up -d update-systemtests-updateservice               || die "docker-compose up -d update-systemtests-updateservice"
@@ -40,15 +38,12 @@ function startContainers () {
 
 function reTagAndRemove () {
   echo "systest ---> retagging and removing containers"
-  RAWREPO_DB_VERSION=1.15
-  HOLDINGS_DB_VERION=1.3
+  RAWREPO_DB_VERSION=1.16
   UPDATESERVICE_FACADE_TAG=master-34
   OPENCAT_BUSINESS_SERVICE_TAG=latest
-  RAWREPO_RECORD_SERVICE_TAG=DIT-330
+  RAWREPO_RECORD_SERVICE_TAG=DIT-349
   docker tag docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:${COMPOSE_PROJECT_NAME}
   docker rmi docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-${RAWREPO_DB_VERSION}-snapshot:latest
-  docker tag docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:${COMPOSE_PROJECT_NAME}
-  docker rmi docker-de.artifacts.dbccloud.dk/holdings-items-postgres-${HOLDINGS_DB_VERION}-snapshot:latest
   docker tag docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG} docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${COMPOSE_PROJECT_NAME}
   docker rmi docker-metascrum.artifacts.dbccloud.dk/updateservice-facade:${UPDATESERVICE_FACADE_TAG}
   docker tag docker-metascrum.artifacts.dbccloud.dk/opencat-business:${OPENCAT_BUSINESS_SERVICE_TAG} docker-metascrum.artifacts.dbccloud.dk/opencat-business:${COMPOSE_PROJECT_NAME}

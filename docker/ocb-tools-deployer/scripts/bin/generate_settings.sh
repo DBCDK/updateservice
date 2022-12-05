@@ -12,10 +12,7 @@ rawrepo.jdbc.conn.url = jdbc:postgresql://${RAWREPO_PORT_5432_TCP_ADDR}:${RAWREP
 rawrepo.jdbc.conn.user = ${RAWREPO_USER}
 rawrepo.jdbc.conn.passwd = ${RAWREPO_PASSWORD}
 
-holdings.jdbc.driver = org.postgresql.Driver
-holdings.jdbc.conn.url = jdbc:postgresql://${HOLDINGSITEMS_PORT_5432_TCP_ADDR}:${HOLDINGSITEMS_PORT_5432_TCP_PORT}/${HOLDINGS_ITEMS_DBNAME}
-holdings.jdbc.conn.user = ${HOLDINGS_ITEMS_USER}
-holdings.jdbc.conn.passwd = ${HOLDINGS_ITEMS_PASSWORD}
+holdings.port = 8081
 
 solr.port = 8080
 

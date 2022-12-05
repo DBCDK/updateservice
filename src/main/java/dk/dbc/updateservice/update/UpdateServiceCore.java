@@ -10,6 +10,7 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
+import dk.dbc.holdingitems.content.HoldingsItemsConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -77,7 +78,7 @@ public class UpdateServiceCore {
     private OpencatBusinessConnector opencatBusiness;
 
     @EJB
-    private HoldingsItems holdingsItems;
+    private HoldingsItemsConnector holdingsItems;
 
     @EJB
     private VipCoreService vipCoreService;
@@ -285,7 +286,7 @@ public class UpdateServiceCore {
                 final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
                 if (rawRepo.recordExists(recordId, agencyId)) {
                     final MarcRecord oldRecord = loadRecord(recordId, agencyId);
-                    final Set<Integer> holdingAgencies = holdingsItems.getAgenciesThatHasHoldingsForId(recordId);
+                    final Set<Integer> holdingAgencies = holdingsItems.getAgenciesWithHoldings(recordId);
                     if (!holdingAgencies.isEmpty()) {
                         List<String> classificationsChangedMessages = new ArrayList<>();
                         if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages)) {

@@ -225,7 +225,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             }
         } else {
             LOGGER.info("Getting holdings and agencies for volume {}", recordId);
-            librariesWithPosts.addAll(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(marcRecord));
+            librariesWithPosts.addAll(state.getAgenciesWithHoldings(marcRecord));
             librariesWithPosts.addAll(state.getRawRepo().agenciesForRecordNotDeleted(reader.getRecordId()));
         }
     }
@@ -249,7 +249,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     List<EnqueuePHHoldingsRecordAction> getEnqueuePHHoldingsRecordActions(GlobalActionState state, MarcRecord marcRecord) throws UpdateException {
-        Set<Integer> holdingsLibraries = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(marcRecord);
+        Set<Integer> holdingsLibraries = state.getAgenciesWithHoldings(marcRecord);
         Set<String> phLibraries = state.getPHLibraries();
         List<EnqueuePHHoldingsRecordAction> result = new ArrayList<>();
 

@@ -86,7 +86,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             if (reader.markedForDeletion()) {
                 // If it is deletion and a 870970 record then the group is always 010100
                 // Which means we are only interested in the other libraries with holdings
-                final Set<Integer> agenciesWithHoldings = state.getHoldingsItems().getAgenciesThatHasHoldingsFor(marcRecord);
+                final Set<Integer> agenciesWithHoldings = state.getAgenciesWithHoldings(marcRecord);
                 if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
                     for (Integer agencyWithHoldings : agenciesWithHoldings) {
                         LOGGER.info("Found holdings for agency '{}'", agencyWithHoldings);
@@ -226,7 +226,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
             }
             final MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
             LOGGER.info("Holdings for " + recordIdForRecordToDelete);
-            final Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(recordIdForRecordToDelete);
+            final Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesWithHoldings(recordIdForRecordToDelete);
             LOGGER.info("is " + holdingAgencies.toString());
             // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
             final boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);

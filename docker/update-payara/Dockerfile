@@ -1,7 +1,7 @@
 FROM docker-dbc.artifacts.dbccloud.dk/payara5-micro:latest
 
 LABEL RAWREPO_DB_URL="Full connection string for the rawrepo database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
-LABEL HOLDINGS_ITEMS_DB_URL="Full connection string for the holdings items database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
+LABEL HOLDING_ITEMS_CONTENT_SERVICE_URL="Url for the holdings items services"
 LABEL UPDATE_DB_URL="Full connection string for the update database. Format is 'username:pass@dbserver:port/dbname'. (Required)"
 
 RUN echo "set server-config.transaction-service.timeout-in-seconds=12000" >> scripts/prebootcommandfile.txt
