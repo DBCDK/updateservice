@@ -225,7 +225,7 @@ pipeline {
                 docker/bin/remove-image.sh docker-metascrum.artifacts.dbccloud.dk/ocb-tools-deployer:${DOCKER_IMAGE_VERSION}
             """
 
-//            deleteDir()
+            deleteDir()
         }
     }
 }
