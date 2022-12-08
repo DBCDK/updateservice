@@ -319,7 +319,7 @@ class UpdateEnrichmentRecordActionTest {
         when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(new HashSet<>());
         when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(new MarcRecord());
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
@@ -404,7 +404,7 @@ class UpdateEnrichmentRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(new HashSet<>());
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
@@ -444,7 +444,7 @@ class UpdateEnrichmentRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(agencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(agencyId));
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);

@@ -172,7 +172,7 @@ public class NoteAndSubjectExtensionsHandler {
      * fields are added with an *& subfield with the owner in it.
      * Adding, modifying or deleting an OVE code is a bit more complicated since there can be only on field 032. Libraries can only modify a
      * subfield 032x that contains an OVE code (subfield & will be modified automatically in such cases) - all other subfields are forbidden to modify.
-     * The library must also have the vip right REGIONAL_OBLIGATIONS set to make such an update.
+     * The library must also have the vip right REGIONAL_OBLIGATIONS or AUTH_ROOT set to make such an update.
      * DBC on the other hand may correct all subfields including one that contain an OVE code.
      * In case of deletion, the & subfield will be removed.
      * Some comments on subfields in 032 :
@@ -187,7 +187,7 @@ public class NoteAndSubjectExtensionsHandler {
         if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
             LOGGER.info("No existing record - returning same record");
             if (!"DBC".equals(reader.getValue("996", "a")) && reader.hasField("032")) {
-                if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
+                if (!vipCoreService.isAuthRootOrCB(groupId)) {
                     final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
                     LOGGER.error("Unable to create sub actions due to an error: {}", msg);
                     throw new UpdateException(msg);
@@ -237,7 +237,7 @@ public class NoteAndSubjectExtensionsHandler {
         }
 
         // Handling field 032
-        if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
+        if (vipCoreService.isAuthRootOrCB(groupId)) {
             addCatalogField(result, marcRecord, curRecord, groupId);
         }
 
@@ -520,7 +520,7 @@ public class NoteAndSubjectExtensionsHandler {
     String createExtendableFieldsRx(String agencyId) throws VipCoreException {
         String extendableFields = "";
 
-        if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)) {
+        if (vipCoreService.isAuthRootOrCB(agencyId)) {
             extendableFields += CATALOGUE_CODE_FIELD;
         }
 

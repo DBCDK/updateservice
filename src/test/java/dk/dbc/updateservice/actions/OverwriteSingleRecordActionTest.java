@@ -78,7 +78,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
@@ -117,7 +117,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
 
@@ -175,7 +175,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(false);
@@ -235,7 +235,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(record)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -299,7 +299,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -364,7 +364,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(eq("700100"), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -427,7 +427,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700100));
         when(state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -495,7 +495,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -563,7 +563,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(eq(record), eq(record), eq(new ArrayList<>()))).thenReturn(true);
@@ -645,7 +645,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -726,7 +726,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(agencyId))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -810,7 +810,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().recordExists(eq(recordId), eq(enrichmentAgencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(eq(record))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -894,7 +894,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(recordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(recordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
         int newEnrichmentAgencyId = enrichmentAgencyId + 100;
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(enrichmentAgencyId, newEnrichmentAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(enrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(newEnrichmentAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -980,7 +980,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getVipCoreService().hasFeature(Integer.toString(e1AgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1064,7 +1064,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1140,7 +1140,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getVipCoreService().hasFeature(Integer.toString(e1AgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1217,7 +1217,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1295,7 +1295,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1371,7 +1371,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getVipCoreService().hasFeature(Integer.toString(localAgencyId), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1449,7 +1449,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c1, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecord(eq(c2RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(c2, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(c2RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(localAgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(localAgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1531,7 +1531,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);
@@ -1615,7 +1615,7 @@ class OverwriteSingleRecordActionTest {
         when(state.getRawRepo().fetchRecord(eq(e1RecordId), eq(e1AgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(e1, MarcXChangeMimeType.ENRICHMENT));
         when(state.getRawRepo().enrichments(eq(new RecordId(c2RecordId, RawRepo.COMMON_AGENCY)))).thenReturn(AssertActionsUtil.createRecordSet(e1));
         when(state.getRawRepo().fetchRecordCollection(eq(c1RecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(recordCollection);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
+        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(e1RecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(e1AgencyId));
         when(state.getVipCoreService().hasFeature(eq(Integer.toString(e1AgencyId)), eq(VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS))).thenReturn(false);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(c1))).thenReturn(true);
         when(state.getLibraryRecordsHandler().hasClassificationData(eq(record))).thenReturn(true);

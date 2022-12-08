@@ -52,7 +52,7 @@ services:
       - UPDATE_BUILD_NO=lastSuccessfulBuild
       - OPENNUMBERROLL_URL=http://ocb-tools-systemtests:8080
       - RAWREPO_DB_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
-      - HOLDINGS_ITEMS_DB_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
+      - HOLDING_ITEMS_CONTENT_SERVICE_URL=http://ocb-tools-systemtests:8081/api
       - UPDATE_DB_URL=updateservice:thePassword@update-systemtests-update-db:5432/updateservice
       - SOLR_URL=http://ocb-tools-systemtests:8080/solr/raapost-index
       - SOLR_BASIS_URL=http://ocb-tools-systemtests:8080/solr/basis-index
@@ -92,12 +92,12 @@ services:
       - "4848"
 
   update-systemtests-rawrepo-record-service:
-    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-330
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-349
     environment:
       -  INSTANCE_NAME=${USER}_systemtest
       -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
       -  RAWREPO_URL=rawrepo:thePassword@update-systemtests-rawrepo-db:5432/rawrepo
-      -  HOLDINGS_URL=holdingsitems:thePassword@update-systemtests-holdingsitems-db:5432/holdingsitems
+      -  HOLDING_ITEMS_CONTENT_SERVICE_URL=http://ocb-tools-systemtests:8081/api
       -  JAVA_MAX_HEAP_SIZE=2G
     ports:
       - "8080"
@@ -114,13 +114,14 @@ services:
       - UPDATE_SERVICE_PORT_8080_TCP_PORT=8080
       - RAWREPO_PORT_5432_TCP_ADDR=update-systemtests-rawrepo-db
       - RAWREPO_PORT_5432_TCP_PORT=5432
-      - HOLDINGSITEMS_PORT_5432_TCP_ADDR=update-systemtests-holdingsitems-db
-      - HOLDINGSITEMS_PORT_5432_TCP_PORT=5432
+      - HOLDINGS_PORT=8081
       - REQUEST_IP_ADDR=$HOST_IP
     volumes:
       - "./logs/ocb-tools:/home/ocbtools/results"
     expose:
       - "8080"
+      - "8081"
     ports:
       - "18082:8080"
+      - "18083:8081"
     entrypoint: run-update-tests.sh

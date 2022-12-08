@@ -865,7 +865,7 @@ class UpdateOperationActionTest {
         state.setLibraryGroup(libraryGroupFBS);
 
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings("12345678")).thenReturn(new HashSet<>());
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -899,7 +899,7 @@ class UpdateOperationActionTest {
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getRawRepo().recordDoesNotExistOrIsDeleted("12345678", RawRepo.COMMON_AGENCY)).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
+        when(state.getHoldingsItems().getAgenciesWithHoldings("12345678")).thenReturn(holdingList);
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
         String message = state.getMessages().getString("update.record.holdings.on.002a");
@@ -919,7 +919,7 @@ class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
+        when(state.getHoldingsItems().getAgenciesWithHoldings("12345678")).thenReturn(holdingList);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);
@@ -947,7 +947,7 @@ class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList);
+        when(state.getHoldingsItems().getAgenciesWithHoldings("12345678")).thenReturn(holdingList);
         when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", reader.getRecordId()))).thenReturn(false);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
@@ -978,8 +978,8 @@ class UpdateOperationActionTest {
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId(reader.getRecordId())).thenReturn(holdingList001);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsForId("12345678")).thenReturn(holdingList002);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(reader.getRecordId())).thenReturn(holdingList001);
+        when(state.getHoldingsItems().getAgenciesWithHoldings("12345678")).thenReturn(holdingList002);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", "20611529"))).thenReturn("");
 
         UpdateOperationAction instance = new UpdateOperationAction(state, settings);

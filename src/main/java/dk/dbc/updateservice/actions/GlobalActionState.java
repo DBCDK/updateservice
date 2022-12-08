@@ -8,6 +8,7 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcConverter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.holdingitems.content.HoldingsItemsConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -15,7 +16,6 @@ import dk.dbc.updateservice.client.BibliographicRecordExtraDataDecoder;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
-import dk.dbc.updateservice.update.HoldingsItems;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.LibraryRecordsHandler;
@@ -37,9 +37,12 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class GlobalActionState {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(GlobalActionState.class);
@@ -50,7 +53,7 @@ public class GlobalActionState {
     private Authenticator authenticator = null;
     private RawRepo rawRepo = null;
     private OpencatBusinessConnector opencatBusiness = null;
-    private HoldingsItems holdingsItems = null;
+    private HoldingsItemsConnector holdingsItems = null;
     private VipCoreService vipCoreService = null;
     private SolrFBS solrService = null;
     private SolrBasis solrBasis = null;
@@ -90,7 +93,7 @@ public class GlobalActionState {
     public GlobalActionState(UpdateServiceRequestDTO updateServiceRequestDTO,
                              Authenticator authenticator,
                              RawRepo rawRepo,
-                             HoldingsItems holdingsItems,
+                             HoldingsItemsConnector holdingsItems,
                              VipCoreService vipCoreService,
                              SolrFBS solrService,
                              SolrBasis solrBasis,
@@ -173,11 +176,23 @@ public class GlobalActionState {
         this.opencatBusiness = opencatBusiness;
     }
 
-    public HoldingsItems getHoldingsItems() {
+    public HoldingsItemsConnector getHoldingsItems() {
         return holdingsItems;
     }
 
-    public void setHoldingsItems(HoldingsItems holdingsItems) {
+    public Set<Integer> getAgenciesWithHoldings(MarcRecord marcRecord) {
+        MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        Set<Integer> result = Stream.concat(
+                Stream.of(reader.getRecordId()),
+                reader.getCentralAliasIds().stream())
+                .map(id -> getHoldingsItems().getAgenciesWithHoldings(id))
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        return result;
+    }
+
+
+    public void setHoldingsItems(HoldingsItemsConnector holdingsItems) {
         this.holdingsItems = holdingsItems;
     }
 

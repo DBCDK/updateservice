@@ -69,7 +69,7 @@ class UpdateVolumeRecordTest {
 
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateVolumeRecord updateVolumeRecord = new UpdateVolumeRecord(state, settings, volumeRecord);
         assertThat(updateVolumeRecord.performAction(), is(ServiceResult.newOkResult()));
@@ -114,7 +114,7 @@ class UpdateVolumeRecordTest {
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchMergedDBCRecord(eq(volumeRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);
@@ -158,7 +158,7 @@ class UpdateVolumeRecordTest {
         when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
         when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getHoldingsItems().getAgenciesThatHasHoldingsFor(volumeRecord)).thenReturn(new HashSet<>());
+        when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(new HashSet<>());
         when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
 

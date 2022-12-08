@@ -426,7 +426,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 final MarcRecordReader existingRecordReader = new MarcRecordReader(existingMarc);
 
                 // Deletion of 002a - check for holding on 001a
-                final Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(readerRecordId);
+                final Set<Integer> holdingAgencies001 = state.getHoldingsItems().getAgenciesWithHoldings(readerRecordId);
                 if (!holdingAgencies001.isEmpty()) {
                     for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
                         if (!state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("001a", previousFaust))) {
@@ -437,7 +437,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 // Deletion of 002a - check for holding on 002a - if there is, then check whether the 002a record exist - if not, fail
                 for (String previousFaust : existingRecordReader.getCentralAliasIds()) {
-                    final Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesThatHasHoldingsForId(previousFaust);
+                    final Set<Integer> holdingAgencies002 = state.getHoldingsItems().getAgenciesWithHoldings(previousFaust);
                     if (!holdingAgencies002.isEmpty() && !rawRepo.recordExists(previousFaust, readerAgencyId)) {
                         return state.getMessages().getString("delete.record.holdings.on.002a");
                     }
@@ -489,7 +489,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 for (String m : removedPreviousFaust) {
                     if (state.getRawRepo().recordDoesNotExistOrIsDeleted(m, RawRepo.COMMON_AGENCY) &&
-                            !state.getHoldingsItems().getAgenciesThatHasHoldingsForId(m).isEmpty()) {
+                            !state.getHoldingsItems().getAgenciesWithHoldings(m).isEmpty()) {
                         return state.getMessages().getString("update.record.holdings.on.002a");
                     }
                 }

@@ -29,6 +29,23 @@ public class VipCoreService {
     @Inject
     private VipCoreLibraryRulesConnector vipCoreLibraryRulesConnector;
 
+    /**
+     * Could be more effectve with a variant of hasFeature that checks for the two states
+     * but the code look cleaner, and we imagine that the cache will be fast.
+     * @param agencyId the agency that is to be checked
+     * @return return true if one of the two rules are set, otherwise false
+     * @throws VipCoreException something went horribly wrong in the call to vipcore
+     */
+    public boolean isAuthRootOrCB(String agencyId) throws VipCoreException {
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
+        try {
+            return hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS) ||
+                    hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
+            } finally {
+            watch.stop();
+        }
+    }
+
     public boolean hasFeature(String agencyId, VipCoreLibraryRulesConnector.Rule feature) throws VipCoreException {
         final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
 
