@@ -163,6 +163,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", libraryGroup);
 
+            /*
+            Please note that things can go horribly wrong in this for loop.
+            The problem is that libraries are prevented from create or overwrite other libraries records - that is, groupId and agencyId must match
+            Except for the special case where groupId is 010100 - that id may correct all records no matter if they are FFU or FBS
+            That give some headache when the vip settings for 010100 differ from the agency to which the record belongs - for example
+            an FFU library shall not handle enrichments which the setting for 010100 says it shall.
+             */
             List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, groupId, libraryGroup, state.getMessages(), state.isAdmin());
             LOGGER.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
@@ -194,7 +201,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                    } else if ((state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
+                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)) ||
                             state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
