@@ -201,8 +201,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if ((state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
-                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS)) ||
+                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
+                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
                             state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
