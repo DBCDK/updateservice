@@ -1,4 +1,3 @@
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -420,13 +419,10 @@ class UpdateRequestActionTest {
         ValidateOperationAction validateOperationAction = (ValidateOperationAction) child;
         testValidateOperationActionOutput(validateOperationAction);
 
-        Properties expectedSettings = (Properties) settings.clone();
-        expectedSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, bibliographicRecordExtraData.getProviderName());
-
         child = children.get(2);
         assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
-        testUpdateOperationAction(updateOperationAction, expectedSettings);
+        testUpdateOperationAction(updateOperationAction, settings);
     }
 
     /**

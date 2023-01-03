@@ -21,12 +21,13 @@ docker run --rm --name update-service -d -p ${update_service_port}:8080 \
     -e RAWREPO_PROVIDER_ID_FBS=fbs-update \
     -e RAWREPO_PROVIDER_ID_PH=fbs-ph-update \
     -e RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update \
-    -e HOLDINGS_ITEMS_DB_URL=${HOLDINGS_ITEMS_DB_URL} \
+    -e HOLDING_ITEMS_CONTENT_SERVICE_URL=${HOLDING_ITEMS_CONTENT_SERVICE_URL} \
     -e RAWREPO_DB_URL=${RAWREPO_DB_URL} \
     -e SOLR_URL=${SOLR_URL} \
     -e SOLR_BASIS_URL=${SOLR_BASIS_URL} \
     -e UPDATE_DB_URL=${UPDATE_DB_URL} \
     -e OPENCAT_BUSINESS_URL=${OPENCAT_BUSINESS_URL} \
+    -e DBC_LOGIN_ENDPOINT=${DBC_LOGIN_ENDPOINT} \
     -e JAVA_MAX_HEAP_SIZE=8G \
     docker-metascrum.artifacts.dbccloud.dk/update-payara-dev:devel
 
