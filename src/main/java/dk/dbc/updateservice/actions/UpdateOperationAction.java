@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -14,7 +9,9 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.MetakompasHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -229,6 +226,33 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
             }
+
+            if (state.getLibraryGroup().isDBC()) {
+                // Overwrite "settings" with provider name from RecordExtraData
+                BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
+                if (bibliographicRecordExtraData != null) {
+                    Properties newSettings = (Properties) settings.clone();
+
+                    if (bibliographicRecordExtraData.getProviderName() != null) {
+                        final String providerName = bibliographicRecordExtraData.getProviderName();
+                        if (state.getRawRepo().checkProvider(providerName)) {
+                            LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                            newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
+                        } else {
+                            LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
+                            throw new UpdateException("Provider " + providerName + " findes ikke.");
+                        }
+                    }
+
+                    if (bibliographicRecordExtraData.getPriority() != null) {
+                        LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                    }
+
+                    this.setSettings(newSettings);
+                }
+            }
+
             return ServiceResult.newOkResult();
         } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());

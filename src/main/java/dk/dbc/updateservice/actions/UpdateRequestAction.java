@@ -1,9 +1,7 @@
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -59,7 +57,7 @@ public class UpdateRequestAction extends AbstractAction {
                 // Information that needs check is in the enrichment part, so we have to look at the full request record
                 children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
             }
-            children.add(createUpdateOperation());
+            children.add(new UpdateOperationAction(state, settings));
         }
 
         return ServiceResult.newOkResult();
@@ -104,36 +102,6 @@ public class UpdateRequestAction extends AbstractAction {
     public boolean hasValidateOnlyOption() {
         final OptionsDTO optionsDTO = state.getUpdateServiceRequestDTO().getOptionsDTO();
         return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
-    }
-
-    private ServiceAction createUpdateOperation() throws UpdateException {
-        UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
-        if (state.getLibraryGroup().isDBC()) {
-            // Overwrite "settings" with provider name from RecordExtraData
-            BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
-            if (bibliographicRecordExtraData != null) {
-                Properties newSettings = (Properties) settings.clone();
-
-                if (bibliographicRecordExtraData.getProviderName() != null) {
-                    final String providerName = bibliographicRecordExtraData.getProviderName();
-                    if (state.getRawRepo().checkProvider(providerName)) {
-                        LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
-                        newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
-                    } else {
-                        LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
-                        throw new UpdateException("Provider " + providerName + " findes ikke.");
-                    }
-                }
-
-                if (bibliographicRecordExtraData.getPriority() != null) {
-                    LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
-                    newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
-                }
-
-                updateOperationAction.setSettings(newSettings);
-            }
-        }
-        return updateOperationAction;
     }
 
     private void logRequest() {

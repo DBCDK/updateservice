@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.update.UpdateException;
@@ -35,13 +30,9 @@ public class ValidateOperationAction extends AbstractAction {
         final ValidateSchemaAction validateSchemaAction = new ValidateSchemaAction(state, properties);
         children.add(validateSchemaAction);
 
-        if (state.isDoubleRecordPossible() && state.getLibraryGroup().isFBS() && state.getUpdateServiceRequestDTO().getDoubleRecordKey() == null) {
-            final DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, properties);
-            children.add(doubleRecordFrontendAndValidateAction);
-        } else {
-            final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, properties);
-            children.add(validateRecordAction);
-        }
+        final DoubleRecordFrontendAndValidateAction doubleRecordFrontendAndValidateAction = new DoubleRecordFrontendAndValidateAction(state, properties);
+        children.add(doubleRecordFrontendAndValidateAction);
+
         return ServiceResult.newOkResult();
     }
 
