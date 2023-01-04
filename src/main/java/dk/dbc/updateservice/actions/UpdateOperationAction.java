@@ -131,6 +131,32 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
+            if (state.getLibraryGroup().isDBC()) {
+                // Overwrite "settings" with provider name from RecordExtraData
+                BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
+                if (bibliographicRecordExtraData != null) {
+                    Properties newSettings = (Properties) settings.clone();
+
+                    if (bibliographicRecordExtraData.getProviderName() != null) {
+                        final String providerName = bibliographicRecordExtraData.getProviderName();
+                        if (state.getRawRepo().checkProvider(providerName)) {
+                            LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                            newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
+                        } else {
+                            LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
+                            throw new UpdateException("Provider " + providerName + " findes ikke.");
+                        }
+                    }
+
+                    if (bibliographicRecordExtraData.getPriority() != null) {
+                        LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                    }
+
+                    this.setSettings(newSettings);
+                }
+            }
+
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
                 final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
@@ -232,32 +258,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     }
                 } else if (libraryGroup.isFBS() || libraryGroup.isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                     children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
-                }
-            }
-
-            if (state.getLibraryGroup().isDBC()) {
-                // Overwrite "settings" with provider name from RecordExtraData
-                BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
-                if (bibliographicRecordExtraData != null) {
-                    Properties newSettings = (Properties) settings.clone();
-
-                    if (bibliographicRecordExtraData.getProviderName() != null) {
-                        final String providerName = bibliographicRecordExtraData.getProviderName();
-                        if (state.getRawRepo().checkProvider(providerName)) {
-                            LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
-                            newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
-                        } else {
-                            LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
-                            throw new UpdateException("Provider " + providerName + " findes ikke.");
-                        }
-                    }
-
-                    if (bibliographicRecordExtraData.getPriority() != null) {
-                        LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
-                        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
-                    }
-
-                    this.setSettings(newSettings);
                 }
             }
 
