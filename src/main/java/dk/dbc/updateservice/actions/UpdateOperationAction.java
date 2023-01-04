@@ -584,7 +584,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 return;
             }
 
-            Pattern p = Pattern.compile("^LIT\\d{6}");
+            Pattern p = Pattern.compile("^LIT[0-9]{6}");
             // There is a d09zLIT in incoming record
             if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
                 LOGGER.debug("there is a d09");
@@ -611,7 +611,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
 
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
             throw e;
         }
