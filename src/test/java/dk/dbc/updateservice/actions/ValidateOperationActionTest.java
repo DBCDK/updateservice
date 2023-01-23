@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -57,11 +52,11 @@ class ValidateOperationActionTest {
         assertThat(validateSchemaAction.settings, is(settings));
 
         child = children.get(2);
-        assertThat(child.getClass(), is(ValidateRecordAction.class));
-        ValidateRecordAction validateRecordAction = (ValidateRecordAction) child;
-        assertThat(validateRecordAction.state.getUpdateServiceRequestDTO().getSchemaName(), is(validateOperationAction.state.getSchemaName()));
-        assertThat(validateRecordAction.state.readRecord(), is(validateOperationAction.state.readRecord()));
-        assertThat(validateRecordAction.settings, is(settings));
+        assertThat(child.getClass(), is(DoubleRecordFrontendAndValidateAction.class));
+        DoubleRecordFrontendAndValidateAction validateRecord = (DoubleRecordFrontendAndValidateAction) child;
+        assertThat(validateRecord.state.getUpdateServiceRequestDTO().getSchemaName(), is(validateOperationAction.state.getSchemaName()));
+        assertThat(validateRecord.state.readRecord(), is(validateOperationAction.state.readRecord()));
+        assertThat(validateRecord.settings, is(settings));
     }
 
     @Test

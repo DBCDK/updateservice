@@ -5,10 +5,15 @@
 echo "### Starting update-service docker ###"
 
 update_service_port=${UPDATE_SERVICE_PORT:-8080}
+vipcore_endpoint=${VIPCORE_ENDPOINT:-http://vipcore.iscrum-vip-extern-test.svc.cloud.dbc.dk}
+idp_service_url=${IDP_SERVICE_URL:-http://idpservice.iscrum-staging.svc.cloud.dbc.dk}
+holding_items_content_service_url=${HOLDING_ITEMS_CONTENT_SERVICE_URL:-http://holdings-items-content-service.fbstest.svc.cloud.dbc.dk/api}
+dbc_login_endpoint=${DBC_LOGIN_ENDPOINT:-https://stg.login.bib.dk}
+
 docker run --rm --name update-service -d -p ${update_service_port}:8080 \
     -e INSTANCE_NAME=${USER}_dev \
     -e VIPCORE_CACHE_AGE="1" \
-    -e VIPCORE_ENDPOINT="http://vipcore.iscrum-vip-extern-test.svc.cloud.dbc.dk" \
+    -e VIPCORE_ENDPOINT=${vipcore_endpoint} \
     -e OPENNUMBERROLL_NAME_FAUST=faust \
     -e OPENNUMBERROLL_NAME_FAUST_8=faust \
     -e OPENNUMBERROLL_URL=https://opennumberroll.addi.dk/1.1/ \
@@ -16,17 +21,18 @@ docker run --rm --name update-service -d -p ${update_service_port}:8080 \
     -e AUTH_PRODUCT_NAME=DANBIB \
     -e AUTH_PRODUCT_RIGHT=WRITE \
     -e DBC_OVERWRITE_AGENCIES="010100;700300" \
-    -e IDP_SERVICE_URL=${IDP_SERVICE_URL} \
+    -e IDP_SERVICE_URL=${idp_service_url} \
     -e RAWREPO_PROVIDER_ID_DBC=dataio-update \
     -e RAWREPO_PROVIDER_ID_FBS=fbs-update \
     -e RAWREPO_PROVIDER_ID_PH=fbs-ph-update \
     -e RAWREPO_PROVIDER_ID_PH_HOLDINGS=dataio-ph-holding-update \
-    -e HOLDINGS_ITEMS_DB_URL=${HOLDINGS_ITEMS_DB_URL} \
+    -e HOLDING_ITEMS_CONTENT_SERVICE_URL=${holding_items_content_service_url} \
     -e RAWREPO_DB_URL=${RAWREPO_DB_URL} \
     -e SOLR_URL=${SOLR_URL} \
     -e SOLR_BASIS_URL=${SOLR_BASIS_URL} \
     -e UPDATE_DB_URL=${UPDATE_DB_URL} \
     -e OPENCAT_BUSINESS_URL=${OPENCAT_BUSINESS_URL} \
+    -e DBC_LOGIN_ENDPOINT=${dbc_login_endpoint} \
     -e JAVA_MAX_HEAP_SIZE=8G \
     docker-metascrum.artifacts.dbccloud.dk/update-payara-dev:devel
 

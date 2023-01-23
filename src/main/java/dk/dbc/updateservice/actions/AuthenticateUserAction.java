@@ -38,6 +38,20 @@ public class AuthenticateUserAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
+        if (state != null
+                && state.getRequest() != null
+                && state.getRequest().getHeader("Authorization") != null
+                && state.getRequest().getHeader("Authorization").toLowerCase().startsWith("bearer ")) {
+            final String authorizationHeader = state.getRequest().getHeader("Authorization");
+            final String bearerToken = authorizationHeader.substring(7);
+
+            return authenticateByBearerToken(bearerToken);
+        } else {
+            return authenticateByIDP();
+        }
+    }
+
+    private ServiceResult authenticateByIDP() {
         validateNullableData();
         final String msg;
         final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
@@ -66,17 +80,36 @@ public class AuthenticateUserAction extends AbstractAction {
         final AuthenticationDTO authenticationDTOToUse = getAuthenticationDTO(state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         try {
             if (state.getAuthenticator().authenticateUser(authenticationDTOToUse)) {
-                LOGGER.info("User {}/{} is authenticated successfully", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
+                LOGGER.info("User {}/{} is authenticated successfully using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
                 return ServiceResult.newOkResult();
             }
 
-            LOGGER.error("User {}/{} could not be authenticated", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
+            LOGGER.error("User {}/{} could not be authenticated using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
 
             return ServiceResult.newAuthErrorResult();
         } catch (AuthenticatorException ex) {
             msg = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
             LOGGER.error(msg, ex);
             LOGGER.error("Critical error in authenticating user {}/{}: {}", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId(), ex.getMessage());
+            return ServiceResult.newAuthErrorResult();
+        }
+    }
+
+    private ServiceResult authenticateByBearerToken(String bearerToken) {
+        try {
+            final AuthenticationDTO authenticationDTO = state.getAuthenticator().authenticateUser(bearerToken);
+            if (authenticationDTO != null) {
+                state.getUpdateServiceRequestDTO().setAuthenticationDTO(authenticationDTO);
+
+                LOGGER.info("User {}/{} is authenticated successfully using bearer token", authenticationDTO.getGroupId(), authenticationDTO.getUserId());
+                return ServiceResult.newOkResult();
+            }
+
+            LOGGER.error("User could not be authenticated using bearer token");
+
+            return ServiceResult.newAuthErrorResult();
+        } catch (AuthenticatorException ex) {
+            LOGGER.error("Caught exception when calling login", ex);
             return ServiceResult.newAuthErrorResult();
         }
     }

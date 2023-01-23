@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
@@ -14,7 +9,9 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.MetakompasHandler;
 import dk.dbc.updateservice.update.RawRepo;
@@ -134,6 +131,32 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
             }
 
+            if (state.getLibraryGroup().isDBC()) {
+                // Overwrite "settings" with provider name from RecordExtraData
+                BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
+                if (bibliographicRecordExtraData != null) {
+                    Properties newSettings = (Properties) settings.clone();
+
+                    if (bibliographicRecordExtraData.getProviderName() != null) {
+                        final String providerName = bibliographicRecordExtraData.getProviderName();
+                        if (state.getRawRepo().checkProvider(providerName)) {
+                            LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                            newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
+                        } else {
+                            LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
+                            throw new UpdateException("Provider " + providerName + " findes ikke.");
+                        }
+                    }
+
+                    if (bibliographicRecordExtraData.getPriority() != null) {
+                        LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                    }
+
+                    this.setSettings(newSettings);
+                }
+            }
+
             // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
             if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
                 final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
@@ -163,6 +186,13 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
             LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", libraryGroup);
 
+            /*
+            Please note that things can go horribly wrong in this for loop.
+            The problem is that libraries are prevented from create or overwrite other libraries records - that is, groupId and agencyId must match
+            Except for the special case where groupId is 010100 - that id may correct all records no matter if they are FFU or FBS
+            That give some headache when the vip settings for 010100 differ from the agency to which the record belongs - for example
+            an FFU library shall not handle enrichments which the setting for 010100 says it shall.
+             */
             List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, groupId, libraryGroup, state.getMessages(), state.isAdmin());
             LOGGER.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
             for (MarcRecord rec : records) {
@@ -194,7 +224,8 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                             performActionsForRemovedLITWeekNumber(rec);
                             children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
                         }
-                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
+                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
                             state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
                         if (commonRecordExists(records, rec)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
@@ -229,6 +260,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                     children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
             }
+
             return ServiceResult.newOkResult();
         } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());

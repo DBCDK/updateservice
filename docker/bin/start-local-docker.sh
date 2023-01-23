@@ -61,7 +61,6 @@ echo -e "Rawrepo db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Updateservice db : ${DEV_RAWREPO_DB_URL}"
 echo -e "Opencat-business url : ${DEV_OPENCAT_BUSINESS_URL}"
 
-echo "BONGO $DOCKER_COMPOSE_CMD"
 ${DOCKER_COMPOSE_CMD} stop updateservice
 ${DOCKER_COMPOSE_CMD} stop updateservice-facade
 ${DOCKER_COMPOSE_CMD} up -d updateservice
