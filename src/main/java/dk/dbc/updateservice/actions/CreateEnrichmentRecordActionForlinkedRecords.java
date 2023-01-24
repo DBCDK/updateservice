@@ -17,9 +17,8 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
@@ -41,7 +40,7 @@ import java.util.Properties;
  * </p>
  */
 public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(CreateEnrichmentRecordActionForlinkedRecords.class);
     private static final String RECATEGORIZATION_STRING = "Sammenlagt med post med faustnummer %s";
     private static final String ERRONEOUS_RECATEGORIZATION_STRING = "Manglende data i posten til at skabe korrekt y08 for faustnummer %s";
     private static final String RECATEGORIZATION_STRING_OBSOLETE = " Postens opstilling ændret på grund af omkatalogisering";
@@ -81,31 +80,33 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
-        }
+        return LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("Handling record: {}", LogUtils.base64Encode(record));
+            }
 
-        final MarcRecord enrichmentRecord = createEnrichmentRecord();
-        if (enrichmentRecord.getFields().isEmpty()) {
-            LOGGER.info("No sub actions to create for an empty enrichment record.");
+            final MarcRecord enrichmentRecord = createEnrichmentRecord();
+            if (enrichmentRecord.getFields().isEmpty()) {
+                log.info("No sub actions to create for an empty enrichment record.");
+                return ServiceResult.newOkResult();
+            }
+            log.info("Creating sub actions to store new enrichment record.");
+            log.debug("Enrichment record:\n{}", enrichmentRecord);
+
+            final String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
+            final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
+            storeRecordAction.setMimetype(MIMETYPE);
+            children.add(storeRecordAction);
+
+            final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
+            children.add(linkRecordAction);
+
+            final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
+            children.add(enqueueRecordAction);
+
             return ServiceResult.newOkResult();
-        }
-        LOGGER.info("Creating sub actions to store new enrichment record.");
-        LOGGER.debug("Enrichment record:\n{}", enrichmentRecord);
-
-        final String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
-        final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
-        storeRecordAction.setMimetype(MIMETYPE);
-        children.add(storeRecordAction);
-
-        final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-        linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
-        children.add(linkRecordAction);
-
-        final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
-        children.add(enqueueRecordAction);
-
-        return ServiceResult.newOkResult();
+        });
     }
 
     @Override
@@ -155,32 +156,34 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
             yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
             return yNoteField;
         } catch (UpdateException e) {
-            LOGGER.error("Error : UpdateException, probably due to malformed record \n", e);
+            LOGGER.use(log -> log.error("Error : UpdateException, probably due to malformed record \n", e));
             yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
             return yNoteField;
         }
     }
 
     private String getNoteFieldString(MarcField noteField) {
-        String res = "";
         if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
             return null;
         }
 
         final List<MarcSubField> subFields = noteField.getSubfields();
-        for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
-            MarcSubField sf = mfIter.next();
-            LOGGER.trace("working on subfield: {}", sf);
-            if (mfIter.hasNext()) {
-                if (sf.getName().equals("d")) {
-                    res = res.concat(sf.getValue() + ": ");
+        return LOGGER.call(log -> {
+            String res = "";
+            for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
+                MarcSubField sf = mfIter.next();
+                log.trace("working on subfield: {}", sf);
+                if (mfIter.hasNext()) {
+                    if (sf.getName().equals("d")) {
+                        res = res.concat(sf.getValue() + ": ");
+                    } else {
+                        res = res.concat(sf.getValue() + " ");
+                    }
                 } else {
-                    res = res.concat(sf.getValue() + " ");
+                    res = res.concat(sf.getValue());
                 }
-            } else {
-                res = res.concat(sf.getValue());
             }
-        }
-        return res;
+            return res;
+        });
     }
 }

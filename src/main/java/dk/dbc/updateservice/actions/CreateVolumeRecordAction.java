@@ -12,8 +12,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.util.Properties;
 
@@ -25,7 +24,7 @@ import java.util.Properties;
  * </p>
  */
 public class CreateVolumeRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateVolumeRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(CreateVolumeRecordAction.class);
     private static final String SUB_ACTION_ERROR_MESSAGE = "Unable to create sub actions due to an error: {}";
 
     Properties settings;
@@ -43,9 +42,11 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-        }
+        LOGGER.use(log -> {
+            if (LOGGER.logger.isInfoEnabled()) {
+                log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+        });
 
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
@@ -55,25 +56,25 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
 
         if (recordId.equals(parentRecordId)) {
             final String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
-            LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
+            LOGGER.use(log -> log.error(SUB_ACTION_ERROR_MESSAGE, message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!rawRepo.recordExists(parentRecordId, parentAgencyId)) {
             final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentRecordId, parentAgencyId);
-            LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
+            LOGGER.use(log -> log.error(SUB_ACTION_ERROR_MESSAGE, message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!CreateSingleRecordAction.checkIfRecordCanBeRestored(state, marcRecord)) {
             final String message = state.getMessages().getString("create.record.with.locals");
-            LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
+            LOGGER.use(log -> log.error(SUB_ACTION_ERROR_MESSAGE, message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))) {
             final String message = state.getMessages().getString("update.record.with.002.links");
-            LOGGER.error(SUB_ACTION_ERROR_MESSAGE, message);
+            LOGGER.use(log -> log.error(SUB_ACTION_ERROR_MESSAGE, message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 

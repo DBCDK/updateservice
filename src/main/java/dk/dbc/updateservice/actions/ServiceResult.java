@@ -20,7 +20,7 @@ import java.util.List;
  * is possible to construct a valid webservice response for the updateRecord()
  * web service operation.
  * <p/>
- * Data entires:
+ * Data entries:
  * <ol>
  * <li>Status</li>
  * <li>Service entries</li>

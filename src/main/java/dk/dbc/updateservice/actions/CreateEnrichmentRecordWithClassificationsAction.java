@@ -8,9 +8,8 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +33,7 @@ import java.util.Properties;
  * </p>
  */
 public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(CreateEnrichmentRecordWithClassificationsAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(CreateEnrichmentRecordWithClassificationsAction.class);
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
@@ -87,34 +86,36 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("AgencyId..............: " + agencyId);
-            LOGGER.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
-            LOGGER.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
-        }
+        return LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("AgencyId..............: " + agencyId);
+                log.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
+                log.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
+            }
 
-        final MarcRecord enrichmentRecord = createRecord();
-        if (enrichmentRecord.getFields().isEmpty()) {
-            LOGGER.info("No sub actions to create for an empty enrichment record.");
+            final MarcRecord enrichmentRecord = createRecord();
+            if (enrichmentRecord.getFields().isEmpty()) {
+                log.info("No sub actions to create for an empty enrichment record.");
+                return ServiceResult.newOkResult();
+            }
+            log.info("Creating sub actions to store new enrichment record.");
+            log.info("Enrichment record:\n{}", enrichmentRecord);
+
+            final String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
+
+            final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
+            storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
+            children.add(storeRecordAction);
+
+            final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
+            linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
+            children.add(linkRecordAction);
+
+            final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
+            children.add(enqueueRecordAction);
+
             return ServiceResult.newOkResult();
-        }
-        LOGGER.info("Creating sub actions to store new enrichment record.");
-        LOGGER.info("Enrichment record:\n{}", enrichmentRecord);
-
-        final String recordId = new MarcRecordReader(enrichmentRecord).getRecordId();
-
-        final StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, enrichmentRecord);
-        storeRecordAction.setMimetype(MarcXChangeMimeType.ENRICHMENT);
-        children.add(storeRecordAction);
-
-        final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
-        linkRecordAction.setLinkToRecordId(new RecordId(recordId, RawRepo.COMMON_AGENCY));
-        children.add(linkRecordAction);
-
-        final EnqueueRecordAction enqueueRecordAction = new EnqueueRecordAction(state, settings, enrichmentRecord);
-        children.add(enqueueRecordAction);
-
-        return ServiceResult.newOkResult();
+        });
     }
 
     @Override
@@ -123,7 +124,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     }
 
     public MarcRecord createRecord() throws UpdateException {
-        LOGGER.debug("entering createRecord");
+        LOGGER.use(log -> log.debug("entering createRecord"));
         final MarcRecord result = state.getLibraryRecordsHandler().createLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, agencyId);
         final MarcRecordWriter writer = new MarcRecordWriter(result);
         final MarcRecordReader reader = new MarcRecordReader(result);

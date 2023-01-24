@@ -11,9 +11,7 @@ import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
-
-import java.time.Duration;
-
+import dk.dbc.updateservice.utils.DeferredLogger;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -22,9 +20,8 @@ import org.eclipse.microprofile.metrics.Tag;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +31,7 @@ import java.util.Map;
  * </p>
  */
 public class ServiceEngine {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ServiceEngine.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(ServiceEngine.class);
 
     private Map<String, String> loggerKeys = new HashMap<>();
     MetricsHandlerBean metricsHandlerBean;
@@ -99,13 +96,13 @@ public class ServiceEngine {
      * The execution stops if an action returns a ValidationError of type
      * <code>ERROR</code>.
      * <p/>
-     * If multiple ServiceAction's has been called then the results are concated
+     * If multiple ServiceAction's has been called then the results are concatenated
      * together to a single result.
      *
      * @param action ServiceAction to execute.
-     * @return A concated list of ValidationError that is returned by all called
+     * @return A concatenated list of ValidationError that is returned by all called
      * actions.
-     * @throws UpdateException Throwed in case of an error.
+     * @throws UpdateException thrown in case of an error.
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
         StopWatch watch = new Log4JStopWatch();
@@ -131,12 +128,11 @@ public class ServiceEngine {
             action.setTimeElapsed(watch.getElapsedTime());
             action.setServiceResult(serviceResult);
 
-            LOGGER.info("");
             if (stopExecution(serviceResult)) {
-                LOGGER.info("Action failed before sub actions: {}", serviceResult);
+                LOGGER.use(log -> log.info("Action failed before sub actions: {}", serviceResult));
                 return serviceResult;
             } else {
-                LOGGER.info("Action success before sub actions: {}", serviceResult);
+                LOGGER.use(log -> log.info("Action success before sub actions: {}", serviceResult));
             }
             List<ServiceAction> children = action.children();
             if (children != null) {
@@ -180,12 +176,14 @@ public class ServiceEngine {
     }
 
     public void printActionHeader(ServiceAction action) {
-        if (LOGGER.isInfoEnabled()) {
-            final String line = StringUtils.repeat("=", 50);
-            LOGGER.info("");
-            LOGGER.info("Action: {}", action.name());
-            LOGGER.info(line);
-        }
+        LOGGER.use(log -> {
+            if (log.isInfoEnabled()) {
+                final String line = StringUtils.repeat("=", 50);
+                log.info("");
+                log.info("Action: {}", action.name());
+                log.info(line);
+            }
+        });
     }
 
     public void printActions(ServiceAction action) {
@@ -193,7 +191,7 @@ public class ServiceEngine {
     }
 
     private void printActions(ServiceAction action, String indent) {
-        LOGGER.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult());
+        LOGGER.use(log -> log.info("{}{} in {} ms: {}", indent, action.name(), action.getTimeElapsed(), action.getServiceResult()));
         List<ServiceAction> children = action.children();
         if (children != null) {
             for (ServiceAction child : children) {

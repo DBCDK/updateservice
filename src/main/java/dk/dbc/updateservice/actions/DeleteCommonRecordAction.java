@@ -15,8 +15,7 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
@@ -29,7 +28,7 @@ import java.util.Set;
  * </p>
  */
 public class DeleteCommonRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DeleteCommonRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(DeleteCommonRecordAction.class);
 
     Properties settings;
 
@@ -46,47 +45,49 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
-            final Set<RecordId> recordChildren = rawRepo.children(recordId);
-            if (!recordChildren.isEmpty()) {
-                if (checkForNotDeletableLittolkChildren(recordChildren)) {
-                    deleteLittolkChildren(recordChildren);
-                } else {
-                    final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-                    final String recordId = reader.getRecordId();
-
-                    final String message = state.getMessages().getString("delete.record.children.error");
-                    final String errorMessage = String.format(message, recordId);
-
-                    LOGGER.error("Unable to create sub actions due to an error: {}", errorMessage);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage);
+        return LOGGER.callChecked(log -> {
+            try {
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
                 }
+                final Set<RecordId> recordChildren = rawRepo.children(recordId);
+                if (!recordChildren.isEmpty()) {
+                    if (checkForNotDeletableLittolkChildren(recordChildren)) {
+                        deleteLittolkChildren(recordChildren);
+                    } else {
+                        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                        final String recordId = reader.getRecordId();
+
+                        final String message = state.getMessages().getString("delete.record.children.error");
+                        final String errorMessage = String.format(message, recordId);
+
+                        log.error("Unable to create sub actions due to an error: {}", errorMessage);
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, errorMessage);
+                    }
+                }
+
+                for (RecordId enrichmentId : rawRepo.enrichments(recordId)) {
+                    final Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
+                    final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
+
+                    final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+                    writer.markForDeletion();
+
+                    final UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
+
+                    children.add(updateEnrichmentRecordAction);
+                }
+
+                children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
+                children.add(new RemoveLinksAction(state, marcRecord));
+                children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, marcRecord));
+
+                return ServiceResult.newOkResult();
+            } catch (UnsupportedEncodingException ex) {
+                log.error(ex.getMessage(), ex);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
             }
-
-            for (RecordId enrichmentId : rawRepo.enrichments(recordId)) {
-                final Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
-                final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
-
-                final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-                writer.markForDeletion();
-
-                final UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
-
-                children.add(updateEnrichmentRecordAction);
-            }
-
-            children.add(EnqueueRecordAction.newEnqueueAction(state, marcRecord, settings));
-            children.add(new RemoveLinksAction(state, marcRecord));
-            children.add(DeleteRecordAction.newDeleteRecordAction(state, settings, marcRecord));
-
-            return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        }
+        });
     }
 
     /**
@@ -115,16 +116,19 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
      * @throws UnsupportedEncodingException If the record can't be decoded
      */
     private void deleteLittolkChildren(Set<RecordId> recordChildren) throws UpdateException, UnsupportedEncodingException {
-        for (RecordId recordId : recordChildren) {
-            final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
-            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT);
-            new MarcRecordWriter(littolkEnrichment).markForDeletion();
-            children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
+        LOGGER.<Void, UpdateException, UnsupportedEncodingException>callChecked2(log -> {
+            for (RecordId recordId : recordChildren) {
+                final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                log.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT);
+                new MarcRecordWriter(littolkEnrichment).markForDeletion();
+                children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
 
-            final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
-            LOGGER.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY);
-            children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
-        }
+                final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+                log.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY);
+                children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
+            }
+            return null;
+        });
     }
 
 }

@@ -9,11 +9,10 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 public abstract class AbstractLinkRelationRecordsAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AbstractLinkRelationRecordsAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(AbstractLinkRelationRecordsAction.class);
 
     protected AbstractLinkRelationRecordsAction(String name, GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(name, globalActionState, marcRecord);
@@ -29,11 +28,11 @@ public abstract class AbstractLinkRelationRecordsAction extends AbstractRawRepoA
     }
 
     protected void appendLinkReference(RecordId source, RecordId target) throws UpdateException {
-        LOGGER.info("Set relation from [{}:{}] -> [{}:{}]",
+        LOGGER.use(log -> log.info("Set relation from [{}:{}] -> [{}:{}]",
                 source.getBibliographicRecordId(),
                 source.getAgencyId(),
                 target.getBibliographicRecordId(),
-                target.getAgencyId());
+                target.getAgencyId()));
         state.getRawRepo().linkRecordAppend(source, target);
     }
 

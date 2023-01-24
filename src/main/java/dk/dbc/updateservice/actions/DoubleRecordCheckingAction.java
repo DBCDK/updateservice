@@ -10,12 +10,11 @@ import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
@@ -27,8 +26,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * Action to check a record for double records.
  */
 public class DoubleRecordCheckingAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckingAction.class);
-
+    private static final DeferredLogger LOGGER = new DeferredLogger(DoubleRecordCheckingAction.class);
     MarcRecord record;
     Properties settings;
 
@@ -46,21 +44,23 @@ public class DoubleRecordCheckingAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
-        try {
-            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(record));
+        return LOGGER.callChecked(log -> {
+            final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord");
+            try {
+                final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(record));
+                }
+                state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
+                return ServiceResult.newOkResult();
+            } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
+                final String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
+                log.error(message, ex);
+                return ServiceResult.newOkResult();
+            } finally {
+                watch.stop();
             }
-            state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
-            return ServiceResult.newOkResult();
-        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
-            final String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
-            LOGGER.error(message, ex);
-            return ServiceResult.newOkResult();
-        } finally {
-            watch.stop();
-        }
+        });
     }
 
     @Override

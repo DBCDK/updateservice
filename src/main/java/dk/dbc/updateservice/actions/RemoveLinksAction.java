@@ -10,8 +10,7 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 /**
  * Action to remove all links from a record to all other records.
@@ -24,7 +23,7 @@ import org.slf4j.ext.XLoggerFactory;
  * </p>
  */
 public class RemoveLinksAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(RemoveLinksAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(RemoveLinksAction.class);
 
     public RemoveLinksAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(RemoveLinksAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -38,17 +37,19 @@ public class RemoveLinksAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-        }
+        return LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
 
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String recId = reader.getRecordId();
-        final int agencyId = reader.getAgencyIdAsInt();
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
 
-        rawRepo.removeLinks(new RecordId(recId, agencyId));
-        LOGGER.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
+            rawRepo.removeLinks(new RecordId(recId, agencyId));
+            log.info("Removed all links for record {{}:{}} successfully", recId, agencyId);
 
-        return ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
+        });
     }
 }

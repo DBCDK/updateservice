@@ -11,8 +11,7 @@ import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 /**
  * Action to link a record to another record.
@@ -25,7 +24,7 @@ import org.slf4j.ext.XLoggerFactory;
  * </p>
  */
 public class LinkRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(LinkRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(LinkRecordAction.class);
 
     private RecordId linkToRecordId;
 
@@ -49,21 +48,23 @@ public class LinkRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-        }
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String recordId = reader.getRecordId();
-        final int agencyId = reader.getAgencyIdAsInt();
-        final RecordId recordIdObj = new RecordId(recordId, agencyId);
-        if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
-            final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        }
-        LOGGER.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
-        rawRepo.linkRecord(recordIdObj, linkToRecordId);
+        return LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+            }
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recordId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
+            final RecordId recordIdObj = new RecordId(recordId, agencyId);
+            if (!rawRepo.recordExists(linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId())) {
+                final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            }
+            log.info("Set relation from [{}:{}] -> [{}:{}]", recordId, agencyId, linkToRecordId.getBibliographicRecordId(), linkToRecordId.getAgencyId());
+            rawRepo.linkRecord(recordIdObj, linkToRecordId);
 
-        return ServiceResult.newOkResult();
+            return ServiceResult.newOkResult();
+        });
     }
 
     /**

@@ -12,8 +12,7 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
@@ -22,7 +21,7 @@ import java.util.Properties;
  * Action to overwrite an existing volume record.
  */
 public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OverwriteVolumeRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(OverwriteVolumeRecordAction.class);
 
     public OverwriteVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
         super(globalActionState, properties, marcRecord);
@@ -39,9 +38,11 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
+            LOGGER.use(log -> {
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+                }
+            });
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();
@@ -67,13 +68,13 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
                 errorAgencyId = RawRepo.DBC_ENRICHMENT;
             }
             final String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, errorAgencyId);
-            LOGGER.error("Unable to create sub actions due to an error: {}", message);
+            LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
         if (!rawRepo.recordExists(parentId, parentAgencyId)) {
             final String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, parentAgencyId);
-            LOGGER.error("Unable to create sub actions due to an error: {}", message);
+            LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", message));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
         }
 
