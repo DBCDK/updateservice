@@ -1,4 +1,3 @@
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcField;
@@ -59,24 +58,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     final String message = state.getMessages().getString("update.record.with.002.links");
                     LOGGER.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                }
-            }
-            if (!"DBC".equals(reader.getValue("996", "a"))) {
-                List<String> katalogCodes = reader.getValues("032", "x");
-                boolean gotOve = false;
-                for (String katalogCode : katalogCodes) {
-                    if (katalogCode.contains("OVE")) {
-                        gotOve = true;
-                        break;
-                    }
-                }
-                if (gotOve) {
-                    final VipCoreService vipCoreService = state.getVipCoreService();
-                    if (!vipCoreService.isAuthRootOrCB(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId())) {
-                        final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
-                        LOGGER.error("Unable to create sub actions due to an error: {}", message);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
                 }
             }
 
