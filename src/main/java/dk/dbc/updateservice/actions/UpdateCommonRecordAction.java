@@ -56,7 +56,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (!reader.markedForDeletion()) {
                 LOGGER.info("Update single");
-                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
+                if (COMMON_AGENCY == reader.getAgencyIdAsInt() && state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", reader.getRecordId()))) {
                     final String message = state.getMessages().getString("update.record.with.002.links");
                     LOGGER.error("Unable to create sub actions due to an error: {}", message);
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
