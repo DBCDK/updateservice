@@ -1,6 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.*;
+import dk.dbc.common.records.MarcField;
+import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -23,9 +25,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
-
-import static dk.dbc.updateservice.update.RawRepo.COMMON_AGENCY;
 
 /**
  * Action to authenticate a record.
@@ -134,7 +133,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             return result;
         }
 
-        if (COMMON_AGENCY == reader.getAgencyIdAsInt()) {
+        if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt()) {
             LOGGER.info("Record belongs to 870970");
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
             List<MessageEntryDTO> validationErrors;
@@ -148,7 +147,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             validationErrors.addAll(authenticateMetaCompassField());
-            validationErrors.addAll(checkOveCodes());
+
             if (!validationErrors.isEmpty()) {
                 LOGGER.info("Validation errors!");
                 result.addAll(validationErrors);
@@ -173,80 +172,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         result.add(messageEntryDTO);
 
         return result;
-    }
-
-    private List<MessageEntryDTO> checkOveCodes() throws UpdateException {
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-        final String recordId = reader.getRecordId();
-        final int agencyIdAsInt = reader.getAgencyIdAsInt();
-
-        try {
-            if (COMMON_AGENCY != agencyIdAsInt) {
-                return createOkReply();
-            }
-
-            // If the library is either root (010100) or central library then there is no need to check further
-            if (state.getVipCoreService().isAuthRootOrCB(groupId)) {
-                return createOkReply();
-            } else {
-                final boolean recordExists = state.getRawRepo().recordExistsMaybeDeleted(recordId, agencyIdAsInt);
-                if (recordExists) {
-                    return checkExisingOveCodes();
-                } else {
-                    return checkNewOveCodes();
-                }
-            }
-        } catch (VipCoreException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
-        }
-    }
-
-
-    private List<MessageEntryDTO> checkExisingOveCodes() throws UpdateException {
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String recordId = reader.getRecordId();
-
-        try {
-            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, COMMON_AGENCY).getContent());
-            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-            final List<String> newOveSubfields = reader.getValues("032", "x")
-                    .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
-            final List<String> curOveSubfields = curReader.getValues("032", "x")
-                    .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
-
-            if (!newOveSubfields.equals(curOveSubfields)) {
-                final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
-                return createErrorReply(message);
-            }
-
-            return createOkReply();
-        } catch (UnsupportedEncodingException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
-        }
-    }
-
-
-    /*
-       Check that there are no 032 *x OVE values in new records from non-CB agencies.
-
-       This function assumes:
-        - The record is a common record
-        - The agency does not have auth_root or regional_obligations rule
-        - It is a new record
-     */
-    private List<MessageEntryDTO> checkNewOveCodes() throws VipCoreException {
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-
-        final List<String> newOveValues = reader.getValues("032", "x")
-                .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
-
-        if (!newOveValues.isEmpty()) {
-            final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
-            return createErrorReply(message);
-        }
-
-        return createOkReply();
     }
 
     private List<MessageEntryDTO> authenticateCommonRecord() throws UpdateException, VipCoreException {
@@ -277,7 +202,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             LOGGER.debug("Checking authentication for updating existing common record.");
-            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, COMMON_AGENCY).getContent());
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
             final String curOwner = curReader.getValue("996", "a");
 
@@ -362,7 +287,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             final MarcField field665 = recordReader.getField("665");
 
             if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
-                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), COMMON_AGENCY).getContent());
+                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 final MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
                 final MarcField curField665 = curRecordReader.getField("665");
 

@@ -11,7 +11,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.vipcore.exception.VipCoreException;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -19,6 +18,9 @@ import org.slf4j.ext.XLoggerFactory;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
+
+import static dk.dbc.updateservice.update.RawRepo.COMMON_AGENCY;
 
 /**
  * This action is used to update a common record.
@@ -60,7 +62,11 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                 }
             }
-
+            if (!checkOveCodes()) {
+                final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
+                LOGGER.error("Unable to create sub actions due to an error: {}", message);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            }
             MarcRecord recordToStore;
 
             // At this point we know the following:
@@ -111,6 +117,76 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
             LOGGER.catching(e);
             throw new UpdateException("Exception while collapsing record", e);
         }
+    }
+
+    private boolean checkOveCodes() throws UpdateException {
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        final String recordId = reader.getRecordId();
+        final int agencyIdAsInt = reader.getAgencyIdAsInt();
+
+        try {
+            if (COMMON_AGENCY != agencyIdAsInt) {
+                return true;
+            }
+
+            // If the library is either root (010100) or central library then there is no need to check further
+            if (state.getVipCoreService().isAuthRootOrCB(groupId)) {
+                return true;
+            } else {
+                final boolean recordExists = state.getRawRepo().recordExistsMaybeDeleted(recordId, agencyIdAsInt);
+                if (recordExists) {
+                    return checkExisingOveCodes();
+                } else {
+                    return checkNewOveCodes();
+                }
+            }
+        } catch (VipCoreException ex) {
+            throw new UpdateException(ex.getMessage(), ex);
+        }
+    }
+
+    private boolean checkExisingOveCodes() throws UpdateException {
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final String recordId = reader.getRecordId();
+
+        try {
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, COMMON_AGENCY).getContent());
+            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
+            final List<String> newOveSubfields = reader.getValues("032", "x")
+                    .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
+            final List<String> curOveSubfields = curReader.getValues("032", "x")
+                    .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
+
+            if (!newOveSubfields.equals(curOveSubfields)) {
+                return false;
+            }
+
+            return true;
+        } catch (UnsupportedEncodingException ex) {
+            throw new UpdateException(ex.getMessage(), ex);
+        }
+    }
+
+    /*
+       Check that there are no 032 *x OVE values in new records from non-CB agencies.
+
+       This function assumes:
+        - The record is a common record
+        - The agency does not have auth_root or regional_obligations rule
+        - It is a new record
+     */
+    private boolean checkNewOveCodes() throws VipCoreException {
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+
+        final List<String> newOveValues = reader.getValues("032", "x")
+                .stream().filter(v -> v.startsWith("OVE")).collect(Collectors.toList());
+
+        if (!newOveValues.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 
 }
