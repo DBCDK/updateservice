@@ -9,7 +9,6 @@ import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.vipcore.dto.ErrorMessageDTO;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
