@@ -14,7 +14,6 @@ import org.mockito.MockitoAnnotations;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
