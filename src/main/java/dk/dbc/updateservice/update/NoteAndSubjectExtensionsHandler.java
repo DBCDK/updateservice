@@ -50,6 +50,70 @@ public class NoteAndSubjectExtensionsHandler {
         this.messages = messages;
     }
 
+    /**
+     * Handle classification fields. The following rules need to be followed.
+     * if 652 fields are equal, then just add them
+     * if not, then look closer at the content :
+     * if current has code "uden klassemærke" then look at the record and the agencys rights
+     * if disputas and the agency may add dk5 to such, then do it
+     * if not, then error.
+     */
+    void addDK5Fields(MarcRecord result, MarcRecord marcRecord, MarcRecordReader reader, MarcRecord curRecord, MarcRecordReader curReader , String groupId ) throws UpdateException, VipCoreException {
+        final List<MarcField> new652Fields = marcRecord.getFields().stream()
+                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+        final List<MarcField> current652Fields = curRecord.getFields().stream()
+                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+        if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
+            result.getFields().addAll(current652Fields);
+        } else {
+            // If disputa and there are new 652 fields, then we have to dig deeper
+            if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
+                if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
+                    final String curr = curReader.getValue("652", "m");
+                    if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
+                        final String newDk5 = reader.getValue("652", "m");
+                        if (! newDk5.isEmpty()) {
+                            for (MarcField new652Field : new652Fields) {
+                                result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
+                            }
+                        } else {
+                            // This should not be possible due to other protections, but if they for some reason dissapears, this
+                            // will prevent deleting 652 - please note that there are no testcase to check this
+                            final String msg = messages.getString("update.dbc.record.652.no.delete");
+                            LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                            throw new UpdateException(msg);
+
+                        }
+                    } else {
+                        final String msg = messages.getString("update.dbc.record.652.no.uden.klassemaerke");
+                        LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+
+                    }
+                } else {
+                    final String msg = messages.getString("update.dbc.record.652.not.allowed");
+                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
+                }
+            } else {
+                final String msg = messages.getString("update.dbc.record.652");
+                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                throw new UpdateException(msg);
+            }
+        }
+
+    }
+
+    /**
+     * Handles modifiying subjectfields given in EXTENDABLE_CONTROLLED_SUBJECT_FIELDS
+     * The mechanism is pretty simple, if any of the fields are owned by dbc, then it isn't allowed for libraries to modify any
+     * If none are dbc fields, then the old fields are deleted and the new ones are added with the updating agency as owner
+     * @param result            the resulting record
+     * @param marcRecord        the updating record
+     * @param curRecord         the record in rawrepo
+     * @param groupId           the updating agency id
+     * @throws UpdateException  attempt to modify dbc owned subjects detected
+     */
     void addSubjectFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
         final List<MarcField> newControlledSubjectFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
@@ -60,18 +124,14 @@ public class NoteAndSubjectExtensionsHandler {
             // Controlled subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentControlledSubjectFields);
         } else {
-            // If there are changes then we need to see if one or more subject fields doesn't originate from an FBS library
-            for (MarcField currentControlledSubjectField : currentControlledSubjectFields) {
-                final MarcFieldReader currentControlledSubjectFieldReader = new MarcFieldReader(currentControlledSubjectField);
-                if (currentControlledSubjectFieldReader.hasSubfield("&") && !currentControlledSubjectFieldReader.getValue("&").startsWith("7")) {
-                    final String msg = messages.getString("update.dbc.record.dbc.subjects");
-                    LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", msg));
-                    throw new UpdateException(msg);
+            if (isDbcField(currentControlledSubjectFields)) {
+                final String msg = messages.getString("update.dbc.record.dbc.subjects");
+                LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", msg));
+                throw new UpdateException(msg);
+            } else {
+                for (MarcField newControlledSubjectField : newControlledSubjectFields) {
+                    result.getFields().add(copyWithNewAmpersand(newControlledSubjectField, groupId));
                 }
-            }
-            // Now we know the fields can be overwritten - same owner is set on all controlled subject fields even if the value existed before
-            for (MarcField newControlledSubjectField : newControlledSubjectFields) {
-                result.getFields().add(copyWithNewAmpersand(newControlledSubjectField, groupId));
             }
         }
 
@@ -110,41 +170,69 @@ public class NoteAndSubjectExtensionsHandler {
         }
     }
 
-    void addNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+    /**
+     * See whether there is a *& 7xxxxx subfield or not.
+     * Just for the fun of it, some dbc owned fields have subfields *&0 and *&1, so it's not enough to check if *& exists
+     * @param fields The fieldlist to check
+     * @return return true if there isn't a *&7xxxxx subfield otherwise false
+     */
+    private boolean isDbcField(List<MarcField> fields) {
+        boolean agencyOwned = false;
+        for (MarcField cnf : fields) {
+            for (MarcSubField cnsf : cnf.getSubfields()) {
+                if (cnsf.getName().equals("&") && cnsf.getValue().startsWith("7")) {
+                    agencyOwned = true;
+                    break;
+                }
+            }
+            if (!agencyOwned) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The rules are :
+     * if there are a dbc owned note field(s) then no update is allowed. Look at 504 and 530 respectively.
+     * Next step is to see what to keep, what to add, what to update and what to delete. Update is a bit tricky to say it nicely.
+     * If content matches, then just add it
+     * If there are new notes then add them
+     * If notes are missing, then remove them
+     * In all cases the *& subfield is given the updating agency as owner
+     * Update notes is impossible since we don't receive a "change this note to that" request, just a record with the content the updater want.
+     * @param result           The marcrecord containing the result of the function
+     * @param marcRecord       The updating record
+     * @param curRecord        The record found in rawrepo
+     * @param groupId          The updating librarys agencyid
+     * @throws UpdateException Something not allowed has happend
+     */
+    private void addNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+        String[] fields = EXTENDABLE_NOTE_FIELDS.split("\\|");
+        for (String field : fields) {
+            doAddNoteFields(result, marcRecord, curRecord, groupId, field);
+        }
+    }
+
+    private void doAddNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId, String noteField ) throws UpdateException {
+
         final List<MarcField> newNoteFields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
+                .filter(field -> field.getName().matches(noteField)).collect(Collectors.toList());
         final List<MarcField> currentNoteFields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_NOTE_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> currentNoteFieldsNoAmpersand = new ArrayList<>();
-        currentNoteFields.forEach(f -> currentNoteFieldsNoAmpersand.add(new MarcField(f)));
-        currentNoteFieldsNoAmpersand.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
+                .filter(field -> field.getName().matches(noteField)).collect(Collectors.toList());
+
         if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
             result.getFields().addAll(currentNoteFields);
         } else {
-            LOGGER.callChecked(log -> {
-                for (MarcField newNoteField : newNoteFields) {
-                    MarcField newNoteFieldNoAmpersand = new MarcField(newNoteField);
-                    new MarcFieldWriter(newNoteFieldNoAmpersand).removeSubfield("&");
-                    if (currentNoteFieldsNoAmpersand.contains(newNoteFieldNoAmpersand)) {
-                        result.getFields().add(newNoteField);
-                    } else {
-                        for (MarcField currentNoteField : currentNoteFields) {
-                            if (newNoteField.getName().equals(currentNoteField.getName())) {
-                                final MarcFieldReader currentNoteFieldReader = new MarcFieldReader(currentNoteField);
-                                // No *& means the field is owned by DBC
-                                if (!currentNoteFieldReader.hasSubfield("&") || !currentNoteFieldReader.getValue("&").startsWith("7")) {
-                                    final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
-                                    // Business exception which means we don't want the error in the errorlog, so only log as info
-                                    log.info("Unable to create sub actions due to an error: {}", msg);
-                                    throw new UpdateException(msg);
-                                }
-                            }
-                        }
-                        result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
-                    }
+            for (MarcField newNoteField : newNoteFields) {
+                if (isDbcField(currentNoteFields)) {
+                    final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
+                    // Business exception which means we don't want the error in the errorlog, so only log as info
+                    LOGGER.info("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
                 }
-                return null;
-            });
+            }
+            for (MarcField newNoteField : newNoteFields) {
+                result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
+            }
         }
     }
 
@@ -192,19 +280,11 @@ public class NoteAndSubjectExtensionsHandler {
                 return marcRecord;
             }
 
-            // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
-            // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
+        // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
+        // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
 
-            log.info("Checking for altered classifications for disputas type material");
-            if (curReader.hasValue("008", "d", "m") &&
-                    vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED) &&
-                    !canChangeClassificationForDisputas(reader)) {
-                final String msg = messages.getString("update.dbc.record.652");
-                log.error("Unable to create sub actions due to an error: {}", msg);
-                throw new UpdateException(msg);
-            }
-            final MarcRecord result = new MarcRecord();
-            log.info("Record exists and is common national record - setting extension fields");
+        final MarcRecord result = new MarcRecord();
+        LOGGER.info("Record exists and is common national record - setting extension fields");
 
             String extendableFieldsRx = createExtendableFieldsRx(groupId);
 
@@ -242,20 +322,7 @@ public class NoteAndSubjectExtensionsHandler {
                 addSubjectFields(result, marcRecord, curRecord, groupId);
             }
 
-            // Handle classification field. Classification is only allowed to be updated if the existing record contains "uden klassemærke".
-            // At this point in the code we know that either the field is unchanged or the library is allowed to update the field,
-            // so we only have to check if the classification is changed or not.
-            final List<MarcField> new652Fields = marcRecord.getFields().stream()
-                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-            final List<MarcField> current652Fields = curRecord.getFields().stream()
-                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-            if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
-                result.getFields().addAll(current652Fields);
-            } else {
-                for (MarcField new652Field : new652Fields) {
-                    result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
-                }
-            }
+        addDK5Fields(result, marcRecord, reader, curRecord, curReader, groupId);
 
             new MarcRecordWriter(result).sort();
 
@@ -426,25 +493,6 @@ public class NoteAndSubjectExtensionsHandler {
         l2Clone.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
 
         return l1.equals(l2);
-    }
-
-    boolean canChangeClassificationForDisputas(MarcRecordReader reader) throws UpdateException {
-        final String recordId = reader.getRecordId();
-        if (rawRepo.recordExists(recordId, RawRepo.COMMON_AGENCY)) {
-            final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
-            final MarcRecordReader currentRecordReader = new MarcRecordReader(currentRecord);
-
-            final String new652 = reader.getValue("652", "m");
-            final String current652 = currentRecordReader.getValue("652", "m");
-
-            if (current652 != null && new652 != null && !new652.equalsIgnoreCase(current652)) {
-                return current652.equalsIgnoreCase(NO_CLASSIFICATION) &&
-                        currentRecordReader.isDBCRecord() &&
-                        currentRecordReader.hasValue("008", "d", "m");
-
-            }
-        }
-        return true;
     }
 
     /**
