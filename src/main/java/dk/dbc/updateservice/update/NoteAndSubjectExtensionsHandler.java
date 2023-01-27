@@ -59,49 +59,51 @@ public class NoteAndSubjectExtensionsHandler {
      * if not, then error.
      */
     void addDK5Fields(MarcRecord result, MarcRecord marcRecord, MarcRecordReader reader, MarcRecord curRecord, MarcRecordReader curReader , String groupId ) throws UpdateException, VipCoreException {
-        final List<MarcField> new652Fields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> current652Fields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-        if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
-            result.getFields().addAll(current652Fields);
-        } else {
-            // If disputa and there are new 652 fields, then we have to dig deeper
-            if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
-                if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
-                    final String curr = curReader.getValue("652", "m");
-                    if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
-                        final String newDk5 = reader.getValue("652", "m");
-                        if (! newDk5.isEmpty()) {
-                            for (MarcField new652Field : new652Fields) {
-                                result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
+        LOGGER.<Void, UpdateException, VipCoreException>callChecked2(log -> {
+            final List<MarcField> new652Fields = marcRecord.getFields().stream()
+                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            final List<MarcField> current652Fields = curRecord.getFields().stream()
+                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
+                result.getFields().addAll(current652Fields);
+            } else {
+                // If disputa and there are new 652 fields, then we have to dig deeper
+                if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
+                    if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
+                        final String curr = curReader.getValue("652", "m");
+                        if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
+                            final String newDk5 = reader.getValue("652", "m");
+                            if (! newDk5.isEmpty()) {
+                                for (MarcField new652Field : new652Fields) {
+                                    result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
+                                }
+                            } else {
+                                // This should not be possible due to other protections, but if they for some reason dissapears, this
+                                // will prevent deleting 652 - please note that there are no testcase to check this
+                                final String msg = messages.getString("update.dbc.record.652.no.delete");
+                                log.error("Unable to create sub actions due to an error: {}", msg);
+                                throw new UpdateException(msg);
+
                             }
                         } else {
-                            // This should not be possible due to other protections, but if they for some reason dissapears, this
-                            // will prevent deleting 652 - please note that there are no testcase to check this
-                            final String msg = messages.getString("update.dbc.record.652.no.delete");
-                            LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                            final String msg = messages.getString("update.dbc.record.652.no.uden.klassemaerke");
+                            log.error("Unable to create sub actions due to an error: {}", msg);
                             throw new UpdateException(msg);
 
                         }
                     } else {
-                        final String msg = messages.getString("update.dbc.record.652.no.uden.klassemaerke");
-                        LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                        final String msg = messages.getString("update.dbc.record.652.not.allowed");
+                        log.error("Unable to create sub actions due to an error: {}", msg);
                         throw new UpdateException(msg);
-
                     }
                 } else {
-                    final String msg = messages.getString("update.dbc.record.652.not.allowed");
-                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                    final String msg = messages.getString("update.dbc.record.652");
+                    log.error("Unable to create sub actions due to an error: {}", msg);
                     throw new UpdateException(msg);
                 }
-            } else {
-                final String msg = messages.getString("update.dbc.record.652");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                throw new UpdateException(msg);
             }
-        }
-
+            return null;
+        });
     }
 
     /**
@@ -222,14 +224,17 @@ public class NoteAndSubjectExtensionsHandler {
         if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
             result.getFields().addAll(currentNoteFields);
         } else {
-            for (MarcField newNoteField : newNoteFields) {
-                if (isDbcField(currentNoteFields)) {
-                    final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
-                    // Business exception which means we don't want the error in the errorlog, so only log as info
-                    LOGGER.info("Unable to create sub actions due to an error: {}", msg);
-                    throw new UpdateException(msg);
+            LOGGER.callChecked(log -> {
+                for (MarcField newNoteField : newNoteFields) {
+                    if (isDbcField(currentNoteFields)) {
+                        final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
+                        // Business exception which means we don't want the error in the errorlog, so only log as info
+                        log.info("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+                    }
                 }
-            }
+                return null;
+            });
             for (MarcField newNoteField : newNoteFields) {
                 result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
             }
@@ -280,11 +285,11 @@ public class NoteAndSubjectExtensionsHandler {
                 return marcRecord;
             }
 
-        // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
-        // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
+            // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
+            // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
 
-        final MarcRecord result = new MarcRecord();
-        LOGGER.info("Record exists and is common national record - setting extension fields");
+            final MarcRecord result = new MarcRecord();
+            log.info("Record exists and is common national record - setting extension fields");
 
             String extendableFieldsRx = createExtendableFieldsRx(groupId);
 
@@ -322,7 +327,7 @@ public class NoteAndSubjectExtensionsHandler {
                 addSubjectFields(result, marcRecord, curRecord, groupId);
             }
 
-        addDK5Fields(result, marcRecord, reader, curRecord, curReader, groupId);
+            addDK5Fields(result, marcRecord, reader, curRecord, curReader, groupId);
 
             new MarcRecordWriter(result).sort();
 
