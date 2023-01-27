@@ -169,7 +169,7 @@
         <dependency>
             <groupId>dk.dbc</groupId>
             <artifactId>common-records</artifactId>
-            <version>1.11.0-SNAPSHOT</version>
+            <version>1.12.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>

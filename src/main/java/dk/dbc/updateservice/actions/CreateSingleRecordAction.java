@@ -12,7 +12,6 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -42,8 +41,8 @@ public class CreateSingleRecordAction extends AbstractRawRepoAction {
      * @throws UpdateException In case of an error.
      */
     @Override
-    public ServiceResult performAction() throws UpdateException, SolrException {
-        return LOGGER.<ServiceResult, UpdateException, SolrException>callChecked2(log -> {
+    public ServiceResult performAction() throws UpdateException {
+        return LOGGER.callChecked(log -> {
             if (log.isInfoEnabled()) {
                 log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
             }

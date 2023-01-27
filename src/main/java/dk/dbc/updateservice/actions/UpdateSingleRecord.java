@@ -13,15 +13,12 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
-import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -30,7 +27,7 @@ import java.util.Set;
  * Action to create, overwrite or delete a single record.
  */
 public class UpdateSingleRecord extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateSingleRecord.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateSingleRecord.class);
 
     protected Properties settings;
 
@@ -46,77 +43,77 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
      * @throws UpdateException In case of an error.
      */
     @Override
-    public ServiceResult performAction() throws UpdateException, SolrException {
-        try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final String bibliographicRecordId = reader.getRecordId();
-            final int agencyId = reader.getAgencyIdAsInt();
-
-            if (!rawRepo.recordExists(bibliographicRecordId, agencyId)) {
-                children.add(createCreateRecordAction());
-                return ServiceResult.newOkResult();
-            }
-
-            // Check for change from head or section to single
-            // Changing type from head/section to single is only allowed if the record doesn't have any common record children
-            // 004 *a e = single record
-            if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && reader.hasValue("004", "a", "e")) {
-                final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-                final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-
-                // 004 *a h = head record
-                // 004 *a s = section record
-                if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
-                    final Set<RecordId> children = state.getRawRepo().children(recordId);
-                    for (RecordId childId : children) {
-                        // 870971 records are okay as children but a 870970 means it is in volume hierarchy
-                        if (RawRepo.COMMON_AGENCY == childId.getAgencyId()) {
-                            final String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), bibliographicRecordId, agencyId);
-
-                            LOGGER.info("Record can't be changed from head or section record single record. Returning error: {}", message);
-                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                        }
-                    }
+    public ServiceResult performAction() throws UpdateException {
+        return LOGGER.callChecked(log -> {
+            try {
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
                 }
-            }
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                final String bibliographicRecordId = reader.getRecordId();
+                final int agencyId = reader.getAgencyIdAsInt();
 
-            if (reader.markedForDeletion()) {
-                // If it is deletion and a 870970 record then the group is always 010100
-                // Which means we are only interested in the other libraries with holdings
-                final Set<Integer> agenciesWithHoldings = state.getAgenciesWithHoldings(marcRecord);
-                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
-                    for (Integer agencyWithHoldings : agenciesWithHoldings) {
-                        LOGGER.info("Found holdings for agency '{}'", agencyWithHoldings);
-                        final boolean hasAuthExportHoldings = state.getVipCoreService().hasFeature(agencyWithHoldings.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
-                        if (hasAuthExportHoldings) {
-                            LOGGER.info("Agency '{}' has feature '{}'", agencyWithHoldings, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
-                            final String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", bibliographicRecordId);
-                            final boolean has002Links = state.getSolrFBS().hasDocuments(solrQuery);
-                            if (!has002Links) {
-                                final String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), bibliographicRecordId, agencyId, agencyWithHoldings);
+                if (!rawRepo.recordExists(bibliographicRecordId, agencyId)) {
+                    children.add(createCreateRecordAction());
+                    return ServiceResult.newOkResult();
+                }
 
-                                LOGGER.info("Record '{}:{}' has no 002 links. Returning error: {}", bibliographicRecordId, reader.getAgencyId(), message);
+                // Check for change from head or section to single
+                // Changing type from head/section to single is only allowed if the record doesn't have any common record children
+                // 004 *a e = single record
+                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && reader.hasValue("004", "a", "e")) {
+                    final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+                    final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+
+                    // 004 *a h = head record
+                    // 004 *a s = section record
+                    if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
+                        final Set<RecordId> children = state.getRawRepo().children(recordId);
+                        for (RecordId childId : children) {
+                            // 870971 records are okay as children but a 870970 means it is in volume hierarchy
+                            if (RawRepo.COMMON_AGENCY == childId.getAgencyId()) {
+                                final String message = String.format(state.getMessages().getString("head.or.section.to.single.children"), bibliographicRecordId, agencyId);
+
+                                log.info("Record can't be changed from head or section record single record. Returning error: {}", message);
                                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                             }
-                        } else {
-                            LOGGER.info("Agency '{}' does not have feature '{}'. Accepting deletion.", agencyWithHoldings, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
                         }
                     }
                 }
-                performActionsFor002Links();
-                children.add(createDeleteRecordAction());
+
+                if (reader.markedForDeletion()) {
+                    // If it is deletion and a 870970 record then the group is always 010100
+                    // Which means we are only interested in the other libraries with holdings
+                    final Set<Integer> agenciesWithHoldings = state.getAgenciesWithHoldings(marcRecord);
+                    if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && !agenciesWithHoldings.isEmpty()) {
+                        for (Integer agencyWithHoldings : agenciesWithHoldings) {
+                            log.info("Found holdings for agency '{}'", agencyWithHoldings);
+                            final boolean hasAuthExportHoldings = state.getVipCoreService().hasFeature(agencyWithHoldings.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
+                            if (hasAuthExportHoldings) {
+                                log.info("Agency '{}' has feature '{}'", agencyWithHoldings, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
+                                final String solrQuery = SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", bibliographicRecordId);
+                                final boolean has002Links = state.getSolrFBS().hasDocuments(solrQuery);
+                                if (!has002Links) {
+                                    final String message = String.format(state.getMessages().getString("delete.common.with.holdings.error"), bibliographicRecordId, agencyId, agencyWithHoldings);
+
+                                    log.info("Record '{}:{}' has no 002 links. Returning error: {}", bibliographicRecordId, reader.getAgencyId(), message);
+                                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                                }
+                            } else {
+                                log.info("Agency '{}' does not have feature '{}'. Accepting deletion.", agencyWithHoldings, VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS);
+                            }
+                        }
+                    }
+                    performActionsFor002Links();
+                    children.add(createDeleteRecordAction());
+                    return ServiceResult.newOkResult();
+                }
+                children.add(createOverwriteRecordAction());
                 return ServiceResult.newOkResult();
+            } catch (VipCoreException e) {
+                throw new UpdateException(e.getMessage(), e);
             }
-            children.add(createOverwriteRecordAction());
-            return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException ex) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } catch (VipCoreException e) {
-            throw new UpdateException(e.getMessage(), e);
-        }
+        });
     }
 
     /**
@@ -141,27 +138,30 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     }
 
 
-    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
+    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
         Record record = rawRepo.fetchRecord(recordId, agencyId);
         return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
     private CreateEnrichmentRecordWithClassificationsAction createJobForAddingEnrichmentRecord(String holdingAgencyId, String destinationCommonRecordId, MarcRecord linkRecord) {
-        LOGGER.info("Create CreateEnrichmentRecordWithClassificationsAction for : {}:{}", holdingAgencyId, destinationCommonRecordId);
-        final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
-        createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(linkRecord);
-        createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(linkRecord);
-        createEnrichmentRecordWithClassificationsAction.setTargetRecordId(destinationCommonRecordId);
+        return LOGGER.call(log -> {
+            log.info("Create CreateEnrichmentRecordWithClassificationsAction for : {}:{}", holdingAgencyId, destinationCommonRecordId);
+            final CreateEnrichmentRecordWithClassificationsAction createEnrichmentRecordWithClassificationsAction = new CreateEnrichmentRecordWithClassificationsAction(state, settings, holdingAgencyId);
+            createEnrichmentRecordWithClassificationsAction.setUpdatingCommonRecord(linkRecord);
+            createEnrichmentRecordWithClassificationsAction.setCurrentCommonRecord(linkRecord);
+            createEnrichmentRecordWithClassificationsAction.setTargetRecordId(destinationCommonRecordId);
 
-        return createEnrichmentRecordWithClassificationsAction;
+            return createEnrichmentRecordWithClassificationsAction;
+        });
     }
 
     private MoveEnrichmentRecordAction getMoveEnrichmentRecordAction(String newRecordId, MarcRecord enrichmentRecordData, boolean classificationsChanged, boolean oneOrBothInProduction) {
-        LOGGER.info("Creating MoveEnrichmentRecordAction for record {} ", newRecordId);
-        final MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData, classificationsChanged, oneOrBothInProduction);
-        moveEnrichmentRecordAction.setTargetRecordId(newRecordId);
-
-        return moveEnrichmentRecordAction;
+        return LOGGER.call(log -> {
+            log.info("Creating MoveEnrichmentRecordAction for record {} ", newRecordId);
+            final MoveEnrichmentRecordAction moveEnrichmentRecordAction = new MoveEnrichmentRecordAction(state, settings, enrichmentRecordData, classificationsChanged, oneOrBothInProduction);
+            moveEnrichmentRecordAction.setTargetRecordId(newRecordId);
+            return moveEnrichmentRecordAction;
+        });
     }
 
     private CreateEnrichmentRecordActionForlinkedRecords getActionForCreateActionForLinkedRecords(MarcRecord marcRecord, Integer holdingAgencyId, MarcRecord recordWithHolding) {
@@ -205,68 +205,68 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
     Produktion : Hvis 032*a/x har en kode ude i fremtiden så er posten under produktion - samme hvis den indeholder 999999
      */
-    private void performActionsFor002Links() throws UpdateException, SolrException, UnsupportedEncodingException, VipCoreException {
-        try {
-            final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-            final String recordIdForRecordToDelete = recordReader.getValue("001", "a");
-            final Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
+    private void performActionsFor002Links() throws UpdateException {
+        LOGGER.callChecked(log -> {
+            try {
+                final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
+                final String recordIdForRecordToDelete = recordReader.getValue("001", "a");
+                final Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
 
-            final String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
-            if (motherRecordId.equals("")) {
-                return;
-            }
-            LOGGER.info("Record : {} has {} as 002 field", motherRecordId, recordIdForRecordToDelete);
-            MarcRecord motherRecord;
-
-            if (rawRepo.recordExists(motherRecordId, agencyIdForRecordToDelete)) {
-                motherRecord = loadRecord(motherRecordId, agencyIdForRecordToDelete);
-            } else {
-                LOGGER.warn("Solr index 002a points to a nonexisting record : {}:{}", agencyIdForRecordToDelete, motherRecordId);
-                return;
-            }
-            final MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
-            LOGGER.info("Holdings for " + recordIdForRecordToDelete);
-            final Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesWithHoldings(recordIdForRecordToDelete);
-            LOGGER.info("is " + holdingAgencies.toString());
-            // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
-            final boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);
-            LOGGER.info("classificationsChanged : {}", classificationsChanged);
-            LOGGER.info("Enrichments for {}", recordIdForRecordToDelete);
-
-            final Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
-            enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
-            LOGGER.info("is " + enrichmentIds);
-            final Set<Integer> totalAgencies = new HashSet<>(holdingAgencies);
-            for (RecordId enrichmentId : enrichmentIds) {
-                totalAgencies.add(enrichmentId.getAgencyId());
-            }
-
-            final boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(motherRecord);
-            LOGGER.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
-
-            for (Integer workAgencyId : totalAgencies) {
-                if (!state.getVipCoreService().hasFeature(workAgencyId.toString(), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
-                    // Why this check ? 002 linking only works for agencies that uses enrichments - LJL says it can be PH/SBCI that makes it necessary - doesn't hurt so kept for now
-                    LOGGER.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS);
-                    continue;
+                final String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
+                if (motherRecordId.equals("")) {
+                    return null;
                 }
-                final boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));
-                LOGGER.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
-                if (hasEnrichment) {
-                    final Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
-                    final MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
-                    children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
+                log.info("Record : {} has {} as 002 field", motherRecordId, recordIdForRecordToDelete);
+                MarcRecord motherRecord;
+
+                if (rawRepo.recordExists(motherRecordId, agencyIdForRecordToDelete)) {
+                    motherRecord = loadRecord(motherRecordId, agencyIdForRecordToDelete);
                 } else {
-                    if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {
-                        children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, rrVersionOfRecordToDelete));
-                        children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, rrVersionOfRecordToDelete));
+                    log.warn("Solr index 002a points to a nonexisting record : {}:{}", agencyIdForRecordToDelete, motherRecordId);
+                    return null;
+                }
+                final MarcRecord rrVersionOfRecordToDelete = loadRecord(recordIdForRecordToDelete, agencyIdForRecordToDelete);
+                log.info("Holdings for " + recordIdForRecordToDelete);
+                final Set<Integer> holdingAgencies = state.getHoldingsItems().getAgenciesWithHoldings(recordIdForRecordToDelete);
+                log.info("is " + holdingAgencies.toString());
+                // check classification - if changed it will require modification of enrichment record - due to story #1802 messages must be merged into eventual existing enrichment
+                final boolean classificationsChanged = state.getLibraryRecordsHandler().hasClassificationsChanged(motherRecord, rrVersionOfRecordToDelete);
+                log.info("classificationsChanged : {}", classificationsChanged);
+                log.info("Enrichments for {}", recordIdForRecordToDelete);
+
+                final Set<RecordId> enrichmentIds = rawRepo.enrichments(new RecordId(recordIdForRecordToDelete, RawRepo.COMMON_AGENCY));
+                enrichmentIds.remove(new RecordId(recordIdForRecordToDelete, RawRepo.DBC_ENRICHMENT)); // No reason to fiddle with this in th main loop
+                log.info("is " + enrichmentIds);
+                final Set<Integer> totalAgencies = new HashSet<>(holdingAgencies);
+                for (RecordId enrichmentId : enrichmentIds) {
+                    totalAgencies.add(enrichmentId.getAgencyId());
+                }
+
+                final boolean isLinkRecInProduction = state.getLibraryRecordsHandler().isRecordInProduction(motherRecord);
+                log.info("Record in production {}-{} : {} ", agencyIdForRecordToDelete, motherRecordId, isLinkRecInProduction);
+                for (Integer workAgencyId : totalAgencies) {
+                    if (!state.getVipCoreService().hasFeature(workAgencyId.toString(), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
+                        // Why this check ? 002 linking only works for agencies that uses enrichments - LJL says it can be PH/SBCI that makes it necessary - doesn't hurt so kept for now
+                        log.info("Ignoring holdings for agency '{}', because they do not have the feature '{}'", workAgencyId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS);
+                        continue;
+                    }
+                    final boolean hasEnrichment = enrichmentIds.contains(new RecordId(recordIdForRecordToDelete, workAgencyId));
+                    log.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
+                    if (hasEnrichment) {
+                        final Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
+                        final MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
+                        children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
+                    } else {
+                        if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {
+                            children.add(createJobForAddingEnrichmentRecord(workAgencyId.toString(), motherRecordId, rrVersionOfRecordToDelete));
+                            children.add(getActionForCreateActionForLinkedRecords(motherRecord, workAgencyId, rrVersionOfRecordToDelete));
+                        }
                     }
                 }
+            } catch (Exception e) {
+                throw new UpdateException("performActionsFor002Links failed", e);
             }
-        } catch (Throwable e) {
-            LOGGER.info("performActionsFor002Links fails with : {}", e.toString());
-            throw e;
-        }
+            return null;
+        });
     }
-
 }

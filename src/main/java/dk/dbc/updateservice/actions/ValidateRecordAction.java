@@ -8,14 +8,13 @@ import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -40,7 +39,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </ol>
  */
 public class ValidateRecordAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ValidateRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(ValidateRecordAction.class);
 
     Properties settings;
 
@@ -75,55 +74,57 @@ public class ValidateRecordAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
-        try {
-            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
-            final String recordId = reader.getRecordId();
-            final String agencyId = reader.getAgencyId();
+        return LOGGER.callChecked(log -> {
+            final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
+            try {
+                final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+                final String recordId = reader.getRecordId();
+                final String agencyId = reader.getAgencyId();
 
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-            }
+                if (log.isInfoEnabled()) {
+                    log.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+                }
 
-            final ServiceResult result = new ServiceResult();
+                final ServiceResult result = new ServiceResult();
 
-            // If the record is marked for deletion the validateRecord function will only check if the schema supports
-            // deleting records. If so, ok is returned without further validation.
-            // If we want to check if the groupId has permission to delete a record we have to check it before validateRecord
-            if (reader.markedForDeletion()) {
-                final String owner = reader.getAgencyId();
-                if (RawRepo.DBC_AGENCY_ALL.contains(owner)) {
-                    final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-                    if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
-                        final String message = state.getMessages().getString("delete.record.common.record.missing.rights");
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                // If the record is marked for deletion the validateRecord function will only check if the schema supports
+                // deleting records. If so, ok is returned without further validation.
+                // If we want to check if the groupId has permission to delete a record we have to check it before validateRecord
+                if (reader.markedForDeletion()) {
+                    final String owner = reader.getAgencyId();
+                    if (RawRepo.DBC_AGENCY_ALL.contains(owner)) {
+                        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+                        if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
+                            final String message = state.getMessages().getString("delete.record.common.record.missing.rights");
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                        }
                     }
                 }
-            }
 
-            if (!state.getIsTemplateOverwrite()) {
-                final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
-                result.addMessageEntryDtos(errors);
-            }
+                if (!state.getIsTemplateOverwrite()) {
+                    final List<MessageEntryDTO> errors = state.getOpencatBusiness().validateRecord(state.getSchemaName(), state.getMarcRecord(), trackingId);
+                    result.addMessageEntryDtos(errors);
+                }
 
 
-            if (result.hasErrors()) {
-                LOGGER.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnumDTO.FAILED);
-            } else {
-                LOGGER.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
-                result.setStatus(UpdateStatusEnumDTO.OK);
+                if (result.hasErrors()) {
+                    log.info("Record {{}:{}} contains validation errors.", recordId, agencyId);
+                    result.setStatus(UpdateStatusEnumDTO.FAILED);
+                } else {
+                    log.info("Record {{}:{}} has validated successfully.", recordId, agencyId);
+                    result.setStatus(UpdateStatusEnumDTO.OK);
+                }
+                return result;
+            } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException |
+                     VipCoreException ex) {
+                String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
+                log.error(message, ex);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            } finally {
+                watch.stop();
             }
-            return result;
-        } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException |
-                 VipCoreException ex) {
-            String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
-            LOGGER.error(message, ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        } finally {
-            watch.stop();
-        }
+        });
     }
 
     @Override

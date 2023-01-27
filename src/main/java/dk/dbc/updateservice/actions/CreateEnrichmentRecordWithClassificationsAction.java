@@ -88,9 +88,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
             if (log.isInfoEnabled()) {
-                log.info("AgencyId..............: " + agencyId);
-                log.info("Current common record.: {}", LogUtils.base64Encode(currentCommonRecord));
-                log.info("Updating common record: {}", LogUtils.base64Encode(updatingCommonRecord));
+                log.info("AgencyId: {}, Current common record.:\n{}\n Updating common record:\n{}", agencyId, LogUtils.base64Encode(currentCommonRecord), LogUtils.base64Encode(updatingCommonRecord));
             }
 
             final MarcRecord enrichmentRecord = createRecord();

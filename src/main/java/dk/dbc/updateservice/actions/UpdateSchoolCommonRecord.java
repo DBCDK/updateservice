@@ -13,8 +13,7 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
@@ -24,7 +23,7 @@ import java.util.Set;
  * Action to update a common school record.
  */
 public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateSchoolCommonRecord.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateSchoolCommonRecord.class);
 
     Properties settings;
 
@@ -41,23 +40,25 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+        return LOGGER.callChecked(log -> {
+            try {
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
+                }
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                if (reader.markedForDeletion()) {
+                    moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
+                    children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
+                } else {
+                    children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
+                    moveSchoolEnrichmentsActions(RawRepo.SCHOOL_COMMON_AGENCY);
+                }
+                return ServiceResult.newOkResult();
+            } catch (UnsupportedEncodingException ex) {
+                log.error(ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
             }
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            if (reader.markedForDeletion()) {
-                moveSchoolEnrichmentsActions(RawRepo.COMMON_AGENCY);
-                children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
-            } else {
-                children.add(new UpdateEnrichmentRecordAction(state, settings, marcRecord));
-                moveSchoolEnrichmentsActions(RawRepo.SCHOOL_COMMON_AGENCY);
-            }
-            return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            throw new UpdateException(ex.getMessage(), ex);
-        }
+        });
     }
 
     private void moveSchoolEnrichmentsActions(int target) throws UpdateException, UnsupportedEncodingException {

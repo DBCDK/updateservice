@@ -9,7 +9,6 @@ import dk.dbc.commons.metricshandler.CounterMetric;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.commons.metricshandler.SimpleTimerMetric;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
-import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import org.apache.commons.lang3.StringUtils;
@@ -104,7 +103,7 @@ public class ServiceEngine {
      * actions.
      * @throws UpdateException thrown in case of an error.
      */
-    public ServiceResult executeAction(ServiceAction action) throws UpdateException, SolrException {
+    public ServiceResult executeAction(ServiceAction action) throws UpdateException {
         StopWatch watch = new Log4JStopWatch();
         final Tag methodTag;
         if (action != null && action.name() != null) {

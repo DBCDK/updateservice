@@ -424,7 +424,7 @@ public class RawRepo {
                     }
                 }
                 return result;
-            } catch (RawRepoException | MarcXMergerException | UnsupportedEncodingException ex) {
+            } catch (RawRepoException | MarcXMergerException ex) {
                 conn.rollback();
                 LOGGER.error(ex.getMessage(), ex);
                 throw new UpdateException(ex.getMessage(), ex);

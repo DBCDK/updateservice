@@ -18,14 +18,13 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.apache.commons.lang3.StringUtils;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
@@ -61,7 +60,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </ol>
  */
 class UpdateOperationAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateOperationAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateOperationAction.class);
 
     private static final DateTimeFormatter formatter = new DateTimeFormatterBuilder()
             .appendPattern("yyyyMMdd")
@@ -106,85 +105,86 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException, SolrException {
-        try {
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
-            final ServiceResult serviceResult = checkRecordForUpdatability();
-            if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
-                LOGGER.info("Unable to update record: {}", serviceResult);
-                return serviceResult;
-            }
-            MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            setCreatedDate(reader);
-            children.add(new AuthenticateRecordAction(state, marcRecord));
-            handleSetCreateOverwriteDate();
-            final MarcRecordReader updReader = state.getMarcRecordReader();
-            final String updRecordId = updReader.getRecordId();
-            final int updAgencyId = updReader.getAgencyIdAsInt();
-
-            // Perform check of 002a and b,c - 870970 only
-            if (RawRepo.COMMON_AGENCY == updAgencyId) {
-                final String validatePreviousFaustMessage = validatePreviousFaust(updReader);
-                if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage);
+        return LOGGER.<ServiceResult, UpdateException, SolrException>callChecked2(log -> {
+            try {
+                if (log.isInfoEnabled()) {
+                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
                 }
-            }
+                final ServiceResult serviceResult = checkRecordForUpdatability();
+                if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
+                    log.info("Unable to update record: {}", serviceResult);
+                    return serviceResult;
+                }
+                MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                setCreatedDate(reader);
+                children.add(new AuthenticateRecordAction(state, marcRecord));
+                handleSetCreateOverwriteDate();
+                final MarcRecordReader updReader = state.getMarcRecordReader();
+                final String updRecordId = updReader.getRecordId();
+                final int updAgencyId = updReader.getAgencyIdAsInt();
 
-            if (state.getLibraryGroup().isDBC()) {
-                // Overwrite "settings" with provider name from RecordExtraData
-                BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
-                if (bibliographicRecordExtraData != null) {
-                    Properties newSettings = (Properties) settings.clone();
+                // Perform check of 002a and b,c - 870970 only
+                if (RawRepo.COMMON_AGENCY == updAgencyId) {
+                    final String validatePreviousFaustMessage = validatePreviousFaust(updReader);
+                    if (StringUtils.isNotEmpty(validatePreviousFaustMessage)) {
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, validatePreviousFaustMessage);
+                    }
+                }
 
-                    if (bibliographicRecordExtraData.getProviderName() != null) {
-                        final String providerName = bibliographicRecordExtraData.getProviderName();
-                        if (state.getRawRepo().checkProvider(providerName)) {
-                            LOGGER.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
-                            newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
-                        } else {
-                            LOGGER.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
-                            throw new UpdateException("Provider " + providerName + " findes ikke.");
+                if (state.getLibraryGroup().isDBC()) {
+                    // Overwrite "settings" with provider name from RecordExtraData
+                    BibliographicRecordExtraData bibliographicRecordExtraData = state.getRecordExtraData();
+                    if (bibliographicRecordExtraData != null) {
+                        Properties newSettings = (Properties) settings.clone();
+
+                        if (bibliographicRecordExtraData.getProviderName() != null) {
+                            final String providerName = bibliographicRecordExtraData.getProviderName();
+                            if (state.getRawRepo().checkProvider(providerName)) {
+                                log.info("Provider name found in request - using {} as override provider for rawrepo queue", providerName);
+                                newSettings.setProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE, providerName);
+                            } else {
+                                log.info("Provider name {} found in request but that provider doesn't match the queue configuration - aborting request.", providerName);
+                                throw new UpdateException("Provider " + providerName + " findes ikke.");
+                            }
                         }
+
+                        if (bibliographicRecordExtraData.getPriority() != null) {
+                            log.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
+                            newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                        }
+
+                        this.setSettings(newSettings);
                     }
+                }
 
-                    if (bibliographicRecordExtraData.getPriority() != null) {
-                        LOGGER.info("Priority found in request - using {} as override priority for rawrepo queue", bibliographicRecordExtraData.getPriority());
-                        newSettings.setProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE, bibliographicRecordExtraData.getPriority().toString());
+                // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
+                if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
+                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
+                    try {
+                        final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                        marcRecord = state.getOpencatBusiness().metacompass(marcRecord, trackingId);
+                        MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, marcRecord, settings);
+                    } catch (UpdateException | OpencatBusinessConnectorException ex) {
+                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
+                    } finally {
+                        watch.stop();
                     }
-
-                    this.setSettings(newSettings);
                 }
-            }
 
-            // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
-            if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
-                final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
-                try {
-                    final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-                    marcRecord = state.getOpencatBusiness().metacompass(marcRecord, trackingId);
-                    MetakompasHandler.createMetakompasSubjectRecords(children, state, rawRepo, marcRecord, settings);
-                } catch (UpdateException | OpencatBusinessConnectorException ex) {
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-                } finally {
-                    watch.stop();
+                addDoubleRecordFrontendActionIfNecessary();
+
+                final String groupId;
+                final LibraryGroup libraryGroup;
+                if (state.getIsTemplateOverwrite()) {
+                    groupId = reader.getAgencyId();
+                    libraryGroup = state.getVipCoreService().getLibraryGroup(groupId);
+                    log.info("Template overwrite is active so setting groupId to {} and libraryGroup to {}", groupId, libraryGroup);
+                } else {
+                    groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+                    libraryGroup = state.getLibraryGroup();
                 }
-            }
 
-            addDoubleRecordFrontendActionIfNecessary();
-
-            final String groupId;
-            final LibraryGroup libraryGroup;
-            if (state.getIsTemplateOverwrite()) {
-                groupId = reader.getAgencyId();
-                libraryGroup = state.getVipCoreService().getLibraryGroup(groupId);
-                LOGGER.info("Template overwrite is active so setting groupId to {} and libraryGroup to {}", groupId, libraryGroup);
-            } else {
-                groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-                libraryGroup = state.getLibraryGroup();
-            }
-
-            LOGGER.info("Split record into records to store in rawrepo. LibraryGroup is {}", libraryGroup);
+                log.info("Split record into records to store in rawrepo. LibraryGroup is {}", libraryGroup);
 
             /*
             Please note that things can go horribly wrong in this for loop.
@@ -193,78 +193,79 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             That give some headache when the vip settings for 010100 differ from the agency to which the record belongs - for example
             an FFU library shall not handle enrichments which the setting for 010100 says it shall.
              */
-            List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, groupId, libraryGroup, state.getMessages(), state.isAdmin());
-            LOGGER.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
-            for (MarcRecord rec : records) {
-                LOGGER.info("Create sub actions for record:\n{}", rec);
-                reader = new MarcRecordReader(rec);
-                final String recordId = reader.getRecordId();
-                final int agencyId = reader.getAgencyIdAsInt();
+                List<MarcRecord> records = state.getLibraryRecordsHandler().recordDataForRawRepo(marcRecord, groupId, libraryGroup, state.getMessages(), state.isAdmin());
+                log.info("Got {} records from LibraryRecordsHandler.recordDataForRawRepo", records.size());
+                for (MarcRecord rec : records) {
+                    log.info("Create sub actions for record:\n{}", rec);
+                    reader = new MarcRecordReader(rec);
+                    final String recordId = reader.getRecordId();
+                    final int agencyId = reader.getAgencyIdAsInt();
 
-                if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
-                    final String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
-                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                }
-
-                if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
-                    if (!updReader.markedForDeletion() &&
-                            !state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
-                            !rawRepo.recordExists(updRecordId, updAgencyId)) {
-                        final String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), groupId);
+                    if (reader.markedForDeletion() && !rawRepo.recordExists(recordId, agencyId)) {
+                        final String message = String.format(state.getMessages().getString("operation.delete.non.existing.record"), recordId, agencyId);
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                    children.add(new UpdateCommonRecordAction(state, settings, rec));
-                } else if (agencyId == RawRepo.SCHOOL_COMMON_AGENCY) {
-                    children.add(new UpdateSchoolCommonRecord(state, settings, rec));
-                } else {
-                    if (agencyId == RawRepo.DBC_ENRICHMENT && commonRecordExists(records, rec, updAgencyId)) {
-                        if (RawRepo.isSchoolEnrichment(agencyId)) {
-                            children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
-                        } else {
-                            performActionsForRemovedLITWeekNumber(rec);
-                            children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
+
+                    if (RawRepo.DBC_AGENCY_LIST.contains(Integer.toString(agencyId))) {
+                        if (!updReader.markedForDeletion() &&
+                                !state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_CREATE_COMMON_RECORD) &&
+                                !rawRepo.recordExists(updRecordId, updAgencyId)) {
+                            final String message = String.format(state.getMessages().getString("common.record.creation.not.allowed"), groupId);
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                         }
-                    } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
-                            state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
-                            state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
-                        if (commonRecordExists(records, rec)) {
+                        children.add(new UpdateCommonRecordAction(state, settings, rec));
+                    } else if (agencyId == RawRepo.SCHOOL_COMMON_AGENCY) {
+                        children.add(new UpdateSchoolCommonRecord(state, settings, rec));
+                    } else {
+                        if (agencyId == RawRepo.DBC_ENRICHMENT && commonRecordExists(records, rec, updAgencyId)) {
                             if (RawRepo.isSchoolEnrichment(agencyId)) {
                                 children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
                             } else {
-                                children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
+                                performActionsForRemovedLITWeekNumber(rec);
+                                children.add(new UpdateEnrichmentRecordAction(state, settings, rec, updAgencyId));
+                            }
+                        } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) &&
+                                state.getVipCoreService().hasFeature(Integer.toString(agencyId), VipCoreLibraryRulesConnector.Rule.CREATE_ENRICHMENTS) ||
+                                state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)) {
+                            if (commonRecordExists(records, rec)) {
+                                if (RawRepo.isSchoolEnrichment(agencyId)) {
+                                    children.add(new UpdateSchoolEnrichmentRecordAction(state, settings, rec));
+                                } else {
+                                    children.add(new UpdateEnrichmentRecordAction(state, settings, rec, RawRepo.COMMON_AGENCY));
+                                }
+                            } else {
+                                if (checkForExistingCommonFaust(recordId)) {
+                                    String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
+                                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                                } else {
+                                    children.add(new UpdateLocalRecordAction(state, settings, rec));
+                                }
                             }
                         } else {
-                            if (checkForExistingCommonFaust(recordId)) {
-                                String message = String.format(state.getMessages().getString("record.not.allowed.deleted.common.record"), recordId);
-                                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                            } else {
-                                children.add(new UpdateLocalRecordAction(state, settings, rec));
-                            }
+                            children.add(new UpdateLocalRecordAction(state, settings, rec));
                         }
-                    } else {
-                        children.add(new UpdateLocalRecordAction(state, settings, rec));
                     }
                 }
-            }
-            logRecordInfo(updReader);
-            if (state.isDoubleRecordPossible()) {
-                if (libraryGroup.isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
-                    boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-                    if (test) {
+                logRecordInfo(updReader);
+                if (state.isDoubleRecordPossible()) {
+                    if (libraryGroup.isFBS() && StringUtils.isNotEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
+                        boolean test = state.getUpdateStore().doesDoubleRecordKeyExist(state.getUpdateServiceRequestDTO().getDoubleRecordKey());
+                        if (test) {
+                            children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
+                        } else {
+                            String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
+                            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                        }
+                    } else if (libraryGroup.isFBS() || libraryGroup.isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
                         children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
-                    } else {
-                        String message = String.format(state.getMessages().getString("double.record.frontend.unknown.key"), state.getUpdateServiceRequestDTO().getDoubleRecordKey());
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
-                } else if (libraryGroup.isFBS() || libraryGroup.isDBC() && StringUtils.isEmpty(state.getUpdateServiceRequestDTO().getDoubleRecordKey())) {
-                    children.add(new DoubleRecordCheckingAction(state, settings, marcRecord));
                 }
-            }
 
-            return ServiceResult.newOkResult();
-        } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
-        }
+                return ServiceResult.newOkResult();
+            } catch (VipCoreException | UnsupportedEncodingException | JAXBException | JSONBException e) {
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
+            }
+        });
     }
 
     /**
@@ -294,42 +295,44 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @param reader MarcRecordReader of the record to be checked
      * @throws UpdateException              Update error
-     * @throws UnsupportedEncodingException some conversion of a record went wrong
      */
-    void setCreatedDate(MarcRecordReader reader) throws UpdateException, UnsupportedEncodingException, VipCoreException {
-        LOGGER.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+    void setCreatedDate(MarcRecordReader reader) throws UpdateException, VipCoreException {
+        LOGGER.<Void, UpdateException, VipCoreException>callChecked2(log -> {
+            log.info("Original record creation date (001 *d): '{}'", reader.getValue("001", "d"));
 
-        // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
-        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-        if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
-            if (!state.isAdmin()) {
-                if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    setCreationDateToExistingCreationDate(marcRecord);
-                } else {
-                    // For specifically 870974 (literature analysis) must have a creation date equal to the parent
-                    // record creation date
-                    if ("870974".equals(reader.getAgencyId())) {
-                        setCreationDateToParentCreationDate(marcRecord);
+            // If it is a DBC record then the creation date can't be changed unless the user has admin privileges
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+            if (RawRepo.DBC_AGENCY_LIST.contains(reader.getAgencyId())) {
+                if (!state.isAdmin()) {
+                    if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                        setCreationDateToExistingCreationDate(marcRecord);
                     } else {
-                        setCreationDateToToday(marcRecord);
+                        // For specifically 870974 (literature analysis) must have a creation date equal to the parent
+                        // record creation date
+                        if ("870974".equals(reader.getAgencyId())) {
+                            setCreationDateToParentCreationDate(marcRecord);
+                        } else {
+                            setCreationDateToToday(marcRecord);
+                        }
                     }
                 }
+            } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
+                // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
+                if (!reader.hasSubfield("001", "d") &&
+                        rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                    setCreationDateToExistingCreationDate(marcRecord);
+                } else {
+                    setCreationDateToToday(marcRecord);
+                }
             }
-        } else if (state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
-            // If input record doesn't have 001 *d, agency id FBS and the record is new, so set 001 *d
-            if (!reader.hasSubfield("001", "d") &&
-                    rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                setCreationDateToExistingCreationDate(marcRecord);
-            } else {
-                setCreationDateToToday(marcRecord);
-            }
-        }
 
-        LOGGER.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+            log.info("Adjusted record creation date (001 *d): '{}'", reader.getValue("001", "d"));
+            return null;
+        });
     }
 
     // Set 001 *d equal to that field in the existing record if the existing record as a 001 *d value
-    private void setCreationDateToExistingCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
+    private void setCreationDateToExistingCreationDate(MarcRecord marcRecord) throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
 
@@ -349,7 +352,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
         }
     }
 
-    private void setCreationDateToParentCreationDate(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
+    private void setCreationDateToParentCreationDate(MarcRecord marcRecord) throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getParentRecordId(), reader.getParentAgencyIdAsInt()).getContent());
 
@@ -373,17 +376,20 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     }
 
     private void logRecordInfo(MarcRecordReader updReader) throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Delete?..................: " + updReader.markedForDeletion());
-            LOGGER.info("Library group?...........: " + state.getLibraryGroup());
-            LOGGER.info("Schema name?.............: " + state.getSchemaName());
-            LOGGER.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
-            LOGGER.info("agency id?...............: " + updReader.getAgencyIdAsInt());
-            LOGGER.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
-            LOGGER.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
-            LOGGER.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
-            LOGGER.info("User is admin?...........: " + state.isAdmin());
-        }
+        LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("Delete?..................: " + updReader.markedForDeletion());
+                log.info("Library group?...........: " + state.getLibraryGroup());
+                log.info("Schema name?.............: " + state.getSchemaName());
+                log.info("RR record exists?........: " + rawRepo.recordExists(updReader.getRecordId(), updReader.getAgencyIdAsInt()));
+                log.info("agency id?...............: " + updReader.getAgencyIdAsInt());
+                log.info("RR common library?.......: " + (updReader.getAgencyIdAsInt() == RawRepo.COMMON_AGENCY));
+                log.info("DBC agency?..............: " + RawRepo.DBC_AGENCY_LIST.contains(updReader.getAgencyId()));
+                log.info("isDoubleRecordPossible?..: " + state.isDoubleRecordPossible());
+                log.info("User is admin?...........: " + state.isAdmin());
+            }
+            return null;
+        });
     }
 
     private boolean commonRecordExists(List<MarcRecord> records, MarcRecord rec) throws UpdateException {
@@ -423,9 +429,11 @@ class UpdateOperationAction extends AbstractRawRepoAction {
             rawRepoAgencyId = RawRepo.COMMON_AGENCY;
         }
         final RecordId newRecordId = new RecordId(recordId, rawRepoAgencyId);
-        LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
         final Set<RecordId> recordIdSet = rawRepo.children(newRecordId);
-        LOGGER.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
+        LOGGER.use(log -> {
+            log.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().newRecordId: %s", newRecordId));
+            log.debug(String.format("UpdateOperationAction.checkRecordForDeleteability().recordIdSet: %s", recordIdSet));
+        });
         if (!recordIdSet.isEmpty()) {
             for (RecordId childRecordId : recordIdSet) {
                 // If all child records are 870974 littolk then the record can be deleted anyway
@@ -546,26 +554,29 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * As the n55 field is a temporary field that shouldn't be saved in rawrepo it is removed from the record before saving.
      */
     private void handleSetCreateOverwriteDate() throws UpdateException {
-        LOGGER.debug("Checking for n55 field");
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
+        LOGGER.callChecked(log -> {
+            log.debug("Checking for n55 field");
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
-        if (reader.hasSubfield("n55", "a")) {
-            final String dateString = reader.getValue("n55", "a");
-            if (dateString != null && !dateString.isEmpty()) {
-                final boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
-                // We only want to set the created date to a specific value if the record is new
-                if (!recordExists) {
-                    final Instant instant = formatter.parse(dateString, Instant::from);
+            if (reader.hasSubfield("n55", "a")) {
+                final String dateString = reader.getValue("n55", "a");
+                if (dateString != null && !dateString.isEmpty()) {
+                    final boolean recordExists = rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt());
+                    // We only want to set the created date to a specific value if the record is new
+                    if (!recordExists) {
+                        final Instant instant = formatter.parse(dateString, Instant::from);
 
-                    state.setCreateOverwriteDate(instant);
-                    LOGGER.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
+                        state.setCreateOverwriteDate(instant);
+                        log.info("Found overwrite create date value: {}. Field has been removed from the record", instant);
+                    }
                 }
-            }
 
-            // Always remove n55 *a as we don't ever want that field in rawrepo.
-            writer.removeField("n55");
-        }
+                // Always remove n55 *a as we don't ever want that field in rawrepo.
+                writer.removeField("n55");
+            }
+            return null;
+        });
     }
 
     /**
@@ -574,54 +585,56 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      * Because d09, which contains the LIT code is placed in the 191919 record, we only do it for such.
      *
      * @throws UpdateException              In case of an error.
-     * @throws UnsupportedEncodingException If the record can't be decoded
      */
-    private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException, UnsupportedEncodingException {
-        try {
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            LOGGER.debug("GOT REC {}", marcRecord);
+    private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException {
+        LOGGER.callChecked(log -> {
+            try {
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                log.debug("GOT REC {}", marcRecord);
 
-            // Check if a 191919 record
-            if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {
-                LOGGER.debug("Not a 191919");
-                return;
-            }
-
-            if (!rawRepo.recordExists(reader.getRecordId(), RawRepo.DBC_ENRICHMENT)) {
-                LOGGER.debug("No existing record");
-                return;
-            }
-
-            Pattern p = Pattern.compile("^LIT[0-9]{6}");
-            // There is a d09zLIT in incoming record
-            if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
-                LOGGER.debug("there is a d09");
-                return;
-            }
-
-            final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedDBCRecord(reader.getRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
-            final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
-            // There isn't a d09zLIT in incoming record and there is one in existing record
-            if (!existingReader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
-                final Set<RecordId> childrenRecords = state.getRawRepo().children(new RecordId(existingReader.getRecordId(), existingReader.getAgencyIdAsInt()));
-                for (RecordId recordId : childrenRecords) {
-                    if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
-                        final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().
-                                fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
-                        new MarcRecordWriter(littolkEnrichment).markForDeletion();
-                        children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
-
-                        final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().
-                                fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
-                        new MarcRecordWriter(littolkRecord).markForDeletion();
-                        children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
-                    }
+                // Check if a 191919 record
+                if (RawRepo.DBC_ENRICHMENT != reader.getAgencyIdAsInt()) {
+                    log.debug("Not a 191919");
+                    return null;
                 }
 
+                if (!rawRepo.recordExists(reader.getRecordId(), RawRepo.DBC_ENRICHMENT)) {
+                    log.debug("No existing record");
+                    return null;
+                }
+
+                Pattern p = Pattern.compile("^LIT[0-9]{6}");
+                // There is a d09zLIT in incoming record
+                if (!reader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
+                    log.debug("there is a d09");
+                    return null;
+                }
+
+                final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedDBCRecord(reader.getRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
+                // There isn't a d09zLIT in incoming record and there is one in existing record
+                if (!existingReader.getSubfieldValueMatchers("d09", "z", p).isEmpty()) {
+                    final Set<RecordId> childrenRecords = state.getRawRepo().children(new RecordId(existingReader.getRecordId(), existingReader.getAgencyIdAsInt()));
+                    for (RecordId recordId : childrenRecords) {
+                        if (recordId.getAgencyId() == RawRepo.LITTOLK_AGENCY) {
+                            final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(state.getRawRepo().
+                                    fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                            new MarcRecordWriter(littolkEnrichment).markForDeletion();
+                            children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
+
+                            final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().
+                                    fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+                            new MarcRecordWriter(littolkRecord).markForDeletion();
+                            children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
+                        }
+                    }
+
+                }
+            } catch (Throwable e) {
+                log.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
+                throw e;
             }
-        } catch (Throwable e) {
-            LOGGER.info("performActionsForRemovedLITWeekNumber fails with : {}", e.toString());
-            throw e;
-        }
+            return null;
+        });
     }
 }

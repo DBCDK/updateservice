@@ -23,7 +23,6 @@ import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 
 import javax.ejb.EJBException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -81,7 +80,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        return LOGGER.callChecked2(log -> {
+        return LOGGER.callChecked(log -> {
             try {
                 log.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
                 if (log.isInfoEnabled()) {
@@ -183,151 +182,143 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
     private List<MessageEntryDTO> authenticateCommonRecord() throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
-            try {
-                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-                final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-                final String recordId = reader.getRecordId();
-                final int agencyId = reader.getAgencyIdAsInt();
-                final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-                final String owner = reader.getValue("996", "a");
+            final String recordId = reader.getRecordId();
+            final int agencyId = reader.getAgencyIdAsInt();
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+            final String owner = reader.getValue("996", "a");
 
-                log.info("Record agency: {}", agencyId);
-                log.info("New owner: {}", owner);
+            log.info("Record agency: {}", agencyId);
+            log.info("New owner: {}", owner);
 
-                if (!state.getRawRepo().recordExists(recordId, agencyId)) {
-                    log.debug("Checking authentication for new common record.");
-
-                    if (owner == null || owner.isEmpty()) {
-                        return createErrorReply(resourceBundle.getString("create.common.record.error"));
-                    }
-
-                    if (!owner.equals(groupId)) {
-                        return createErrorReply(resourceBundle.getString("create.common.record.other.library.error"));
-                    }
-
-                    return createOkReply();
-                }
-
-                log.debug("Checking authentication for updating existing common record.");
-                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
-                final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-                final String curOwner = curReader.getValue("996", "a");
-
-                log.info("Current owner: {}", curOwner);
-
-                if ("DBC".equals(curOwner)) {
-                    log.info("Owner is DBC");
-                    if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
-                        return createErrorReply(resourceBundle.getString("update.common.record.owner.dbc.error"));
-                    }
-                    return createOkReply();
-                }
-
-                if ("RET".equals(curOwner)) {
-                    log.info("Owner is RET");
-                    if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)) {
-                        return createErrorReply(resourceBundle.getString("update.common.record.error"));
-                    }
-                    log.info("New value of 008 *v is {}", reader.getValue("008", "v"));
-                    log.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
-                    if ("4".equals(curReader.getValue("008", "v"))) {
-                        final List<String> allowedKatValues = Arrays.asList("0", "1", "5");
-                        if (!allowedKatValues.contains(reader.getValue("008", "v"))) {
-                            return createErrorReply(resourceBundle.getString("update.common.record.katalogiseringsniveau.error"));
-                        }
-                    }
-                    return createOkReply();
-                }
+            if (!state.getRawRepo().recordExists(recordId, agencyId)) {
+                log.debug("Checking authentication for new common record.");
 
                 if (owner == null || owner.isEmpty()) {
-                    log.info("Owner is empty");
-                    return createErrorReply(resourceBundle.getString("update.common.record.error"));
+                    return createErrorReply(resourceBundle.getString("create.common.record.error"));
                 }
 
-            /*
-                If a record is owned by SBCI then a non-SBCI agency can't change the record. In other words, if the
-                current owner (996 *a) is SBCI then the agency updating the record and the owner of the updated record
-                must both be SBCI.
-             */
-                if (state.getVipCoreService().getLibraryGroup(curOwner).isSBCI() &&
-                        !(state.getVipCoreService().getLibraryGroup(groupId).isSBCI() &&
-                                state.getVipCoreService().getLibraryGroup(owner).isSBCI())) {
-                    return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
-                }
-
-             /*
-                AUTH_PUBLIC_LIB_COMMON_RECORD er i vip : Ret fællespost - Har ret til at rette og overtage en folkebiblioteksejet fællesskabspost
-                Hvis ejer af eksisterende post har sat AUTH_PUBLIC_LIB_COMMON_RECORD så :
-                hvis ejer(996) af indsendt post er forskellig fra groupId så fejl : Du har ikke ret til at give ejerskabet for en folkebiblioteksejet fællesskabspost til et andet bibliotek
-                hvis bibliotek groupId ikke har sat AUTH_PUBLIC_LIB_COMMON_RECORD så fejl : Du har ikke ret til at overtage ejerskabet for en folkebiblioteksejet fællesskabspost
-                ellers retur ok
-             */
-                if (state.getVipCoreService().hasFeature(curOwner, VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
-                    log.info("Owner has AUTH_PUBLIC_LIB_COMMON_RECORD permission");
-                    if (!owner.equals(groupId)) {
-                        return createErrorReply(resourceBundle.getString("update.common.record.give.public.library.error"));
-                    }
-
-                    if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
-                        return createErrorReply(resourceBundle.getString("update.common.record.take.public.library.error"));
-                    }
-                    return createOkReply();
-                }
-
-                if (!(owner.equals(groupId) && groupId.equals(curOwner))) {
-                    return createErrorReply(resourceBundle.getString("update.common.record.other.library.error"));
+                if (!owner.equals(groupId)) {
+                    return createErrorReply(resourceBundle.getString("create.common.record.other.library.error"));
                 }
 
                 return createOkReply();
-            } catch (UnsupportedEncodingException ex) {
-                throw new UpdateException(ex.getMessage(), ex);
             }
+
+            log.debug("Checking authentication for updating existing common record.");
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
+            final String curOwner = curReader.getValue("996", "a");
+
+            log.info("Current owner: {}", curOwner);
+
+            if ("DBC".equals(curOwner)) {
+                log.info("Owner is DBC");
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)) {
+                    return createErrorReply(resourceBundle.getString("update.common.record.owner.dbc.error"));
+                }
+                return createOkReply();
+            }
+
+            if ("RET".equals(curOwner)) {
+                log.info("Owner is RET");
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)) {
+                    return createErrorReply(resourceBundle.getString("update.common.record.error"));
+                }
+                log.info("New value of 008 *v is {}", reader.getValue("008", "v"));
+                log.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
+                if ("4".equals(curReader.getValue("008", "v"))) {
+                    final List<String> allowedKatValues = Arrays.asList("0", "1", "5");
+                    if (!allowedKatValues.contains(reader.getValue("008", "v"))) {
+                        return createErrorReply(resourceBundle.getString("update.common.record.katalogiseringsniveau.error"));
+                    }
+                }
+                return createOkReply();
+            }
+
+            if (owner == null || owner.isEmpty()) {
+                log.info("Owner is empty");
+                return createErrorReply(resourceBundle.getString("update.common.record.error"));
+            }
+
+        /*
+            If a record is owned by SBCI then a non-SBCI agency can't change the record. In other words, if the
+            current owner (996 *a) is SBCI then the agency updating the record and the owner of the updated record
+            must both be SBCI.
+         */
+            if (state.getVipCoreService().getLibraryGroup(curOwner).isSBCI() &&
+                    !(state.getVipCoreService().getLibraryGroup(groupId).isSBCI() &&
+                            state.getVipCoreService().getLibraryGroup(owner).isSBCI())) {
+                return createErrorReply(resourceBundle.getString("update.common.record.change.record.700300"));
+            }
+
+         /*
+            AUTH_PUBLIC_LIB_COMMON_RECORD er i vip : Ret fællespost - Har ret til at rette og overtage en folkebiblioteksejet fællesskabspost
+            Hvis ejer af eksisterende post har sat AUTH_PUBLIC_LIB_COMMON_RECORD så :
+            hvis ejer(996) af indsendt post er forskellig fra groupId så fejl : Du har ikke ret til at give ejerskabet for en folkebiblioteksejet fællesskabspost til et andet bibliotek
+            hvis bibliotek groupId ikke har sat AUTH_PUBLIC_LIB_COMMON_RECORD så fejl : Du har ikke ret til at overtage ejerskabet for en folkebiblioteksejet fællesskabspost
+            ellers retur ok
+         */
+            if (state.getVipCoreService().hasFeature(curOwner, VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
+                log.info("Owner has AUTH_PUBLIC_LIB_COMMON_RECORD permission");
+                if (!owner.equals(groupId)) {
+                    return createErrorReply(resourceBundle.getString("update.common.record.give.public.library.error"));
+                }
+
+                if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)) {
+                    return createErrorReply(resourceBundle.getString("update.common.record.take.public.library.error"));
+                }
+                return createOkReply();
+            }
+
+            if (!(owner.equals(groupId) && groupId.equals(curOwner))) {
+                return createErrorReply(resourceBundle.getString("update.common.record.other.library.error"));
+            }
+
+            return createOkReply();
         });
     }
 
     List<MessageEntryDTO> authenticateMetaCompassField() throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
-            try {
-                final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-                final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-                final MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
-                final MarcField field665 = recordReader.getField("665");
+            final MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
+            final MarcField field665 = recordReader.getField("665");
 
-                if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
-                    final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
-                    final MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
-                    final MarcField curField665 = curRecordReader.getField("665");
+            if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
+                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                final MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
+                final MarcField curField665 = curRecordReader.getField("665");
 
-                    if (field665 != null && curField665 == null ||
-                            field665 == null && curField665 != null ||
-                            field665 != null && !field665.equals(curField665)) {
-                        log.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
-                        final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
+                if (field665 != null && curField665 == null ||
+                        field665 == null && curField665 != null ||
+                        field665 != null && !field665.equals(curField665)) {
+                    log.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
+                    final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
-                        if (!canChangeMetaCompassRule) {
-                            log.info("GroupId {} does not have permission to change field 665, so returning error", groupId);
-                            return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
-                        }
-                    }
-                } else {
-                    if (field665 != null) {
-                        log.info("Field 665 is present in new record - checking if {} has permission to use field 665", groupId);
-                        final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
-
-                        if (!canChangeMetaCompassRule) {
-                            log.info("GroupId {} does not have permission to use field 665, so returning error", groupId);
-                            return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
-                        }
+                    if (!canChangeMetaCompassRule) {
+                        log.info("GroupId {} does not have permission to change field 665, so returning error", groupId);
+                        return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
                     }
                 }
+            } else {
+                if (field665 != null) {
+                    log.info("Field 665 is present in new record - checking if {} has permission to use field 665", groupId);
+                    final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
-                return createOkReply();
-            } catch (UnsupportedEncodingException ex) {
-                throw new UpdateException(ex.getMessage(), ex);
+                    if (!canChangeMetaCompassRule) {
+                        log.info("GroupId {} does not have permission to use field 665, so returning error", groupId);
+                        return createErrorReply(resourceBundle.getString("missing.auth.meta.compass"));
+                    }
+                }
             }
+
+            return createOkReply();
         });
     }
 

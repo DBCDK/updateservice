@@ -14,7 +14,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -92,39 +91,35 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            try {
-                final MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
-                final MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
-                writer.addOrReplaceSubfield("001", "a", targetRecordId);
+            final MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
+            final MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
+            writer.addOrReplaceSubfield("001", "a", targetRecordId);
 
-                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-                final String recordId = reader.getRecordId();
-                final String agencyId = reader.getAgencyId();
-                log.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recordId = reader.getRecordId();
+            final String agencyId = reader.getAgencyId();
+            log.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
 
-                if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
-                    log.info("Enrichment record has classifications. Creating sub action to update it.");
+            if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
+                log.info("Enrichment record has classifications. Creating sub action to update it.");
+                return createUpdateRecordAction(newEnrichmentRecord);
+            }
+            final MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+
+            log.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
+            log.debug("isLinkRecInProduction {} ", isLinkRecInProduction);
+
+            if (isClassificationChangedInCommonRecs) {
+                if (isLinkRecInProduction) {
+                    log.info("Creating enrichment record without classifications, because the linkRecord is in production.");
                     return createUpdateRecordAction(newEnrichmentRecord);
-                }
-                final MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
-
-                log.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
-                log.debug("isLinkRecInProduction {} ", isLinkRecInProduction);
-
-                if (isClassificationChangedInCommonRecs) {
-                    if (isLinkRecInProduction) {
-                        log.info("Creating enrichment record without classifications, because the linkRecord is in production.");
-                        return createUpdateRecordAction(newEnrichmentRecord);
-                    } else {
-                        log.info("Creating enrichment record with classifications, because the linkRecord is published.");
-                        return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
-                    }
                 } else {
-                    log.info("Creating enrichment record without classifications, because there are no change in die/live records.");
-                    return createUpdateRecordAction(newEnrichmentRecord);
+                    log.info("Creating enrichment record with classifications, because the linkRecord is published.");
+                    return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
                 }
-            } catch (UnsupportedEncodingException ex) {
-                throw new UpdateException(ex.getMessage(), ex);
+            } else {
+                log.info("Creating enrichment record without classifications, because there are no change in die/live records.");
+                return createUpdateRecordAction(newEnrichmentRecord);
             }
         });
     }

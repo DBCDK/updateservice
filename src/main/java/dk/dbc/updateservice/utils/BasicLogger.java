@@ -8,7 +8,70 @@ public interface BasicLogger extends Logger {
 
     void log(Level level, String msg, Object[] params, Throwable t);
 
+    void log(Level level, String msg, Object[] params, Throwable t, boolean deferrable);
+
     boolean isEnabledFor(Level level);
+
+    default void debugImmediately(String msg) {
+        log(Level.DEBUG, msg, null, null, false);
+    }
+
+    default void debugImmediately(String msg, Object p) {
+        log(Level.DEBUG, msg, new Object[]{p}, null, false);
+    }
+
+    default void debugImmediately(String msg, Object p, Object p1) {
+        log(Level.DEBUG, msg, new Object[]{p, p1}, null, false);
+    }
+
+    default void debugImmediately(String msg, Object... objects) {
+        log(Level.DEBUG, msg, objects, null, false);
+    }
+
+    default void debugImmediately(String msg, Throwable throwable) {
+        log(Level.DEBUG, msg, null, throwable, false);
+    }
+
+    default void infoImmediately(String msg) {
+        log(Level.INFO, msg, null, null, false);
+    }
+
+    default void infoImmediately(String msg, Object p) {
+        log(Level.INFO, msg, new Object[]{p}, null, false);
+    }
+
+    default void infoImmediately(String msg, Object p, Object p1) {
+        log(Level.INFO, msg, new Object[]{p, p1}, null, false);
+    }
+
+    default void infoImmediately(String msg, Object... objects) {
+        log(Level.INFO, msg, objects, null, false);
+    }
+
+    default void infoImmediately(String msg, Throwable throwable) {
+        log(Level.INFO, msg, null, throwable, false);
+    }
+
+    default void warnImmediately(String msg) {
+        log(Level.WARN, msg, null, null, false);
+    }
+
+    default void warnImmediately(String msg, Object p) {
+        log(Level.WARN, msg, new Object[]{p}, null, false);
+    }
+
+    default void warnImmediately(String msg, Object p, Object p1) {
+        log(Level.WARN, msg, new Object[]{p, p1}, null, false);
+    }
+
+    default void warnImmediately(String msg, Object... objects) {
+        log(Level.WARN, msg, objects, null, false);
+    }
+
+    default void warnImmediately(String msg, Throwable throwable) {
+        log(Level.WARN, msg, null, throwable, false);
+    }
+
 
     // Basic log interface
     @Override

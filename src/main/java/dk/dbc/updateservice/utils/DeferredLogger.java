@@ -5,6 +5,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -16,6 +17,7 @@ import java.util.function.Function;
  * upon which all buffered statements for the context will be logged.
  */
 public class DeferredLogger {
+    public static final boolean DEFER_ENABLED = Boolean.parseBoolean(System.getProperty("DEFER_ENABLED", "true"));
     public final Set<Level> deferring;
     public final Logger logger;
     public final int eventLimit;
@@ -79,6 +81,14 @@ public class DeferredLogger {
         });
     }
 
+    public static boolean traceFilter(StackTraceElement stackTraceElement) {
+        return !DeferredLogger.class.getName().equals(stackTraceElement.getClassName());
+    }
+
+    private StackTraceElement[] cleanStackTrace(StackTraceElement[] stackTraceElements) {
+        return Arrays.stream(stackTraceElements).filter(DeferredLogger::traceFilter).toArray(StackTraceElement[]::new);
+    }
+
     /**
      * A logging context in which logging statements are deferred until a non-deferred statements is invoked
      */
@@ -100,23 +110,49 @@ public class DeferredLogger {
             return logger.isEnabledFor(level);
         }
 
+        @Override
         public void log(Level level, String msg, Object[] params, Throwable t) {
+            log(level, msg, params, t, true);
+        }
+
+        @Override
+        public void log(Level level, String msg, Object[] params, Throwable t, boolean deferrable) {
             if(!logger.isEnabledFor(level)) return;
-            LoggingEvent le = new LoggingEvent(DeferredLogger.class.getName(), logger, level, msg, t, params);
-            if(deferring.contains(level)) {
+            if(t != null) {
+                t.setStackTrace(cleanStackTrace(t.getStackTrace()));
+            }
+            LoggingEvent le = new FilteredLoggingEvent(DeferredLogger.class.getName(), logger, level, msg, t, params);
+            if(!DEFER_ENABLED) {
+                logger.callAppenders(le);
+                return;
+            }
+            boolean deferredLevel = deferring.contains(level);
+            if(deferrable && deferredLevel) {
                 LinkedList<LoggingEvent> events = deferredLogs.get();
                 events.add(le);
                 if(events.size() > eventLimit) events.removeFirst();
             } else {
                 logger.callAppenders(le);
-                logDeferred();
+                if(!deferredLevel) logDeferred();
             }
         }
+
 
         private void logDeferred() {
             LinkedList<LoggingEvent> events = deferredLogs.get();
             events.forEach(logger::callAppenders);
             events.clear();
+        }
+    }
+
+    public class FilteredLoggingEvent extends LoggingEvent {
+        public FilteredLoggingEvent(String name, Logger logger, Level level, String msg, Throwable t, Object[] params) {
+            super(name, logger, level, msg, t, params);
+        }
+
+        @Override
+        public StackTraceElement[] getCallerData() {
+            return cleanStackTrace(super.getCallerData());
         }
     }
 }

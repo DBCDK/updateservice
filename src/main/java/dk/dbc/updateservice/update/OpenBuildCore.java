@@ -18,11 +18,10 @@ import dk.dbc.updateservice.dto.BuildRequestDTO;
 import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -48,7 +47,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
 public class OpenBuildCore {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(OpenBuildCore.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(OpenBuildCore.class);
     private static final Properties buildProperties = JNDIResources.getProperties();
 
     @Inject
@@ -64,61 +63,63 @@ public class OpenBuildCore {
     }
 
     public BuildResponseDTO build(BuildRequestDTO parameters) {
-        final StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
-        BuildResponseDTO buildResponseDTO = null;
-        try {
-            if (!checkValidateSchema(parameters.getSchemaName())) {
-                LOGGER.warn("Wrong validate schema: {}", parameters.getSchemaName());
-                buildResponseDTO = new BuildResponseDTO();
-                buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_SCHEMA);
+        return LOGGER.call(log -> {
+            final StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
+            BuildResponseDTO buildResponseDTO = null;
+            try {
+                if (!checkValidateSchema(parameters.getSchemaName())) {
+                    log.warn("Wrong validate schema: {}", parameters.getSchemaName());
+                    buildResponseDTO = new BuildResponseDTO();
+                    buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_SCHEMA);
+                    return buildResponseDTO;
+                }
+
+                final BibliographicRecordDTO srcRecord = parameters.getBibliographicRecordDTO();
+                // Validate source record schema.
+                if (srcRecord != null && !srcRecord.getRecordSchema().equals(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1)) {
+                    log.warn("Wrong record schema: {}", srcRecord.getRecordSchema());
+                    buildResponseDTO = new BuildResponseDTO();
+                    buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_RECORD_SCHEMA);
+                    return buildResponseDTO;
+                }
+
+                // Validate source record packing.
+                if (srcRecord != null && !srcRecord.getRecordPacking().equals(JNDIResources.RECORD_PACKING_XML)) {
+                    log.warn("Wrong record packing: {}", srcRecord.getRecordPacking());
+                    buildResponseDTO = new BuildResponseDTO();
+                    buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_RECORD_PACKING);
+                    return buildResponseDTO;
+                }
+
+                MarcRecord record = null;
+                if (srcRecord != null) {
+                    record = getMarcRecord(srcRecord.getRecordDataDTO());
+                    log.info("Building using record: {}", record);
+                }
+
+                MarcRecord marcRecord;
+                final StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
+                if (record != null) {
+                    marcRecord = buildRecord(parameters.getSchemaName(), record);
+                } else {
+                    marcRecord = buildRecord(parameters.getSchemaName(), null);
+                }
+                watchBuildRecord.stop();
+
+                final StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
+                buildResponseDTO = buildResult(marcRecord);
+                watchBuildResult.stop();
                 return buildResponseDTO;
-            }
-
-            final BibliographicRecordDTO srcRecord = parameters.getBibliographicRecordDTO();
-            // Validate source record schema.
-            if (srcRecord != null && !srcRecord.getRecordSchema().equals(JNDIResources.RECORD_SCHEMA_MARCXCHANGE_1_1)) {
-                LOGGER.warn("Wrong record schema: {}", srcRecord.getRecordSchema());
+            } catch (Exception ex) {
+                log.error("Caught exception", ex);
                 buildResponseDTO = new BuildResponseDTO();
-                buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_RECORD_SCHEMA);
+                buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INTERNAL_ERROR);
                 return buildResponseDTO;
+            } finally {
+                log.info("BuildResponseDTO: {}", buildResponseDTO);
+                watch.stop();
             }
-
-            // Validate source record packing.
-            if (srcRecord != null && !srcRecord.getRecordPacking().equals(JNDIResources.RECORD_PACKING_XML)) {
-                LOGGER.warn("Wrong record packing: {}", srcRecord.getRecordPacking());
-                buildResponseDTO = new BuildResponseDTO();
-                buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INVALID_RECORD_PACKING);
-                return buildResponseDTO;
-            }
-
-            MarcRecord record = null;
-            if (srcRecord != null) {
-                record = getMarcRecord(srcRecord.getRecordDataDTO());
-                LOGGER.info("Building using record: {}", record);
-            }
-
-            MarcRecord marcRecord;
-            final StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
-            if (record != null) {
-                marcRecord = buildRecord(parameters.getSchemaName(), record);
-            } else {
-                marcRecord = buildRecord(parameters.getSchemaName(), null);
-            }
-            watchBuildRecord.stop();
-
-            final StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
-            buildResponseDTO = buildResult(marcRecord);
-            watchBuildResult.stop();
-            return buildResponseDTO;
-        } catch (Exception ex) {
-            LOGGER.error("Caught exception", ex);
-            buildResponseDTO = new BuildResponseDTO();
-            buildResponseDTO.setBuildStatusEnumDTO(BuildStatusEnumDTO.FAILED_INTERNAL_ERROR);
-            return buildResponseDTO;
-        } finally {
-            LOGGER.info("BuildResponseDTO: {}", buildResponseDTO);
-            watch.stop();
-        }
+        });
     }
 
     public static String createTrackingId() {
@@ -163,7 +164,6 @@ public class OpenBuildCore {
 
             return opencatBusinessConnector.buildRecord(buildSchema, marcRecord, trackingId);
         } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
-            LOGGER.error(ex.getLocalizedMessage());
             throw new EJBException("Error calling OpencatBusinessConnector", ex);
         } finally {
             watch.stop();

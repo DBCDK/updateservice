@@ -14,7 +14,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -50,12 +49,12 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             } else {
                 return performActionDefault();
             }
-        } catch (RawRepoException | UnsupportedEncodingException ex) {
+        } catch (RawRepoException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
-    private ServiceResult performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
+    private ServiceResult performActionDefault() throws UpdateException, RawRepoException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
         final String parentId = reader.getParentRecordId();

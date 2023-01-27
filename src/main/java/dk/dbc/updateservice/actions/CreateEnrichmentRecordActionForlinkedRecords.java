@@ -20,7 +20,6 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -115,12 +114,8 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
     }
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
-        try {
-            final Record record = rawRepo.fetchRecord(recordId, agencyId);
-            return RecordContentTransformer.decodeRecord(record.getContent());
-        } catch (UnsupportedEncodingException e) {
-            throw new UpdateException(e.getMessage(), e);
-        }
+        final Record record = rawRepo.fetchRecord(recordId, agencyId);
+        return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
     private MarcRecord createEnrichmentRecord() throws UpdateException {

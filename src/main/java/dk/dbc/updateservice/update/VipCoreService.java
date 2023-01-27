@@ -5,6 +5,7 @@
 
 package dk.dbc.updateservice.update;
 
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.marshallers.LibraryRule;
@@ -12,8 +13,6 @@ import dk.dbc.vipcore.marshallers.LibraryRules;
 import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
@@ -23,7 +22,7 @@ import java.util.Set;
 
 @Stateless
 public class VipCoreService {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(VipCoreService.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(VipCoreService.class);
     private static final String LIBRARY_RULE_MESSAGE = "LibraryRule {} for {} is {}";
 
     @Inject
@@ -48,20 +47,19 @@ public class VipCoreService {
 
     public boolean hasFeature(String agencyId, VipCoreLibraryRulesConnector.Rule feature) throws VipCoreException {
         final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
-
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
-
-            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
-                if (libraryRule.getName().equals(feature.getValue())) {
-                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, feature.getValue(), libraryRule);
-                    if (libraryRule.getBool() != null) {
-                        return libraryRule.getBool();
+            return LOGGER.call(log -> {
+                for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
+                    if (libraryRule.getName().equals(feature.getValue())) {
+                        log.debug(LIBRARY_RULE_MESSAGE, agencyId, feature.getValue(), libraryRule);
+                        if (libraryRule.getBool() != null) {
+                            return libraryRule.getBool();
+                        }
                     }
                 }
-            }
-
-            return false;
+                return false;
+            });
         } finally {
             watch.stop();
         }
@@ -69,41 +67,17 @@ public class VipCoreService {
 
     public LibraryGroup getLibraryGroup(String agencyId) throws VipCoreException, UpdateException {
         final StopWatch watch = new Log4JStopWatch("service.vipcore.getLibraryGroup");
-        String reply = "";
-        LibraryGroup result;
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
-
-            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
-                if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
-                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
-                    reply = libraryRule.getString();
-                }
-            }
-
-            switch (reply) {
-                case "dbc":
-                case "ffu":
-                case "lokbib":
-                    result = LibraryGroup.DBC;
-                    break;
-                case "ph":
-                    result = LibraryGroup.PH;
-                    break;
-                case "fbs":
-                case "fbslokal":
-                case "skole":
-                    result = LibraryGroup.FBS;
-                    break;
-                case "sbci":
-                    result = LibraryGroup.SBCI;
-                    break;
-                default:
-                    throw new UpdateException("Unknown library group: " + reply);
-            }
-
-            LOGGER.info("Agency '{}' has LibraryGroup {}", agencyId, result);
-            return result;
+            String ruleGroupName = libraryRules.getLibraryRule().stream()
+                    .filter(libraryRule -> libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue()))
+                    .findFirst()
+                    .map(LibraryRule::getString)
+                    .orElseThrow(() -> new UpdateException("Found no library rule for agencyId : " + agencyId));
+            LibraryGroup libraryGroup = LibraryGroup.fromRule(ruleGroupName)
+                    .orElseThrow(() -> new UpdateException("Got an unknown library group: " + ruleGroupName + " for agencyId: " + agencyId));
+            LOGGER.use(log -> log.info("Agency '{}' has LibraryGroup {}", agencyId, libraryGroup));
+            return libraryGroup;
         } finally {
             watch.stop();
         }
@@ -113,16 +87,17 @@ public class VipCoreService {
         StopWatch watch = new Log4JStopWatch("service.vipcore.getTemplateGroup");
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
-
-            for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
-                if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
-                    LOGGER.debug(LIBRARY_RULE_MESSAGE, agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
-                    LOGGER.info("Agency '{}' has LibraryGroup {}", agencyId, libraryRule.getString());
-                    return libraryRule.getString();
+            return LOGGER.callChecked(log -> {
+                for (LibraryRule libraryRule : libraryRules.getLibraryRule()) {
+                    if (libraryRule.getName().equals(VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue())) {
+                        log.debug(LIBRARY_RULE_MESSAGE, agencyId, VipCoreLibraryRulesConnector.Rule.CATALOGING_TEMPLATE_SET.getValue(), libraryRule);
+                        log.info("Agency '{}' has LibraryGroup {}", agencyId, libraryRule.getString());
+                        return libraryRule.getString();
+                    }
                 }
-            }
 
-            throw new UpdateException("Could not find templateGroup for " + agencyId);
+                throw new UpdateException("Could not find templateGroup for " + agencyId);
+            });
         } finally {
             watch.stop();
         }

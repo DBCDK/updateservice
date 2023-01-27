@@ -56,4 +56,26 @@ public class DeferredLoggerTest {
         Assert.assertEquals("Four messages should be logged", 4, appender.list.size());
         Assert.assertTrue("All messages must contain \"will log\"", appender.list.stream().allMatch(e -> e.getMessage().contains("will log")));
     }
+
+    @Test
+    public void testStacktrace() {
+        int returnValue = LOGGER.call(l1 -> {
+            try {
+                return LOGGER.call(l2 -> {
+                    l2.trace("trace will not log");
+                    l2.info("info will log");
+                    return LOGGER.call(l3 -> {
+                        l3.error("error will log");
+                        l3.warn("warn will log");
+                        l3.info("info will not log");
+                        throw new RuntimeException("test");
+                    });
+
+                });
+            } catch (Exception e) {
+                l1.warn("Got some exception", e);
+                return 1;
+            }
+        });
+    }
 }

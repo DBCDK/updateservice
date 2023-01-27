@@ -59,12 +59,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 performActionDefault();
             }
             return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException | RawRepoException ex) {
+        } catch (RawRepoException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
-    void performActionDBCRecord() throws UnsupportedEncodingException, UpdateException, RawRepoException {
+    void performActionDBCRecord() throws UpdateException, RawRepoException {
         LOGGER.use(log -> log.info("Performing action for DBC record"));
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
@@ -163,9 +163,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * @param marcRecord The incoming authority record
      * @return True if field 100, 110, 400, 410, 500 or 510 has been changed
      * @throws UpdateException
-     * @throws UnsupportedEncodingException
      */
-    boolean shouldUpdateChildrenModifiedDate(MarcRecord marcRecord) throws UpdateException, RawRepoException, UnsupportedEncodingException {
+    boolean shouldUpdateChildrenModifiedDate(MarcRecord marcRecord) throws UpdateException, RawRepoException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         // Suppress updating B-records if A-record has "minusAJOUR" even if there are proof printing changes in field 100/400/500.
@@ -194,7 +193,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return false;
     }
 
-    boolean authorityRecordHasClassificationChange(MarcRecord marcRecord) throws UpdateException, RawRepoException, UnsupportedEncodingException {
+    boolean authorityRecordHasClassificationChange(MarcRecord marcRecord) throws UpdateException, RawRepoException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
@@ -212,7 +211,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         This record find all agencies with enrichments or holdings for the volume records in under the input record.
         The function calls it self recursively until the hierarchy has been traversed
      */
-    private void findChildrenAndHoldingsOnChildren(MarcRecord marcRecord, Set<Integer> librariesWithPosts) throws UpdateException, UnsupportedEncodingException {
+    private void findChildrenAndHoldingsOnChildren(MarcRecord marcRecord, Set<Integer> librariesWithPosts) throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
 
@@ -235,7 +234,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return Arrays.asList("s", "h").contains(new MarcRecordReader(marcRecord).getValue("004", "a"));
     }
 
-    private void performActionDefault() throws UnsupportedEncodingException, UpdateException, RawRepoException {
+    private void performActionDefault() throws UpdateException, RawRepoException {
         LOGGER.use(log -> log.info("Performing default action "));
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
         children.add(new RemoveLinksAction(state, marcRecord));
@@ -275,7 +274,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         });
     }
 
-    MarcRecord loadCurrentRecord() throws UpdateException, RawRepoException, UnsupportedEncodingException {
+    MarcRecord loadCurrentRecord() throws UpdateException, RawRepoException {
         if (this.currentMarcRecord == null) {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
@@ -299,7 +298,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return RecordContentTransformer.decodeRecord(record.getContent());
     }
 
-    MarcRecord expandRecord() throws UpdateException, UnsupportedEncodingException, RawRepoException {
+    MarcRecord expandRecord() throws UpdateException, RawRepoException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
 
@@ -328,8 +327,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
     }
 
-    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord marcRecord, MarcRecord currentRecord) throws UpdateException, UnsupportedEncodingException {
-        return LOGGER.<List<ServiceAction>, UpdateException, UnsupportedEncodingException>callChecked2(log -> {
+    List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord marcRecord, MarcRecord currentRecord) throws UpdateException {
+        return LOGGER.callChecked(log -> {
             final List<ServiceAction> result = new ArrayList<>();
             try {
                 final MarcRecordReader reader = new MarcRecordReader(marcRecord);

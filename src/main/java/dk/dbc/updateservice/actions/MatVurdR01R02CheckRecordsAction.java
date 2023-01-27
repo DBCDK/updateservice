@@ -16,7 +16,6 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -87,68 +86,62 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
      * Please note that the ids list may be long and that the list of matvurd records containing these numbers may be large.
      */
     private ServiceResult checkR01R02Content(List<String> ids, String thisId, int hasSchool, boolean hasLED) throws UpdateException {
-        try {
-            for (String id : ids) {
-                // for each id we get relations and look at content in those
-                int count = 1;
-                boolean idHasLED = hasLED;
-                int idHasSchool = hasSchool;
-                final RecordId recordId = new RecordId(id, RawRepo.COMMON_AGENCY);
-                final Set<RecordId> childrenIds = state.getRawRepo().children(recordId);
-                for (RecordId recordId1 : childrenIds) {
-                    final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId1.getBibliographicRecordId(), recordId1.getAgencyId()).getContent());
-                    final MarcRecordReader reader = new MarcRecordReader(curRecord);
-                    if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt() && !thisId.equals(reader.getRecordId())) {
-                        for (String content : reader.getValues("032", "x")) {
-                            if (content.startsWith("LED")) {
-                                idHasLED = true;
-                                break;
-                            }
+        for (String id : ids) {
+            // for each id we get relations and look at content in those
+            int count = 1;
+            boolean idHasLED = hasLED;
+            int idHasSchool = hasSchool;
+            final RecordId recordId = new RecordId(id, RawRepo.COMMON_AGENCY);
+            final Set<RecordId> childrenIds = state.getRawRepo().children(recordId);
+            for (RecordId recordId1 : childrenIds) {
+                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId1.getBibliographicRecordId(), recordId1.getAgencyId()).getContent());
+                final MarcRecordReader reader = new MarcRecordReader(curRecord);
+                if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt() && !thisId.equals(reader.getRecordId())) {
+                    for (String content : reader.getValues("032", "x")) {
+                        if (content.startsWith("LED")) {
+                            idHasLED = true;
+                            break;
                         }
-                        for (String content : reader.getValues("700", "f")) {
-                            if (content.equals("skole")) {
-                                idHasSchool++;
-                                break;
-                            }
+                    }
+                    for (String content : reader.getValues("700", "f")) {
+                        if (content.equals("skole")) {
+                            idHasSchool++;
+                            break;
                         }
-                        count++;
                     }
+                    count++;
                 }
-                /*
-                Two situations - with or without LED code
-                With LED :
-                    Up to four records and if four then there must be one but only one skole record
-                    If less than four max one may be a skole record
-                Without LED :
-                    Max two records and only one with skole
-                 */
-                if (idHasLED) {
-                    // Up to 4 records are allowed (excluding the current) but only one school
-                    if (count > 4) {
-                        final String message = String.format(state.getMessages().getString("more.than.four.matvurd.hits"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
-                } else {
-                    if (count > 2) {
-                        final String message = String.format(state.getMessages().getString("more.than.two.matvurd.hits"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
-                    if (count == 2 && idHasSchool == 0) {
-                        final String message = String.format(state.getMessages().getString("zero.count.of.school.record"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
-                    if (count == 2 && idHasSchool == 2) {
-                        final String message = String.format(state.getMessages().getString("two.count.of.school.record"), id);
-                        return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-                    }
-                }
-
             }
-        } catch (UnsupportedEncodingException ex) {
-            LOGGER.use(log -> log.error(ex.getMessage(), ex));
-            throw new UpdateException(ex.getMessage(), ex);
-        }
+            /*
+            Two situations - with or without LED code
+            With LED :
+                Up to four records and if four then there must be one but only one skole record
+                If less than four max one may be a skole record
+            Without LED :
+                Max two records and only one with skole
+             */
+            if (idHasLED) {
+                // Up to 4 records are allowed (excluding the current) but only one school
+                if (count > 4) {
+                    final String message = String.format(state.getMessages().getString("more.than.four.matvurd.hits"), id);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+            } else {
+                if (count > 2) {
+                    final String message = String.format(state.getMessages().getString("more.than.two.matvurd.hits"), id);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+                if (count == 2 && idHasSchool == 0) {
+                    final String message = String.format(state.getMessages().getString("zero.count.of.school.record"), id);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+                if (count == 2 && idHasSchool == 2) {
+                    final String message = String.format(state.getMessages().getString("two.count.of.school.record"), id);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+            }
 
+        }
         return null;
     }
 }
