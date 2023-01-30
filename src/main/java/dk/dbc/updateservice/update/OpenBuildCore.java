@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
@@ -64,7 +65,7 @@ public class OpenBuildCore {
 
     public BuildResponseDTO build(BuildRequestDTO parameters) {
         return LOGGER.call(log -> {
-            final StopWatch watch = new Log4JStopWatch("OpenBuildCore.build");
+            final StopWatch watch = new Log4JStopWatch("OpenBuildCore.build").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
             BuildResponseDTO buildResponseDTO = null;
             try {
                 if (!checkValidateSchema(parameters.getSchemaName())) {
@@ -98,7 +99,7 @@ public class OpenBuildCore {
                 }
 
                 MarcRecord marcRecord;
-                final StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord");
+                final StopWatch watchBuildRecord = new Log4JStopWatch("OpenBuildCore.buildRecord").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
                 if (record != null) {
                     marcRecord = buildRecord(parameters.getSchemaName(), record);
                 } else {
@@ -106,7 +107,7 @@ public class OpenBuildCore {
                 }
                 watchBuildRecord.stop();
 
-                final StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult");
+                final StopWatch watchBuildResult = new Log4JStopWatch("OpenBuildCore.buildResult").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
                 buildResponseDTO = buildResult(marcRecord);
                 watchBuildResult.stop();
                 return buildResponseDTO;
@@ -127,7 +128,7 @@ public class OpenBuildCore {
     }
 
     private boolean checkValidateSchema(String name) throws JSONBException, OpencatBusinessConnectorException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplateBuild");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplateBuild").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
@@ -158,7 +159,7 @@ public class OpenBuildCore {
     }
 
     private MarcRecord buildRecord(String buildSchema, MarcRecord marcRecord) {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.buildRecord");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.buildRecord").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 

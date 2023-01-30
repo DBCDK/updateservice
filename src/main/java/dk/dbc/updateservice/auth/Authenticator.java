@@ -17,6 +17,8 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 /**
  * EJB to authenticate users against the idp service.
  */
@@ -48,7 +50,7 @@ public class Authenticator {
      * @throws AuthenticatorException if there are problems communicating with the identity service
      */
     public boolean authenticateUser(AuthenticationDTO authenticationDTO) throws AuthenticatorException {
-        final StopWatch watch = new Log4JStopWatch("service.idp.lookupRight");
+        final StopWatch watch = new Log4JStopWatch("service.idp.lookupRight").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         return LOGGER.callChecked(log -> {
             try {
                 final IDPConnector.RightSet rights = idpConnector.lookupRight(authenticationDTO.getUserId(), authenticationDTO.getGroupId(), authenticationDTO.getPassword());
@@ -63,7 +65,7 @@ public class Authenticator {
     }
 
     public AuthenticationDTO authenticateUser(String bearerToken) throws AuthenticatorException {
-        final StopWatch watch = new Log4JStopWatch("service.login.bib.dk");
+        final StopWatch watch = new Log4JStopWatch("service.login.bib.dk").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             UserInfo userInfo = dbcLoginConnector.userinfo(bearerToken);
             if (userInfo != null

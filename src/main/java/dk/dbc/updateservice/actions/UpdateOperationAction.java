@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
@@ -159,7 +160,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
 
                 // Enrich the record in case the template is the metakompas template with only field 001, 004 and 665
                 if ("metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) && !marcRecord.getFields().isEmpty()) {
-                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass");
+                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.metacompass").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
                     try {
                         final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
                         marcRecord = state.getOpencatBusiness().metacompass(marcRecord, trackingId);

@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
@@ -75,7 +76,7 @@ public class ValidateRecordAction extends AbstractAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord");
+            final StopWatch watch = new Log4JStopWatch("opencatBusiness.validateRecord").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
             try {
                 final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
                 final MarcRecordReader reader = new MarcRecordReader(state.readRecord());

@@ -15,6 +15,7 @@ import java.util.Set;
  */
 @javax.ws.rs.ApplicationPath("rest")
 public class ApplicationConfig extends Application {
+    public static final long LOG_DURATION_THRESHOLD_MS = 200;
     private static final Set<Class<?>> classes = new HashSet<>(
             Arrays.asList(
                     StatusService.class,

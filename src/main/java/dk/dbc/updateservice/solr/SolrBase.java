@@ -24,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 public abstract class SolrBase {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrBase.class);
     private static final String ERROR_CODE = "error";
@@ -86,7 +88,7 @@ public abstract class SolrBase {
     }
 
     public long hits(String query) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hits");
+        final StopWatch watch = new Log4JStopWatch("service.solr.hits").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final URL solrUrl = setUrl(query, "");
             final JsonObject response = callSolr(solrUrl);
@@ -101,7 +103,7 @@ public abstract class SolrBase {
     }
 
     public String getSubjectIdNumber(String query) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hits");
+        final StopWatch watch = new Log4JStopWatch("service.solr.hits").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final URL solrUrl = setUrl(query, "&fl=marc.001a");
             final JsonObject response = callSolr(solrUrl);
@@ -136,7 +138,7 @@ public abstract class SolrBase {
     }
 
     public boolean hasDocuments(String query) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
+        final StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             return hits(query) != 0L;
         } finally {

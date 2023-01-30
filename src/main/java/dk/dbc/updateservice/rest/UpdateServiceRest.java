@@ -47,6 +47,7 @@ import javax.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.util.Optional;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 
@@ -119,7 +120,7 @@ public class UpdateServiceRest {
     @Timed
     public UpdateRecordResponseDTO updateRecord(@Context HttpServletRequest request,
                                                 UpdateServiceRequestDTO updateRecordRequest) {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         return LOGGER.call(log -> {
             MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
             UpdateRecordResponseDTO updateRecordResponseDTO = null;
@@ -178,7 +179,7 @@ public class UpdateServiceRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
         return LOGGER.call(log -> {
             SchemasResponseDTO schemasResponseDTO = null;

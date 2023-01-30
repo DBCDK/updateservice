@@ -57,6 +57,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 /**
  * EJB to provide access to the RawRepo database.
  */
@@ -154,7 +156,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public Set<Integer> agenciesForRecordNotDeleted(String bibliographicRecordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final Set<Integer> activeAgencies = new HashSet<>();
         try {
             if (bibliographicRecordId == null) {
@@ -186,7 +188,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public Set<Integer> agenciesForRecord(String recordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         Set<Integer> result;
         try {
             result = agenciesForRecordAll(recordId);
@@ -200,7 +202,7 @@ public class RawRepo {
     }
 
     public Set<Integer> agenciesForRecordAll(String recordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         Set<Integer> result;
         final String methodName = "allAgenciesForBibliographicRecordId";
 
@@ -236,7 +238,7 @@ public class RawRepo {
     }
 
     public Set<RecordId> children(RecordId recordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "getRelationsChildren";
 
         try {
@@ -267,7 +269,7 @@ public class RawRepo {
     }
 
     public Set<RecordId> parents(RecordId recordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "parents";
 
         try {
@@ -298,7 +300,7 @@ public class RawRepo {
     }
 
     public Set<RecordId> enrichments(RecordId recordId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "getRelationsSiblingsToMe";
 
         try {
@@ -340,7 +342,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public Record fetchRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         Record result = null;
         final String methodName = "fetchRecord";
 
@@ -373,7 +375,7 @@ public class RawRepo {
     }
 
     public Record fetchMergedRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "fetchMergedRecord";
 
         try {
@@ -404,7 +406,7 @@ public class RawRepo {
     }
 
     public Map<String, MarcRecord> fetchRecordCollection(String bibliographicRecordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "fetchRecordCollection";
         Map<String, MarcRecord> result = null;
         Map<String, Record> recordMap;
@@ -451,7 +453,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public Record fetchMergedDBCRecord(String bibliographicRecordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "fetchMergedRecord";
         Record result = null;
         try {
@@ -498,7 +500,7 @@ public class RawRepo {
      */
     public boolean recordExists(String recordId, int agencyId) throws UpdateException {
         LOGGER.info("RawRepo.recordExists, input, recordId={}, agencyId={}", recordId, agencyId);
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "recordExists";
         boolean result = false;
 
@@ -541,7 +543,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public boolean recordExistsMaybeDeleted(String recordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "recordExistsMaybeDeleted";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -575,7 +577,7 @@ public class RawRepo {
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
     public boolean recordDoesNotExistOrIsDeleted(String recordId, int agencyId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "recordExistsMaybeDeleted";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -607,7 +609,7 @@ public class RawRepo {
     }
 
     public void saveRecord(Record record) throws UpdateException {
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "saveRecord";
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -634,7 +636,7 @@ public class RawRepo {
     }
 
     public void removeLinks(RecordId bibliographicRecordId) throws UpdateException {
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -667,7 +669,7 @@ public class RawRepo {
      *                         encapsulated in an UpdateException.
      */
     public void linkRecord(RecordId id, RecordId referId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "setRelationsFrom";
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -701,7 +703,7 @@ public class RawRepo {
      *                         encapsulated in an UpdateException.
      */
     public void linkRecordAppend(RecordId id, RecordId referId) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "linkRecordAppend";
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -731,7 +733,7 @@ public class RawRepo {
     }
 
     public void changedRecord(String provider, RecordId recordId, int priority) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "changedRecord";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -756,7 +758,7 @@ public class RawRepo {
     }
 
     public void enqueue(RecordId recordId, String provider, boolean changed, boolean leaf, int priority) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "enqueue";
 
         try (Connection conn = dataSource.getConnection()) {
@@ -782,7 +784,7 @@ public class RawRepo {
     }
 
     public boolean checkProvider(String provider) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "checkProvider";
         try (Connection conn = dataSource.getConnection()) {
             try {
@@ -843,7 +845,7 @@ public class RawRepo {
      * @throws IllegalStateException If authentication is null.
      */
     protected RawRepoDAO createDAO(Connection conn) throws RawRepoException {
-        final StopWatch watch = new Log4JStopWatch();
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final RawRepoDAO.Builder rawRepoBuilder = RawRepoDAO.builder(conn);
 

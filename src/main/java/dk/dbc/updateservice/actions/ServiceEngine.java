@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 /**
  * Engine to execute a single ServiceAction including all of its children.
  * </p>
@@ -104,7 +106,7 @@ public class ServiceEngine {
      * @throws UpdateException thrown in case of an error.
      */
     public ServiceResult executeAction(ServiceAction action) throws UpdateException {
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final Tag methodTag;
         if (action != null && action.name() != null) {
             methodTag = new Tag(METHOD_NAME_KEY, action.name());

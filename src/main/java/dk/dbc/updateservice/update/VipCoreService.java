@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 @Stateless
 public class VipCoreService {
     private static final DeferredLogger LOGGER = new DeferredLogger(VipCoreService.class);
@@ -36,7 +38,7 @@ public class VipCoreService {
      * @throws VipCoreException something went horribly wrong in the call to vipcore
      */
     public boolean isAuthRootOrCB(String agencyId) throws VipCoreException {
-        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             return hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS) ||
                     hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
@@ -46,7 +48,7 @@ public class VipCoreService {
     }
 
     public boolean hasFeature(String agencyId, VipCoreLibraryRulesConnector.Rule feature) throws VipCoreException {
-        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
             return LOGGER.call(log -> {
@@ -66,7 +68,7 @@ public class VipCoreService {
     }
 
     public LibraryGroup getLibraryGroup(String agencyId) throws VipCoreException, UpdateException {
-        final StopWatch watch = new Log4JStopWatch("service.vipcore.getLibraryGroup");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.getLibraryGroup").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
             String ruleGroupName = libraryRules.getLibraryRule().stream()
@@ -84,7 +86,7 @@ public class VipCoreService {
     }
 
     public String getTemplateGroup(String agencyId) throws VipCoreException, UpdateException {
-        StopWatch watch = new Log4JStopWatch("service.vipcore.getTemplateGroup");
+        StopWatch watch = new Log4JStopWatch("service.vipcore.getTemplateGroup").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);
             return LOGGER.callChecked(log -> {
@@ -127,7 +129,7 @@ public class VipCoreService {
 
 
     public Set<String> getAllowedLibraryRules(String agencyId) throws VipCoreException {
-        final StopWatch watch = new Log4JStopWatch("service.vipcore.getAllowedLibraryRules");
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.getAllowedLibraryRules").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final Set<String> result = new HashSet<>();
         try {
             final LibraryRules libraryRules = vipCoreLibraryRulesConnector.getLibraryRulesByAgencyId(agencyId);

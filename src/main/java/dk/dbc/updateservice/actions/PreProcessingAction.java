@@ -18,6 +18,7 @@ import org.slf4j.MDC;
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
@@ -32,7 +33,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record

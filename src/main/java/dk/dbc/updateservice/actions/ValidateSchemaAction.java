@@ -11,6 +11,7 @@ import org.slf4j.MDC;
 
 import java.util.Properties;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
@@ -39,7 +40,7 @@ public class ValidateSchemaAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         validateData();
         return LOGGER.callChecked(log -> {
             try {
