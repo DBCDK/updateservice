@@ -33,6 +33,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.rest.ApplicationConfig;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -59,7 +60,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 
-import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
@@ -148,7 +148,7 @@ public class UpdateServiceCore {
      * @throws EJBException in the case of an error.
      */
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
-        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
         return LOGGER.call(log -> {
             ServiceResult serviceResult;
             final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
@@ -221,7 +221,7 @@ public class UpdateServiceCore {
      * @throws EJBException In case of an error.
      */
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
         return LOGGER.call(log -> {
             SchemasResponseDTO schemasResponseDTO = null;
 
@@ -336,7 +336,7 @@ public class UpdateServiceCore {
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend").setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
                     try {
                         final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(marcRecord);
                         serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
