@@ -4,7 +4,6 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RawRepoException;
@@ -47,11 +46,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         try {
-            LOGGER.use(log -> {
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-                }
-            });
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();

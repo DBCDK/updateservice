@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
@@ -87,10 +86,6 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            if (log.isInfoEnabled()) {
-                log.info("AgencyId: {}, Current common record.:\n{}\n Updating common record:\n{}", agencyId, LogUtils.base64Encode(currentCommonRecord), LogUtils.base64Encode(updatingCommonRecord));
-            }
-
             final MarcRecord enrichmentRecord = createRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
                 log.info("No sub actions to create for an empty enrichment record.");

@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
@@ -37,11 +36,6 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         try {
-            LOGGER.use(log -> {
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-                }
-            });
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             if (RawRepo.DBC_PRIVATE_AGENCY_LIST.contains(reader.getAgencyId())) {
                 performActionDBCRecord();

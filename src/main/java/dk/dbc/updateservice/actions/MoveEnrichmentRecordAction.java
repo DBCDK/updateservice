@@ -8,7 +8,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -56,11 +55,6 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        LOGGER.use(log -> {
-            if (log.isInfoEnabled()) {
-                log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-            }
-        });
         children.add(createDeleteEnrichmentAction());
         children.add(createMoveEnrichmentToCommonRecordAction());
         return ServiceResult.newOkResult();

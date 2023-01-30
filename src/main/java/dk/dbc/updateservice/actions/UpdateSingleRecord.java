@@ -7,7 +7,6 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -46,9 +45,6 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
             try {
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-                }
                 final MarcRecordReader reader = new MarcRecordReader(marcRecord);
                 final String bibliographicRecordId = reader.getRecordId();
                 final int agencyId = reader.getAgencyIdAsInt();

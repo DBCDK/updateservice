@@ -10,7 +10,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
@@ -80,10 +79,6 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            if (log.isInfoEnabled()) {
-                log.info("Handling record: {}", LogUtils.base64Encode(record));
-            }
-
             final MarcRecord enrichmentRecord = createEnrichmentRecord();
             if (enrichmentRecord.getFields().isEmpty()) {
                 log.info("No sub actions to create for an empty enrichment record.");

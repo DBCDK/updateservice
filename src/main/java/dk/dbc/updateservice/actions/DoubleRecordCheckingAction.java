@@ -6,7 +6,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.update.UpdateException;
@@ -49,9 +48,6 @@ public class DoubleRecordCheckingAction extends AbstractAction {
             final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecord").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
             try {
                 final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(record));
-                }
                 state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
                 return ServiceResult.newOkResult();
             } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {

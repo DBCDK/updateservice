@@ -5,7 +5,6 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
@@ -46,10 +45,6 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
             try {
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-                }
-
                 final MarcRecordReader reader = new MarcRecordReader(marcRecord);
                 if (!reader.markedForDeletion()) {
                     log.info("Update single");

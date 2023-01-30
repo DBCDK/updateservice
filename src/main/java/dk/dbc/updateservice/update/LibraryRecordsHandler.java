@@ -13,7 +13,6 @@ import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.UpdateOwnership;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
@@ -868,21 +867,9 @@ public class LibraryRecordsHandler {
                 result = new MarcRecord(enrichmentRecord);
             }
 
-            if (log.isInfoEnabled()) {
-                log.info("Result from correctLibraryExtendedRecord BEFORE CLEAN UP {}", LogUtils.base64Encode(result));
-            }
-
             result = cleanupEnrichmentRecord(result, commonRecord);
 
-            if (log.isInfoEnabled()) {
-                log.info("Result from correctLibraryExtendedRecord AFTER CLEAN UP {}", LogUtils.base64Encode(result));
-            }
-
             result = correctRecordIfEmpty(result);
-
-            if (log.isInfoEnabled()) {
-                log.info("Final result of correctLibraryExtendedRecord {}", LogUtils.base64Encode(result));
-            }
 
             return result;
         });

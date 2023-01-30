@@ -2,11 +2,15 @@ package dk.dbc.updateservice.utils;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.IThrowableProxy;
+import ch.qos.logback.classic.spi.StackTraceElementProxy;
 import ch.qos.logback.core.read.ListAppender;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Arrays;
 
 public class DeferredLoggerTest {
     private static final DeferredLogger LOGGER = new DeferredLogger(DeferredLoggerTest.class);
@@ -62,20 +66,20 @@ public class DeferredLoggerTest {
         int returnValue = LOGGER.call(l1 -> {
             try {
                 return LOGGER.call(l2 -> {
-                    l2.trace("trace will not log");
-                    l2.info("info will log");
-                    return LOGGER.call(l3 -> {
-                        l3.error("error will log");
-                        l3.warn("warn will log");
-                        l3.info("info will not log");
-                        throw new RuntimeException("test");
-                    });
-
+                    throw new RuntimeException("test");
                 });
             } catch (Exception e) {
                 l1.warn("Got some exception", e);
                 return 1;
             }
         });
+        Assert.assertTrue("No stacktrace should contain the logger class",
+                appender.list.stream()
+                        .map(ILoggingEvent::getThrowableProxy)
+                        .map(IThrowableProxy::getStackTraceElementProxyArray)
+                        .flatMap(Arrays::stream)
+                        .map(StackTraceElementProxy::getStackTraceElement)
+                        .map(StackTraceElement::getClassName)
+                        .noneMatch(DeferredLogger.class.getName()::equals));
     }
 }

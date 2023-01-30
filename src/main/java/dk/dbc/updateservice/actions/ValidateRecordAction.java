@@ -1,7 +1,6 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -82,10 +81,6 @@ public class ValidateRecordAction extends AbstractAction {
                 final MarcRecordReader reader = new MarcRecordReader(state.readRecord());
                 final String recordId = reader.getRecordId();
                 final String agencyId = reader.getAgencyId();
-
-                if (log.isInfoEnabled()) {
-                    log.debug("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-                }
 
                 final ServiceResult result = new ServiceResult();
 

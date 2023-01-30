@@ -8,7 +8,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
@@ -83,9 +82,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         return LOGGER.callChecked(log -> {
             try {
                 log.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
-                }
 
                 final List<MessageEntryDTO> errors = authenticateRecord();
                 final ServiceResult result = new ServiceResult();

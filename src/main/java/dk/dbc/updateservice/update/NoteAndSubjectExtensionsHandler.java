@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RawRepoException;
@@ -641,9 +640,6 @@ public class NoteAndSubjectExtensionsHandler {
             try {
                 final Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
                 curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
-                if (log.isInfoEnabled()) {
-                    log.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
-                }
             } catch (RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }

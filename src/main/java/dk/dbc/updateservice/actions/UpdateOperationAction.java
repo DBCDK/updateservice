@@ -3,7 +3,6 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
@@ -108,9 +107,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
     public ServiceResult performAction() throws UpdateException, SolrException {
         return LOGGER.<ServiceResult, UpdateException, SolrException>callChecked2(log -> {
             try {
-                if (log.isInfoEnabled()) {
-                    log.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-                }
                 final ServiceResult serviceResult = checkRecordForUpdatability();
                 if (serviceResult.getStatus() != UpdateStatusEnumDTO.OK) {
                     log.info("Unable to update record: {}", serviceResult);
