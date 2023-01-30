@@ -14,14 +14,12 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
-    private static final DeferredLogger LOGGER = new DeferredLogger(MatVurdR01R02CheckRecordsAction.class);
 
     public MatVurdR01R02CheckRecordsAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(MatVurdR01R02CheckRecordsAction.class.getSimpleName(), globalActionState, marcRecord);
