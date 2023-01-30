@@ -15,6 +15,7 @@ import java.util.function.Function;
  * A logger that defers statements until something has gone wrong.
  * Per default this logger will defer statements for trace, debug and info, until a warning or an error is logged,
  * upon which all buffered statements for the context will be logged.
+ * Since this logging context would pollute stacktraces heavily, it filters itself out of the logged stacktraces
  */
 public class DeferredLogger {
     public static final boolean DEFER_ENABLED = Boolean.parseBoolean(System.getProperty("DEFER_ENABLED", "true"));
@@ -45,6 +46,9 @@ public class DeferredLogger {
         }
     }
 
+    /**
+     * Creates a logging context that returns a value for a block with a checked exception
+     */
     public <T, E extends Exception> T callChecked(SpicyFunction<T, E> f) throws E {
         Context context = new Context(deferredLogs.get() == null);
         try {
@@ -54,6 +58,11 @@ public class DeferredLogger {
         }
     }
 
+    /**
+     * Creates a logging context that returns a value for a block with two checked exceptions
+     * Please notice that currently Java cannot infer the exceptions correctly, so they must be declared explicitly like so:
+     * <Void, Exception1, Exception2>callChecked2(log -> {some crazy code})
+     */
     public <R, E1 extends Exception, E2 extends Exception> R callChecked2(SpicyFunction2<R, E1, E2> f) throws E1, E2 {
         Context context = new Context(deferredLogs.get() == null);
         try {
@@ -61,14 +70,6 @@ public class DeferredLogger {
         } finally {
             if (context.owner) deferredLogs.remove();
         }
-    }
-
-    public interface SpicyFunction<R, E extends Exception> {
-        R apply (Context c) throws E;
-    }
-
-    public interface SpicyFunction2<R, E1 extends Exception, E2 extends Exception> {
-        R apply(Context c) throws E1, E2;
     }
 
     /**
@@ -87,6 +88,20 @@ public class DeferredLogger {
 
     private StackTraceElement[] cleanStackTrace(StackTraceElement[] stackTraceElements) {
         return Arrays.stream(stackTraceElements).filter(DeferredLogger::traceFilter).toArray(StackTraceElement[]::new);
+    }
+
+    /**
+     * A Function with a checked exception
+     */
+    public interface SpicyFunction<R, E extends Exception> {
+        R apply (Context c) throws E;
+    }
+
+    /**
+     * A Function with two checked exceptions
+     */
+    public interface SpicyFunction2<R, E1 extends Exception, E2 extends Exception> {
+        R apply(Context c) throws E1, E2;
     }
 
     /**
