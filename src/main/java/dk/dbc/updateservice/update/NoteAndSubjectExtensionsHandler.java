@@ -9,7 +9,6 @@ import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RawRepoException;
@@ -17,13 +16,11 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -34,7 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class NoteAndSubjectExtensionsHandler {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(NoteAndSubjectExtensionsHandler.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(NoteAndSubjectExtensionsHandler.class);
     private final VipCoreService vipCoreService;
     private final RawRepo rawRepo;
     private final ResourceBundle messages;
@@ -61,49 +58,51 @@ public class NoteAndSubjectExtensionsHandler {
      * if not, then error.
      */
     void addDK5Fields(MarcRecord result, MarcRecord marcRecord, MarcRecordReader reader, MarcRecord curRecord, MarcRecordReader curReader , String groupId ) throws UpdateException, VipCoreException {
-        final List<MarcField> new652Fields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> current652Fields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-        if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
-            result.getFields().addAll(current652Fields);
-        } else {
-            // If disputa and there are new 652 fields, then we have to dig deeper
-            if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
-                if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
-                    final String curr = curReader.getValue("652", "m");
-                    if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
-                        final String newDk5 = reader.getValue("652", "m");
-                        if (! newDk5.isEmpty()) {
-                            for (MarcField new652Field : new652Fields) {
-                                result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
+        LOGGER.<Void, UpdateException, VipCoreException>callChecked2(log -> {
+            final List<MarcField> new652Fields = marcRecord.getFields().stream()
+                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            final List<MarcField> current652Fields = curRecord.getFields().stream()
+                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
+                result.getFields().addAll(current652Fields);
+            } else {
+                // If disputa and there are new 652 fields, then we have to dig deeper
+                if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
+                    if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
+                        final String curr = curReader.getValue("652", "m");
+                        if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
+                            final String newDk5 = reader.getValue("652", "m");
+                            if (! newDk5.isEmpty()) {
+                                for (MarcField new652Field : new652Fields) {
+                                    result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
+                                }
+                            } else {
+                                // This should not be possible due to other protections, but if they for some reason dissapears, this
+                                // will prevent deleting 652 - please note that there are no testcase to check this
+                                final String msg = messages.getString("update.dbc.record.652.no.delete");
+                                log.error("Unable to create sub actions due to an error: {}", msg);
+                                throw new UpdateException(msg);
+
                             }
                         } else {
-                            // This should not be possible due to other protections, but if they for some reason dissapears, this
-                            // will prevent deleting 652 - please note that there are no testcase to check this
-                            final String msg = messages.getString("update.dbc.record.652.no.delete");
-                            LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                            final String msg = messages.getString("update.dbc.record.652.no.uden.klassemaerke");
+                            log.error("Unable to create sub actions due to an error: {}", msg);
                             throw new UpdateException(msg);
 
                         }
                     } else {
-                        final String msg = messages.getString("update.dbc.record.652.no.uden.klassemaerke");
-                        LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                        final String msg = messages.getString("update.dbc.record.652.not.allowed");
+                        log.error("Unable to create sub actions due to an error: {}", msg);
                         throw new UpdateException(msg);
-
                     }
                 } else {
-                    final String msg = messages.getString("update.dbc.record.652.not.allowed");
-                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                    final String msg = messages.getString("update.dbc.record.652");
+                    log.error("Unable to create sub actions due to an error: {}", msg);
                     throw new UpdateException(msg);
                 }
-            } else {
-                final String msg = messages.getString("update.dbc.record.652");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                throw new UpdateException(msg);
             }
-        }
-
+            return null;
+        });
     }
 
     /**
@@ -128,7 +127,7 @@ public class NoteAndSubjectExtensionsHandler {
         } else {
             if (isDbcField(currentControlledSubjectFields)) {
                 final String msg = messages.getString("update.dbc.record.dbc.subjects");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", msg));
                 throw new UpdateException(msg);
             } else {
                 for (MarcField newControlledSubjectField : newControlledSubjectFields) {
@@ -224,14 +223,17 @@ public class NoteAndSubjectExtensionsHandler {
         if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
             result.getFields().addAll(currentNoteFields);
         } else {
-            for (MarcField newNoteField : newNoteFields) {
-                if (isDbcField(currentNoteFields)) {
-                    final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
-                    // Business exception which means we don't want the error in the errorlog, so only log as info
-                    LOGGER.info("Unable to create sub actions due to an error: {}", msg);
-                    throw new UpdateException(msg);
+            LOGGER.callChecked(log -> {
+                for (MarcField newNoteField : newNoteFields) {
+                    if (isDbcField(currentNoteFields)) {
+                        final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
+                        // Business exception which means we don't want the error in the errorlog, so only log as info
+                        log.info("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+                    }
                 }
-            }
+                return null;
+            });
             for (MarcField newNoteField : newNoteFields) {
                 result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
             }
@@ -256,106 +258,97 @@ public class NoteAndSubjectExtensionsHandler {
      * @return                  The (maybe) corrected record
      * @throws UpdateException  A failure is found in the incoming record
      * @throws VipCoreException A problem was met when trying to get information from the vip system
-     * @throws UnsupportedEncodingException Very rare error - there are something serious wrong since this should be found earlier.
-     * This function handles adding of library data to a dbc record. The subject, notes and classification things are pretty simple since
-     * fields are added with an *& subfield with the owner in it.
-     * Adding, modifying or deleting an OVE code is a bit more complicated since there can be only on field 032. Libraries can only modify a
-     * subfield 032x that contains an OVE code (subfield & will be modified automatically in such cases) - all other subfields are forbidden to modify.
-     * The library must also have the vip right REGIONAL_OBLIGATIONS or AUTH_ROOT set to make such an update.
-     * DBC on the other hand may correct all subfields including one that contain an OVE code.
-     * In case of deletion, the & subfield will be removed.
-     * Some comments on subfields in 032 :
-     * If a local record (001b=groupId) then all *x subfields and catalog codes in those are allowed - legal codes will be handled in the ordinary validation
-     * If a common record owned by a library (996a=groupId) the same rules are as above.
-     * If a common record is owned by DBC (996a=DBC) then only 032xOVE<weekcode> must be touched.
-     * Use of 032a is strictly forbidden except for DBC.
      */
-    MarcRecord recordDataForRawRepo(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException, UnsupportedEncodingException {
+    MarcRecord recordDataForRawRepo(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recId = reader.getRecordId();
-        if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
-            LOGGER.info("No existing record - returning same record");
-            if (!"DBC".equals(reader.getValue("996", "a")) && reader.hasField("032")) {
-                if (!vipCoreService.isAuthRootOrCB(groupId)) {
-                    final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
-                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                    throw new UpdateException(msg);
+        return LOGGER.<MarcRecord, UpdateException, VipCoreException>callChecked2(log -> {
+            if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
+                log.info("No existing record - returning same record");
+                if (!"DBC".equals(reader.getValue("996", "a")) && reader.hasField("032")) {
+                    if (!vipCoreService.isAuthRootOrCB(groupId)) {
+                        final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
+                        log.error("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+                    }
+                    validateCatalogCodes(marcRecord);
+                    addCatalogField(marcRecord, marcRecord, new MarcRecord(), groupId);
                 }
+                return marcRecord;
+            }
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
+            if (!"DBC".equals(curReader.getValue("996", "a"))) {
+                log.info("Record is decentral - returning same record");
                 validateCatalogCodes(marcRecord);
-                addCatalogField(marcRecord, marcRecord, new MarcRecord(), groupId);
+                return marcRecord;
             }
-            return marcRecord;
-        }
-        final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
-        final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-        if (!"DBC".equals(curReader.getValue("996", "a"))) {
-            LOGGER.info("Record is decentral - returning same record");
-            validateCatalogCodes(marcRecord);
-            return marcRecord;
-        }
 
-        // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
-        // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
+            // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
+            // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
 
-        final MarcRecord result = new MarcRecord();
-        LOGGER.info("Record exists and is common national record - setting extension fields");
+            final MarcRecord result = new MarcRecord();
+            log.info("Record exists and is common national record - setting extension fields");
 
-        String extendableFieldsRx = createExtendableFieldsRx(groupId);
+            String extendableFieldsRx = createExtendableFieldsRx(groupId);
 
-        if (extendableFieldsRx.isEmpty()) {
-            LOGGER.info("Agency {} doesn't have permission to edit notes, subject or OVE fields - returning same record", groupId);
-            return marcRecord;
-        }
-        extendableFieldsRx += "|" + CLASSIFICATION_FIELDS;
-        LOGGER.info("Extendable fields: {} ", extendableFieldsRx);
-
-        // Start by handling all the not-note/subject/OVE fields in the existing record
-        for (MarcField curField : curRecord.getFields()) {
-            if (!curField.getName().matches(extendableFieldsRx)) {
-                final MarcField fieldClone = new MarcField(curField);
-                result.getFields().add(fieldClone);
+            if (extendableFieldsRx.isEmpty()) {
+                log.info("Agency {} doesn't have permission to edit notes, subject or OVE fields - returning same record", groupId);
+                return marcRecord;
             }
-        }
+            extendableFieldsRx += "|" + CLASSIFICATION_FIELDS;
+            log.info("Extendable fields: {} ", extendableFieldsRx);
 
-        // Handling field 032
-        if (vipCoreService.isAuthRootOrCB(groupId)) {
-            addCatalogField(result, marcRecord, curRecord, groupId);
-        }
+            // Start by handling all the not-note/subject/OVE fields in the existing record
+            for (MarcField curField : curRecord.getFields()) {
+                if (!curField.getName().matches(extendableFieldsRx)) {
+                    final MarcField fieldClone = new MarcField(curField);
+                    result.getFields().add(fieldClone);
+                }
+            }
 
-        // Handle note fields. These fields are handled individually
-        // Each field can only be changed if either the field is missing in the existing record or if the field is owned
-        // by another FBS library
-        if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
-            addNoteFields(result, marcRecord, curRecord, groupId);
-        }
+            // Handling field 032
+            if (vipCoreService.isAuthRootOrCB(groupId)) {
+                addCatalogField(result, marcRecord, curRecord, groupId);
+            }
 
-        // Handle controlled subject fields. These fields are handled as a collection.
-        // Fields are allowed to be updated if either there isn't a *& subfield or the value of *& starts with 7 (folkebibliotek)
-        // If there are changes all fields will have *& updated to be the current library
-        if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
-            addSubjectFields(result, marcRecord, curRecord, groupId);
-        }
+            // Handle note fields. These fields are handled individually
+            // Each field can only be changed if either the field is missing in the existing record or if the field is owned
+            // by another FBS library
+            if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
+                addNoteFields(result, marcRecord, curRecord, groupId);
+            }
 
-        addDK5Fields(result, marcRecord, reader, curRecord, curReader, groupId);
+            // Handle controlled subject fields. These fields are handled as a collection.
+            // Fields are allowed to be updated if either there isn't a *& subfield or the value of *& starts with 7 (folkebibliotek)
+            // If there are changes all fields will have *& updated to be the current library
+            if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
+                addSubjectFields(result, marcRecord, curRecord, groupId);
+            }
 
-        new MarcRecordWriter(result).sort();
+            addDK5Fields(result, marcRecord, reader, curRecord, curReader, groupId);
 
-        return result;
+            new MarcRecordWriter(result).sort();
+
+            return result;
+        });
     }
 
     private void validateCatalogCodes(MarcRecord record) throws UpdateException {
         final List<MarcField> newCatalogCodeFields = record.getFields().stream()
                 .filter(field -> field.getName().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
-        for (MarcField field : newCatalogCodeFields) {
-            for (MarcSubField subField : field.getSubfields()) {
-                if (subField.getName().equals("a")) {
-                    final String msg = messages.getString("update.library.record.catalog.codes.x.only");
-                    LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                    throw new UpdateException(msg);
+        LOGGER.callChecked(log -> {
+            for (MarcField field : newCatalogCodeFields) {
+                for (MarcSubField subField : field.getSubfields()) {
+                    if (subField.getName().equals("a")) {
+                        final String msg = messages.getString("update.library.record.catalog.codes.x.only");
+                        log.error("Unable to create sub actions due to an error: {}", msg);
+                        throw new UpdateException(msg);
+                    }
                 }
             }
-        }
-
+            return null;
+        });
     }
 
     private String getOveCode(MarcField newCatalogField) {
@@ -431,59 +424,59 @@ public class NoteAndSubjectExtensionsHandler {
      */
     private List<MarcField> createCatalogField(List<MarcField> newCatalogCodeFields, List<MarcField> currentCatalogCodeFields, String groupId) throws UpdateException {
         List <MarcField> resultCatalogCodeFields = new ArrayList<>();
+        return LOGGER.callChecked(log -> {
+            MarcField currentWork;
+            currentWork = currentCatalogCodeFields.isEmpty() ? new MarcField() : currentCatalogCodeFields.get(0);
+            MarcField newWork;
+            newWork = newCatalogCodeFields.isEmpty() ? new MarcField() : newCatalogCodeFields.get(0);
 
-        MarcField currentWork;
-        currentWork = currentCatalogCodeFields.isEmpty() ? new MarcField() : currentCatalogCodeFields.get(0);
-        MarcField newWork;
-        newWork = newCatalogCodeFields.isEmpty() ? new MarcField() : newCatalogCodeFields.get(0);
-
-        // Point 1
-        if (compareCatalogSubFields(newWork, currentWork, true)) {
-            return currentCatalogCodeFields;
-        }
-
-        // Point 2
-        if (newCatalogCodeFields.isEmpty()) {
-            // No need to check if current is empty - that case is handled in point 1
-            if (clean(currentWork.getSubfields(), true).isEmpty()) {
-                // remove any *& and OVE
-                return newCatalogCodeFields;
-            } else {
-                final String msg = messages.getString("update.dbc.record.dbc.catalog.codes");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-                throw new UpdateException(msg);
+            // Point 1
+            if (compareCatalogSubFields(newWork, currentWork, true)) {
+                return currentCatalogCodeFields;
             }
-        }
 
-        // Point 3
-        // * 3: If the old field is empty, then new field, if it exists, may not contain subfields "a" and "x" without "OVE", that will be an error. If it contains *xOVE then add necessary
-        if (currentCatalogCodeFields.isEmpty()) {
-            if (clean(newWork.getSubfields(), false).isEmpty()) {
+            // Point 2
+            if (newCatalogCodeFields.isEmpty()) {
+                // No need to check if current is empty - that case is handled in point 1
+                if (clean(currentWork.getSubfields(), true).isEmpty()) {
+                    // remove any *& and OVE
+                    return newCatalogCodeFields;
+                } else {
+                    final String msg = messages.getString("update.dbc.record.dbc.catalog.codes");
+                    log.error("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
+                }
+            }
+
+            // Point 3
+            // * 3: If the old field is empty, then new field, if it exists, may not contain subfields "a" and "x" without "OVE", that will be an error. If it contains *xOVE then add necessary
+            if (currentCatalogCodeFields.isEmpty()) {
+                if (clean(newWork.getSubfields(), false).isEmpty()) {
+                    String oveCode = getOveCode(newWork);
+                    newWork.setSubfields(updateOveAndAmp(newWork, groupId, oveCode));
+                    resultCatalogCodeFields.add(newWork);
+                    return resultCatalogCodeFields;
+                } else {
+                    final String msg = messages.getString("update.dbc.record.dbc.catalog.codes");
+                    log.error("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
+                }
+            }
+
+            // Point 4
+            // * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *& and "OVE", that is,
+            // * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *& with groupId should be added
+            if (compareCatalogSubFields(newWork, currentWork, false)) {
                 String oveCode = getOveCode(newWork);
                 newWork.setSubfields(updateOveAndAmp(newWork, groupId, oveCode));
                 resultCatalogCodeFields.add(newWork);
                 return resultCatalogCodeFields;
             } else {
                 final String msg = messages.getString("update.dbc.record.dbc.catalog.codes");
-                LOGGER.error("Unable to create sub actions due to an error: {}", msg);
+                log.error("Unable to create sub actions due to an error: {}", msg);
                 throw new UpdateException(msg);
             }
-        }
-
-        // Point 4
-        // * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *& and "OVE", that is,
-        // * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *& with groupId should be added
-        if (compareCatalogSubFields(newWork, currentWork, false)) {
-            String oveCode = getOveCode(newWork);
-            newWork.setSubfields(updateOveAndAmp(newWork, groupId, oveCode));
-            resultCatalogCodeFields.add(newWork);
-            return resultCatalogCodeFields;
-        } else {
-            final String msg = messages.getString("update.dbc.record.dbc.catalog.codes");
-            LOGGER.error("Unable to create sub actions due to an error: {}", msg);
-            throw new UpdateException(msg);
-        }
-
+        });
     }
 
     private MarcField copyWithNewAmpersand(MarcField marcField, String groupId) {
@@ -561,31 +554,33 @@ public class NoteAndSubjectExtensionsHandler {
      * @throws VipCoreException In case VipCore throws exception
      */
     String createExtendableFieldsRx(String agencyId) throws VipCoreException {
-        String extendableFields = "";
+        return LOGGER.callChecked(log -> {
+            String extendableFields = "";
 
-        if (vipCoreService.isAuthRootOrCB(agencyId)) {
-            extendableFields += CATALOGUE_CODE_FIELD;
-        }
-
-        if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
-            if (!extendableFields.isEmpty()) {
-                extendableFields += "|";
+            if (vipCoreService.isAuthRootOrCB(agencyId)) {
+                extendableFields += CATALOGUE_CODE_FIELD;
             }
-            extendableFields += EXTENDABLE_NOTE_FIELDS;
-        }
 
-        if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
-            if (!extendableFields.isEmpty()) {
-                extendableFields += "|";
+            if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
+                if (!extendableFields.isEmpty()) {
+                    extendableFields += "|";
+                }
+                extendableFields += EXTENDABLE_NOTE_FIELDS;
             }
-            extendableFields += EXTENDABLE_CONTROLLED_SUBJECT_FIELDS;
-            extendableFields += "|";
-            extendableFields += EXTENDABLE_SUBJECT_FIELDS;
-        }
 
-        LOGGER.info("Agency {} can change the following fields in a national common record: {}", agencyId, extendableFields);
+            if (vipCoreService.hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
+                if (!extendableFields.isEmpty()) {
+                    extendableFields += "|";
+                }
+                extendableFields += EXTENDABLE_CONTROLLED_SUBJECT_FIELDS;
+                extendableFields += "|";
+                extendableFields += EXTENDABLE_SUBJECT_FIELDS;
+            }
 
-        return extendableFields;
+            log.info("Agency {} can change the following fields in a national common record: {}", agencyId, extendableFields);
+
+            return extendableFields;
+        });
     }
 
     /**
@@ -600,26 +595,22 @@ public class NoteAndSubjectExtensionsHandler {
         final String recordType = reader.getValue("004", "a");
 
         if (Arrays.asList("h", "s").contains(recordType)) {
-            try {
-                final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
+            final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
 
-                final Set<RecordId> children = rawRepo.children(recordId);
-                // Children includes both enrichment and other record types, e.g. article. Underlying records of a 870970
-                // record will always have agency id 870970 therefor we filter records with that agency id
-                final Set<RecordId> commonChildren = children.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
+            final Set<RecordId> children = rawRepo.children(recordId);
+            // Children includes both enrichment and other record types, e.g. article. Underlying records of a 870970
+            // record will always have agency id 870970 therefor we filter records with that agency id
+            final Set<RecordId> commonChildren = children.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
 
-                for (RecordId child : commonChildren) {
-                    final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
-                    final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+            for (RecordId child : commonChildren) {
+                final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
+                final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
 
-                    if (isPublishedDBCRecord(childMarcRecord)) {
-                        return true;
-                    }
+                if (isPublishedDBCRecord(childMarcRecord)) {
+                    return true;
                 }
-                return false;
-            } catch (UnsupportedEncodingException e) {
-                throw new UpdateException("Exception when decoding child records for {}", e);
             }
+            return false;
         } else {
             return reader.hasValue("996", "a", "DBC") &&
                     CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord);
@@ -635,81 +626,80 @@ public class NoteAndSubjectExtensionsHandler {
      * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
     public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
-        final List<MessageEntryDTO> result = new ArrayList<>();
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
+            final List<MessageEntryDTO> result = new ArrayList<>();
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-        final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-        final String recId = reader.getRecordId();
-        if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
-            return result;
-        }
-        MarcRecord curRecord;
-        try {
-            final Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
-            curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("curRecord:\n{}", LogUtils.base64Encode(curRecord));
+            final String recId = reader.getRecordId();
+            if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
+                return result;
             }
-        } catch (RawRepoException e) {
-            throw new UpdateException("Exception while loading current record", e);
-        }
-        final MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);
-        final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-
-        curWriter.addOrReplaceSubfield("001", "b", reader.getAgencyId());
-        if (!isPublishedDBCRecord(curRecord)) {
-            return result;
-        }
-
-        if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
-            LOGGER.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
-            // Check if all fields in the incoming record are in the existing record
-            for (MarcField field : marcRecord.getFields()) {
-                if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
-                    final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
-                    result.add(createMessageDTO(message));
-                }
+            MarcRecord curRecord;
+            try {
+                final Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
+                curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
+            } catch (RawRepoException e) {
+                throw new UpdateException("Exception while loading current record", e);
             }
-            // Check if all fields in the existing record are in the incoming record
-            for (MarcField field : curRecord.getFields()) {
-                if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
-                    final String fieldName = field.getName();
-                    if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
-                        final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+            final MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);
+            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
+
+            curWriter.addOrReplaceSubfield("001", "b", reader.getAgencyId());
+            if (!isPublishedDBCRecord(curRecord)) {
+                return result;
+            }
+
+            if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
+                log.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
+                // Check if all fields in the incoming record are in the existing record
+                for (MarcField field : marcRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                         result.add(createMessageDTO(message));
                     }
                 }
-            }
-        }
-
-        if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
-            LOGGER.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
-            // Check if all fields in the incoming record are in the existing record
-            for (MarcField field : marcRecord.getFields()) {
-                if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
-                    final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
-                    result.add(createMessageDTO(message));
-                }
-            }
-            // Check if all fields in the existing record are in the incoming record
-            for (MarcField field : curRecord.getFields()) {
-                if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
-                    final String fieldName = field.getName();
-                    if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
-                        final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
-                        result.add(createMessageDTO(message));
+                // Check if all fields in the existing record are in the incoming record
+                for (MarcField field : curRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
+                        final String fieldName = field.getName();
+                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                            final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                            result.add(createMessageDTO(message));
+                        }
                     }
                 }
             }
-        }
 
-        if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord)) {
-            final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
-            result.add(createMessageDTO(message));
-        }
+            if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
+                log.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
+                // Check if all fields in the incoming record are in the existing record
+                for (MarcField field : marcRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                        result.add(createMessageDTO(message));
+                    }
+                }
+                // Check if all fields in the existing record are in the incoming record
+                for (MarcField field : curRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
+                        final String fieldName = field.getName();
+                        if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
+                            final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
+                            result.add(createMessageDTO(message));
+                        }
+                    }
+                }
+            }
 
-        return result;
+            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord)) {
+                final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
+                result.add(createMessageDTO(message));
+            }
+
+            return result;
+        });
     }
 
     private MessageEntryDTO createMessageDTO(String message) {

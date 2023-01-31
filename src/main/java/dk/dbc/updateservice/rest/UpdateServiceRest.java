@@ -7,6 +7,7 @@ package dk.dbc.updateservice.rest;
 
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
 import dk.dbc.updateservice.dto.SchemasResponseDTO;
@@ -16,6 +17,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateServiceCore;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.util.Timed;
 import org.eclipse.microprofile.metrics.Counter;
@@ -29,8 +31,6 @@ import org.eclipse.microprofile.metrics.annotation.RegistryType;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -45,14 +45,16 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.time.Duration;
+import java.util.Optional;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 
 @Stateless
 @Path("/api")
 public class UpdateServiceRest {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceRest.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateServiceRest.class);
     private GlobalActionState globalActionState;
 
     @EJB
@@ -118,44 +120,46 @@ public class UpdateServiceRest {
     @Timed
     public UpdateRecordResponseDTO updateRecord(@Context HttpServletRequest request,
                                                 UpdateServiceRequestDTO updateRecordRequest) {
-        final StopWatch watch = new Log4JStopWatch();
-        MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
-        UpdateRecordResponseDTO updateRecordResponseDTO = null;
-        try {
-            LOGGER.info("updateRecord REST received: {}", updateRecordRequest);
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        return LOGGER.call(log -> {
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, updateRecordRequest.getTrackingId());
+            UpdateRecordResponseDTO updateRecordResponseDTO = null;
+            try {
+                log.infoImmediately("updateRecord REST received: {}", updateRecordRequest);
 
-            if (!updateServiceCore.isServiceReady()) {
-                LOGGER.info("Updateservice not ready yet, leaving");
-                return null;
+                if (!updateServiceCore.isServiceReady()) {
+                    log.info("Updateservice not ready yet, leaving");
+                    return null;
+                }
+                globalActionState.setRequest(request);
+                updateRecordResponseDTO = updateServiceCore.updateRecord(updateRecordRequest, globalActionState);
+
+                return updateRecordResponseDTO;
+            } catch (Throwable e) {
+                log.error("Caught unexpected exception during updateRecord", e);
+                final ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
+                return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            } finally {
+                final String validateOnly = updateRecordRequest.getOptionsDTO() != null &&
+                        updateRecordRequest.getOptionsDTO().getOption().contains(OptionEnumDTO.VALIDATE_ONLY) ? "yes" : "no";
+                watch.stop(UpdateServiceCore.UPDATERECORD_STOPWATCH);
+                log.infoImmediately("updateRecord REST returns: {}", updateRecordResponseDTO);
+
+                metricRegistry.counter(updateRecordCounterMetaData,
+                                new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                                new Tag("validateOnly", validateOnly))
+                        .inc();
+
+                metricRegistry.simpleTimer(updateRecordDurationMetaData,
+                                new Tag("schemaName", updateRecordRequest.getSchemaName()),
+                                new Tag("validateOnly", validateOnly))
+                        .update(Duration.ofMillis(watch.getElapsedTime()));
+
+                incrementGroupIdCounter(updateRecordRequest);
+
+                MDC.clear();
             }
-            globalActionState.setRequest(request);
-            updateRecordResponseDTO = updateServiceCore.updateRecord(updateRecordRequest, globalActionState);
-
-            return updateRecordResponseDTO;
-        } catch (Throwable e) {
-            LOGGER.error("Caught unexpected exception during updateRecord", e);
-            final ServiceResult serviceResult = ServiceResult.newFatalResult(UpdateStatusEnumDTO.FAILED, "Caught unexpected exception");
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-        } finally {
-            final String validateOnly = updateRecordRequest.getOptionsDTO() != null &&
-                    updateRecordRequest.getOptionsDTO().getOption().contains(OptionEnumDTO.VALIDATE_ONLY) ? "yes" : "no";
-            watch.stop(UpdateServiceCore.UPDATERECORD_STOPWATCH);
-            LOGGER.info("updateRecord REST returns: {}", updateRecordResponseDTO);
-
-            metricRegistry.counter(updateRecordCounterMetaData,
-                            new Tag("schemaName", updateRecordRequest.getSchemaName()),
-                            new Tag("validateOnly", validateOnly))
-                    .inc();
-
-            metricRegistry.simpleTimer(updateRecordDurationMetaData,
-                            new Tag("schemaName", updateRecordRequest.getSchemaName()),
-                            new Tag("validateOnly", validateOnly))
-                    .update(Duration.ofMillis(watch.getElapsedTime()));
-
-            incrementGroupIdCounter(updateRecordRequest);
-
-            MDC.clear();
-        }
+        });
     }
 
     /**
@@ -175,76 +179,58 @@ public class UpdateServiceRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        StopWatch watch = new Log4JStopWatch();
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
-        SchemasResponseDTO schemasResponseDTO = null;
-        final SimpleTimer getSchemasTimer = metricRegistry.simpleTimer(getSchemasTimerMetadata);
-        final Counter getSchemasErrorCounter = metricRegistry.counter(getSchemasErrorCounterMetadata);
+        return LOGGER.call(log -> {
+            SchemasResponseDTO schemasResponseDTO = null;
+            final SimpleTimer getSchemasTimer = metricRegistry.simpleTimer(getSchemasTimerMetadata);
+            final Counter getSchemasErrorCounter = metricRegistry.counter(getSchemasErrorCounterMetadata);
 
-        try {
-            LOGGER.info("getSchemas REST received: {}", schemasRequestDTO);
+            try {
+                log.infoImmediately("getSchemas REST received: {}", schemasRequestDTO);
 
-            if (!updateServiceCore.isServiceReady()) {
-                LOGGER.info("Updateservice (getSchemas) not ready yet.");
-                return null;
-            }
-            schemasResponseDTO = updateServiceCore.getSchemas(schemasRequestDTO);
-            return schemasResponseDTO;
-        } catch (Throwable e) {
-            LOGGER.error("Caught unexpected exception during getSchemas", e);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setErrorMessage("Caught unexpected exception");
-            schemasResponseDTO.setError(true);
-            getSchemasErrorCounter.inc();
-            return schemasResponseDTO;
-        } finally {
-            LOGGER.info("getSchemas REST returns: {}", schemasResponseDTO);
-            watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
-            MDC.clear();
-            if (schemasResponseDTO != null && schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
+                if (!updateServiceCore.isServiceReady()) {
+                    log.info("Updateservice (getSchemas) not ready yet.");
+                    return null;
+                }
+                schemasResponseDTO = updateServiceCore.getSchemas(schemasRequestDTO);
+                return schemasResponseDTO;
+            } catch (Throwable e) {
+                log.error("Caught unexpected exception during getSchemas", e);
+                schemasResponseDTO = new SchemasResponseDTO();
+                schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+                schemasResponseDTO.setErrorMessage("Caught unexpected exception");
+                schemasResponseDTO.setError(true);
                 getSchemasErrorCounter.inc();
+                return schemasResponseDTO;
+            } finally {
+                log.infoImmediately("getSchemas REST returns: {}", schemasResponseDTO);
+                watch.stop(UpdateServiceCore.GET_SCHEMAS_STOPWATCH);
+                MDC.clear();
+                if (schemasResponseDTO != null && schemasResponseDTO.getUpdateStatusEnumDTO() != UpdateStatusEnumDTO.OK) {
+                    getSchemasErrorCounter.inc();
+                }
+
+                incrementGroupIdCounter(schemasRequestDTO);
+
+                getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
             }
-
-            incrementGroupIdCounter(schemasRequestDTO);
-
-            getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
-        }
+        });
     }
 
     private void incrementGroupIdCounter(UpdateServiceRequestDTO updateServiceRequestDTO) {
-        try {
-            if (updateServiceRequestDTO != null &&
-                    updateServiceRequestDTO.getAuthenticationDTO() != null &&
-                    updateServiceRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                final String groupId = updateServiceRequestDTO.getAuthenticationDTO().getGroupId();
-                // Ignore DBC group ids as it pollutes the metric
-                if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
-                    metricRegistry.counter(groupIdCounterMetaData,
-                                    new Tag("groupId", groupId))
-                            .inc();
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to increment groupId counter", e);
-        }
+        Optional.ofNullable(updateServiceRequestDTO)
+                .map(UpdateServiceRequestDTO::getAuthenticationDTO)
+                .map(AuthenticationDTO::getGroupId)
+                .filter(groupId -> !"010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))
+                .ifPresent(groupId -> metricRegistry.counter(groupIdCounterMetaData, new Tag("groupId", groupId)).inc());
     }
 
     private void incrementGroupIdCounter(SchemasRequestDTO schemasRequestDTO) {
-        try {
-            if (schemasRequestDTO != null &&
-                    schemasRequestDTO.getAuthenticationDTO() != null &&
-                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                final String groupId = schemasRequestDTO.getAuthenticationDTO().getGroupId();
-                // Ignore DBC group ids as it pollutes the metric
-                if (!("010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))) {
-                    metricRegistry.counter(groupIdCounterMetaData,
-                                    new Tag("groupId", groupId))
-                            .inc();
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.error("Failed to increment groupId counter", e);
-        }
+        Optional.ofNullable(schemasRequestDTO)
+                .map(SchemasRequestDTO::getAuthenticationDTO)
+                .map(AuthenticationDTO::getGroupId)
+                .filter(groupId -> !"010100".equals(groupId) || RawRepo.DBC_AGENCY_ALL.contains(groupId))
+                .ifPresent(groupId -> metricRegistry.counter(groupIdCounterMetaData, new Tag("groupId", groupId)).inc());
     }
 }

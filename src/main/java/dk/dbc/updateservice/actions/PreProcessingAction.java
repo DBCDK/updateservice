@@ -10,22 +10,22 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * This action is responsible for performing preprocessing of incoming records
  */
 public class PreProcessingAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(PreProcessingAction.class);
 
     public PreProcessingAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(PreProcessingAction.class.getSimpleName(), globalActionState, marcRecord);
@@ -33,7 +33,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.preprocess").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record
@@ -46,7 +46,7 @@ public class PreProcessingAction extends AbstractRawRepoAction {
 
             return ServiceResult.newOkResult();
         } catch (UnsupportedEncodingException | JAXBException | JSONBException | OpencatBusinessConnectorException ex) {
-            LOGGER.error("Error during pre-processing", ex);
+            LOGGER.use(log -> log.error("Error during pre-processing", ex));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {
             watch.stop();

@@ -25,11 +25,10 @@ import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.update.VipCoreService;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GlobalActionState {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(GlobalActionState.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(GlobalActionState.class);
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";
     private static final String RECORD_PACKING_XML = "xml";
 
@@ -357,7 +356,7 @@ public class GlobalActionState {
         if (updateServiceRequestDTO != null) {
             return updateServiceRequestDTO.getSchemaName();
         } else {
-            LOGGER.warn("Unable to validate schema from request");
+            LOGGER.use(log -> log.warn("Unable to validate schema from request"));
             return "";
         }
     }
@@ -378,7 +377,7 @@ public class GlobalActionState {
             if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO() != null) {
                 list = updateServiceRequestDTO.getBibliographicRecordDTO().getRecordDataDTO().getContent();
             } else {
-                LOGGER.warn("Unable to read record from request");
+                LOGGER.use(log -> log.warn("Unable to read record from request"));
             }
             if (list != null) {
                 for (Object o : list) {
@@ -413,7 +412,7 @@ public class GlobalActionState {
         if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema() != null) {
             result = RECORD_SCHEMA_MARCXCHANGE_1_1.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordSchema());
         } else {
-            LOGGER.warn("Unable to record schema from request");
+            LOGGER.use(log -> log.warn("Unable to record schema from request"));
         }
         return result;
     }
@@ -432,7 +431,7 @@ public class GlobalActionState {
         if (updateServiceRequestDTO != null && updateServiceRequestDTO.getBibliographicRecordDTO() != null && updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking() != null) {
             result = RECORD_PACKING_XML.equals(updateServiceRequestDTO.getBibliographicRecordDTO().getRecordPacking());
         } else {
-            LOGGER.warn("Unable to record packing from request");
+            LOGGER.use(log -> log.warn("Unable to record packing from request"));
         }
         return result;
     }
@@ -581,14 +580,14 @@ public class GlobalActionState {
             try {
                 libraryGroup = vipCoreService.getLibraryGroup(groupId);
             } catch (UpdateException | VipCoreException ex) {
-                LOGGER.error("VipCoreException error: {}", ex.getMessage(), ex);
+                LOGGER.use(log -> log.error("VipCoreException error: {}", ex.getMessage(), ex));
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
             // Make sure that we didn't get nul
             if (libraryGroup == null) {
                 String err = "LibraryGroup not found for groupId " + groupId;
-                LOGGER.error(err);
+                LOGGER.use(log -> log.error(err));
                 throw new UpdateException(err);
             }
         }
@@ -603,14 +602,14 @@ public class GlobalActionState {
             try {
                 templateGroup = vipCoreService.getTemplateGroup(groupId);
             } catch (VipCoreException ex) {
-                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.use(log -> log.error("VipCoreException error: " + ex.getMessage(), ex));
                 throw new UpdateException(ex.getMessage(), ex);
             }
 
             // Make sure that we didn't get nul
             if (templateGroup == null) {
                 String err = "TemplateGroup not found for groupId " + groupId;
-                LOGGER.error(err);
+                LOGGER.use(log -> log.error(err));
                 throw new UpdateException(err);
             }
         }
@@ -623,7 +622,7 @@ public class GlobalActionState {
             try {
                 phLibraries = vipCoreService.getPHLibraries();
             } catch (VipCoreException ex) {
-                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.use(log -> log.error("VipCoreException error: " + ex.getMessage(), ex));
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -636,7 +635,7 @@ public class GlobalActionState {
             try {
                 ffuLibraries = vipCoreService.getFFULibraries();
             } catch (VipCoreException ex) {
-                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.use(log -> log.error("VipCoreException error: " + ex.getMessage(), ex));
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }
@@ -649,7 +648,7 @@ public class GlobalActionState {
             try {
                 lokbibLibraries = vipCoreService.getLokbibLibraries();
             } catch (VipCoreException ex) {
-                LOGGER.error("VipCoreException error: " + ex.getMessage(), ex);
+                LOGGER.use(log -> log.error("VipCoreException error: " + ex.getMessage(), ex));
                 throw new UpdateException(ex.getMessage(), ex);
             }
         }

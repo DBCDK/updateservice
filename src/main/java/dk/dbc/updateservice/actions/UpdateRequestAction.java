@@ -8,12 +8,9 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import java.util.Enumeration;
 import java.util.Properties;
 
 /**
@@ -25,7 +22,7 @@ import java.util.Properties;
  * </ol>
  */
 public class UpdateRequestAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateRequestAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateRequestAction.class);
 
     private final Properties settings;
 
@@ -42,7 +39,6 @@ public class UpdateRequestAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        logRequest();
         final ServiceResult message = verifyData();
         if (message != null) {
             return message;
@@ -64,26 +60,28 @@ public class UpdateRequestAction extends AbstractAction {
     }
 
     private ServiceResult verifyData() throws UpdateException {
-        if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
-            String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        }
-        if (state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() == null) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"));
-        }
-        if (!state.isRecordSchemaValid()) {
-            LOGGER.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
-            return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
-        }
-        if (!state.isRecordPackingValid()) {
-            LOGGER.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
-            return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
-        }
-        String message = sanityCheckRecord();
-        if (!message.isEmpty()) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        }
-        return null;
+        return LOGGER.callChecked(log -> {
+            if (!isAgencyIdAllowedToUseUpdateOnThisInstance()) {
+                String message = String.format(state.getMessages().getString("agency.is.not.allowed.for.this.instance"), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            }
+            if (state.getUpdateServiceRequestDTO().getBibliographicRecordDTO() == null) {
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("request.record.is.missing"));
+            }
+            if (!state.isRecordSchemaValid()) {
+                log.warn("Unknown record schema: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordSchema());
+                return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
+            }
+            if (!state.isRecordPackingValid()) {
+                log.warn("Unknown record packing: {}", state.getUpdateServiceRequestDTO().getBibliographicRecordDTO().getRecordPacking());
+                return ServiceResult.newStatusResult(UpdateStatusEnumDTO.FAILED);
+            }
+            String message = sanityCheckRecord();
+            if (!message.isEmpty()) {
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            }
+            return null;
+        });
     }
 
     @Override
@@ -104,36 +102,6 @@ public class UpdateRequestAction extends AbstractAction {
         return optionsDTO != null && optionsDTO.getOption() != null && optionsDTO.getOption().contains(OptionEnumDTO.VALIDATE_ONLY);
     }
 
-    private void logRequest() {
-        if (state.getRequest() != null) {
-            final HttpServletRequest req = state.getRequest();
-            LOGGER.info("REQUEST:");
-            LOGGER.info("======================================");
-            LOGGER.info("Auth type: {}", req.getAuthType());
-            LOGGER.info("Context path: {}", req.getContextPath());
-            LOGGER.info("Content type: {}", req.getContentType());
-            LOGGER.info("Content length: {}", req.getContentLengthLong());
-            LOGGER.info("URI: {}", req.getRequestURI());
-            LOGGER.info("Client address: {}", req.getRemoteAddr());
-            LOGGER.info("Client host: {}", req.getRemoteHost());
-            LOGGER.info("Client port: {}", req.getRemotePort());
-            LOGGER.info("Headers");
-            LOGGER.info("--------------------------------------");
-            LOGGER.info("");
-            Enumeration<String> headerNames = req.getHeaderNames();
-            while (headerNames.hasMoreElements()) {
-                String name = headerNames.nextElement();
-                LOGGER.info("{}: {}", name, req.getHeader(name));
-            }
-            LOGGER.info("--------------------------------------");
-        }
-        LOGGER.info("");
-        LOGGER.info("Template name: {}", state.getSchemaName());
-        LOGGER.info("ValidationOnly option: {}", hasValidateOnlyOption() ? "True" : "False");
-        LOGGER.info("Request record: \n{}", state.readRecord());
-        LOGGER.info("======================================");
-    }
-
     private boolean isAgencyIdAllowedToUseUpdateOnThisInstance() throws UpdateException {
         if (!settings.containsKey(JNDIResources.UPDATE_PROD_STATE) || settings.getProperty(JNDIResources.UPDATE_PROD_STATE) == null) {
             throw new UpdateException("Required property '" + JNDIResources.UPDATE_PROD_STATE + "' not found");
@@ -148,31 +116,33 @@ public class UpdateRequestAction extends AbstractAction {
     }
 
     String sanityCheckRecord() {
-        String message = "";
-        try {
-            final MarcRecord marcRecord = state.readRecord();
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        return LOGGER.call(log -> {
+            String message = "";
+            try {
+                final MarcRecord marcRecord = state.readRecord();
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-            if (reader.hasField("001")) {
-                if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {
-                    message = state.getMessages().getString("sanity.check.failed.empty.001");
-                }
-                if (reader.getRecordId().strip().contains(" ")) {
-                    message = state.getMessages().getString("sanity.check.failed.spaces.001");
-                }
+                if (reader.hasField("001")) {
+                    if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {
+                        message = state.getMessages().getString("sanity.check.failed.empty.001");
+                    }
+                    if (reader.getRecordId().strip().contains(" ")) {
+                        message = state.getMessages().getString("sanity.check.failed.spaces.001");
+                    }
 
-                if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
-                    message = state.getMessages().getString("sanity.check.failed.libraryno.001");
-                }
-            } else {
-                message = state.getMessages().getString("sanity.check.failed.no.001");
+                    if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
+                        message = state.getMessages().getString("sanity.check.failed.libraryno.001");
+                    }
+                } else {
+                    message = state.getMessages().getString("sanity.check.failed.no.001");
 
+                }
+            } catch (Exception ex) {
+                message = state.getMessages().getString("sanity.check.failed.exception");
+                log.error("Caught exception during sanity check", ex);
             }
-        } catch (Exception ex) {
-            message = state.getMessages().getString("sanity.check.failed.exception");
-            LOGGER.error("Caught exception during sanity check", ex);
-        }
 
-        return message;
+            return message;
+        });
     }
 }

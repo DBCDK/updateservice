@@ -5,32 +5,30 @@
 
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
  * Action to check a record for double records, and if one exists return a warning to the user.
  */
 public class DoubleRecordFrontendAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordFrontendAction.class);
-
+    private static final DeferredLogger LOGGER = new DeferredLogger(DoubleRecordFrontendAction.class);
     Properties settings;
 
     public DoubleRecordFrontendAction(GlobalActionState globalActionState, Properties properties) {
@@ -46,21 +44,20 @@ public class DoubleRecordFrontendAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
-        try {
-            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("Handling record: {}", LogUtils.base64Encode(state.readRecord()));
+        return LOGGER.callChecked(log -> {
+            final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+            try {
+                final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
+                return doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
+            } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
+                final String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
+                log.error(message, e);
+                return ServiceResult.newOkResult();
+            } finally {
+                watch.stop();
             }
-            final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
-            return doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
-        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
-            final String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
-            LOGGER.error(message, e);
-            return ServiceResult.newOkResult();
-        } finally {
-            watch.stop();
-        }
+        });
     }
 
     private ServiceResult doubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) {

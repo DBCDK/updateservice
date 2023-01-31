@@ -10,6 +10,7 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.UpdateRecordResponseDTO;
 import dk.dbc.updateservice.update.UpdateServiceCore;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.util.Timed;
 
 import javax.ejb.EJB;
@@ -20,17 +21,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
-
 @Stateless
 @Path("/api")
 public class DoubleRecordCheckServiceRest {
-
+    private static final DeferredLogger LOGGER = new DeferredLogger(DoubleRecordCheckServiceRest.class);
     @EJB
     UpdateServiceCore updateServiceCore;
-
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(DoubleRecordCheckServiceRest.class);
 
     @POST
     @Path("v2/doublerecordcheck")
@@ -38,13 +34,13 @@ public class DoubleRecordCheckServiceRest {
     @Produces(MediaType.APPLICATION_JSON)
     @Timed
     public UpdateRecordResponseDTO doubleRecordCheck(BibliographicRecordDTO bibliographicRecordDTO) throws JSONBException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("doubleRecordCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
-        }
-        final UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("doubleRecordCheck result is: {}", updateRecordResponseDTO.toString());
-        }
-        return updateRecordResponseDTO;
+        return LOGGER.callChecked(log -> {
+            if (log.isInfoEnabled()) {
+                log.info("doubleRecordCheck - rest. Incoming: {}", new JSONBContext().marshall(bibliographicRecordDTO));
+            }
+            final UpdateRecordResponseDTO updateRecordResponseDTO = updateServiceCore.doubleRecordCheck(bibliographicRecordDTO);
+            log.info("doubleRecordCheck result is: {}", updateRecordResponseDTO);
+            return updateRecordResponseDTO;
+        });
     }
 }

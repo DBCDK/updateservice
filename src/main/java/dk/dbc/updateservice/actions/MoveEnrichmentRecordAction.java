@@ -8,14 +8,11 @@ package dk.dbc.updateservice.actions;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -32,7 +29,7 @@ import java.util.Properties;
  * </p>
  */
 public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(MoveEnrichmentRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(MoveEnrichmentRecordAction.class);
 
     private final boolean isClassificationChangedInCommonRecs;
     private final boolean isLinkRecInProduction;
@@ -58,9 +55,6 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-        }
         children.add(createDeleteEnrichmentAction());
         children.add(createMoveEnrichmentToCommonRecordAction());
         return ServiceResult.newOkResult();
@@ -77,7 +71,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         final String recordId = reader.getRecordId();
         final String agencyId = reader.getAgencyId();
 
-        LOGGER.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId);
+        LOGGER.use(log -> log.info("Create action to delete old enrichment record {{}:{}}", recordId, agencyId));
 
         final MarcRecordWriter writer = new MarcRecordWriter(deleteRecord);
         writer.markForDeletion();
@@ -90,7 +84,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of UpdateRecordAction or UpdateRecordAndClassificationsAction
      */
     private ServiceAction createMoveEnrichmentToCommonRecordAction() throws UpdateException {
-        try {
+        return LOGGER.callChecked(log -> {
             final MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
             final MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
             writer.addOrReplaceSubfield("001", "a", targetRecordId);
@@ -98,32 +92,30 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
             final String agencyId = reader.getAgencyId();
-            LOGGER.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
+            log.info("Create action to let new enrichment record {{}:{}} point to common record {}", recordId, agencyId, targetRecordId);
 
             if (state.getLibraryRecordsHandler().hasClassificationData(newEnrichmentRecord)) {
-                LOGGER.info("Enrichment record has classifications. Creating sub action to update it.");
+                log.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
             final MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
-            LOGGER.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
-            LOGGER.debug("isLinkRecInProduction {} ", isLinkRecInProduction);
+            log.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
+            log.debug("isLinkRecInProduction {} ", isLinkRecInProduction);
 
             if (isClassificationChangedInCommonRecs) {
                 if (isLinkRecInProduction) {
-                    LOGGER.info("Creating enrichment record without classifications, because the linkrecord is in production.");
+                    log.info("Creating enrichment record without classifications, because the linkRecord is in production.");
                     return createUpdateRecordAction(newEnrichmentRecord);
                 } else {
-                    LOGGER.info("Creating enrichment record with classifications, because the linkrecord is published.");
+                    log.info("Creating enrichment record with classifications, because the linkRecord is published.");
                     return createUpdateRecordAndClassificationsAction(newEnrichmentRecord, currentCommonRecord);
                 }
             } else {
-                LOGGER.info("Creating enrichment record without classifications, because there are no change in die/live records.");
+                log.info("Creating enrichment record without classifications, because there are no change in die/live records.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-        } catch (UnsupportedEncodingException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
-        }
+        });
     }
 
     /**

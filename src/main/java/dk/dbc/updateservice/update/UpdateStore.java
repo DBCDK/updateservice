@@ -6,8 +6,7 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.updateservice.entities.DpkOverride;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -26,7 +25,7 @@ import java.util.UUID;
 @Stateless
 @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
 public class UpdateStore {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateStore.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateStore.class);
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -37,24 +36,26 @@ public class UpdateStore {
         dpkOverride.setRequestUuid(uuid);
         dpkOverride.setCreatedDtm(new Date());
         entityManager.persist(dpkOverride);
-        LOGGER.info("Inserted updatestore object: {}", dpkOverride);
+        LOGGER.use(l -> l.info("Inserted updateStore object: {}", dpkOverride));
         return uuid;
     }
 
     public boolean doesDoubleRecordKeyExist(String key) {
         final DpkOverride dpkOverride = entityManager.find(DpkOverride.class, key, LockModeType.PESSIMISTIC_WRITE);
-        LOGGER.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: {}", dpkOverride);
-        if (dpkOverride != null) {
-            entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
-            final LocalDateTime updatestoreCreateDate = LocalDateTime.ofInstant(dpkOverride.getCreatedDtm().toInstant(), ZoneId.systemDefault());
-            if (updatestoreCreateDate.isAfter(LocalDateTime.now().minusDays(1))) {
-                LOGGER.info("Found doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
-                return true;
-            } else {
-                LOGGER.info("Found old doublerecord frontend key object: {}. Object will now be removed.", dpkOverride);
+        return LOGGER.call(log -> {
+            log.debug("UpdateStore.doesDoubleRecordKeyExist, entityManager.find: {}", dpkOverride);
+            if (dpkOverride != null) {
+                entityManager.refresh(dpkOverride); // This is necessary to make sure we don't get a cached hit
+                final LocalDateTime updateStoreCreateDate = LocalDateTime.ofInstant(dpkOverride.getCreatedDtm().toInstant(), ZoneId.systemDefault());
+                if (updateStoreCreateDate.isAfter(LocalDateTime.now().minusDays(1))) {
+                    log.info("Found double record frontend key object: {}. Object will now be removed.", dpkOverride);
+                    return true;
+                } else {
+                    log.info("Found old double record frontend key object: {}. Object will now be removed.", dpkOverride);
+                }
+                entityManager.remove(dpkOverride);
             }
-            entityManager.remove(dpkOverride);
-        }
-        return false;
+            return false;
+        });
     }
 }

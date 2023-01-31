@@ -12,8 +12,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.util.Properties;
 
@@ -36,8 +35,7 @@ import java.util.Properties;
  * </p>
  */
 public class EnqueueRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(EnqueueRecordAction.class);
-
+    private static final DeferredLogger LOGGER = new DeferredLogger(EnqueueRecordAction.class);
     Properties settings;
     private final RecordId recordId;
 
@@ -65,54 +63,56 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        String providerId;
+        return LOGGER.callChecked(log -> {
+            String providerId;
 
-        int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
+            int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
 
-        if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
-            priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
-            LOGGER.info("Using override priority {}", priority);
-        }
+            if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
+                priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));
+                log.info("Using override priority {}", priority);
+            }
 
-        if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
-            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
-        } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
-            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
-        } else if (state.getLibraryGroup().isPH()) {
-            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
-        } else {
-            providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
-        }
+            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
+                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
+            } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
+                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
+            } else if (state.getLibraryGroup().isPH()) {
+                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
+            } else {
+                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
+            }
 
-        if (providerId == null) {
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
-        }
+            if (providerId == null) {
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
+            }
 
-        // It looks like 191919 enqueues everything the parent record does in addition to itself. This is a waste of
-        // time. So if the record is 191919 we only enqueue that specific record.
-        if (recordId.getAgencyId() == RawRepo.DBC_ENRICHMENT) {
-            rawRepo.enqueue(recordId, providerId, true, true, priority);
+            // It looks like 191919 enqueues everything the parent record does in addition to itself. This is a waste of
+            // time. So if the record is 191919 we only enqueue that specific record.
+            if (recordId.getAgencyId() == RawRepo.DBC_ENRICHMENT) {
+                rawRepo.enqueue(recordId, providerId, true, true, priority);
+                return ServiceResult.newOkResult();
+            }
+
+            log.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), recordId.getAgencyId(), providerId, priority);
+            rawRepo.changedRecord(providerId, recordId, priority);
+
+            // Hack for handling missing enqueue of article (870971) records with child articles.
+            // The way changedRecord enqueues records with children in general is that if there are any children then
+            // the record itself is enqueued with leaf = false which means the record isn't queued for certain workers.
+            // That normally isn't a problem because of the way the records are dequeued by the different workers as the
+            // workers retrieve the necessary hierarchy for the child record.
+            // However, there is a hole when it comes to article records as articles does not retrieve their parent
+            // article record during queue processing. Until this case is handled by changedRecord we have to explicit
+            // enqueue the parent article
+            if (recordId.getAgencyId() == RawRepo.ARTICLE_AGENCY && !state.getRawRepo().children(recordId).isEmpty()) {
+                log.info("Found children for article record, so enqueuing that record explict");
+                log.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT, providerId, priority);
+                rawRepo.enqueue(new RecordId(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
+            }
+
             return ServiceResult.newOkResult();
-        }
-
-        LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), recordId.getAgencyId(), providerId, priority);
-        rawRepo.changedRecord(providerId, recordId, priority);
-
-        // Hack for handling missing enqueue of article (870971) records with child articles.
-        // The way changedRecord enqueues records with children in general is that if there are any children then
-        // the record itself is enqueued with leaf = false which means the record isn't queued for certain workers.
-        // That normally isn't a problem because of the way the records are dequeued by the different workers as the
-        // workers retrieve the necessary hierarchy for the child record.
-        // However there is a hole when it comes to article records as articles does not retrieve their parent
-        // article record during queue processing. Until this case is handled by changedRecord we have to explicit
-        // enqueue the parent article
-        if (recordId.getAgencyId() == RawRepo.ARTICLE_AGENCY && !state.getRawRepo().children(recordId).isEmpty()) {
-            LOGGER.info("Found children for article record, so enqueuing that record explict");
-            LOGGER.info("Enqueuing record: {}:{} using provider '{}' with priority {}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT, providerId, priority);
-            rawRepo.enqueue(new RecordId(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT), providerId, true, true, priority);
-        }
-
-        return ServiceResult.newOkResult();
+        });
     }
 
     /**

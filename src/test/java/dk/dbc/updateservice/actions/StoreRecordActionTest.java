@@ -21,7 +21,6 @@ import org.mockito.ArgumentCaptor;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -108,47 +107,6 @@ class StoreRecordActionTest {
         assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
         assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
         assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
-    }
-
-    /**
-     * Test StoreRecordAction.performAction() to store a record in RawRepo.
-     * <p>
-     * This test checks the behaviour if the RawRepoEncoder throws a
-     * UnsupportedEncodingException exception
-     * </p>
-     * <p>
-     * <dl>
-     * <dt>Given</dt>
-     * <dd>
-     * An empty rawrepo.
-     * </dd>
-     * <dt>When</dt>
-     * <dd>
-     * Store a record in rawrepo.
-     * </dd>
-     * <dt>Then</dt>
-     * <dd>
-     * The rawrepo is unchanged and a ServiceResult with
-     * status FAILED_UPDATE_INTERNAL_ERROR is returned.
-     * </dd>
-     * </dl>
-     */
-    @Test
-    void testPerformAction_UnsupportedEncoding() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.getRecordId();
-        int agencyId = reader.getAgencyIdAsInt();
-        state.setLibraryGroup(libraryGroup);
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
-        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        storeRecordAction.encoder = mock(StoreRecordAction.Encoder.class);
-
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-        when(storeRecordAction.encoder.encodeRecord(eq(record))).thenThrow(new UnsupportedEncodingException("error"));
-
-        assertThat(storeRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
-        verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
     /**

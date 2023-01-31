@@ -13,8 +13,6 @@ import dk.dbc.updateservice.dto.BuildResponseDTO;
 import dk.dbc.updateservice.dto.BuildStatusEnumDTO;
 import dk.dbc.updateservice.update.OpenBuildCore;
 import dk.dbc.util.Timed;
-import java.time.Duration;
-import javax.inject.Inject;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
 import org.eclipse.microprofile.metrics.MetricType;
@@ -29,11 +27,15 @@ import org.slf4j.ext.XLoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.time.Duration;
+
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 
 @Stateless
 @Path("/api")
@@ -66,7 +68,7 @@ public class OpenBuildRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public String build(BuildRequestDTO buildRequestDTO) throws JSONBException {
-        final StopWatch watch = new Log4JStopWatch("OpenBuildRest.build");
+        final StopWatch watch = new Log4JStopWatch("OpenBuildRest.build").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final SimpleTimer buildTimer = metricRegistry.simpleTimer(buildTimerMetadata);
         final DBCTrackedLogContext dbcTrackedLogContext = new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
 

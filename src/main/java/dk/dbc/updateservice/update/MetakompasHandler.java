@@ -13,8 +13,7 @@ import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceAction;
 import dk.dbc.updateservice.actions.UpdateCommonRecordAction;
 import dk.dbc.updateservice.actions.UpdateEnrichmentRecordAction;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import dk.dbc.updateservice.utils.DeferredLogger;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -29,12 +28,25 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
+import static java.util.Map.entry;
+
 public class MetakompasHandler {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(MetakompasHandler.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(MetakompasHandler.class);
 
     private static final String INDEX_NAME = "phrase.vla";
+    private static final Map<String, String> MOOD_CATEGORY_CODES = Map.ofEntries(
+            entry("positiv", "na"),
+            entry("humoristisk", "nb"),
+            entry("romantisk", "nc"),
+            entry("erotisk", "nd"),
+            entry("dramatisk", "ne"),
+            entry("trist", "nf"),
+            entry("uhyggelig", "ng"),
+            entry("fantasifuld", "nh"),
+            entry("tankevækkende", "ni"));
     private static final List<String> atmosphereSubjectSubFields = Collections.singletonList("n");
     private static final List<String> nonAtmosphereSubjectSubFields = Arrays.asList("i", "q", "p", "m", "g", "u", "e", "h", "j", "k", "l", "s", "r", "t", "v");
     private static final String COMMON_RECORD_TEMPLATE =
@@ -58,96 +70,69 @@ public class MetakompasHandler {
     }
 
     private static String callUrl(String url) throws UpdateException {
-        try {
-            LOGGER.info("Numberroll url : {}", url);
-            final URL numberUrl = new URL(url);
-            final HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
-            InputStream is;
-            final int response = conn.getResponseCode();
-            if (response == 200) {
-                LOGGER.info("Ok Went Well");
-                is = conn.getInputStream();
-            } else {
-                LOGGER.info("DIDNT Went Well {}", response);
-                is = conn.getErrorStream();
-            }
-            final JsonReader jReader = Json.createReader(is);
-            final JsonObject jObj = jReader.readObject();
-            conn.disconnect();
-
-            if (response == 200) {
-                LOGGER.info("Numberroll response {} ==> {}", url, jObj.toString());
-            } else {
-                String s = String.format("Numberroll response {%s} ==> {%s}", url, jObj.toString());
-                LOGGER.warn(s);
-                if (jObj.containsKey("error")) {
-                    s = String.format("Numberroll returned error code : %s", jObj.getJsonObject("error").toString());
-                    LOGGER.warn(s);
+        return LOGGER.callChecked(log -> {
+            try {
+                log.info("Numberroll url : {}", url);
+                final URL numberUrl = new URL(url);
+                final HttpURLConnection conn = (HttpURLConnection) numberUrl.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setRequestProperty("Accept", "application/json");
+                InputStream is;
+                final int response = conn.getResponseCode();
+                if (response == 200) {
+                    log.info("Ok Went Well");
+                    is = conn.getInputStream();
+                } else {
+                    log.info("DIDNT Went Well {}", response);
+                    is = conn.getErrorStream();
                 }
-                throw new UpdateException(s);
+                final JsonReader jReader = Json.createReader(is);
+                final JsonObject jObj = jReader.readObject();
+                conn.disconnect();
+
+                if (response == 200) {
+                    log.info("Numberroll response {} ==> {}", url, jObj.toString());
+                } else {
+                    String s = String.format("Numberroll response {%s} ==> {%s}", url, jObj.toString());
+                    log.warn(s);
+                    if (jObj.containsKey("error")) {
+                        s = String.format("Numberroll returned error code : %s", jObj.getJsonObject("error").toString());
+                        log.warn(s);
+                    }
+                    throw new UpdateException(s);
+                }
+                if (jObj.containsKey("numberRollResponse")) {
+                    return jObj.getJsonObject("numberRollResponse").getJsonObject("rollNumber").getString("$");
+                } else {
+                    throw new UpdateException("Numberroll request did not contain a rollnumber");
+                }
+            } catch (IOException e) {
+                throw new UpdateException(e.getMessage());
             }
-            if (jObj.containsKey("numberRollResponse")) {
-                return jObj.getJsonObject("numberRollResponse").getJsonObject("rollNumber").getString("$");
-            } else {
-                throw new UpdateException("Numberroll request did not contain a rollnumber");
-            }
-        } catch (IOException e) {
-            LOGGER.info("IOException {}", e.getMessage());
-            throw new UpdateException(e.getMessage());
-        }
+        });
     }
 
     private static String getNewIdNumber(Properties properties, String rollName) throws UpdateException {
-        if (properties.containsKey(JNDIResources.OPENNUMBERROLL_URL)) {
-            final String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
-            LOGGER.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
-            if (properties.containsKey(rollName)) {
-                LOGGER.info("Numberroll name {}", properties.getProperty(rollName));
-                final String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(rollName) + "&outputType=json");
-                LOGGER.info("Got new id number {} ", res);
-                return res;
+        return LOGGER.callChecked(log -> {
+            if (properties.containsKey(JNDIResources.OPENNUMBERROLL_URL)) {
+                final String url = properties.getProperty(JNDIResources.OPENNUMBERROLL_URL);
+                log.info("Numberroll url {}", properties.getProperty(JNDIResources.OPENNUMBERROLL_URL));
+                if (properties.containsKey(rollName)) {
+                    log.info("Numberroll name {}", properties.getProperty(rollName));
+                    final String res = callUrl(url + "?action=numberRoll&numberRollName=" + properties.getProperty(rollName) + "&outputType=json");
+                    log.info("Got new id number {} ", res);
+                    return res;
+                } else {
+                    throw new UpdateException("No configuration numberroll");
+                }
             } else {
-                throw new UpdateException("No configuration numberroll");
+                throw new UpdateException("No configuration for opennumberroll service");
             }
-        } else {
-            throw new UpdateException("No configuration for opennumberroll service");
-        }
+        });
     }
 
     private static String getMoodCategoryCode(String subfieldContent) {
-        String shortValue = "";
-        switch (subfieldContent) {      // I want a std::pair - :cry:
-            case "positiv":
-                shortValue = "na";
-                break;
-            case "humoristisk":
-                shortValue = "nb";
-                break;
-            case "romantisk":
-                shortValue = "nc";
-                break;
-            case "erotisk":
-                shortValue = "nd";
-                break;
-            case "dramatisk":
-                shortValue = "ne";
-                break;
-            case "trist":
-                shortValue = "nf";
-                break;
-            case "uhyggelig":
-                shortValue = "ng";
-                break;
-            case "fantasifuld":
-                shortValue = "nh";
-                break;
-            case "tankevækkende":
-                shortValue = "ni";
-                break;
-        }
-        return shortValue;
+        return MOOD_CATEGORY_CODES.getOrDefault(subfieldContent, "");
     }
 
     private static String getWeekCode() {
@@ -163,61 +148,55 @@ public class MetakompasHandler {
         String shortValue;
         List<MarcField> fields;
 
-        try {
-            final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
-            fields = mainRecord.getFields();
-            for (MarcField field : fields) {
-                if (field.getName().equals("670")) {
-                    makeCommon = false;
-                    break;
-                }
+        final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 190004).getContent());
+        fields = mainRecord.getFields();
+        for (MarcField field : fields) {
+            if (field.getName().equals("670")) {
+                makeCommon = false;
+                break;
             }
-            if (makeCommon) {
-                final MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
-                mWriter.setChangedTimestamp();
-                mWriter.addFieldSubfield("670", "a", id);
-                children.add(new UpdateCommonRecordAction(state, properties, mainRecord));
-            }
+        }
+        if (makeCommon) {
+            final MarcRecordWriter mWriter = new MarcRecordWriter(mainRecord);
+            mWriter.setChangedTimestamp();
+            mWriter.addFieldSubfield("670", "a", id);
+            children.add(new UpdateCommonRecordAction(state, properties, mainRecord));
+        }
 
-            final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 191919).getContent());
-            if (subFieldName.equals("n")) {
-                shortValue = getMoodCategoryCode(category);
-            } else {
-                shortValue = subFieldName;
+        final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(subjectId, 191919).getContent());
+        if (subFieldName.equals("n")) {
+            shortValue = getMoodCategoryCode(category);
+        } else {
+            shortValue = subFieldName;
+        }
+        fields = enrichmentRecord.getFields();
+        for (MarcField field : fields) {
+            if (field.getName().equals("d09")) {
+                final   List<MarcSubField> subFields = field.getSubfields();
+                subFields.add(new MarcSubField("z", "EMK" + getWeekCode()));
             }
-            fields = enrichmentRecord.getFields();
-            for (MarcField field : fields) {
-                if (field.getName().equals("d09")) {
-                    final   List<MarcSubField> subFields = field.getSubfields();
-                    subFields.add(new MarcSubField("z", "EMK" + getWeekCode()));
+            if (field.getName().equals("x09")) {
+                final List<MarcSubField> subFields = field.getSubfields();
+                for (MarcSubField subField : subFields) {
+                    if (subField.getName().equals("p") && subField.getValue().equals(shortValue))
+                        makeEnrich = false;
                 }
-                if (field.getName().equals("x09")) {
-                    final List<MarcSubField> subFields = field.getSubfields();
-                    for (MarcSubField subField : subFields) {
-                        if (subField.getName().equals("p") && subField.getValue().equals(shortValue))
-                            makeEnrich = false;
-                    }
 
-                }
             }
-            if (makeEnrich) {
-                final MarcField x09Field = new MarcField();
-                x09Field.setName("x09");
-                x09Field.setIndicator("00");
-                final List<MarcSubField> x09subFields = x09Field.getSubfields();
-                x09subFields.add(new MarcSubField("p", shortValue));
-                final String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
-                x09subFields.add(new MarcSubField("q", metaCompassId));
-                fields.add(x09Field);
-                enrichmentRecord.setFields(fields);
-                final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-                writer.setChangedTimestamp();
-                children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
-            }
-        } catch (UpdateException | UnsupportedEncodingException e) {
-            LOGGER.info("Updating subject record(s) failed {}", e.getMessage());
-            throw e;
-
+        }
+        if (makeEnrich) {
+            final MarcField x09Field = new MarcField();
+            x09Field.setName("x09");
+            x09Field.setIndicator("00");
+            final List<MarcSubField> x09subFields = x09Field.getSubfields();
+            x09subFields.add(new MarcSubField("p", shortValue));
+            final String metaCompassId = getNewIdNumber(properties, JNDIResources.OPENNUMBERROLL_NAME_FAUST);
+            x09subFields.add(new MarcSubField("q", metaCompassId));
+            fields.add(x09Field);
+            enrichmentRecord.setFields(fields);
+            final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
+            writer.setChangedTimestamp();
+            children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
         }
     }
 
@@ -251,8 +230,7 @@ public class MetakompasHandler {
             enrichmentWriter.addOrReplaceSubfield("x09", "q", metaCompassId);
             children.add(new UpdateEnrichmentRecordAction(state, properties, enrichmentRecord, 190004));
         } catch (UpdateException e) {
-            LOGGER.info("Creating subject record(s) failed {}", e.getMessage());
-            throw e;
+            throw new UpdateException("Creating subject record(s) failed", e);
         }
 
     }

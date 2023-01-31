@@ -24,6 +24,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ResourceBundle;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
+
 public abstract class SolrBase {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(SolrBase.class);
     private static final String ERROR_CODE = "error";
@@ -74,36 +76,34 @@ public abstract class SolrBase {
                         s = String.format("Solr returned error code %s: %s", jObj.getJsonObject(ERROR_CODE).getInt("code"), jObj.getJsonObject(ERROR_CODE).getString("msg"));
                         LOGGER.warn(s);
                     } else {
-                        s = String.format("Very strange - could not locate neither response nor error section in Solr response %s", jObj.toString());
+                        s = String.format("Very strange - could not locate neither response nor error section in Solr response %s", jObj);
                     }
                     throw new UpdateException(s);
                 }
             }
         } catch (IOException ex) {
-            String s = "Unable to connect to url " + url + ": " + ex.getMessage();
-            LOGGER.warn(s);
+            String s = "Unable to connect to url " + url;
             throw new SolrException(s, ex);
         }
     }
 
-    public long hits(String query) throws UpdateException, SolrException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hits");
+    public long hits(String query) throws UpdateException {
+        final StopWatch watch = new Log4JStopWatch("service.solr.hits").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final URL solrUrl = setUrl(query, "");
             final JsonObject response = callSolr(solrUrl);
             if (response.containsKey(NUM_FOUND)) {
                 return response.getInt(NUM_FOUND);
             }
-            final String s = String.format("Unable to locate 'numFound' in Solr response %s", response.toString());
-            LOGGER.warn(s);
+            final String s = String.format("Unable to locate 'numFound' in Solr response %s", response);
             throw new UpdateException(s);
         } finally {
             watch.stop();
         }
     }
 
-    public String getSubjectIdNumber(String query) throws UpdateException, SolrException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hits");
+    public String getSubjectIdNumber(String query) throws UpdateException {
+        final StopWatch watch = new Log4JStopWatch("service.solr.hits").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final URL solrUrl = setUrl(query, "&fl=marc.001a");
             final JsonObject response = callSolr(solrUrl);
@@ -137,8 +137,8 @@ public abstract class SolrBase {
         }
     }
 
-    public boolean hasDocuments(String query) throws UpdateException, SolrException {
-        final StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments");
+    public boolean hasDocuments(String query) throws UpdateException {
+        final StopWatch watch = new Log4JStopWatch("service.solr.hasdocuments").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             return hits(query) != 0L;
         } finally {
