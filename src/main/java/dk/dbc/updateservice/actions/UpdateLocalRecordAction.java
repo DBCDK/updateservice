@@ -9,18 +9,15 @@ import dk.dbc.common.records.AgencyNumber;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 import java.util.Set;
 
@@ -33,7 +30,7 @@ import java.util.Set;
  * </p>
  */
 public class UpdateLocalRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateLocalRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateLocalRecordAction.class);
 
     private final Properties settings;
 
@@ -51,24 +48,22 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Handling record: {}", LogUtils.base64Encode(marcRecord));
-        }
-
-        MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-        String parentId = reader.getParentRecordId();
-        if (reader.markedForDeletion()) {
-            if (parentId == null) {
-                return performSingleDeleteAction();
+        return LOGGER.callChecked(log -> {
+            MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+            String parentId = reader.getParentRecordId();
+            if (reader.markedForDeletion()) {
+                if (parentId == null) {
+                    return performSingleDeleteAction();
+                }
+                return performVolumeDeleteAction();
             }
-            return performVolumeDeleteAction();
-        }
 
-        if (parentId == null) {
-            return performUpdateSingleRecordAction();
-        }
+            if (parentId == null) {
+                return performUpdateSingleRecordAction();
+            }
 
-        return performUpdateVolumeRecordAction(parentId);
+            return performUpdateVolumeRecordAction(parentId);
+        });
     }
 
     /**
@@ -181,27 +176,23 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
     }
 
     private ServiceResult performVolumeDeleteAction() throws UpdateException {
-        try {
-            final ServiceResult result = performSingleDeleteAction();
-            if (result.getStatus() != UpdateStatusEnumDTO.OK) {
-                return result;
-            }
-            final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
-            final String parentRecordId = reader.getParentRecordId();
-            final int parentAgencyId = reader.getParentAgencyIdAsInt();
-            final Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));
-            if (recordIdChildrenList.size() != 1) {
-                return ServiceResult.newOkResult();
-            }
-            final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
-            final MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
-            writer.markForDeletion();
-            final UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);
-            children.add(action);
-
-            return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
+        final ServiceResult result = performSingleDeleteAction();
+        if (result.getStatus() != UpdateStatusEnumDTO.OK) {
+            return result;
         }
+        final MarcRecordReader reader = new MarcRecordReader(this.marcRecord);
+        final String parentRecordId = reader.getParentRecordId();
+        final int parentAgencyId = reader.getParentAgencyIdAsInt();
+        final Set<RecordId> recordIdChildrenList = rawRepo.children(new RecordId(parentRecordId, parentAgencyId));
+        if (recordIdChildrenList.size() != 1) {
+            return ServiceResult.newOkResult();
+        }
+        final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
+        final MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
+        writer.markForDeletion();
+        final UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);
+        children.add(action);
+
+        return ServiceResult.newOkResult();
     }
 }

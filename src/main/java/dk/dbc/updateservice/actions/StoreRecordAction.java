@@ -15,13 +15,11 @@ import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import javax.xml.bind.JAXBException;
-import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -33,12 +31,12 @@ import java.util.Properties;
  * Action to store a record in the rawrepo.
  */
 public class StoreRecordAction extends AbstractRawRepoAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(StoreRecordAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(StoreRecordAction.class);
 
     Encoder encoder = new Encoder();
     private String mimetype;
     Properties properties;
-    private RecordId recordId;
+    private final RecordId recordId;
 
     private static final DateTimeFormatter modifiedFormatter = new DateTimeFormatterBuilder()
             .appendPattern("yyyyMMddHHmmss")
@@ -73,7 +71,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      * Class used for mocking during unit test
      */
     static class Encoder {
-        byte[] encodeRecord(MarcRecord marcRecord) throws JAXBException, UnsupportedEncodingException {
+        byte[] encodeRecord(MarcRecord marcRecord) throws JAXBException {
             return RecordContentTransformer.encodeRecord(marcRecord);
         }
     }
@@ -86,37 +84,39 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        try {
-            LOGGER.info("Handling record: {}:{}", recordId.getBibliographicRecordId(), recordId.getAgencyId());
+        return LOGGER.callChecked(log -> {
+            try {
+                log.info("Handling record: {}:{}", recordId.getBibliographicRecordId(), recordId.getAgencyId());
 
-            final Record rawRepoRecord = rawRepo.fetchRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+                final Record rawRepoRecord = rawRepo.fetchRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
 
-            MarcRecord recordToStore;
-            if (this.marcRecord != null) {
-                recordToStore = recordToStore();
-            } else {
-                recordToStore = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+                MarcRecord recordToStore;
+                if (this.marcRecord != null) {
+                    recordToStore = recordToStore();
+                } else {
+                    recordToStore = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
+                }
+                recordToStore = state.getRecordSorter().sortRecord(recordToStore);
+                updateModifiedDate(recordToStore);
+                rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
+                if (mimetype != null && !mimetype.isEmpty()) {
+                    rawRepoRecord.setMimeType(mimetype);
+                }
+                rawRepoRecord.setDeleted(deletionMarkToStore());
+                if (state.getCreateOverwriteDate() != null) {
+                    rawRepoRecord.setCreated(state.getCreateOverwriteDate());
+                }
+                rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
+                rawRepo.saveRecord(rawRepoRecord);
+                log.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
+                log.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
+                return ServiceResult.newOkResult();
+            } catch (JAXBException ex) {
+                log.error("Error when trying to save record {}", recordId, ex);
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
             }
-            recordToStore = state.getRecordSorter().sortRecord(recordToStore);
-            updateModifiedDate(recordToStore);
-            rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
-            if (mimetype != null && !mimetype.isEmpty()) {
-                rawRepoRecord.setMimeType(mimetype);
-            }
-            rawRepoRecord.setDeleted(deletionMarkToStore());
-            if (state.getCreateOverwriteDate() != null) {
-                rawRepoRecord.setCreated(state.getCreateOverwriteDate());
-            }
-            rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
-            rawRepo.saveRecord(rawRepoRecord);
-            LOGGER.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
-            LOGGER.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
-            return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException | JAXBException ex) {
-            LOGGER.error("Error when trying to save record. ", ex);
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        }
+        });
     }
 
     /**
@@ -127,7 +127,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      *
      * @return The record to store.
      */
-    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
+    public MarcRecord recordToStore() throws UpdateException {
         return marcRecord;
     }
 

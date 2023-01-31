@@ -12,7 +12,6 @@ import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.update.UpdateException;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -44,7 +43,7 @@ public class DeleteRecordAction extends StoreRecordAction {
      * @return The record to store.
      */
     @Override
-    public MarcRecord recordToStore() throws UpdateException, UnsupportedEncodingException {
+    public MarcRecord recordToStore() throws UpdateException {
         final MarcRecord result = loadCurrentRecord();
         final MarcRecordWriter currentWriter = new MarcRecordWriter(result);
         final MarcRecordReader currentReader = new MarcRecordReader(result);
@@ -71,7 +70,7 @@ public class DeleteRecordAction extends StoreRecordAction {
         return deleteRecordAction;
     }
 
-    private MarcRecord loadCurrentRecord() throws UpdateException, UnsupportedEncodingException {
+    private MarcRecord loadCurrentRecord() throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
         final int agencyId = reader.getAgencyIdAsInt();

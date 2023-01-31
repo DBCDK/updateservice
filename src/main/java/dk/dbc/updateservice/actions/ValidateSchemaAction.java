@@ -4,14 +4,14 @@ import dk.dbc.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.util.Properties;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 /**
@@ -23,7 +23,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
  * </p>
  */
 public class ValidateSchemaAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(ValidateSchemaAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(ValidateSchemaAction.class);
 
     Properties settings;
 
@@ -40,41 +40,43 @@ public class ValidateSchemaAction extends AbstractAction {
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkTemplate").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         validateData();
-        try {
-            final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
-            if (state.getSchemaName() == null) {
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "schemaName must not be empty");
-            }
-
-            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-            if (groupId == null) {
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
-            }
-
-            if (state.getIsTemplateOverwrite()) {
-                LOGGER.info("Skipping checkTemplate() as groupId is root and template is superallowall");
-                return ServiceResult.newOkResult();
-            } else {
-                final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
-                        state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
-                        state.getTemplateGroup(),
-                        trackingId);
-                if (validateSchemaFound) {
-                    LOGGER.info("Validating schema '{}' successfully", state.getSchemaName());
-                    return ServiceResult.newOkResult();
+        return LOGGER.callChecked(log -> {
+            try {
+                final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+                if (state.getSchemaName() == null) {
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "schemaName must not be empty");
                 }
+
+                final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+                if (groupId == null) {
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "groupId must not be empty");
+                }
+
+                if (state.getIsTemplateOverwrite()) {
+                    log.info("Skipping checkTemplate() as groupId is root and template is superallowall");
+                    return ServiceResult.newOkResult();
+                } else {
+                    final boolean validateSchemaFound = state.getOpencatBusiness().checkTemplate(state.getSchemaName(),
+                            state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId(),
+                            state.getTemplateGroup(),
+                            trackingId);
+                    if (validateSchemaFound) {
+                        log.info("Validating schema '{}' successfully", state.getSchemaName());
+                        return ServiceResult.newOkResult();
+                    }
+                }
+                log.error("Validating schema '{}' failed", state.getSchemaName());
+                final String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+            } catch (OpencatBusinessConnectorException | JSONBException ex) {
+                log.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
+            } finally {
+                watch.stop();
             }
-            LOGGER.error("Validating schema '{}' failed", state.getSchemaName());
-            final String message = String.format(state.getMessages().getString("update.schema.not.found"), state.getSchemaName());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-        } catch (OpencatBusinessConnectorException | JSONBException ex) {
-            LOGGER.info("Validating schema '{}'. Executing error: {}", state.getSchemaName(), ex.getMessage());
-            return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
-        } finally {
-            watch.stop();
-        }
+        });
     }
 
     private void validateData() {

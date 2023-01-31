@@ -7,16 +7,17 @@ import dk.dbc.login.DBCLoginConnectorException;
 import dk.dbc.login.dto.Right;
 import dk.dbc.login.dto.UserInfo;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import java.util.List;
+
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 
 /**
  * EJB to authenticate users against the idp service.
@@ -24,7 +25,7 @@ import java.util.List;
 @Stateless
 @LocalBean
 public class Authenticator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Authenticator.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(Authenticator.class);
 
     @Inject
     private IDPConnector idpConnector;
@@ -49,22 +50,22 @@ public class Authenticator {
      * @throws AuthenticatorException if there are problems communicating with the identity service
      */
     public boolean authenticateUser(AuthenticationDTO authenticationDTO) throws AuthenticatorException {
-        final StopWatch watch = new Log4JStopWatch("service.idp.lookupRight");
-        try {
-            final IDPConnector.RightSet rights = idpConnector.lookupRight(authenticationDTO.getUserId(), authenticationDTO.getGroupId(), authenticationDTO.getPassword());
-
-            LOGGER.debug("Looking for product name '{}' with '{}' permission", authProductName, authProductRight);
-            return rights.hasRight(authProductName, authProductRight);
-        } catch (IDPConnectorException ex) {
-            LOGGER.error("Caught exception:", ex);
-            throw new AuthenticatorException(ex.getMessage(), ex);
-        } finally {
-            watch.stop();
-        }
+        final StopWatch watch = new Log4JStopWatch("service.idp.lookupRight").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        return LOGGER.callChecked(log -> {
+            try {
+                final IDPConnector.RightSet rights = idpConnector.lookupRight(authenticationDTO.getUserId(), authenticationDTO.getGroupId(), authenticationDTO.getPassword());
+                log.debug("Looking for product name '{}' with '{}' permission", authProductName, authProductRight);
+                return rights.hasRight(authProductName, authProductRight);
+            } catch (IDPConnectorException ex) {
+                throw new AuthenticatorException("Caught exception while authenticating : " + authenticationDTO.getUserId(), ex);
+            } finally {
+                watch.stop();
+            }
+        });
     }
 
     public AuthenticationDTO authenticateUser(String bearerToken) throws AuthenticatorException {
-        final StopWatch watch = new Log4JStopWatch("service.login.bib.dk");
+        final StopWatch watch = new Log4JStopWatch("service.login.bib.dk").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             UserInfo userInfo = dbcLoginConnector.userinfo(bearerToken);
             if (userInfo != null
@@ -86,8 +87,7 @@ public class Authenticator {
 
             return null;
         } catch (DBCLoginConnectorException ex) {
-            LOGGER.error("Caught exception:", ex);
-            throw new AuthenticatorException(ex.getMessage(), ex);
+            throw new AuthenticatorException("Unable to authenticate bearer token", ex);
         } finally {
             watch.stop();
         }

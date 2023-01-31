@@ -4,9 +4,8 @@ import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 
 import java.util.List;
 import java.util.Properties;
@@ -20,7 +19,7 @@ import java.util.ResourceBundle;
  * </p>
  */
 public class AuthenticateUserAction extends AbstractAction {
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(AuthenticateUserAction.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(AuthenticateUserAction.class);
     private final List<String> dbcOverwriteAgencies;
 
     public AuthenticateUserAction(GlobalActionState globalActionState, Properties properties) {
@@ -53,65 +52,69 @@ public class AuthenticateUserAction extends AbstractAction {
 
     private ServiceResult authenticateByIDP() {
         validateNullableData();
-        final String msg;
-        final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
+        return LOGGER.call(log -> {
+            final String msg;
+            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
-        if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
-            msg = resourceBundle.getString("auth.user.missing.arguments");
-            LOGGER.error(msg);
-            return ServiceResult.newAuthErrorResult(msg);
-        }
-        if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
-            msg = resourceBundle.getString("auth.user.missing.username");
-            LOGGER.error(msg);
-            return ServiceResult.newAuthErrorResult(msg);
-        }
-        if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
-            msg = resourceBundle.getString("auth.user.missing.groupname");
-            LOGGER.error(msg);
-            return ServiceResult.newAuthErrorResult(msg);
-        }
-        if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
-            msg = resourceBundle.getString("auth.user.missing.password");
-            LOGGER.error(msg);
-            return ServiceResult.newAuthErrorResult(msg);
-        }
-
-        final AuthenticationDTO authenticationDTOToUse = getAuthenticationDTO(state.getUpdateServiceRequestDTO().getAuthenticationDTO());
-        try {
-            if (state.getAuthenticator().authenticateUser(authenticationDTOToUse)) {
-                LOGGER.info("User {}/{} is authenticated successfully using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
-                return ServiceResult.newOkResult();
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO() == null) {
+                msg = resourceBundle.getString("auth.user.missing.arguments");
+                log.error(msg);
+                return ServiceResult.newAuthErrorResult(msg);
+            }
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId() == null) {
+                msg = resourceBundle.getString("auth.user.missing.username");
+                log.error(msg);
+                return ServiceResult.newAuthErrorResult(msg);
+            }
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId() == null) {
+                msg = resourceBundle.getString("auth.user.missing.groupname");
+                log.error(msg);
+                return ServiceResult.newAuthErrorResult(msg);
+            }
+            if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getPassword() == null) {
+                msg = resourceBundle.getString("auth.user.missing.password");
+                log.error(msg);
+                return ServiceResult.newAuthErrorResult(msg);
             }
 
-            LOGGER.error("User {}/{} could not be authenticated using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
+            final AuthenticationDTO authenticationDTOToUse = getAuthenticationDTO(state.getUpdateServiceRequestDTO().getAuthenticationDTO());
+            try {
+                if (state.getAuthenticator().authenticateUser(authenticationDTOToUse)) {
+                    log.info("User {}/{} is authenticated successfully using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
+                    return ServiceResult.newOkResult();
+                }
 
-            return ServiceResult.newAuthErrorResult();
-        } catch (AuthenticatorException ex) {
-            msg = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
-            LOGGER.error(msg, ex);
-            LOGGER.error("Critical error in authenticating user {}/{}: {}", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId(), ex.getMessage());
-            return ServiceResult.newAuthErrorResult();
-        }
+                log.error("User {}/{} could not be authenticated using IDP", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId());
+
+                return ServiceResult.newAuthErrorResult();
+            } catch (AuthenticatorException ex) {
+                msg = String.format(state.getMessages().getString("authentication.error"), ex.getMessage());
+                log.error(msg, ex);
+                log.error("Critical error in authenticating user {}/{}: {}", authenticationDTOToUse.getGroupId(), authenticationDTOToUse.getUserId(), ex.getMessage());
+                return ServiceResult.newAuthErrorResult();
+            }
+        });
     }
 
     private ServiceResult authenticateByBearerToken(String bearerToken) {
-        try {
+        return LOGGER.call(log -> {
+            try {
             final AuthenticationDTO authenticationDTO = state.getAuthenticator().authenticateUser(bearerToken);
-            if (authenticationDTO != null) {
-                state.getUpdateServiceRequestDTO().setAuthenticationDTO(authenticationDTO);
+                if (authenticationDTO != null) {
+                    state.getUpdateServiceRequestDTO().setAuthenticationDTO(authenticationDTO);
 
-                LOGGER.info("User {}/{} is authenticated successfully using bearer token", authenticationDTO.getGroupId(), authenticationDTO.getUserId());
-                return ServiceResult.newOkResult();
+                    log.info("User {}/{} is authenticated successfully using bearer token", authenticationDTO.getGroupId(), authenticationDTO.getUserId());
+                    return ServiceResult.newOkResult();
+                }
+
+                log.error("User could not be authenticated using bearer token");
+
+                return ServiceResult.newAuthErrorResult();
+            } catch (AuthenticatorException ex) {
+                log.error("Caught exception when calling login", ex);
+                return ServiceResult.newAuthErrorResult();
             }
-
-            LOGGER.error("User could not be authenticated using bearer token");
-
-            return ServiceResult.newAuthErrorResult();
-        } catch (AuthenticatorException ex) {
-            LOGGER.error("Caught exception when calling login", ex);
-            return ServiceResult.newAuthErrorResult();
-        }
+        });
     }
 
     /**
@@ -121,36 +124,38 @@ public class AuthenticateUserAction extends AbstractAction {
      * @return AuthenticationDTO with overwritten credentials
      */
     private AuthenticationDTO getAuthenticationDTO(AuthenticationDTO original) {
-        final AuthenticationDTO result = new AuthenticationDTO();
-        result.setUserId(original.getUserId());
-        result.setPassword(original.getPassword());
+        return LOGGER.call(log -> {
+            final AuthenticationDTO result = new AuthenticationDTO();
+            result.setUserId(original.getUserId());
+            result.setPassword(original.getPassword());
 
-        if ("netpunkt-DATAIO".equals(original.getUserId())) {
+            if ("netpunkt-DATAIO".equals(original.getUserId())) {
                 /*
                     DataIO always uses the same username and password for all agencies when calling updateservice, but
                     the groupId will match the submitter. Instead of duplicating the dataio user to every agency which
                     can possible use dataio we just have a single user, which means we have to overwrite the groupId
                     when validating against the identity provider service
                  */
-            LOGGER.info("Detected dataIO username so overwriting groupId to '010100' for authentication");
-            result.setGroupId("010100");
-        } else if (dbcOverwriteAgencies.contains(original.getGroupId())) {
+                log.info("Detected dataIO username so overwriting groupId to '010100' for authentication");
+                result.setGroupId("010100");
+            } else if (dbcOverwriteAgencies.contains(original.getGroupId())) {
                 /*
                     When users log in to dbckat they use the credentials dbc/username but when a request is made to
                     update the groupId is replaced with an agency id based on the 001 *b value of the record. As of
                     right now that agency id is always 010100. So unless we are going to duplicate users (which we are
                     not) we have to overwrite the incoming groupId if the value is 010100.
                  */
-            LOGGER.info("Detected {} groupId so overwriting groupId to 'dbc' for authentication", original.getGroupId());
-            result.setGroupId("dbc");
-        } else {
+                log.info("Detected {} groupId so overwriting groupId to 'dbc' for authentication", original.getGroupId());
+                result.setGroupId("dbc");
+            } else {
                 /*
                     No special handling, just validate with the provided credentials
                  */
-            result.setGroupId(original.getGroupId());
-        }
+                result.setGroupId(original.getGroupId());
+            }
 
-        return result;
+            return result;
+        });
     }
 
     private void validateNullableData() {

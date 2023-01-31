@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 @Stateless
@@ -32,7 +33,7 @@ public class Validator {
     private OpencatBusinessConnector opencatBusinessConnector;
 
     public List<SchemaDTO> getValidateSchemas(String templateGroup, Set<String> allowedLibraryRules) throws UpdateException {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.getValidateSchemas");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.getValidateSchemas").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             final List<SchemaDTO> names = opencatBusinessConnector.getValidateSchemas(templateGroup, allowedLibraryRules, trackingId);

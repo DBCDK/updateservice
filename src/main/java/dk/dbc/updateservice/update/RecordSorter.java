@@ -18,6 +18,7 @@ import org.slf4j.ext.XLoggerFactory;
 import javax.xml.bind.JAXBException;
 import java.io.UnsupportedEncodingException;
 
+import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
 public class RecordSorter {
@@ -36,7 +37,7 @@ public class RecordSorter {
     }
 
     public MarcRecord sortRecord(MarcRecord marcRecord) {
-        final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord");
+        final StopWatch watch = new Log4JStopWatch("opencatBusiness.sortRecord").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
 
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);

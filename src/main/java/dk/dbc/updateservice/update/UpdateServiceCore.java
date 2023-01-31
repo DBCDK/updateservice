@@ -33,16 +33,16 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.json.JsonMapper;
+import dk.dbc.updateservice.rest.ApplicationConfig;
 import dk.dbc.updateservice.solr.SolrBasis;
 import dk.dbc.updateservice.solr.SolrFBS;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
 import org.w3c.dom.Node;
 
 import javax.ejb.EJB;
@@ -101,7 +101,7 @@ public class UpdateServiceCore {
     @Inject
     MetricsHandlerBean metricsHandlerBean;
 
-    private static final XLogger LOGGER = XLoggerFactory.getXLogger(UpdateServiceCore.class);
+    private static final DeferredLogger LOGGER = new DeferredLogger(UpdateServiceCore.class);
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
@@ -148,63 +148,65 @@ public class UpdateServiceCore {
      * @throws EJBException in the case of an error.
      */
     public UpdateRecordResponseDTO updateRecord(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState globalActionState) {
-        final StopWatch watch = new Log4JStopWatch();
-        ServiceResult serviceResult;
-        final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
-        logMdcUpdateMethodEntry(state);
-        UpdateRequestAction updateRequestAction = null;
-        ServiceEngine serviceEngine = null;
-        UpdateRecordResponseDTO updateRecordResponseDTO = null;
-        try {
-            if (state.readRecord() != null) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("MDC: " + MDC.getCopyOfContextMap());
-                    LOGGER.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
-                    LOGGER.info("updateRecord received UpdateServiceRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
-                }
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
+        return LOGGER.call(log -> {
+            ServiceResult serviceResult;
+            final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
+            logMdcUpdateMethodEntry(state);
+            UpdateRequestAction updateRequestAction = null;
+            ServiceEngine serviceEngine = null;
+            UpdateRecordResponseDTO updateRecordResponseDTO = null;
 
-                updateRequestAction = new UpdateRequestAction(state, settings);
-
-                serviceEngine = new ServiceEngine(metricsHandlerBean);
-                serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
-                serviceResult = serviceEngine.executeAction(updateRequestAction);
-
-                updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-
-                return updateRecordResponseDTO;
-            } else {
-                final ResourceBundle bundle = ResourceBundles.getBundle("messages");
-                final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
-
-                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
-                LOGGER.error("Updateservice blev kaldt med tom record DTO");
-                return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-            }
-        } catch (SolrException ex) {
-            LOGGER.error("Caught solr exception", ex);
-            serviceResult = convertUpdateErrorToResponse(ex);
-            updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-            return updateRecordResponseDTO;
-        } catch (Throwable ex) {
-            LOGGER.catching(ex);
             try {
-                LOGGER.error("Exception while processing request: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
-            } catch (IOException e) {
-                LOGGER.error("IOException while pretty printing updateServiceRequestDTO: {}", updateServiceRequestDTO);
-            }
-            serviceResult = convertUpdateErrorToResponse(ex);
-            updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
-            return updateRecordResponseDTO;
-        } finally {
-            if (LOGGER.isInfoEnabled()) {
-                try {
-                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(updateRecordResponseDTO)));
-                } catch (IOException e) {
-                    LOGGER.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
+                if (state.readRecord() != null) {
+                    if (log.isInfoEnabled()) {
+                        log.info("MDC: " + MDC.getCopyOfContextMap());
+                        log.info("Request tracking id: " + updateServiceRequestDTO.getTrackingId());
+                        log.info("updateRecord received UpdateServiceRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
+                    }
+
+                    updateRequestAction = new UpdateRequestAction(state, settings);
+
+                    serviceEngine = new ServiceEngine(metricsHandlerBean);
+                    serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
+                    serviceResult = serviceEngine.executeAction(updateRequestAction);
+
+                    updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+
+                    return updateRecordResponseDTO;
+                } else {
+                    final ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                    final String msg = bundle.getString(UPDATE_SERVICE_NIL_RECORD);
+
+                    serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
+                    log.error("Updateservice blev kaldt med tom record DTO");
+                    return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
                 }
+            } catch (SolrException ex) {
+                log.error("Caught solr exception", ex);
+                serviceResult = convertUpdateErrorToResponse(ex);
+                updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+                return updateRecordResponseDTO;
+            } catch (Throwable ex) {
+                try {
+                    log.error("Exception while processing request: {}", scramblePassword(JsonMapper.encodePretty(updateServiceRequestDTO)));
+                } catch (IOException e) {
+                    log.error("IOException while pretty printing updateServiceRequestDTO: {}", updateServiceRequestDTO);
+                }
+                serviceResult = convertUpdateErrorToResponse(ex);
+                updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+                return updateRecordResponseDTO;
+            } finally {
+                if (log.isInfoEnabled()) {
+                    try {
+                        log.info("updateRecord returning UpdateRecordResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(updateRecordResponseDTO)));
+                    } catch (IOException e) {
+                        log.info("updateRecord returning UpdateRecordResponseDTO: {}", updateRecordResponseDTO);
+                    }
+                }
+                updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
             }
-            updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
-        }
+        });
     }
 
     /**
@@ -219,59 +221,61 @@ public class UpdateServiceCore {
      * @throws EJBException In case of an error.
      */
     public SchemasResponseDTO getSchemas(SchemasRequestDTO schemasRequestDTO) {
-        final StopWatch watch = new Log4JStopWatch();
-        SchemasResponseDTO schemasResponseDTO = null;
+        final StopWatch watch = new Log4JStopWatch().setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
+        return LOGGER.call(log -> {
+            SchemasResponseDTO schemasResponseDTO = null;
 
-        try {
-            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
-            if (LOGGER.isInfoEnabled()) {
-                LOGGER.info("getSchemas received SchemasRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasRequestDTO)));
-            }
-
-            if (schemasRequestDTO.getAuthenticationDTO() != null &&
-                    schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
-                if (schemasRequestDTO.getTrackingId() != null) {
-                    LOGGER.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
-                } else {
-                    LOGGER.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
-                }
-            }
-
-            final String groupId = Objects.requireNonNull(schemasRequestDTO.getAuthenticationDTO()).getGroupId();
-            final String templateGroup = vipCoreService.getTemplateGroup(groupId);
-            final Set<String> allowedLibraryRules = vipCoreService.getAllowedLibraryRules(groupId);
-            final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(templateGroup, allowedLibraryRules);
-
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
-            schemasResponseDTO.setError(false);
-            return schemasResponseDTO;
-        } catch (VipCoreException ex) {
-            LOGGER.error("Caught VipCoreException exception", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
-        } catch (Throwable ex) {
-            // TODO: returner ordentlig fejl her
-            LOGGER.error("Caught Throwable", ex);
-            schemasResponseDTO = new SchemasResponseDTO();
-            schemasResponseDTO.setErrorMessage(ex.getMessage());
-            schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
-            schemasResponseDTO.setError(true);
-            return schemasResponseDTO;
-        } finally {
             try {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("getSchemas returning SchemasResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasResponseDTO)));
+                MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, schemasRequestDTO.getTrackingId());
+                if (log.isInfoEnabled()) {
+                    log.info("getSchemas received SchemasRequestDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasRequestDTO)));
                 }
-            } catch (IOException e) {
-                LOGGER.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
+
+                if (schemasRequestDTO.getAuthenticationDTO() != null &&
+                        schemasRequestDTO.getAuthenticationDTO().getGroupId() != null) {
+                    if (schemasRequestDTO.getTrackingId() != null) {
+                        log.info("getSchemas request from {} with tracking id {}", schemasRequestDTO.getAuthenticationDTO().getGroupId(), schemasRequestDTO.getTrackingId());
+                    } else {
+                        log.info("getSchemas request from {}", schemasRequestDTO.getAuthenticationDTO().getGroupId());
+                    }
+                }
+
+                final String groupId = Objects.requireNonNull(schemasRequestDTO.getAuthenticationDTO()).getGroupId();
+                final String templateGroup = vipCoreService.getTemplateGroup(groupId);
+                final Set<String> allowedLibraryRules = vipCoreService.getAllowedLibraryRules(groupId);
+                final List<SchemaDTO> schemaDTOList = validator.getValidateSchemas(templateGroup, allowedLibraryRules);
+
+                schemasResponseDTO = new SchemasResponseDTO();
+                schemasResponseDTO.getSchemaDTOList().addAll(schemaDTOList);
+                schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.OK);
+                schemasResponseDTO.setError(false);
+                return schemasResponseDTO;
+            } catch (VipCoreException ex) {
+                log.error("Caught VipCoreException exception", ex);
+                schemasResponseDTO = new SchemasResponseDTO();
+                schemasResponseDTO.setErrorMessage(ex.getMessage());
+                schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+                schemasResponseDTO.setError(true);
+                return schemasResponseDTO;
+            } catch (Throwable ex) {
+                // TODO: returner ordentlig fejl her
+                log.error("Caught Throwable", ex);
+                schemasResponseDTO = new SchemasResponseDTO();
+                schemasResponseDTO.setErrorMessage(ex.getMessage());
+                schemasResponseDTO.setUpdateStatusEnumDTO(UpdateStatusEnumDTO.FAILED);
+                schemasResponseDTO.setError(true);
+                return schemasResponseDTO;
+            } finally {
+                try {
+                    if (log.isInfoEnabled()) {
+                        log.info("getSchemas returning SchemasResponseDTO: {}", scramblePassword(JsonMapper.encodePretty(schemasResponseDTO)));
+                    }
+                } catch (IOException e) {
+                    log.info("getSchemas returning SchemasResponseDTO: {}", schemasResponseDTO);
+                }
+                watch.stop(GET_SCHEMAS_WATCHTAG);
             }
-            watch.stop(GET_SCHEMAS_WATCHTAG);
-        }
+        });
     }
 
     public UpdateRecordResponseDTO classificationCheck(BibliographicRecordDTO bibliographicRecordDTO) {
@@ -315,7 +319,7 @@ public class UpdateServiceCore {
             }
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } catch (Exception ex) {
-            LOGGER.error("Exception during classificationCheck", ex);
+            LOGGER.use(log -> log.error("Exception during classificationCheck", ex));
             ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         }
@@ -332,7 +336,7 @@ public class UpdateServiceCore {
 
                 // Perform double record check only if the record doesn't already exist
                 if (!rawRepo.recordExistsMaybeDeleted(reader.getRecordId(), reader.getAgencyIdAsInt())) {
-                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend");
+                    final StopWatch watch = new Log4JStopWatch("opencatBusiness.checkDoubleRecordFrontend").setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
                     try {
                         final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = opencatBusiness.checkDoubleRecordFrontend(marcRecord);
                         serviceResult = DoubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
@@ -347,7 +351,7 @@ public class UpdateServiceCore {
             }
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } catch (Exception ex) {
-            LOGGER.error("Exception during doubleRecordCheck", ex);
+            LOGGER.use(log -> log.error("Exception during doubleRecordCheck", ex));
             ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         }
@@ -378,18 +382,20 @@ public class UpdateServiceCore {
     }
 
     private void updateServiceFinallyCleanUp(StopWatch watch, UpdateRequestAction action, ServiceEngine engine) {
-        if (engine != null) {
-            LOGGER.info("Executed action:");
-            engine.printActions(action);
-        }
-        LOGGER.info("");
-        String watchTag;
-        if (action != null && action.hasValidateOnlyOption()) {
-            watchTag = UPDATE_WATCHTAG + ".validate";
-        } else {
-            watchTag = UPDATE_WATCHTAG + ".update";
-        }
-        watch.stop(watchTag);
+        LOGGER.use(log -> {
+            if (engine != null) {
+                log.info("Executed action:");
+                engine.printActions(action);
+            }
+            log.info("");
+            String watchTag;
+            if (action != null && action.hasValidateOnlyOption()) {
+                watchTag = UPDATE_WATCHTAG + ".validate";
+            } else {
+                watchTag = UPDATE_WATCHTAG + ".update";
+            }
+            watch.stop(watchTag);
+        });
     }
 
     private void validateRequiredSettings() {
