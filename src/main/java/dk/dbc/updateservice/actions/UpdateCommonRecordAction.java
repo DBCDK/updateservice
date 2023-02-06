@@ -5,18 +5,15 @@ import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.LogUtils;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector.Rule;
 
-import dk.dbc.updateservice.utils.DeferredLogger;
-
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -61,11 +58,9 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                         return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
                     }
                 }
-                if (!checkOveCodes()) {
-                final String message = state.getMessages().getString("update.library.record.catalog.codes.not.cb");
-                log.error("Unable to create sub actions due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
+
+                checkOveCodes();
+
                 MarcRecord recordToStore;
 
                 // At this point we know the following:
@@ -114,34 +109,39 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                 return ServiceResult.newOkResult();
             } catch (VipCoreException e) {
                 throw new UpdateException("Exception while collapsing record", e);
+            } catch (UpdateException e) {
+                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             }
         });
     }
 
-    private boolean checkOveCodes() throws UpdateException {
+    /*
+        This function checks if the content of 032 violates any rules. If the records does not live up to the rules an
+        exception is thrown.
+     */
+    private void checkOveCodes() throws UpdateException, VipCoreException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         final String recordId = reader.getRecordId();
         final int agencyIdAsInt = reader.getAgencyIdAsInt();
 
-        try {
-            if (COMMON_AGENCY != agencyIdAsInt || state.getVipCoreService().hasFeature(groupId, Rule.AUTH_ROOT)) {
-                return true;
-            }
+        // The rules for field 032 only apply to 870970 records and non-root libraries
+        if (COMMON_AGENCY != agencyIdAsInt || state.getVipCoreService().hasFeature(groupId, Rule.AUTH_ROOT)) {
+            return;
+        }
 
-            final boolean recordExists = state.getRawRepo().recordExistsMaybeDeleted(recordId, agencyIdAsInt);
-            if (recordExists) {
-                return checkExisingOveCodes();
-            } else {
-                return checkNewOveCodes();
-            }
-        } catch (VipCoreException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
+        final boolean recordExists = state.getRawRepo().recordExistsMaybeDeleted(recordId, agencyIdAsInt);
+        if (recordExists) {
+            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, COMMON_AGENCY).getContent());
+
+            checkExisingOveCodes(curRecord);
+        } else {
+            checkNewOveCodes();
         }
     }
 
     private List<MarcSubField> getSubfieldsOrEmptyList(MarcRecord marcRecord, String fieldName) {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         if (reader.hasField(fieldName)) {
             return reader.getField(fieldName).getSubfields();
@@ -150,44 +150,34 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    private boolean checkExisingOveCodes() throws UpdateException {
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final String recordId = reader.getRecordId();
+    void checkExisingOveCodes(MarcRecord curRecord) throws UpdateException, VipCoreException {
+        final List<MarcSubField> new032Subfields = getSubfieldsOrEmptyList(marcRecord, "032");
+        final List<MarcSubField> cur032Subfields = getSubfieldsOrEmptyList(curRecord, "032");
 
-        try {
-            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, COMMON_AGENCY).getContent());
-            final MarcRecordReader curReader = new MarcRecordReader(curRecord);
+        if (new032Subfields.equals(cur032Subfields)) {
+            // No changes in 032 at all, so stop checking
+            return;
+        }
 
-            final List<MarcSubField> new032Subfields = getSubfieldsOrEmptyList(marcRecord, "032");
-            final List<MarcSubField> cur032Subfields = getSubfieldsOrEmptyList(curRecord, "032");
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+        final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
+                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
+        final List<MarcSubField> cur032NonOveSubfields = cur032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
+                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
 
-            if (new032Subfields.equals(cur032Subfields)) {
-                return true;
-            }
+        // FBS libraries are not allowed to change existing non-OVE 032 subfields
+        if (!new032NonOveSubfields.equals(cur032NonOveSubfields)) {
+            throw new UpdateException(state.getMessages().getString("update.library.record.catalog.codes.changed"));
+        }
 
-            final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-            final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream()
-            .filter(subfield -> !"x".equals(subfield.getName()) || !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
-            final List<MarcSubField> cur032NonOveSubfields = cur032Subfields.stream()
-            .filter(subfield -> !"x".equals(subfield.getName()) || !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
+        final List<MarcSubField> new032OveSubfields = new032Subfields.stream()
+                .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
+        final List<MarcSubField> cur032OveSubfields = cur032Subfields.stream()
+                .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
 
-            if (!new032NonOveSubfields.equals(cur032NonOveSubfields)) {
-                // No non-root library is allowed to change 032 other than OVE
-                return false;
-            }
-
-            final List<MarcSubField> new032OveSubfields = new032Subfields.stream()
-            .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
-            final List<MarcSubField> cur032OveSubfields = cur032Subfields.stream()
-            .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
-
-            if (!new032OveSubfields.equals(cur032OveSubfields)) {
-                return state.getVipCoreService().hasFeature(groupId, Rule.REGIONAL_OBLIGATIONS);
-            }
-
-            return true;
-        } catch (UnsupportedEncodingException | VipCoreException ex) {
-            throw new UpdateException(ex.getMessage(), ex);
+        // Only CB libraries are allowed to change OVE subfields
+        if (!new032OveSubfields.equals(cur032OveSubfields) && !state.getVipCoreService().hasFeature(groupId, Rule.REGIONAL_OBLIGATIONS)) {
+            throw new UpdateException(state.getMessages().getString("update.library.record.catalog.codes.not.cb"));
         }
     }
 
@@ -199,24 +189,21 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         - The agency does not have auth_root or regional_obligations rule
         - It is a new record
      */
-    private boolean checkNewOveCodes() throws VipCoreException {
+    private void checkNewOveCodes() throws UpdateException, VipCoreException {
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         final List<MarcSubField> new032Subfields = getSubfieldsOrEmptyList(marcRecord, "032");
-        final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream()
-        .filter(subfield -> !"x".equals(subfield.getName()) || !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
+        final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
+                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
         final List<MarcSubField> new032OveSubfields = new032Subfields.stream()
-        .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
+                .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
 
         if (!new032NonOveSubfields.isEmpty()) {
-            return false;
+            throw new UpdateException(state.getMessages().getString("update.library.record.catalog.codes.changed"));
         }
 
-        if (!new032OveSubfields.isEmpty()) {
-            return state.getVipCoreService().hasFeature(groupId, Rule.REGIONAL_OBLIGATIONS);
+        if (!new032OveSubfields.isEmpty() && !state.getVipCoreService().hasFeature(groupId, Rule.REGIONAL_OBLIGATIONS)) {
+            throw new UpdateException(state.getMessages().getString("update.library.record.catalog.codes.not.cb"));
         }
-
-
-        return true;
     }
 
 }

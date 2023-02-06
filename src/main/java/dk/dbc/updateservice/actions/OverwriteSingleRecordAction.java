@@ -203,7 +203,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     /*
         This record find all agencies with enrichments or holdings for the volume records in under the input record.
-        The function calls it self recursively until the hierarchy has been traversed
+        The function calls itself recursively until the hierarchy has been traversed
      */
     private void findChildrenAndHoldingsOnChildren(MarcRecord marcRecord, Set<Integer> librariesWithPosts) throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
