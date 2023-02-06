@@ -161,9 +161,9 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
-                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
+                || "x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
         final List<MarcSubField> cur032NonOveSubfields = cur032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
-                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
+                || "x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
 
         // FBS libraries are not allowed to change existing non-OVE 032 subfields
         if (!new032NonOveSubfields.equals(cur032NonOveSubfields)) {
@@ -193,7 +193,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
         final List<MarcSubField> new032Subfields = getSubfieldsOrEmptyList(marcRecord, "032");
         final List<MarcSubField> new032NonOveSubfields = new032Subfields.stream().filter(subfield -> "a".equals(subfield.getName())
-                || ("x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE"))).collect(Collectors.toList());
+                || "x".equals(subfield.getName()) && !subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
         final List<MarcSubField> new032OveSubfields = new032Subfields.stream()
                 .filter(subfield -> "x".equals(subfield.getName()) && subfield.getValue().startsWith("OVE")).collect(Collectors.toList());
 
