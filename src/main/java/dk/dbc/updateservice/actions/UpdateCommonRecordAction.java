@@ -150,6 +150,16 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
         }
     }
 
+    /*
+       This function checks that the content of field 032 (if present) is allowed when updating a record
+       -    If the library has regional obligations rule then 032 *x OVE subfields can be changed
+       -    No non-root library is allowed to change any other subfield or value in field 032
+
+       This function assumes:
+        - The record is a common record
+        - The agency does not have auth_root rule
+        - It is an existing record
+     */
     void checkExisingOveCodes(MarcRecord curRecord) throws UpdateException, VipCoreException {
         final List<MarcSubField> new032Subfields = getSubfieldsOrEmptyList(marcRecord, "032");
         final List<MarcSubField> cur032Subfields = getSubfieldsOrEmptyList(curRecord, "032");
@@ -182,11 +192,13 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
     }
 
     /*
-       Check that there are no 032 *x OVE values in new records from non-CB agencies.
+       This function checks that the content of field 032 (if present) in a new record is allowed
+       -    If the library has regional obligations rule then 032 *x OVE is allowed
+       -    No non-root library is allowed to add any other subfields or values to 032
 
        This function assumes:
         - The record is a common record
-        - The agency does not have auth_root or regional_obligations rule
+        - The agency does not have auth_root rule
         - It is a new record
      */
     private void checkNewOveCodes() throws UpdateException, VipCoreException {
