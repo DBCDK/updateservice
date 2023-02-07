@@ -107,9 +107,7 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
                     children.add(new UpdateSingleRecord(state, settings, recordToStore));
                 }
                 return ServiceResult.newOkResult();
-            } catch (VipCoreException e) {
-                throw new UpdateException("Exception while collapsing record", e);
-            } catch (UpdateException e) {
+            } catch (VipCoreException | UpdateException e) {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             }
         });
