@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.hasMinusEnrichment;
+
 class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     private static final DeferredLogger LOGGER = new DeferredLogger(OverwriteSingleRecordAction.class);
     private MarcRecord currentMarcRecord = null;
@@ -314,13 +316,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         return state.getRecordSorter().sortRecord(ExpandCommonMarcRecord.expandMarcRecord(newRecordCollection, recordId));
     }
 
-    boolean hasMinusEnrichment() {
-        MarcRecord inputRecord = state.getMarcRecord();
-        MarcRecordReader inputRecordReader = new MarcRecordReader(inputRecord);
-
-        return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
-    }
-
     List<ServiceAction> createActionsForCreateOrUpdateEnrichments(MarcRecord marcRecord, MarcRecord currentRecord) throws UpdateException {
         return LOGGER.callChecked(log -> {
             final List<ServiceAction> result = new ArrayList<>();
@@ -330,7 +325,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 final int agencyId = reader.getAgencyIdAsInt();
                 final List<String> classificationMessages = new ArrayList<>();
 
-                if (!hasMinusEnrichment() && state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
+                // The marcRecord where is the common part, but the minus enrichment part is in the enrichment. So we
+                // have to look in the input record
+                if (!hasMinusEnrichment(state.getMarcRecord()) && state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                         state.getLibraryRecordsHandler().hasClassificationData(marcRecord) &&
                         state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, marcRecord, classificationMessages)) {
                     log.info("Classifications was changed for common record [{}:{}]", recordId, agencyId);

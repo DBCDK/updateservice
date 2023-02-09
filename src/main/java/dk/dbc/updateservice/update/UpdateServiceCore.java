@@ -60,6 +60,8 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 
+import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.hasMinusEnrichment;
+import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
@@ -284,7 +286,7 @@ public class UpdateServiceCore {
             final MarcRecord marcRecord = getRecord(recordDataDTO);
 
             ServiceResult serviceResult = ServiceResult.newOkResult();
-            if (marcRecord != null) {
+            if (marcRecord != null && !hasMinusEnrichment(marcRecord)) {
                 final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
                 final String recordId = recordReader.getValue("001", "a");
                 final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
@@ -292,8 +294,9 @@ public class UpdateServiceCore {
                     final MarcRecord oldRecord = loadRecord(recordId, agencyId);
                     final Set<Integer> holdingAgencies = holdingsItems.getAgenciesWithHoldings(recordId);
                     if (!holdingAgencies.isEmpty()) {
-                        List<String> classificationsChangedMessages = new ArrayList<>();
-                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages)) {
+                        final List<String> classificationsChangedMessages = new ArrayList<>();
+                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages) &&
+                                shouldCreateEnrichmentRecordsResult(resourceBundle, marcRecord, oldRecord)) {
                             final List<MessageEntryDTO> messageEntryDTOs = new ArrayList<>();
 
                             final MessageEntryDTO holdingsMessageEntryDTO = new MessageEntryDTO();
@@ -320,7 +323,7 @@ public class UpdateServiceCore {
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         } catch (Exception ex) {
             LOGGER.use(log -> log.error("Exception during classificationCheck", ex));
-            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
+            final ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
             return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
         }
     }

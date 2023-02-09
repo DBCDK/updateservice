@@ -98,6 +98,12 @@ public class DefaultEnrichmentRecordHandler {
         return true;
     }
 
+    public static boolean hasMinusEnrichment(MarcRecord marcRecord) {
+        MarcRecordReader inputRecordReader = new MarcRecordReader(marcRecord);
+
+        return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
+    }
+
     /**
      * The purpose of this function is to generate a list of string of every 032 subfield (a and x)
      * The list can be used to compare the 032 field from two records
