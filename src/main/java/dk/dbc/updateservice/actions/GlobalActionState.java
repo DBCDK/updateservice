@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@SuppressWarnings("PMD.TooManyStaticImports")
 public class GlobalActionState {
     private static final DeferredLogger LOGGER = new DeferredLogger(GlobalActionState.class);
     private static final String RECORD_SCHEMA_MARCXCHANGE_1_1 = "info:lc/xmlns/marcxchange-v1";

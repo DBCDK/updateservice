@@ -62,6 +62,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
+@SuppressWarnings("PMD.TooManyStaticImports")
 @Stateless
 public class UpdateServiceCore {
 
