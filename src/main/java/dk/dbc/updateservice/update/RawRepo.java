@@ -502,19 +502,12 @@ public class RawRepo {
         LOGGER.info("RawRepo.recordExists, input, recordId={}, agencyId={}", recordId, agencyId);
         final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "recordExists";
-        boolean result = false;
 
         try (Connection conn = dataSource.getConnection()) {
-            if (conn == null) {
-                LOGGER.info("RawRepo.recordExists, conn == NULL");
-            }
             try {
                 final RawRepoDAO dao = createDAO(conn);
-                if (dao == null) {
-                    LOGGER.info("RawRepo.recordExists, dao == NULL");
-                }
-                result = dao.recordExists(recordId, agencyId);
-                return result;
+
+                return dao.recordExists(recordId, agencyId);
             } catch (RawRepoException e) {
                 if (conn != null) {
                     conn.rollback();

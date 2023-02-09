@@ -556,8 +556,6 @@ class NoteAndSubjectExtensionsHandlerTest {
         addField.getSubfields().add(new MarcSubField("&", groupId));
         addField.getSubfields().add(new MarcSubField("x", "OVE199746"));
         result.getFields().add(addField);
-        System.out.println("ORI = " + record);
-        System.out.println("NEW = " + actual);
         assertThat(actual, is(result));
     }
 

@@ -11,6 +11,7 @@ import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,6 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class UpdateCommonRecordActionTest {
@@ -64,7 +64,7 @@ class UpdateCommonRecordActionTest {
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
         state.setLibraryGroup(LibraryGroup.DBC);
@@ -109,10 +109,10 @@ class UpdateCommonRecordActionTest {
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(true);
 
         UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -149,7 +149,7 @@ class UpdateCommonRecordActionTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(false);
         state.setLibraryGroup(LibraryGroup.DBC);
@@ -200,8 +200,8 @@ class UpdateCommonRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(volumeRecordId, agencyId)).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
         state.setLibraryGroup(LibraryGroup.DBC);
@@ -229,7 +229,7 @@ class UpdateCommonRecordActionTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(record)).thenReturn(true);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(true);
@@ -252,6 +252,85 @@ class UpdateCommonRecordActionTest {
         assertThat(updateSingleRecord.state.getHoldingsItems(), is(state.getHoldingsItems()));
         assertThat(updateSingleRecord.state.getVipCoreService(), is(state.getVipCoreService()));
         assertThat(updateSingleRecord.state.getLibraryRecordsHandler(), is(state.getLibraryRecordsHandler()));
+    }
+
+    @Test
+    void testPerformAction_CreateNewRecord_Changed032_fail_NonCB() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI202242");
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(false);
+
+        final UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
+        final ServiceResult serviceResult = updateCommonRecordAction.performAction();
+        assertThat(serviceResult.getStatus(), is(UpdateStatusEnumDTO.FAILED));
+        assertThat(serviceResult.getEntries().size(), is(1));
+        assertThat(serviceResult.getEntries().get(0).getMessage(), is("Det er ikke tilladt at tilføje/rette 032 delfelter udover OVE kode for CB"));
+    }
+
+    @Test
+    void testPerformAction_CreateNewRecord_Changed032_fail_CB() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI202242");
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+
+        final UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
+        final ServiceResult serviceResult = updateCommonRecordAction.performAction();
+        assertThat(serviceResult.getStatus(), is(UpdateStatusEnumDTO.FAILED));
+        assertThat(serviceResult.getEntries().size(), is(1));
+        assertThat(serviceResult.getEntries().get(0).getMessage(), is("Det er ikke tilladt at tilføje/rette 032 delfelter udover OVE kode for CB"));
+    }
+
+    @Test
+    void testPerformAction_CreateNewRecord_OVE_NonCB() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(false);
+
+        final UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
+        final ServiceResult serviceResult = updateCommonRecordAction.performAction();
+        assertThat(serviceResult.getStatus(), is(UpdateStatusEnumDTO.FAILED));
+        assertThat(serviceResult.getEntries().size(), is(1));
+        assertThat(serviceResult.getEntries().get(0).getMessage(), is("OVE kode søges tilføjet/rettet men bibliotek er ikke et CB"));
+    }
+
+    @Test
+    void testPerformAction_ExistingRecord_OVEPlusOther032_CB() throws Exception {
+        final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "ABC202242");
+        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
+        final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
+        final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
+
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(new MarcRecord(record), MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
+        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS)).thenReturn(true);
+
+        final UpdateCommonRecordAction updateCommonRecordAction = new UpdateCommonRecordAction(state, settings, record);
+        final ServiceResult serviceResult = updateCommonRecordAction.performAction();
+        assertThat(serviceResult.getStatus(), is(UpdateStatusEnumDTO.FAILED));
+        assertThat(serviceResult.getEntries().size(), is(1));
+        assertThat(serviceResult.getEntries().get(0).getMessage(), is("Det er ikke tilladt at tilføje/rette 032 delfelter udover OVE kode for CB"));
     }
 
 }
