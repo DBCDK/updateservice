@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.CatalogExtractionCode;
@@ -332,7 +327,7 @@ public class LibraryRecordsHandler {
             log.debug("New record\n{}", newRecord);
 
         });
-        
+
         // We call each of the classification check functions in order to get every change message
         final boolean resultCheck008 = check008(oldReader, newReader, classificationsChangedMessage);
         final boolean resultCheck009 = check009(oldReader, newReader, classificationsChangedMessage);
@@ -576,7 +571,7 @@ public class LibraryRecordsHandler {
         final MarcField newField = newReader.getField("245");
         final List<MarcSubField> oldSubfieldList = oldField == null ? null : oldField.getSubfields();
         final List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
-        
+
         return LOGGER.call(log -> {
             if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.245g.difference");
