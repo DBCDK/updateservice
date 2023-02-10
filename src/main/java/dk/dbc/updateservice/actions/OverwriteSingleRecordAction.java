@@ -325,8 +325,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 final int agencyId = reader.getAgencyIdAsInt();
                 final List<String> classificationMessages = new ArrayList<>();
 
-                // The marcRecord where is the common part, but the minus enrichment part is in the enrichment. So we
-                // have to look in the input record
+                // The marcRecord object in the action only contains the common part of the record
+                // But because the "minus enrichment" part is in the enrichment we have to look in the input record
                 if (!hasMinusEnrichment(state.getMarcRecord()) && state.getLibraryRecordsHandler().hasClassificationData(currentRecord) &&
                         state.getLibraryRecordsHandler().hasClassificationData(marcRecord) &&
                         state.getLibraryRecordsHandler().hasClassificationsChanged(currentRecord, marcRecord, classificationMessages)) {
