@@ -35,14 +35,15 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
-import jakarta.inject.Inject;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
+import javax.ejb.EJB;
+import javax.ejb.EJBException;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
 import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
