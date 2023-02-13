@@ -118,7 +118,7 @@ public class DefaultEnrichmentRecordHandler {
         final MarcField field = reader.getField("032");
         if (field != null) {
             for (MarcSubField subfield : field.getSubfields()) {
-                if (subfield.getValue().length() > 2 && "OVE".matches(subfield.getValue().substring(0,3))) {
+                if (subfield.getValue().length() > 2 && "OVE".matches(subfield.getValue().substring(0, 3))) {
                     // OVE codes is not a part of the codes that define production state for a record owned by DBC
                     continue;
                 }
@@ -187,10 +187,14 @@ public class DefaultEnrichmentRecordHandler {
     }
 
     private static boolean matchesNoClassification(String input) {
-        final String newTitle = "ny titel";
-        final String withoutClass = "uden klassemærke";
+        if (input != null) {
+            final String newTitle = "ny titel";
+            final String withoutClass = "uden klassemærke";
 
-        return newTitle.equalsIgnoreCase(input) || withoutClass.equalsIgnoreCase(input);
+            return newTitle.equalsIgnoreCase(input) || withoutClass.equalsIgnoreCase(input);
+        }
+
+        return false;
     }
 
 }

@@ -35,15 +35,14 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.w3c.dom.Node;
 
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -70,13 +69,13 @@ public class UpdateServiceCore {
     private Authenticator authenticator;
 
     @EJB
-    private RawRepo rawRepo;
+    RawRepo rawRepo;
 
     @Inject
     private OpencatBusinessConnector opencatBusiness;
 
     @EJB
-    private HoldingsItemsConnector holdingsItems;
+    HoldingsItemsConnector holdingsItems;
 
     @EJB
     private VipCoreService vipCoreService;
@@ -94,7 +93,7 @@ public class UpdateServiceCore {
     public UpdateStore updateStore;
 
     @EJB
-    private LibraryRecordsHandler libraryRecordsHandler;
+    LibraryRecordsHandler libraryRecordsHandler;
 
     @Inject
     MetricsHandlerBean metricsHandlerBean;
@@ -281,8 +280,12 @@ public class UpdateServiceCore {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
             final MarcRecord marcRecord = getRecord(recordDataDTO);
 
-            ServiceResult serviceResult = ServiceResult.newOkResult();
-            if (marcRecord != null && !hasMinusEnrichment(marcRecord)) {
+            if (marcRecord == null) {
+                return UpdateRecordResponseDTOWriter.newInstance(
+                        ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request"));
+            }
+
+            if (!hasMinusEnrichment(marcRecord)) {
                 final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
                 final String recordId = recordReader.getValue("001", "a");
                 final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
@@ -307,20 +310,21 @@ public class UpdateServiceCore {
                                 messageEntryDTOs.add(messageEntryDTO);
                             }
 
-                            serviceResult = new ServiceResult();
+                            final ServiceResult serviceResult = new ServiceResult();
                             serviceResult.setStatus(UpdateStatusEnumDTO.FAILED);
                             serviceResult.setEntries(messageEntryDTOs);
+
+                            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
                         }
                     }
                 }
-            } else {
-                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+
+            return UpdateRecordResponseDTOWriter.newInstance(ServiceResult.newOkResult());
         } catch (Exception ex) {
             LOGGER.use(log -> log.error("Exception during classificationCheck", ex));
-            final ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            return UpdateRecordResponseDTOWriter.newInstance(
+                    ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information"));
         }
     }
 

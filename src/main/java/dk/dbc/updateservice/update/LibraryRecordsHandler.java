@@ -15,14 +15,14 @@ import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJB;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -930,8 +930,8 @@ public class LibraryRecordsHandler {
      * @param marcRecord The record to be updated
      * @param groupId    The groupId from the ws request
      * @return List containing common and DBC record
-     * @throws VipCoreException             in case of an error
-     * @throws UpdateException              in case of an error
+     * @throws VipCoreException in case of an error
+     * @throws UpdateException  in case of an error
      */
     private List<MarcRecord> splitRecordFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
