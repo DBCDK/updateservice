@@ -3,6 +3,7 @@ package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcSubField;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.jupiter.api.Test;
@@ -194,7 +195,33 @@ class DefaultEnrichmentRecordHandlerTest {
         currentCommonRecord.getFields().add(new MarcField("996", "00", Collections.singletonList(new MarcSubField("a", currentOwner))));
 
         assertThat(DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(bundle, updatingCommonRecord, currentCommonRecord), is(expected));
+    }
 
+    @Test
+    void testHasMinusEnrichmentHasz98WithMinusEnrichment() {
+        final String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
+                "996 00 *a DBCAUT\n" +
+                "z98 00 *a Minus korrekturprint\n" +
+                "z98 00 *b Minus påhængspost";
+
+        assertThat(DefaultEnrichmentRecordHandler.hasMinusEnrichment(MarcRecordFactory.readRecord(record)), is(true));
+    }
+
+    @Test
+    void testHasMinusEnrichmentHasz98WithoutMinusEnrichment() {
+        final String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
+                "996 00 *a DBCAUT\n" +
+                "z98 00 *a minus korrekturprint";
+
+        assertThat(DefaultEnrichmentRecordHandler.hasMinusEnrichment(MarcRecordFactory.readRecord(record)), is(false));
+    }
+
+    @Test
+    void testHasMinusEnrichmentHasNoz98() {
+        final String record = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
+                "996 00 *a DBCAUT";
+
+        assertThat(DefaultEnrichmentRecordHandler.hasMinusEnrichment(MarcRecordFactory.readRecord(record)), is(false));
     }
 
 }

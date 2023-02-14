@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.MarcConverter;
@@ -60,11 +55,14 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
 
+import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.hasMinusEnrichment;
+import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_PREFIX_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_ID_LOG_CONTEXT;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_REQUEST_PRIORITY;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
+@SuppressWarnings("PMD.TooManyStaticImports")
 @Stateless
 public class UpdateServiceCore {
 
@@ -72,13 +70,13 @@ public class UpdateServiceCore {
     private Authenticator authenticator;
 
     @EJB
-    private RawRepo rawRepo;
+    RawRepo rawRepo;
 
     @Inject
     private OpencatBusinessConnector opencatBusiness;
 
     @EJB
-    private HoldingsItemsConnector holdingsItems;
+    HoldingsItemsConnector holdingsItems;
 
     @EJB
     private VipCoreService vipCoreService;
@@ -96,7 +94,7 @@ public class UpdateServiceCore {
     public UpdateStore updateStore;
 
     @EJB
-    private LibraryRecordsHandler libraryRecordsHandler;
+    LibraryRecordsHandler libraryRecordsHandler;
 
     @Inject
     MetricsHandlerBean metricsHandlerBean;
@@ -283,8 +281,12 @@ public class UpdateServiceCore {
             final RecordDataDTO recordDataDTO = bibliographicRecordDTO.getRecordDataDTO();
             final MarcRecord marcRecord = getRecord(recordDataDTO);
 
-            ServiceResult serviceResult = ServiceResult.newOkResult();
-            if (marcRecord != null) {
+            if (marcRecord == null) {
+                return UpdateRecordResponseDTOWriter.newInstance(
+                        ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request"));
+            }
+
+            if (!hasMinusEnrichment(marcRecord)) {
                 final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
                 final String recordId = recordReader.getValue("001", "a");
                 final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
@@ -292,8 +294,9 @@ public class UpdateServiceCore {
                     final MarcRecord oldRecord = loadRecord(recordId, agencyId);
                     final Set<Integer> holdingAgencies = holdingsItems.getAgenciesWithHoldings(recordId);
                     if (!holdingAgencies.isEmpty()) {
-                        List<String> classificationsChangedMessages = new ArrayList<>();
-                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages)) {
+                        final List<String> classificationsChangedMessages = new ArrayList<>();
+                        if (libraryRecordsHandler.hasClassificationsChanged(oldRecord, marcRecord, classificationsChangedMessages) &&
+                                shouldCreateEnrichmentRecordsResult(resourceBundle, marcRecord, oldRecord)) {
                             final List<MessageEntryDTO> messageEntryDTOs = new ArrayList<>();
 
                             final MessageEntryDTO holdingsMessageEntryDTO = new MessageEntryDTO();
@@ -308,20 +311,21 @@ public class UpdateServiceCore {
                                 messageEntryDTOs.add(messageEntryDTO);
                             }
 
-                            serviceResult = new ServiceResult();
+                            final ServiceResult serviceResult = new ServiceResult();
                             serviceResult.setStatus(UpdateStatusEnumDTO.FAILED);
                             serviceResult.setEntries(messageEntryDTOs);
+
+                            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
                         }
                     }
                 }
-            } else {
-                serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "No record data found in request");
             }
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+
+            return UpdateRecordResponseDTOWriter.newInstance(ServiceResult.newOkResult());
         } catch (Exception ex) {
             LOGGER.use(log -> log.error("Exception during classificationCheck", ex));
-            ServiceResult serviceResult = ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information");
-            return UpdateRecordResponseDTOWriter.newInstance(serviceResult);
+            return UpdateRecordResponseDTOWriter.newInstance(
+                    ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "Please see the log for more information"));
         }
     }
 
