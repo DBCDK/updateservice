@@ -99,9 +99,10 @@ public class DefaultEnrichmentRecordHandler {
     }
 
     public static boolean hasMinusEnrichment(MarcRecord marcRecord) {
-        MarcRecordReader inputRecordReader = new MarcRecordReader(marcRecord);
+        final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
+        final String value = recordReader.getValue("z98", "b");
 
-        return inputRecordReader.hasValue("z98", "b", "Minus påhængspost");
+        return "minus påhængspost".equalsIgnoreCase(value);
     }
 
     /**
