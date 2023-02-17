@@ -327,7 +327,7 @@ public class LibraryRecordsHandler {
             log.debug("New record\n{}", newRecord);
 
         });
-        
+
         // We call each of the classification check functions in order to get every change message
         final boolean resultCheck008 = check008(oldReader, newReader, classificationsChangedMessage);
         final boolean resultCheck009 = check009(oldReader, newReader, classificationsChangedMessage);
@@ -571,7 +571,7 @@ public class LibraryRecordsHandler {
         final MarcField newField = newReader.getField("245");
         final List<MarcSubField> oldSubfieldList = oldField == null ? null : oldField.getSubfields();
         final List<MarcSubField> newSubfieldList = newField == null ? null : newField.getSubfields();
-        
+
         return LOGGER.call(log -> {
             if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "g", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.245g.difference");
@@ -930,8 +930,8 @@ public class LibraryRecordsHandler {
      * @param marcRecord The record to be updated
      * @param groupId    The groupId from the ws request
      * @return List containing common and DBC record
-     * @throws VipCoreException             in case of an error
-     * @throws UpdateException              in case of an error
+     * @throws VipCoreException in case of an error
+     * @throws UpdateException  in case of an error
      */
     private List<MarcRecord> splitRecordFBS(MarcRecord marcRecord, String groupId, ResourceBundle messages) throws VipCoreException, UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);

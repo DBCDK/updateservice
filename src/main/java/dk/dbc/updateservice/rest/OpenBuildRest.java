@@ -68,10 +68,10 @@ public class OpenBuildRest {
     @Produces({MediaType.APPLICATION_JSON})
     @Timed
     public String build(BuildRequestDTO buildRequestDTO) throws JSONBException {
-        StopWatch watch = new Log4JStopWatch("OpenBuildRest.build").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        final StopWatch watch = new Log4JStopWatch("OpenBuildRest.build").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final SimpleTimer buildTimer = metricRegistry.simpleTimer(buildTimerMetadata);
+        final DBCTrackedLogContext dbcTrackedLogContext = new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
 
-        new DBCTrackedLogContext(OpenBuildCore.createTrackingId());
         BuildResponseDTO buildResponseDTO = null;
         try {
             LOGGER.info("Build request: {}", buildRequestDTO);
@@ -85,7 +85,7 @@ public class OpenBuildRest {
         } finally {
             LOGGER.info("Build response: {}", buildResponseDTO);
             watch.stop();
-            DBCTrackedLogContext.remove();
+            dbcTrackedLogContext.close();
             buildTimer.update(Duration.ofMillis(watch.getElapsedTime()));
         }
     }

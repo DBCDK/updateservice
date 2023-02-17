@@ -111,7 +111,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             // If the group is identical to the agency of the record then authenticate OK
-            log.error("PLUF {} {}", groupId, reader.getAgencyId());
             if (groupId.equals(reader.getAgencyId())) {
                 log.info("Group is identical with agencyId so it's a local record-> exit OK");
                 return result;
