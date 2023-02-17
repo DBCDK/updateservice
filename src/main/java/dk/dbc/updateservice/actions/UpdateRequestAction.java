@@ -53,6 +53,7 @@ public class UpdateRequestAction extends AbstractAction {
                 // Information that needs check is in the enrichment part, so we have to look at the full request record
                 children.add(new MatVurdR01R02CheckRecordsAction(state, state.readRecord()));
             }
+            children.add(new AuthenticateRecordAction(state, state.readRecord()));
             children.add(new UpdateOperationAction(state, settings));
         }
 

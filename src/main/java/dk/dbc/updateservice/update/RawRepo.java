@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.update;
 
@@ -502,7 +498,7 @@ public class RawRepo {
         LOGGER.info("RawRepo.recordExists, input, recordId={}, agencyId={}", recordId, agencyId);
         final StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         final String methodName = "recordExists";
-        boolean result = false;
+        boolean result;
 
         try (Connection conn = dataSource.getConnection()) {
             if (conn == null) {

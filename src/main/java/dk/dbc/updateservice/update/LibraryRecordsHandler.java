@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.CatalogExtractionCode;
@@ -948,7 +943,7 @@ public class LibraryRecordsHandler {
             }
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
 
-            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(marcRecord, groupId);
+            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.extensionRecordDataForRawRepo(marcRecord, groupId);
             final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
             MarcRecord dbcEnrichmentRecord;
 

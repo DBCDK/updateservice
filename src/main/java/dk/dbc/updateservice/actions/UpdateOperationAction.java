@@ -114,7 +114,6 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
                 MarcRecordReader reader = new MarcRecordReader(marcRecord);
                 setCreatedDate(reader);
-                children.add(new AuthenticateRecordAction(state, marcRecord));
                 handleSetCreateOverwriteDate();
                 final MarcRecordReader updReader = state.getMarcRecordReader();
                 final String updRecordId = updReader.getRecordId();

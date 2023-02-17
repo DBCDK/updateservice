@@ -1,6 +1,5 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcFieldWriter;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;

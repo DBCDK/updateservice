@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.actions;
 
@@ -97,9 +93,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(1));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
     }
 
@@ -123,9 +118,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(1));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -184,9 +178,8 @@ class UpdateOperationActionTest {
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = instance.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(1));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
     }
 
@@ -239,9 +232,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(1));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), enrichmentRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getHoldingsItems());
     }
 
@@ -304,9 +296,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(2));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -349,9 +340,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(5));
+        assertThat(children.size(), is(4));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertDoubleRecordFrontendAction(iterator.next(), updateRecord);
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -396,9 +386,8 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(4));
+        assertThat(children.size(), is(3));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertDoubleRecordCheckingAction(iterator.next(), updateRecord);
@@ -494,7 +483,6 @@ class UpdateOperationActionTest {
 
         List<ServiceAction> children = updateOperationAction.children();
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(), state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
@@ -591,7 +579,6 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = updateOperationAction.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), commonSchoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertSchoolCommonRecordAction(iterator.next(), state.getRawRepo(), commonSchoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -642,7 +629,6 @@ class UpdateOperationActionTest {
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), schoolRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertSchoolEnrichmentRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems(), settings.getProperty(state.getRawRepoProviderId()));
         assertThat(iterator.hasNext(), is(false));
     }
@@ -668,9 +654,8 @@ class UpdateOperationActionTest {
 
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
         List<ServiceAction> children = instance.children();
-        assertThat(children.size(), is(2));
+        assertThat(children.size(), is(1));
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), record, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateLocalRecordAction(iterator.next(), state.getRawRepo(), record, state.getHoldingsItems());
 
     }
@@ -1192,10 +1177,9 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(2));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
                 state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), enrichmentRecord, state.getLibraryRecordsHandler(), state.getHoldingsItems());
@@ -1259,10 +1243,9 @@ class UpdateOperationActionTest {
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateOperationAction.children();
-        assertThat(children.size(), is(5));
+        assertThat(children.size(), is(4));
 
         ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertAuthenticateRecordAction(iterator.next(), updateRecord, state.getAuthenticator(), state.getUpdateServiceRequestDTO().getAuthenticationDTO());
         AssertActionsUtil.assertUpdateCommonRecordAction(iterator.next(), state.getRawRepo(), record, UpdateTestUtils.GROUP_ID, state.getLibraryRecordsHandler(),
                 state.getHoldingsItems(), state.getVipCoreService());
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), littolkEnrichment, state.getLibraryRecordsHandler(), state.getHoldingsItems());

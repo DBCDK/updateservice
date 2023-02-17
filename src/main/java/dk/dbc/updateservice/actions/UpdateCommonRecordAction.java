@@ -87,7 +87,8 @@ public class UpdateCommonRecordAction extends AbstractRawRepoAction {
 
                 if ("DBC".equals(reader.getValue("996", "a")) && state.getLibraryGroup().isFBS() && state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
                     final MarcRecord currentRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
-                    final MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(marcRecord, currentRecord, groupId, state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(marcRecord));
+                    final MarcRecord collapsedRecord = state.getNoteAndSubjectExtensionsHandler().collapse(marcRecord, currentRecord,
+                            groupId, state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(currentRecord));
                     recordToStore = state.getRecordSorter().sortRecord(collapsedRecord);
                 } else {
                     recordToStore = marcRecord;
