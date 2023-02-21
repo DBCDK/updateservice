@@ -147,8 +147,8 @@ public class DeferredLogger {
                 events.add(le);
                 if(events.size() > eventLimit) events.removeFirst();
             } else {
-                logger.callAppenders(le);
                 if(!deferredLevel) logDeferred();
+                logger.callAppenders(le);
             }
         }
 

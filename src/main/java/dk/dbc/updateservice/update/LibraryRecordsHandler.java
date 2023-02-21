@@ -943,7 +943,7 @@ public class LibraryRecordsHandler {
             }
             final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = new NoteAndSubjectExtensionsHandler(this.vipCoreService, rawRepo, messages);
 
-            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.recordDataForRawRepo(marcRecord, groupId);
+            final MarcRecord correctedRecord = noteAndSubjectExtensionsHandler.extensionRecordDataForRawRepo(marcRecord, groupId);
             final MarcRecordReader correctedRecordReader = new MarcRecordReader(correctedRecord);
             MarcRecord dbcEnrichmentRecord;
 

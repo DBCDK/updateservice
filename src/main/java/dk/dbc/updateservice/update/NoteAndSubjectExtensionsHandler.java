@@ -259,7 +259,7 @@ public class NoteAndSubjectExtensionsHandler {
      * @throws UpdateException  A failure is found in the incoming record
      * @throws VipCoreException A problem was met when trying to get information from the vip system
      */
-    MarcRecord recordDataForRawRepo(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
+    MarcRecord extensionRecordDataForRawRepo(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recId = reader.getRecordId();
         return LOGGER.<MarcRecord, UpdateException, VipCoreException>callChecked2(log -> {
@@ -284,7 +284,8 @@ public class NoteAndSubjectExtensionsHandler {
                 return marcRecord;
             }
 
-            // Other libraries are only allowed to enrich note and subject fields if the record is in production, i.e. has a weekcode in the record
+            // Other libraries are only allowed to enrich note and subject fields if the record is finally produced,
+            // i.e. has a weekcode in the record that are older than current time
             // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
 
             final MarcRecord result = new MarcRecord();
@@ -643,10 +644,8 @@ public class NoteAndSubjectExtensionsHandler {
             } catch (RawRepoException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }
-            final MarcRecordWriter curWriter = new MarcRecordWriter(curRecord);
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
 
-            curWriter.addOrReplaceSubfield("001", "b", reader.getAgencyId());
             if (!isPublishedDBCRecord(curRecord)) {
                 return result;
             }
@@ -693,7 +692,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord)) {
+            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(curRecord)) {
                 final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
                 result.add(createMessageDTO(message));
             }

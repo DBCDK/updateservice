@@ -253,7 +253,7 @@ class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(4));
 
         ServiceAction child = children.get(0);
         assertThat(child.getClass(), is(PreProcessingAction.class));
@@ -264,6 +264,8 @@ class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
+        assertThat(child.getClass(), is(AuthenticateRecordAction.class));
+        child = children.get(3);
         assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -305,7 +307,7 @@ class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(4));
 
         ServiceAction child = children.get(0);
         assertThat(child.getClass(), is(PreProcessingAction.class));
@@ -316,6 +318,8 @@ class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
+        assertThat(child.getClass(), is(AuthenticateRecordAction.class));
+        child = children.get(3);
         assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -356,7 +360,7 @@ class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(4));
 
         ServiceAction child = children.get(0);
         assertThat(child.getClass(), is(PreProcessingAction.class));
@@ -367,6 +371,8 @@ class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
+        assertThat(child.getClass(), is(AuthenticateRecordAction.class));
+        child = children.get(3);
         assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);
@@ -409,7 +415,7 @@ class UpdateRequestActionTest {
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));
 
         List<ServiceAction> children = updateRequestAction.children();
-        assertThat(children.size(), is(3));
+        assertThat(children.size(), is(4));
 
         ServiceAction child = children.get(0);
         assertThat(child.getClass(), is(PreProcessingAction.class));
@@ -420,6 +426,8 @@ class UpdateRequestActionTest {
         testValidateOperationActionOutput(validateOperationAction);
 
         child = children.get(2);
+        assertThat(child.getClass(), is(AuthenticateRecordAction.class));
+        child = children.get(3);
         assertThat(child.getClass(), is(UpdateOperationAction.class));
         UpdateOperationAction updateOperationAction = (UpdateOperationAction) child;
         testUpdateOperationAction(updateOperationAction, settings);

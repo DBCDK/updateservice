@@ -235,7 +235,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), is(record));
+        assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(record));
     }
 
     @Test
@@ -249,7 +249,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), is(record));
+        assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(record));
     }
 
     @Test
@@ -317,7 +317,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
-        assertThat(instance.recordDataForRawRepo(record, "820010"), is(record));
+        assertThat(instance.extensionRecordDataForRawRepo(record, "820010"), is(record));
     }
 
     @Test
@@ -345,7 +345,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         try {
-            instance.recordDataForRawRepo(record, groupId);
+            instance.extensionRecordDataForRawRepo(record, groupId);
             fail(); // To make sure we never hit this branch
         } catch (UpdateException ex) {
             assertThat(ex.getMessage(), is(resourceBundle.getString("update.dbc.record.dbc.subjects")));
@@ -383,7 +383,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(expectedRecord));
     }
 
     @Test
@@ -411,7 +411,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         try {
-            instance.recordDataForRawRepo(record, groupId);
+            instance.extensionRecordDataForRawRepo(record, groupId);
             fail(); // To make sure we never hit this branch
         } catch (UpdateException ex) {
             assertThat(ex.getMessage(), is(resourceBundle.getString("update.dbc.record.dbc.subjects")));
@@ -454,7 +454,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
-        assertThat(instance.recordDataForRawRepo(record, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(expectedRecord));
     }
 
     @Test
@@ -525,10 +525,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
-        // final MarcRecord actual = instance.recordDataForRawRepo(record, groupId);
+        // final MarcRecord actual = instance.extensionRecordDataForRawRepo(record, groupId);
 
         try {
-            instance.recordDataForRawRepo(record, groupId);
+            instance.extensionRecordDataForRawRepo(record, groupId);
             fail();
         } catch (UpdateException ex) {
             assertThat(ex.getMessage(), is(resourceBundle.getString("update.library.record.catalog.codes.not.cb")));
@@ -550,7 +550,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(false);
         when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(curRecordCollection);
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
-        final MarcRecord actual = instance.recordDataForRawRepo(record, groupId);
+        final MarcRecord actual = instance.extensionRecordDataForRawRepo(record, groupId);
         resultWriter.removeField("032");
         MarcField addField = new MarcField("032", "00");
         addField.getSubfields().add(new MarcSubField("&", groupId));
@@ -752,7 +752,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -770,7 +770,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -793,7 +793,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -811,7 +811,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -829,7 +829,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         try {
-            instance.recordDataForRawRepo(newRecord1, groupId);
+            instance.extensionRecordDataForRawRepo(newRecord1, groupId);
             fail();
         } catch (UpdateException ex) {
             assertThat(ex.getMessage(), is(String.format(resourceBundle.getString("update.dbc.record.dbc.notes"), "504")));
@@ -838,7 +838,7 @@ class NoteAndSubjectExtensionsHandlerTest {
         final MarcRecord expectedRecord = AssertActionsUtil.loadRecord("records/record-6-expected.marc");
         final MarcRecord newRecord2 = AssertActionsUtil.loadRecord("records/record-6-new-2.marc");
 
-        assertThat(instance.recordDataForRawRepo(newRecord2, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord2, groupId), is(expectedRecord));
     }
 
     @Test
@@ -856,7 +856,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -874,7 +874,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -892,7 +892,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -915,7 +915,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -933,7 +933,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     @Test
@@ -951,7 +951,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
-        assertThat(instance.recordDataForRawRepo(newRecord, groupId), is(expectedRecord));
+        assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
     }
 
     private MarcRecord sortRecord(MarcRecord record) {

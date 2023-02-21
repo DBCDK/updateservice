@@ -1,7 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
 
 package dk.dbc.updateservice.actions;
 
@@ -144,7 +140,7 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        String groupId = "830010";
+        String groupId = "700400";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -160,38 +156,6 @@ class AuthenticateRecordActionTest {
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
         ServiceResult actual = instance.performAction();
         assertThat(actual, is(ServiceResult.newOkResult()));
-    }
-
-    @Test
-    void testPerformAction_Fail_IsCommonNationalRecord() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        String groupId = "830010";
-
-        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
-        authenticationDTO.setGroupId(groupId);
-        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
-        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
-        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
-
-        List<MessageEntryDTO> validationErrors = new ArrayList<>();
-        MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
-        messageEntryDTO.setMessage("fejl");
-        validationErrors.add(messageEntryDTO);
-        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(true);
-        when(state.getNoteAndSubjectExtensionsHandler().authenticateCommonRecordExtraFields(record, groupId)).thenReturn(validationErrors);
-
-        ServiceResult expected = new ServiceResult();
-        expected.setStatus(UpdateStatusEnumDTO.OK);
-        expected.setEntries(new ArrayList<>());
-        MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
-        expectedMessageEntryDTO.setMessage("fejl");
-        expected.getEntries().add(expectedMessageEntryDTO);
-
-        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
-        ServiceResult actual = instance.performAction();
-        assertThat(actual, is(expected));
     }
 
     @Test
@@ -727,6 +691,7 @@ class AuthenticateRecordActionTest {
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        instance.setResourceBundle();
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
 
         MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
@@ -848,6 +813,7 @@ class AuthenticateRecordActionTest {
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        instance.setResourceBundle();
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
 
         MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();

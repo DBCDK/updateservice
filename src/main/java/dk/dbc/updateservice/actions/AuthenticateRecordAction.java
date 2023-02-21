@@ -45,37 +45,24 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
     private static final DeferredLogger LOGGER = new DeferredLogger(AuthenticateRecordAction.class);
 
     /**
-     * Constructs an instance with a template name and a record.
-     * <p/>
-     * The JavaScript logic needs an JavaScript environment and a set of
-     * settings to work properly. These can be set though the properties <code>scripter</code>
-     * and <code>settings</code>. This constructor initialize these to null.
-     *
+     * Constructs an instance for authentication of a record
      * @param globalActionState State object containing data with data from request.
+     * @param marcRecord        The record to be authenticated
      */
     public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(AuthenticateRecordAction.class.getSimpleName(), globalActionState, marcRecord);
     }
+    ResourceBundle resourceBundle;
 
-    /**
-     * Validates the record against the JavaScript logic.
-     * <p/>
-     * If the JavaScript logic returns any validation errors they are converted to
-     * validation entries in the ServiceResult with the status
-     * <code>UpdateStatusEnum.VALIDATION_ERROR</code>. If no errors are returned
-     * we use the status from <code>okStatus</code>.
-     * <p/>
-     * Exceptions from the JavaScript logic is converted to a ServiceResult with the
-     * status <code>UpdateStatusEnum.FAILED_VALIDATION_INTERNAL_ERROR</code>. The actual
-     * exception message returned as a validation entry in the ServiceResult.
-     *
-     * @return The constructed ServiceResult.
-     * @throws UpdateException Never thrown.
-     */
+    public void setResourceBundle() {
+        this.resourceBundle = ResourceBundles.getBundle("messages");
+    }
+
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
             try {
+                setResourceBundle();
                 log.info("Login user: {}/{}", state.getUpdateServiceRequestDTO().getAuthenticationDTO().getUserId(), state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId());
 
                 final List<MessageEntryDTO> errors = authenticateRecord();
@@ -125,7 +112,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
             // If the group is identical to the agency of the record then authenticate OK
             if (groupId.equals(reader.getAgencyId())) {
-                log.info("Group is identical with agencyId -> exit OK");
+                log.info("Group is identical with agencyId so it's a local record-> exit OK");
                 return result;
             }
 
@@ -134,11 +121,15 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
 
-                if (noteAndSubjectExtensionsHandler.isPublishedDBCRecord(marcRecord)) {
-                    log.info("Record is national common record");
+                MarcRecord curRecord = new MarcRecord();
+                if (rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
+                    curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                }
+                if (noteAndSubjectExtensionsHandler.isPublishedDBCRecord(curRecord)) {
+                    log.info("Record is published national common record");
                     validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(marcRecord, groupId);
                 } else {
-                    log.info("Record is not national common record");
+                    log.info("Record is national common record still under production");
                     validationErrors = authenticateCommonRecord();
                 }
 
@@ -160,7 +151,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 return result;
             }
 
-            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
             final String message = String.format(resourceBundle.getString("edit.record.other.library.error"), reader.getRecordId());
             final MessageEntryDTO messageEntryDTO = new MessageEntryDTO();
             messageEntryDTO.setMessage(message);
@@ -174,8 +164,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
     private List<MessageEntryDTO> authenticateCommonRecord() throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
-
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -275,8 +263,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
     List<MessageEntryDTO> authenticateMetaCompassField() throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-
-            final ResourceBundle resourceBundle = ResourceBundles.getBundle("messages");
 
             final MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
             final MarcField field665 = recordReader.getField("665");
