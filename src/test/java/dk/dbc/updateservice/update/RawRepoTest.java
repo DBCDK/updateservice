@@ -82,7 +82,7 @@ class RawRepoTest {
         try {
             rawRepo.agenciesForRecord(null);
         } catch (IllegalArgumentException | UpdateException ignored) {
-            
+
         } finally {
             verify(rawRepo.metricsHandler, times(1))
                     .increment(rawrepoErrorCounterMetrics,
