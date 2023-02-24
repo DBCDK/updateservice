@@ -386,21 +386,24 @@ class NoteAndSubjectExtensionsHandlerTest {
         assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(expectedRecord));
     }
 
+    /**
+     * current record are added a field 666 with *& containing the value 1 making the field a dbc field
+     * Then we make an incoming record with no 666 field
+     * The test fails due to the missing subject field
+     * @throws Exception happens when the extensionRecordDataForRawRepo for some reason doesn't fail
+     */
     @Test
-    void testNoteAndSubjectFields_ExistingNote_Rejected() throws Exception {
+    void testNoteAndSubjectFields_ExistingSubject_Rejected() throws Exception {
         String groupId = "730010";
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
         MarcField currentNoteField = new MarcField("666", "00");
-        currentNoteField.getSubfields().add(new MarcSubField("&", "123456"));
+        currentNoteField.getSubfields().add(new MarcSubField("&", "1"));
         currentNoteField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
         currentRecord.getFields().add(currentNoteField);
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField field = new MarcField("530", "00");
-        field.setSubfields(Collections.singletonList(new MarcSubField("a", "Julemandens Nisseslagteri")));
-        record.getFields().add(field);
 
         when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
