@@ -178,8 +178,9 @@ public class NoteAndSubjectExtensionsHandler {
      * @return return true if there isn't a *&7xxxxx subfield otherwise false
      */
     private boolean isDbcField(List<MarcField> fields) {
-        boolean agencyOwned = false;
+        boolean agencyOwned;
         for (MarcField cnf : fields) {
+            agencyOwned = false;
             for (MarcSubField cnsf : cnf.getSubfields()) {
                 if (cnsf.getName().equals("&") && cnsf.getValue().startsWith("7")) {
                     agencyOwned = true;
@@ -193,11 +194,10 @@ public class NoteAndSubjectExtensionsHandler {
 
     /**
      * The rules are :
-     * if there are a dbc owned note field(s) then no update is allowed. Look at 504 and 530 respectively.
-     * Next step is to see what to keep, what to add, what to update and what to delete. Update is a bit tricky to say it nicely.
-     * If content matches, then just add it
-     * If there are new notes then add them
-     * If notes are missing, then remove them
+     * Look up the field in current record - if there is a field with *&1 or no *& at all, then it is a dbc field, and it is not allowed
+     * to add/modify the field - that is, if the incoming record has a note field that differ from the current note fields,
+     * ignoring *& subfields, then return an error.
+     * If there are no dbc notefield, then add incoming notes (thereby destroying existing)
      * In all cases the *& subfield is given the updating agency as owner
      * Update notes is impossible since we don't receive a "change this note to that" request, just a record with the content the updater want.
      * @param result           The marcrecord containing the result of the function
@@ -220,24 +220,22 @@ public class NoteAndSubjectExtensionsHandler {
         final List<MarcField> currentNoteFields = curRecord.getFields().stream()
                 .filter(field -> field.getName().matches(noteField)).collect(Collectors.toList());
 
-        if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
-            result.getFields().addAll(currentNoteFields);
-        } else {
-            LOGGER.callChecked(log -> {
-                for (MarcField newNoteField : newNoteFields) {
-                    if (isDbcField(currentNoteFields)) {
-                        final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), newNoteField.getName());
-                        // Business exception which means we don't want the error in the errorlog, so only log as info
-                        log.info("Unable to create sub actions due to an error: {}", msg);
-                        throw new UpdateException(msg);
-                    }
+        LOGGER.callChecked(log -> {
+            if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
+                result.getFields().addAll(currentNoteFields);
+            } else {
+                if (isDbcField(currentNoteFields)) {
+                    final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), noteField);
+                    // Business exception which means we don't want the error in the errorlog, so only log as info
+                    log.info("Unable to create sub actions due to an error: {}", msg);
+                    throw new UpdateException(msg);
                 }
-                return null;
-            });
-            for (MarcField newNoteField : newNoteFields) {
-                result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
+                for (MarcField newNoteField : newNoteFields) {
+                    result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
+                }
             }
-        }
+            return null;
+        });
     }
 
     void addCatalogField(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
@@ -497,7 +495,7 @@ public class NoteAndSubjectExtensionsHandler {
         l2.forEach(f -> l2Clone.add(new MarcField(f)));
         l2Clone.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
 
-        return l1.equals(l2);
+        return l1Clone.equals(l2Clone);
     }
 
     /**
