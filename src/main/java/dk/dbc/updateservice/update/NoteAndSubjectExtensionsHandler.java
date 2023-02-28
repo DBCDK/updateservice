@@ -419,7 +419,7 @@ public class NoteAndSubjectExtensionsHandler {
      * 3: If the old field is empty, then new field, if it exists, may not contain subfields "a" and "x" without "OVE", that will be an error. If it contains *xOVE then
      * add *&amp; and *xOVE
      * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *&amp; and "OVE", that is,
-     * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *&amp; with groupId should be added
+     * if the fields only differ on *&amp; and *xOVE then those in the current shall be removed, the OVE code added and a *&amp; with groupId should be added
      */
     private List<MarcField> createCatalogField(List<MarcField> newCatalogCodeFields, List<MarcField> currentCatalogCodeFields, String groupId) throws UpdateException {
         List <MarcField> resultCatalogCodeFields = new ArrayList<>();
