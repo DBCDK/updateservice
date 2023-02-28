@@ -172,10 +172,10 @@ public class NoteAndSubjectExtensionsHandler {
     }
 
     /**
-     * See whether there is a *& 7xxxxx subfield or not.
-     * Just for the fun of it, some dbc owned fields have subfields *&0 and *&1, so it's not enough to check if *& exists
+     * See whether there is a *&amp; 7xxxxx subfield or not.
+     * Just for the fun of it, some dbc owned fields have subfields *&amp;0 and *&amp;1, so it's not enough to check if *&amp; exists
      * @param fields The fieldlist to check
-     * @return return true if there isn't a *&7xxxxx subfield otherwise false
+     * @return return true if there isn't a *&amp;7xxxxx subfield otherwise false
      */
     private boolean isDbcField(List<MarcField> fields) {
         boolean agencyOwned;
@@ -194,11 +194,11 @@ public class NoteAndSubjectExtensionsHandler {
 
     /**
      * The rules are :
-     * Look up the field in current record - if there is a field with *&1 or no *& at all, then it is a dbc field, and it is not allowed
+     * Look up the field in current record - if there is a field with *&amp;1 or no *&amp; at all, then it is a dbc field, and it is not allowed
      * to add/modify the field - that is, if the incoming record has a note field that differ from the current note fields,
-     * ignoring *& subfields, then return an error.
+     * ignoring *&amp; subfields, then return an error.
      * If there are no dbc notefield, then add incoming notes (thereby destroying existing)
-     * In all cases the *& subfield is given the updating agency as owner
+     * In all cases the *&amp; subfield is given the updating agency as owner
      * Update notes is impossible since we don't receive a "change this note to that" request, just a record with the content the updater want.
      * @param result           The marcrecord containing the result of the function
      * @param marcRecord       The updating record
@@ -389,7 +389,7 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * @param l1  the field 032 in the incoming record
      * @param l2  the field 032 in the existing record
-     * @param all if true, all subfields will be matched otherwise *& and *x with OVE
+     * @param all if true, all subfields will be matched otherwise *&amp; and *x with OVE
      * @return    true if l1 and l2 contains the same no matter order
      */
     boolean compareCatalogSubFields(MarcField l1, MarcField l2, boolean all) {
@@ -417,9 +417,9 @@ public class NoteAndSubjectExtensionsHandler {
      * 2: If the new field is empty, then old, if it exists, may not contain subfields "a" and "x" except for "OVE", that will be an error - if it doesn't, the field
      * will be deleted
      * 3: If the old field is empty, then new field, if it exists, may not contain subfields "a" and "x" without "OVE", that will be an error. If it contains *xOVE then
-     * add *& and *xOVE
-     * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *& and "OVE", that is,
-     * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *& with groupId should be added
+     * add *&amp; and *xOVE
+     * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *&amp; and "OVE", that is,
+     * if the fields only differ on *&amp; and *xOVE then those in the current shall be removed, the OVE code added and a *&amp; with groupId should be added
      */
     private List<MarcField> createCatalogField(List<MarcField> newCatalogCodeFields, List<MarcField> currentCatalogCodeFields, String groupId) throws UpdateException {
         List <MarcField> resultCatalogCodeFields = new ArrayList<>();

@@ -55,7 +55,7 @@ pipeline {
 				script {
                     def java = scanForIssues tool: [$class: 'Java']
                     def javadoc = scanForIssues tool: [$class: 'JavaDoc']
-                    publishIssues issues: [java, javadoc], unstableTotalAll:1
+                    publishIssues issues: [java, javadoc], unstableTotalAll:0
 
                     def pmd = scanForIssues tool: [$class: 'Pmd']
                     publishIssues issues: [pmd], unstableTotalAll:1

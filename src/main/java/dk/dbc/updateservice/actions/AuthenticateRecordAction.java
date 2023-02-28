@@ -125,7 +125,12 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 if (rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                     curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 }
-                if (noteAndSubjectExtensionsHandler.isPublishedDBCRecord(curRecord)) {
+                /*
+                This is a bit messy. Metakompas records doesn't have a field 032, but the record the metakompas data
+                will receive does, so the road may go down into noteAndSubjectExtentionsHandler and that must not happen.
+                 */
+                if (!"metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName()) &&
+                        noteAndSubjectExtensionsHandler.isPublishedDBCRecord(curRecord)) {
                     log.info("Record is published national common record");
                     validationErrors = noteAndSubjectExtensionsHandler.authenticateCommonRecordExtraFields(marcRecord, groupId);
                 } else {

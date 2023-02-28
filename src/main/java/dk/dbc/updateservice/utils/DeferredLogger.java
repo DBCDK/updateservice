@@ -61,7 +61,7 @@ public class DeferredLogger {
     /**
      * Creates a logging context that returns a value for a block with two checked exceptions
      * Please notice that currently Java cannot infer the exceptions correctly, so they must be declared explicitly like so:
-     * <Void, Exception1, Exception2>callChecked2(log -> {some crazy code})
+     * &lt;Void, Exception1, Exception2&gt;callChecked2(log -&gt; {some crazy code})
      */
     public <R, E1 extends Exception, E2 extends Exception> R callChecked2(SpicyFunction2<R, E1, E2> f) throws E1, E2 {
         Context context = new Context(deferredLogs.get() == null);
