@@ -4,6 +4,8 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcFieldReader;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.common.records.MarcSubField;
 import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.marcrecord.ExpandCommonMarcRecord;
 import dk.dbc.rawrepo.RawRepoException;
@@ -85,7 +87,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     LOGGER.use(log -> log.info("Found child record for {}:{} - {}:{}", reader.getRecordId(), reader.getAgencyId(), id.getBibliographicRecordId(), id.getAgencyId()));
 
                     if (shouldUpdateChildrenModifiedDate) {
-                        // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction so we
+                        // First we need to update 001 *c on all direct children. 001 *c is updated by StoreRecordAction, so we
                         // don't actually have to change anything in the child record
                         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, id));
                         children.add(EnqueueRecordAction.newEnqueueAction(state, id, settings));
@@ -99,7 +101,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             }
                         }
                     }
-
 
                     if (authorityHasClassificationChange) {
                         final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
@@ -136,13 +137,17 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     }
                 }
             }
+
+            // Please note that this function may modify one or more B-records in the common part of DBC records.
+            // At the moment it doesn't disturb, but RDA may give some headaches in the future.
+            handleUniverseLinks(marcRecord);
         }
 
         if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
             LOGGER.use(log -> log.info("Agency is 870976 - adding link action for r01 and r02"));
             // The links are not in the record passed to this action because the record has been split in a common part
             // and an enrichment and r01 and r02 are in the enrichment.
-            // Instead we have to read the original request record
+            // Instead, we have to read the original request record
             children.add(new LinkMatVurdRecordsAction(state, state.readRecord()));
         }
 
@@ -158,7 +163,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      *
      * @param marcRecord The incoming authority record
      * @return True if field 100, 110, 400, 410, 500 or 510 has been changed
-     * @throws UpdateException
+     * @throws UpdateException Something went horribly wrong
      */
     boolean shouldUpdateChildrenModifiedDate(MarcRecord marcRecord) throws UpdateException, RawRepoException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -177,7 +182,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             // Field exists in the updated record but not in the current record -> korrekturprint
             // It's a fact that both 100 and 110 may only exist as one field, but getField returns null if the field doesn't exist
-            // therefore we get "all" fields of the to types. Number of fields are validated at another place.
+            // therefore we get "all" fields of the two types. Number of fields are validated at another place.
             return !(currentReader.getFieldAll("100").equals(reader.getFieldAll("100")) &&
                     currentReader.getFieldAll("110").equals(reader.getFieldAll("110")) &&
                     currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
@@ -187,6 +192,61 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
 
         return false;
+    }
+
+    /**
+     * There are three tings that will be handled, adding a universe, removing one and replacing one
+     * There can only be one universe connected to a series record but there can be several B-records
+     * that shall have their universe modified.
+     * This modification cannot affect classification and enrichment.
+     * @param marcRecord         The 870979 record that are updated.
+     * @throws UpdateException   Something went wrong - multiple reasons.
+     * @throws RawRepoException  Something went wrong - multiple reasons.
+     */
+    void handleUniverseLinks(MarcRecord marcRecord) throws UpdateException, RawRepoException {
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+
+        if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+            final MarcRecord currentRecord = loadCurrentRecord();
+            final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
+            final MarcField currentReaderField = currentReader.getField("234");
+            final MarcField newField = reader.getField("234");
+            final Set<RecordId> ids = state.getRawRepo().children(recordId);
+            String link = "";
+            if (newField != null) {
+                for (MarcSubField subField : newField.getSubfields()) {
+                    if (subField.getName().equals("6")) {
+                        link = subField.getValue();
+                    }
+                }
+            }
+
+            for (RecordId id : ids) {
+
+                final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
+                final MarcRecordWriter currentChildWriter = new MarcRecordWriter(currentChildRecord);
+                if (currentReaderField == null && newField != null) {
+                    // handle new universe - that is, find all B-records that is children of the series record and add a
+                    // field 846 whith a link to the universe record.
+                    currentChildWriter.addFieldSubfield("846", "5", "870979");
+                    currentChildWriter.addOrReplaceSubfield("846", "6", link);
+                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                } else if (currentReaderField != null && newField == null) {
+                    // handle removing universe - that is, find all B-records that is children of the series record and remove
+                    // field 846 from those records.
+                    currentChildWriter.removeField("846");
+                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                } else if (currentReaderField != null){
+                    // Just for the record, newField is never null if we reach here
+                    // handle change universe - that is, find all B-records that is children of the series record and replace
+                    // the content of field 846 in those records. Technically, remove the 846 fields and add new.
+                    currentChildWriter.removeField("846");
+                    currentChildWriter.addFieldSubfield("846", "5", "870979");
+                    currentChildWriter.addOrReplaceSubfield("846", "6", link);
+                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                }
+            }
+        }
     }
 
     boolean authorityRecordHasClassificationChange(MarcRecord marcRecord) throws UpdateException, RawRepoException {
@@ -251,7 +311,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
         /*
             Special handling of PH libraries with holdings
-            In order to update records in danbib for PH libraries it is necessary to inform dataIO when an
+            In order to update records in danbib for PH libraries it is necessary to inform dataIO when a
             common record which a PH library has holding on is updated.
 
             Note that the record with recordId = record.recordId and agency = phLibrary.agencyId probably doesn't exist
