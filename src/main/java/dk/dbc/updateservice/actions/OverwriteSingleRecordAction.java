@@ -225,17 +225,18 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
                 final MarcRecordWriter currentChildWriter = new MarcRecordWriter(currentChildRecord);
+                boolean createAction = false;
                 if (currentReaderField == null && newField != null) {
                     // handle new universe - that is, find all B-records that is children of the series record and add a
                     // field 846 whith a link to the universe record.
                     currentChildWriter.addFieldSubfield("846", "5", "870979");
                     currentChildWriter.addOrReplaceSubfield("846", "6", link);
-                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                    createAction = true;
                 } else if (currentReaderField != null && newField == null) {
                     // handle removing universe - that is, find all B-records that is children of the series record and remove
                     // field 846 from those records.
                     currentChildWriter.removeField("846");
-                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                    createAction = true;
                 } else if (currentReaderField != null){
                     // Just for the record, newField is never null if we reach here
                     // handle change universe - that is, find all B-records that is children of the series record and replace
@@ -243,7 +244,15 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     currentChildWriter.removeField("846");
                     currentChildWriter.addFieldSubfield("846", "5", "870979");
                     currentChildWriter.addOrReplaceSubfield("846", "6", link);
-                    children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                    createAction = true;
+                }
+                if (createAction) {
+                    final String parentId = reader.getParentRecordId();
+                    if (parentId != null && !parentId.isEmpty()) {
+                        children.add(new OverwriteVolumeRecordAction(state, settings, currentChildRecord));
+                    } else {
+                        children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
+                    }
                 }
             }
         }
