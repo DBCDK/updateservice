@@ -1,5 +1,6 @@
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
@@ -130,13 +131,17 @@ public class UpdateRequestAction extends AbstractAction {
                     if (reader.getRecordId().strip().contains(" ")) {
                         message = state.getMessages().getString("sanity.check.failed.spaces.001");
                     }
-
                     if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
                         message = state.getMessages().getString("sanity.check.failed.libraryno.001");
                     }
                 } else {
                     message = state.getMessages().getString("sanity.check.failed.no.001");
+                }
 
+                for (MarcField marcField : marcRecord.getFields()) {
+                    if (marcField.getIndicator().trim().isEmpty()) {
+                        message = String.format(state.getMessages().getString("missing.indicator.in.field"), marcField.getName());
+                    }
                 }
             } catch (Exception ex) {
                 message = state.getMessages().getString("sanity.check.failed.exception");
