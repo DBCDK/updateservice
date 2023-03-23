@@ -13,6 +13,8 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Action to handle a complete Update request.
@@ -24,7 +26,7 @@ import java.util.Properties;
  */
 public class UpdateRequestAction extends AbstractAction {
     private static final DeferredLogger LOGGER = new DeferredLogger(UpdateRequestAction.class);
-
+    private static final Pattern INDICATOR_PATTERN = Pattern.compile("0\\d");
     private final Properties settings;
 
     public UpdateRequestAction(GlobalActionState globalActionState, Properties properties) {
@@ -137,10 +139,10 @@ public class UpdateRequestAction extends AbstractAction {
                 } else {
                     message = state.getMessages().getString("sanity.check.failed.no.001");
                 }
-
                 for (MarcField marcField : marcRecord.getFields()) {
-                    if (marcField.getIndicator().trim().isEmpty()) {
-                        message = String.format(state.getMessages().getString("missing.indicator.in.field"), marcField.getName());
+                    final Matcher matcher = INDICATOR_PATTERN.matcher(marcField.getIndicator());
+                    if (!matcher.find()) {
+                        message = String.format(state.getMessages().getString("invalid.indicator.in.field"), marcField.getName());
                     }
                 }
             } catch (Exception ex) {

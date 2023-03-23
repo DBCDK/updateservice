@@ -11,6 +11,8 @@ import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.util.List;
@@ -112,15 +114,16 @@ class UpdateRequestActionTest {
         assertThat(updateRequestAction.sanityCheckRecord(), is(message));
     }
 
-    @Test
-    void testMissingIndicatorsEmpty() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "  ", "julemand", "42"})
+    void test_not_null(String arg) throws Exception {
         settings = new Properties();
-        MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        marcRecord.getFields().get(5).setIndicator("");
+        final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
+        marcRecord.getFields().get(5).setIndicator(arg);
 
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
-        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.sanityCheckRecord(), is("Posten kan ikke opdateres da der mangler indikator i felt 032"));
+        final UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
+        assertThat(updateRequestAction.sanityCheckRecord(), is("Indikatoren i felt 032 mangler eller har en ugyldig værdi"));
     }
 
     @Test
@@ -131,18 +134,7 @@ class UpdateRequestActionTest {
 
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.sanityCheckRecord(), is("Posten kan ikke opdateres da der mangler indikator i felt 032"));
-    }
-
-    @Test
-    void testMissingIndicatorsSpaces() throws Exception {
-        settings = new Properties();
-        MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        marcRecord.getFields().get(5).setIndicator("  ");
-
-        state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
-        UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
-        assertThat(updateRequestAction.sanityCheckRecord(), is("Posten kan ikke opdateres da der mangler indikator i felt 032"));
+        assertThat(updateRequestAction.sanityCheckRecord(), is("Indikatoren i felt 032 mangler eller har en ugyldig værdi"));
     }
 
     @Test
