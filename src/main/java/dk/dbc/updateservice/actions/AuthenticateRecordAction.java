@@ -268,18 +268,15 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
     List<MessageEntryDTO> authenticateMetaCompassField() throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-
             final MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
-            final MarcField field665 = recordReader.getField("665");
+            final List<MarcField> newFields665 = recordReader.getFieldAll("665");
 
             if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
                 final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 final MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
-                final MarcField curField665 = curRecordReader.getField("665");
-
-                if (field665 != null && curField665 == null ||
-                        field665 == null && curField665 != null ||
-                        field665 != null && !field665.equals(curField665)) {
+                final List<MarcField> curFields665 = curRecordReader.getFieldAll("665");
+                final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
+                if (!noteAndSubjectExtensionsHandler.marcFieldsEqualsIgnoreAmpersand(newFields665, curFields665)) {
                     log.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
                     final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 
@@ -289,7 +286,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                     }
                 }
             } else {
-                if (field665 != null) {
+                if (newFields665 != null && !newFields665.isEmpty()) {
                     log.info("Field 665 is present in new record - checking if {} has permission to use field 665", groupId);
                     final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 

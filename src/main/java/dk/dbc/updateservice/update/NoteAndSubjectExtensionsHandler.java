@@ -485,7 +485,7 @@ public class NoteAndSubjectExtensionsHandler {
         return fieldClone;
     }
 
-    private boolean marcFieldsEqualsIgnoreAmpersand(List<MarcField> l1, List<MarcField> l2) {
+    public boolean marcFieldsEqualsIgnoreAmpersand(List<MarcField> l1, List<MarcField> l2) {
         final List<MarcField> l1Clone = new ArrayList<>();
         final List<MarcField> l2Clone = new ArrayList<>();
 
