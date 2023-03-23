@@ -5,7 +5,6 @@ import dk.dbc.common.records.MarcField;
 import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -13,7 +12,6 @@ import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
-import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -780,8 +778,16 @@ class AuthenticateRecordActionTest {
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        instance.setResourceBundle();
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, is(new ArrayList<>()));
+        MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
+        expectedMessageEntryDTO.setType(TypeEnumDTO.ERROR);
+        expectedMessageEntryDTO.setMessage("Du har ikke ret til at ændre i felt 665");
+        expectedMessageEntryDTO.setUrlForDocumentation("");
+        List<MessageEntryDTO> expected = new ArrayList<>();
+        expected.add(expectedMessageEntryDTO);
+
+        assertThat(actual, is(expected));
     }
 
     @Test
@@ -807,7 +813,6 @@ class AuthenticateRecordActionTest {
         assertThat(actual, is(new ArrayList<>()));
     }
 
-    // TODO ing
     @Test
     void testAuthenticateMetaCompassField_Same665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
@@ -827,8 +832,16 @@ class AuthenticateRecordActionTest {
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
+        instance.setResourceBundle();
         List<MessageEntryDTO> actual = instance.authenticateMetaCompassField();
-        assertThat(actual, is(new ArrayList<>()));
+        MessageEntryDTO expectedMessageEntryDTO = new MessageEntryDTO();
+        expectedMessageEntryDTO.setType(TypeEnumDTO.ERROR);
+        expectedMessageEntryDTO.setMessage("Du har ikke ret til at ændre i felt 665");
+        expectedMessageEntryDTO.setUrlForDocumentation("");
+        List<MessageEntryDTO> expected = new ArrayList<>();
+        expected.add(expectedMessageEntryDTO);
+
+        assertThat(actual, is(expected));
     }
 
     @Test

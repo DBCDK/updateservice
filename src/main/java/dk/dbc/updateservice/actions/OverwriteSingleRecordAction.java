@@ -140,7 +140,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             // Please note that this function may modify one or more B-records in the common part of DBC records.
             // At the moment it doesn't disturb, but RDA may give some headaches in the future.
-            handleUniverseLinks(marcRecord);
+            // TODO revive when MS-4299 is fixed handleUniverseLinks(marcRecord);
         }
 
         if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
