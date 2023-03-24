@@ -140,7 +140,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
             // Please note that this function may modify one or more B-records in the common part of DBC records.
             // At the moment it doesn't disturb, but RDA may give some headaches in the future.
-            // TODO revive when MS-4299 is fixed handleUniverseLinks(marcRecord);
+            handleUniverseLinks(marcRecord);
         }
 
         if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt()) {
@@ -225,6 +225,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
                 final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
                 final MarcRecordWriter currentChildWriter = new MarcRecordWriter(currentChildRecord);
+                final MarcRecordReader currentChildReader = new MarcRecordReader(currentChildRecord);
                 boolean createAction = false;
                 if (currentReaderField == null && newField != null) {
                     // handle new universe - that is, find all B-records that is children of the series record and add a
@@ -247,9 +248,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     createAction = true;
                 }
                 if (createAction) {
-                    final String parentId = reader.getParentRecordId();
+                    final String parentId = currentChildReader.getParentRecordId();
                     if (parentId != null && !parentId.isEmpty()) {
-                        children.add(new OverwriteVolumeRecordAction(state, settings, currentChildRecord));
+                        children.add(new UpdateVolumeRecord(state, settings, currentChildRecord));
                     } else {
                         children.add(new OverwriteSingleRecordAction(state, settings, currentChildRecord));
                     }
