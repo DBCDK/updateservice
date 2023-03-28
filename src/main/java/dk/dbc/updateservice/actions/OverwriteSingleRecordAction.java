@@ -185,8 +185,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             // therefore we get "all" fields of the two types. Number of fields are validated at another place.
             return !(currentReader.getFieldAll("100").equals(reader.getFieldAll("100")) &&
                     currentReader.getFieldAll("110").equals(reader.getFieldAll("110")) &&
+                    currentReader.getFieldAll("133").equals(reader.getFieldAll("133")) &&
+                    currentReader.getFieldAll("134").equals(reader.getFieldAll("134")) &&
                     currentReader.getFieldAll("400").equals(reader.getFieldAll("400")) &&
                     currentReader.getFieldAll("410").equals(reader.getFieldAll("410")) &&
+                    currentReader.getFieldAll("433").equals(reader.getFieldAll("433")) &&
+                    currentReader.getFieldAll("434").equals(reader.getFieldAll("434")) &&
                     currentReader.getFieldAll("500").equals(reader.getFieldAll("500")) &&
                     currentReader.getFieldAll("510").equals(reader.getFieldAll("510")));
         }

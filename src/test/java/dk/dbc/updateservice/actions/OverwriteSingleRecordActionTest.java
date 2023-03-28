@@ -1690,6 +1690,118 @@ class OverwriteSingleRecordActionTest {
     }
 
     @Test
+    void testAuthorityRecordShouldUpdate133() throws Exception {
+        String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "133 00 *a Andersen";
+
+        String input = "001 00 *a 68058309 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "133 00 *a Andersen";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord("68058309",
+                RawRepo.AUTHORITY_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord,
+                MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
+        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
+        MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
+        inwriter.removeField("133");
+        inwriter.addFieldSubfield("133", "a", "Hansen");
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordShouldUpdate134() throws Exception {
+        String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "134 00 *a Andersen";
+
+        String input = "001 00 *a 68058309 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "134 00 *a Andersen";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord("68058309",
+                RawRepo.AUTHORITY_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord,
+                MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
+        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
+        MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
+        inwriter.removeField("134");
+        inwriter.addFieldSubfield("134", "a", "Hansen");
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordShouldUpdate433() throws Exception {
+        String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "433 00 *a Andersen";
+
+        String input = "001 00 *a 68058309 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "433 00 *a Andersen";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord("68058309",
+                RawRepo.AUTHORITY_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord,
+                MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
+        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
+        MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
+        inwriter.removeField("433");
+        inwriter.addFieldSubfield("433", "a", "Hansen");
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
+    }
+
+    @Test
+    void testAuthorityRecordShouldUpdate434() throws Exception {
+        String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "434 00 *a Andersen";
+
+        String input = "001 00 *a 68058309 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
+                "004 00 *r n *a e *x n\n" +
+                "434 00 *a Andersen";
+
+        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
+        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+
+        state.setMarcRecord(inputAutRecord);
+        when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord("68058309",
+                RawRepo.AUTHORITY_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingAutRecord,
+                MarcXChangeMimeType.AUTHORITY));
+
+        OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
+        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
+        MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
+        inwriter.removeField("434");
+        inwriter.addFieldSubfield("434", "a", "Hansen");
+        assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
+    }
+
+    @Test
     void testAuthorityRecordHasProofPrintingDiffSame110() throws Exception {
         String existing = "001 00 *a 68058309 *b 870979 *c 20160617172909 *d 20131129 *f a *t faust\n" +
                 "004 00 *r n *a e *x n\n" +
