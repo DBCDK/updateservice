@@ -18,7 +18,6 @@ import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 
 import javax.ejb.EJBException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -210,14 +209,6 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 log.info("Owner is RET");
                 if (!state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)) {
                     return createErrorReply(resourceBundle.getString("update.common.record.error"));
-                }
-                log.info("New value of 008 *v is {}", reader.getValue("008", "v"));
-                log.info("Current value of 008 *v is {}", curReader.getValue("008", "v"));
-                if ("4".equals(curReader.getValue("008", "v"))) {
-                    final List<String> allowedKatValues = Arrays.asList("0", "1", "5");
-                    if (!allowedKatValues.contains(reader.getValue("008", "v"))) {
-                        return createErrorReply(resourceBundle.getString("update.common.record.katalogiseringsniveau.error"));
-                    }
                 }
                 return createOkReply();
             }

@@ -342,6 +342,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(currentReader.getRecordId(), currentRecord);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), currentReader.getAgencyIdAsInt())).thenReturn(result);
+
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         try {
@@ -381,6 +385,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(currentReader.getRecordId(), currentRecord);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), currentReader.getAgencyIdAsInt())).thenReturn(result);
+
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
         assertThat(instance.extensionRecordDataForRawRepo(record, groupId), is(expectedRecord));
@@ -410,6 +418,10 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(currentReader.getRecordId(), currentRecord);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), currentReader.getAgencyIdAsInt())).thenReturn(result);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
@@ -454,6 +466,10 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)).thenReturn(true);
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(currentReader.getRecordId(), currentRecord);
+        when(rawRepo.fetchRecordCollection(currentReader.getRecordId(), currentReader.getAgencyIdAsInt())).thenReturn(result);
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
 
@@ -753,6 +769,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -770,6 +790,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
@@ -794,6 +818,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.children(new RecordId(bibliographicRecordId, RawRepo.COMMON_AGENCY))).thenReturn(new HashSet<>(List.of(volumeRecordId)));
         when(rawRepo.fetchRecord(bibliographicRecordIdVolume, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -812,6 +840,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -828,6 +860,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
@@ -857,6 +893,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -875,6 +915,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -892,6 +936,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
@@ -916,6 +964,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.children(new RecordId(bibliographicRecordId, RawRepo.COMMON_AGENCY))).thenReturn(new HashSet<>(List.of(volumeRecordId)));
         when(rawRepo.fetchRecord(volumeBibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -934,6 +986,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
 
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
+
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
         assertThat(instance.extensionRecordDataForRawRepo(newRecord, groupId), is(expectedRecord));
@@ -951,6 +1007,10 @@ class NoteAndSubjectExtensionsHandlerTest {
         when(vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)).thenReturn(true);
         when(rawRepo.recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
         when(rawRepo.fetchRecord(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(existingRecord, MarcXChangeMimeType.MARCXCHANGE));
+
+        Map<String, MarcRecord> result = new HashMap<>();
+        result.put(bibliographicRecordId, existingRecord);
+        when(rawRepo.fetchRecordCollection(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(result);
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
 
