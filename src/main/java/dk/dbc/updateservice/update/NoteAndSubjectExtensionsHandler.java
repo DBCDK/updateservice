@@ -120,8 +120,6 @@ public class NoteAndSubjectExtensionsHandler {
             final String recId = reader.getRecordId();
             final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recId, reader.getAgencyIdAsInt());
             result = ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recId);
-            String s1 = marcRecord.toString();
-            String s2 = result.toString();
         } catch (RawRepoException e) {
             throw new UpdateException("Exception while expanding the records", e);
         }
