@@ -53,7 +53,7 @@ public class NoteAndSubjectExtensionsHandler {
      * Handle classification fields. The following rules need to be followed.
      * if 652 fields are equal, then just add them
      * if not, then look closer at the content :
-     * if current has code "uden klassemærke" then look at the record and the agencys rights
+     * if current has code "uden klassemærke" then look at the record and the agency's rights
      * if disputas and the agency may add dk5 to such, then do it
      * if not, then error.
      */
@@ -77,7 +77,7 @@ public class NoteAndSubjectExtensionsHandler {
                                     result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
                                 }
                             } else {
-                                // This should not be possible due to other protections, but if they for some reason dissapears, this
+                                // This should not be possible due to other protections, but if they for some reason disappears, this
                                 // will prevent deleting 652 - please note that there are no testcase to check this
                                 final String msg = messages.getString("update.dbc.record.652.no.delete");
                                 log.error("Unable to create sub actions due to an error: {}", msg);
@@ -106,7 +106,28 @@ public class NoteAndSubjectExtensionsHandler {
     }
 
     /**
-     * Handles modifiying subjectfields given in EXTENDABLE_CONTROLLED_SUBJECT_FIELDS
+     * Creates an extended record of some unexpanded record. Please note, this was first done
+     * because the callChecked interface couldn't handle three exceptions, but are now used at two
+     * places
+     * @param marcRecord the record to expand
+     * @return expanded record
+     * @throws UpdateException there is something rotten in rawrepo
+     */
+    MarcRecord getExpandedRecord(MarcRecord marcRecord) throws UpdateException {
+        MarcRecord result;
+        try {
+            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+            final String recId = reader.getRecordId();
+            final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recId, reader.getAgencyIdAsInt());
+            result = ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recId);
+        } catch (RawRepoException e) {
+            throw new UpdateException("Exception while expanding the records", e);
+        }
+        return result;
+    }
+
+    /**
+     * Handles modifying subject fields given in EXTENDABLE_CONTROLLED_SUBJECT_FIELDS
      * The mechanism is pretty simple, if any of the fields are owned by dbc, then it isn't allowed for libraries to modify any
      * If none are dbc fields, then the old fields are deleted and the new ones are added with the updating agency as owner
      * @param result            the resulting record
@@ -116,12 +137,16 @@ public class NoteAndSubjectExtensionsHandler {
      * @throws UpdateException  attempt to modify dbc owned subjects detected
      */
     void addSubjectFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+        final MarcRecord expandedCurrentRecord;
+        expandedCurrentRecord = getExpandedRecord(curRecord);
         final List<MarcField> newControlledSubjectFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
         final List<MarcField> currentControlledSubjectFields = curRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<MarcField> currentExpandedControlledSubjectFields = expandedCurrentRecord.getFields().stream()
+                .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
 
-        if (marcFieldsEqualsIgnoreAmpersand(newControlledSubjectFields, currentControlledSubjectFields)) {
+        if (marcFieldsEqualsIgnoreAmpersand(newControlledSubjectFields, currentExpandedControlledSubjectFields)) {
             // Controlled subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentControlledSubjectFields);
         } else {
@@ -139,7 +164,7 @@ public class NoteAndSubjectExtensionsHandler {
         // Handle (non-controlled) subject fields. These fields are handled individually
         final List<MarcField> newSubjectFields = marcRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> currentSubjectFields = curRecord.getFields().stream()
+        final List<MarcField> currentSubjectFields = expandedCurrentRecord.getFields().stream()
                 .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
 
         if (marcFieldsEqualsIgnoreAmpersand(newSubjectFields, currentSubjectFields)) {
@@ -174,7 +199,7 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * See whether there is a *&amp; 7xxxxx subfield or not.
      * Just for the fun of it, some dbc owned fields have subfields *&amp;0 and *&amp;1, so it's not enough to check if *&amp; exists
-     * @param fields The fieldlist to check
+     * @param fields The field list to check
      * @return return true if there isn't a *&amp;7xxxxx subfield otherwise false
      */
     private boolean isDbcField(List<MarcField> fields) {
@@ -197,14 +222,14 @@ public class NoteAndSubjectExtensionsHandler {
      * Look up the field in current record - if there is a field with *&amp;1 or no *&amp; at all, then it is a dbc field, and it is not allowed
      * to add/modify the field - that is, if the incoming record has a note field that differ from the current note fields,
      * ignoring *&amp; subfields, then return an error.
-     * If there are no dbc notefield, then add incoming notes (thereby destroying existing)
+     * If there are no dbc note field, then add incoming notes (thereby destroying existing)
      * In all cases the *&amp; subfield is given the updating agency as owner
      * Update notes is impossible since we don't receive a "change this note to that" request, just a record with the content the updater want.
      * @param result           The marcrecord containing the result of the function
      * @param marcRecord       The updating record
      * @param curRecord        The record found in rawrepo
-     * @param groupId          The updating librarys agencyid
-     * @throws UpdateException Something not allowed has happend
+     * @param groupId          The updating library's agency id
+     * @throws UpdateException Something not allowed has happened
      */
     private void addNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
         String[] fields = EXTENDABLE_NOTE_FIELDS.split("\\|");
@@ -250,6 +275,7 @@ public class NoteAndSubjectExtensionsHandler {
     }
 
     /**
+     * Update the incoming record with relevant fields - notes, subjects etc.
      *
      * @param marcRecord        The incoming record
      * @param groupId           The library number for the updating library
@@ -624,7 +650,8 @@ public class NoteAndSubjectExtensionsHandler {
      * @return List of validation errors (ok returns empty list)
      * @throws UpdateException if communication with RawRepo or OpenAgency fails
      */
-    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord marcRecord, String groupId) throws UpdateException, VipCoreException {
+    public List<MessageEntryDTO> authenticateCommonRecordExtraFields(MarcRecord marcRecord, String groupId)
+            throws UpdateException, VipCoreException {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
             final List<MessageEntryDTO> result = new ArrayList<>();
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -670,17 +697,22 @@ public class NoteAndSubjectExtensionsHandler {
             }
 
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_SUBJECTS)) {
-                log.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed note fields", groupId);
+                final MarcRecord expandedCurrentRecord;
+                expandedCurrentRecord = getExpandedRecord(curRecord);
+
+                log.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed subject fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
                 for (MarcField field : marcRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
+                            isFieldChangedInOtherRecord(field, expandedCurrentRecord)) {
                         final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
                         result.add(createMessageDTO(message));
                     }
                 }
                 // Check if all fields in the existing record are in the incoming record
-                for (MarcField field : curRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
+                for (MarcField field : expandedCurrentRecord.getFields()) {
+                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
+                            isFieldChangedInOtherRecord(field, marcRecord)) {
                         final String fieldName = field.getName();
                         if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
                             final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);

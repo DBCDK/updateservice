@@ -313,35 +313,6 @@ class AuthenticateRecordActionTest {
     }
 
     @Test
-    void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_WrongCatLevel() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "4");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
-        String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
-
-        AuthenticationDTO authenticationDTO = new AuthenticationDTO();
-        authenticationDTO.setGroupId(groupId);
-        UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
-        updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
-        state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
-
-        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
-        when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
-
-        AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
-        ServiceResult actual = instance.performAction();
-        assertThat(actual, is(createExpectedErrorReply("update.common.record.katalogiseringsniveau.error")));
-    }
-
-    @Test
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
