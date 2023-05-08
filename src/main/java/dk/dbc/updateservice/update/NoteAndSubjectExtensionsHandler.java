@@ -521,7 +521,14 @@ public class NoteAndSubjectExtensionsHandler {
         l2.forEach(f -> l2Clone.add(new MarcField(f)));
         l2Clone.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
 
-        return l1Clone.equals(l2Clone);
+        final List<MarcField> l3Clone = new ArrayList<>(l1Clone);
+        l1Clone.forEach(f -> {
+            if (l2Clone.contains(f)) {
+                l3Clone.remove(f);
+                l2Clone.remove(f);
+            }
+        });
+        return l3Clone.equals(l2Clone);
     }
 
     /**
@@ -722,7 +729,7 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
 
-            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !CatalogExtractionCode.isPublishedIgnoreCatalogCodes(curRecord)) {
+            if (vipCoreService.getLibraryGroup(groupId).isFBS() && !isPublishedDBCRecord(curRecord)) {
                 final String message = String.format(resourceBundle.getString("notes.subjects.not.in.production"), groupId, recId);
                 result.add(createMessageDTO(message));
             }
