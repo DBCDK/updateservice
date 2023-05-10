@@ -1,13 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.json;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.SubField;
 
 import java.util.List;
 
@@ -19,7 +14,7 @@ import java.util.List;
  * <p>
  * Method implementations of a MixIn class are ignored.
  */
-public class MarcFieldMixIn {
+public class DataFieldMixIn {
     /**
      * Makes jackson runtime aware of non-default constructor.
      *
@@ -29,8 +24,8 @@ public class MarcFieldMixIn {
      */
     @SuppressWarnings("PMD.UnusedFormalParameter")
     @JsonCreator
-    public MarcFieldMixIn(@JsonProperty("name") String name,
+    public DataFieldMixIn(@JsonProperty("name") String name,
                           @JsonProperty("indicator") String indicator,
-                          @JsonProperty("subfields") List<MarcSubField> subfields) {
+                          @JsonProperty("subfields") List<SubField> subfields) {
     }
 }

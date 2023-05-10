@@ -1,8 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
@@ -123,7 +123,7 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
         final MarcRecordReader reader = new MarcRecordReader(result);
 
         // Fix for story #1910 , 1911
-        if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
+        if (!reader.hasValue("y08", 'a', RECATEGORIZATION_STRING)) {
             final StringBuilder sb = new StringBuilder();
             sb.append(RECLASSIFICATION_STRING);
             if (!reclassificationMessages.isEmpty()) {
@@ -137,12 +137,12 @@ public class CreateEnrichmentRecordWithClassificationsAction extends AbstractAct
                 sb.append(" pga. ");
                 sb.append(String.join(", ", translatedReclassificationMessages));
             }
-            writer.addOrReplaceSubfield("y08", "a", sb.toString());
+            writer.addOrReplaceSubField("y08", 'a', sb.toString());
         }
 
         // While tempting, this cannot be done by changing the agency in the createLibraryExtendedRecord call - it will give a null result
         if (targetRecordId != null) {
-            writer.addOrReplaceSubfield("001", "a", targetRecordId);
+            writer.addOrReplaceSubField("001", 'a', targetRecordId);
         }
         return result;
     }

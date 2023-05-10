@@ -1,14 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -18,10 +12,10 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
@@ -45,7 +39,7 @@ class UpdateEnrichmentRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
@@ -457,14 +451,14 @@ class UpdateEnrichmentRecordActionTest {
         assertFalse(iterator.hasNext());
     }
 
-    private Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
+    private Record createRawRepoRecord(MarcRecord record, String mimetype) {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         int agencyId = reader.getAgencyIdAsInt();
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock(recordId, agencyId);
         rawRepoRecord.setDeleted(false);
         rawRepoRecord.setMimeType(mimetype);
-        rawRepoRecord.setContent(RecordContentTransformer.encodeRecord(record));
+        rawRepoRecord.setContent(UpdateRecordContentTransformer.encodeRecord(record));
         return rawRepoRecord;
     }
 }

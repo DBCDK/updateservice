@@ -1,10 +1,10 @@
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.CatalogExtractionCode;
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import static dk.dbc.marc.binding.MarcRecord.hasTag;
 
 public class DefaultEnrichmentRecordHandler {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(DefaultEnrichmentRecordHandler.class);
@@ -43,31 +45,31 @@ public class DefaultEnrichmentRecordHandler {
         final MarcRecordReader updatingCommonRecordReader = new MarcRecordReader(updatingCommonRecord);
         final MarcRecordReader currentCommonRecordReader = new MarcRecordReader(currentCommonRecord);
 
-        if (matchesNoClassification(currentCommonRecordReader.getValue("652", "m"))) {
+        if (matchesNoClassification(currentCommonRecordReader.getValue("652", 'm'))) {
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", "m")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "652m", currentCommonRecordReader.getValue("652", 'm')));
             }
             return false;
         }
 
-        if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "x"))) {
+        if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", 'x'))) {
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", "x")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032x", updatingCommonRecordReader.getValue("032", 'x')));
             }
             return false;
         }
 
-        if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", "a"))) {
+        if (matchesCatCodeAndTemporaryDate(updatingCommonRecordReader.getValue("032", 'a'))) {
             if (LOGGER.isInfoEnabled()) {
-                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", "a")));
+                LOGGER.info(String.format(resourceBundle.getString("do.not.create.enrichments.reason"), "032a", updatingCommonRecordReader.getValue("032", 'a')));
             }
             return false;
         }
 
 
         // If the existing record is decentral, and it changes owner to either DBC or KB then we must trigger enrichment logic
-        final String currentOwner = currentCommonRecordReader.getValue("996", "a");
-        final String updatingOwner = updatingCommonRecordReader.getValue("996", "a");
+        final String currentOwner = currentCommonRecordReader.getValue("996", 'a');
+        final String updatingOwner = updatingCommonRecordReader.getValue("996", 'a');
         if (updatingOwner != null && currentOwner != null &&
                 CENTRAL_OWNERS.contains(updatingOwner) && !updatingOwner.equals(currentOwner)) {
             LOGGER.info("Detected owner change from decentral to DBC or KB");
@@ -79,7 +81,7 @@ public class DefaultEnrichmentRecordHandler {
         if (CatalogExtractionCode.isUnderProduction(updatingCommonRecord)) {
             // It wasn't, that is, it's still in production, so it should fail unless
             // if 008*u==r then we have to check if content of 032a|x is about to change (some CAT_CODES_TEMPORARY_DATE only).
-            if (updatingCommonRecordReader.hasValue("008", "u", "r")) {
+            if (updatingCommonRecordReader.hasValue("008", 'u', "r")) {
                 if (matchKatCodes(currentCommonRecord, updatingCommonRecord)) {
                     // 032 not changed
                     if (LOGGER.isInfoEnabled()) {
@@ -100,7 +102,7 @@ public class DefaultEnrichmentRecordHandler {
 
     public static boolean hasMinusEnrichment(MarcRecord marcRecord) {
         final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-        final String value = recordReader.getValue("z98", "b");
+        final String value = recordReader.getValue("z98", 'b');
 
         return "minus påhængspost".equalsIgnoreCase(value);
     }
@@ -114,17 +116,16 @@ public class DefaultEnrichmentRecordHandler {
      */
     static List<String> collectProductionCodes(MarcRecord marcRecord) {
         final List<String> result = new ArrayList<>();
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+        final DataField field = marcRecord.getField(DataField.class, hasTag("032")).orElse(null);
 
-        final MarcField field = reader.getField("032");
         if (field != null) {
-            for (MarcSubField subfield : field.getSubfields()) {
-                if (subfield.getValue().length() > 2 && "OVE".matches(subfield.getValue().substring(0, 3))) {
+            for (SubField subfield : field.getSubFields()) {
+                if (subfield.getData().length() > 2 && "OVE".matches(subfield.getData().substring(0, 3))) {
                     // OVE codes is not a part of the codes that define production state for a record owned by DBC
                     continue;
                 }
-                if (matchesCatCodeAndDate(subfield.getValue())) {
-                    result.add(subfield.getName() + ":" + subfield.getValue());
+                if (matchesCatCodeAndDate(subfield.getData())) {
+                    result.add(subfield.getCode() + ":" + subfield.getData());
                 }
             }
         }

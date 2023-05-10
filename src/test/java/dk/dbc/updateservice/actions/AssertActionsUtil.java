@@ -1,19 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcConverter;
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -29,6 +21,7 @@ import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.IOUtils;
 
@@ -76,28 +69,28 @@ public class AssertActionsUtil {
     public static final String GLOBAL_ACTION_STATE = "actions/globalactionstate.marc";
     public static final String EXPANDED_VOLUME = "actions/expanded-volume.marc";
 
-    public static MarcRecord loadRecord(String filename) throws IOException {
+    public static MarcRecord loadRecord(String filename) throws IOException, UpdateException {
         final InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
-        return MarcRecordFactory.readRecord(IOUtils.readAll(is, "UTF-8"));
+        return UpdateRecordContentTransformer.readRecordFromString(IOUtils.readAll(is, "UTF-8"));
     }
 
-    public static MarcRecord loadRecord(String filename, String newRecordId) throws IOException {
+    public static MarcRecord loadRecord(String filename, String newRecordId) throws IOException, UpdateException {
         final MarcRecord record = loadRecord(filename);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'a', newRecordId);
 
         return record;
     }
 
-    public static MarcRecord loadRecordAndMarkForDeletion(String filename) throws IOException {
+    public static MarcRecord loadRecordAndMarkForDeletion(String filename) throws IOException, UpdateException {
         final MarcRecord record = loadRecord(filename);
         new MarcRecordWriter(record).markForDeletion();
 
         return record;
     }
 
-    public static MarcRecord loadRecordAndMarkForDeletion(String filename, String newRecordId) throws IOException {
+    public static MarcRecord loadRecordAndMarkForDeletion(String filename, String newRecordId) throws IOException, UpdateException {
         final MarcRecord record = loadRecordAndMarkForDeletion(filename);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "a", newRecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'a', newRecordId);
 
         return record;
     }
@@ -116,7 +109,7 @@ public class AssertActionsUtil {
         bibliographicRecordDTO.setExtraRecordDataDTO(extraRecordDataDTO);
 
         final RecordDataDTO recordDataDTO = new RecordDataDTO();
-        recordDataDTO.setContent(Arrays.asList("\n", MarcConverter.convertToMarcXChangeAsDocument(record).getDocumentElement(), "\n"));
+        recordDataDTO.setContent(Arrays.asList("\n", new String(UpdateRecordContentTransformer.encodeRecord(record)), "\n"));
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
 
         return bibliographicRecordDTO;
@@ -140,7 +133,7 @@ public class AssertActionsUtil {
         final RawRepoRecordMock result = new RawRepoRecordMock(getBibliographicRecordId(record), getAgencyIdAsInt(record));
         result.setMimeType(mimetype);
         result.setDeleted(false);
-        result.setContent(RecordContentTransformer.encodeRecord(record));
+        result.setContent(UpdateRecordContentTransformer.encodeRecord(record));
 
         return result;
     }
@@ -434,16 +427,16 @@ public class AssertActionsUtil {
         assertThat(actual.getFields().get(1), is(expected.getFields().get(1)));
 
         for (int f = 0; f < actual.getFields().size(); f++) {
-            final MarcField actualField = actual.getFields().get(f);
-            final MarcField expectedField = expected.getFields().get(f);
-            if ("001".equals(actualField.getName())) {
-                final List<String> ignoredSubfields = Arrays.asList("c", "d");
-                assertThat(actualField.getSubfields().size(), is(expectedField.getSubfields().size()));
+            final DataField actualField = actual.getFields(DataField.class).get(f);
+            final DataField expectedField = expected.getFields(DataField.class).get(f);
+            if ("001".equals(actualField.getTag())) {
+                final List<Character> ignoredSubfields = Arrays.asList('c', 'd');
+                assertThat(actualField.getSubFields().size(), is(expectedField.getSubFields().size()));
 
-                for (int s = 0; s < actualField.getSubfields().size(); s++) {
-                    final MarcSubField actualSubfield = actualField.getSubfields().get(s);
-                    final MarcSubField expectedSubfield = expectedField.getSubfields().get(s);
-                    if (!ignoredSubfields.contains(actualSubfield.getName())) {
+                for (int s = 0; s < actualField.getSubFields().size(); s++) {
+                    final SubField actualSubfield = actualField.getSubFields().get(s);
+                    final SubField expectedSubfield = expectedField.getSubFields().get(s);
+                    if (!ignoredSubfields.contains(actualSubfield.getCode())) {
                         assertThat(actualSubfield, is(expectedSubfield));
                     }
                 }

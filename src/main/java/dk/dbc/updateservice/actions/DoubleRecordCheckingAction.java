@@ -1,12 +1,7 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.jsonb.JSONBException;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -50,7 +45,7 @@ public class DoubleRecordCheckingAction extends AbstractAction {
                 final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
                 state.getOpencatBusiness().checkDoubleRecord(record, trackingId);
                 return ServiceResult.newOkResult();
-            } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
+            } catch (OpencatBusinessConnectorException | JSONBException ex) {
                 final String message = String.format(state.getMessages().getString("internal.double.record.check.error"), ex.getMessage());
                 log.error(message, ex);
                 return ServiceResult.newOkResult();

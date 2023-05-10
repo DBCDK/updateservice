@@ -1,19 +1,14 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -57,13 +52,13 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                 // Check for change from head or section to single
                 // Changing type from head/section to single is only allowed if the record doesn't have any common record children
                 // 004 *a e = single record
-                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && reader.hasValue("004", "a", "e")) {
-                    final MarcRecord existingRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
+                if (RawRepo.COMMON_AGENCY == reader.getAgencyIdAsInt() && reader.hasValue("004", 'a', "e")) {
+                    final MarcRecord existingRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt()).getContent());
                     final MarcRecordReader existingReader = new MarcRecordReader(existingRecord);
 
                     // 004 *a h = head record
                     // 004 *a s = section record
-                    if (existingReader.hasValue("004", "a", "h") || existingReader.hasValue("004", "a", "s")) {
+                    if (existingReader.hasValue("004", 'a', "h") || existingReader.hasValue("004", 'a', "s")) {
                         final Set<RecordId> children = state.getRawRepo().children(recordId);
                         for (RecordId childId : children) {
                             // 870971 records are okay as children but a 870970 means it is in volume hierarchy
@@ -136,7 +131,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
         Record record = rawRepo.fetchRecord(recordId, agencyId);
-        return RecordContentTransformer.decodeRecord(record.getContent());
+        return UpdateRecordContentTransformer.decodeRecord(record.getContent());
     }
 
     private CreateEnrichmentRecordWithClassificationsAction createJobForAddingEnrichmentRecord(String holdingAgencyId, String destinationCommonRecordId, MarcRecord linkRecord) {
@@ -205,8 +200,8 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
         LOGGER.callChecked(log -> {
             try {
                 final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-                final String recordIdForRecordToDelete = recordReader.getValue("001", "a");
-                final Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", "b"));
+                final String recordIdForRecordToDelete = recordReader.getValue("001", 'a');
+                final Integer agencyIdForRecordToDelete = Integer.valueOf(recordReader.getValue("001", 'b'));
 
                 final String motherRecordId = state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", recordIdForRecordToDelete));
                 if (motherRecordId.equals("")) {
@@ -250,7 +245,7 @@ public class UpdateSingleRecord extends AbstractRawRepoAction {
                     log.info("Agency {} has enrichment : {}", workAgencyId, hasEnrichment);
                     if (hasEnrichment) {
                         final Record enrichmentRecord = rawRepo.fetchRecord(recordIdForRecordToDelete, workAgencyId);
-                        final MarcRecord enrichmentRecordData = RecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
+                        final MarcRecord enrichmentRecordData = UpdateRecordContentTransformer.decodeRecord(enrichmentRecord.getContent());
                         children.add(getMoveEnrichmentRecordAction(motherRecordId, enrichmentRecordData, classificationsChanged, isLinkRecInProduction));
                     } else {
                         if (classificationsChanged && holdingAgencies.contains(workAgencyId) && !isLinkRecInProduction) {

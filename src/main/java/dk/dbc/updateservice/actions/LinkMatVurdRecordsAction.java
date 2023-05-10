@@ -1,14 +1,9 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -26,11 +21,11 @@ public class LinkMatVurdRecordsAction extends AbstractLinkRelationRecordsAction 
         final int agencyId = reader.getAgencyIdAsInt();
         final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
-        for (MarcField field : marcRecord.getFields()) {
-            if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("a".equals(subField.getName())) {
-                        final String refRecordId = subField.getValue();
+        for (DataField field : marcRecord.getFields(DataField.class)) {
+            if (RawRepo.MATVURD_FIELDS.contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('a' == subField.getCode()) {
+                        final String refRecordId = subField.getData();
                         final int refAgencyId = RawRepo.COMMON_AGENCY;
 
                         final ServiceResult result = checkIfReferenceExists(refRecordId, refAgencyId);

@@ -1,16 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 
 import java.util.Properties;
 
@@ -76,7 +71,7 @@ public class DeleteRecordAction extends StoreRecordAction {
         final int agencyId = reader.getAgencyIdAsInt();
 
         final Record record = rawRepo.fetchRecord(recordId, agencyId);
-        return RecordContentTransformer.decodeRecord(record.getContent());
+        return UpdateRecordContentTransformer.decodeRecord(record.getContent());
     }
 
     /**

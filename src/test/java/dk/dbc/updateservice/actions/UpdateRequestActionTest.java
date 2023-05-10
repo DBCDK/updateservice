@@ -1,7 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
@@ -12,7 +13,7 @@ import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,7 +31,7 @@ class UpdateRequestActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
         state.setMarcRecord(null);
@@ -69,7 +70,7 @@ class UpdateRequestActionTest {
     void testNoField001() throws Exception {
         MarcRecord record = new MarcRecord();
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addFieldSubfield("004", "r", "n");
+        writer.addOrReplaceSubField("004", 'r', "n");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("sanity.check.failed.no.001");
@@ -80,9 +81,9 @@ class UpdateRequestActionTest {
     void testEmptyField001() throws Exception {
         MarcRecord record = new MarcRecord();
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addFieldSubfield("001", "a", "");
-        writer.addFieldSubfield("001", "b", "870970");
-        writer.addFieldSubfield("004", "r", "n");
+        writer.addOrReplaceSubField("001", 'a', "");
+        writer.addOrReplaceSubField("001", 'b', "870970");
+        writer.addOrReplaceSubField("004", 'r', "n");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("sanity.check.failed.empty.001");
@@ -93,8 +94,8 @@ class UpdateRequestActionTest {
     void testSpacesInId() throws Exception {
         MarcRecord record = new MarcRecord();
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addFieldSubfield("001", "a", "1 234 567 8");
-        writer.addFieldSubfield("001", "b", "870970");
+        writer.addOrReplaceSubField("001", 'a', "1 234 567 8");
+        writer.addOrReplaceSubField("001", 'b', "870970");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("sanity.check.failed.spaces.001");
@@ -106,8 +107,8 @@ class UpdateRequestActionTest {
     void testBadLibraryNo() throws Exception {
         MarcRecord record = new MarcRecord();
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addFieldSubfield("001", "a", "12345678");
-        writer.addOrReplaceSubfield("001", "b", "0");
+        writer.addFieldSubfield("001", 'a', "12345678");
+        writer.addOrReplaceSubField("001", 'b', "0");
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         String message = state.getMessages().getString("sanity.check.failed.libraryno.001");
@@ -115,11 +116,12 @@ class UpdateRequestActionTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"", " ", "  ", "julemand", "42"})
-    void test_not_null(String arg) throws Exception {
+    @CsvSource({",", " ,", " , ", "jule,mand", "4,2"})
+    void test_not_null(String ind1, String ind2) throws Exception {
         settings = new Properties();
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        marcRecord.getFields().get(5).setIndicator(arg);
+        marcRecord.getFields(DataField.class).get(5).setInd1(ind1 != null ? ind1.charAt(0) : null);
+        marcRecord.getFields(DataField.class).get(5).setInd2(ind2 != null ? ind2.charAt(0) : null);
 
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         final UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
@@ -130,7 +132,8 @@ class UpdateRequestActionTest {
     void testMissingIndicatorsNull() throws Exception {
         settings = new Properties();
         MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        marcRecord.getFields().get(5).setIndicator(null);
+        marcRecord.getFields(DataField.class).get(5).setInd1(null);
+        marcRecord.getFields(DataField.class).get(5).setInd2(null);
 
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null));
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);

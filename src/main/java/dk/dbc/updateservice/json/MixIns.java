@@ -1,13 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.json;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,8 +15,8 @@ public class MixIns {
 
     static {
         MIX_INS.put(MarcRecord.class, MarcRecordMixIn.class);
-        MIX_INS.put(MarcField.class, MarcFieldMixIn.class);
-        MIX_INS.put(MarcSubField.class, MarcSubFieldMixIn.class);
+        MIX_INS.put(DataField.class, DataFieldMixIn.class);
+        MIX_INS.put(SubField.class, MarcSubFieldMixIn.class);
     }
 
     private MixIns() {

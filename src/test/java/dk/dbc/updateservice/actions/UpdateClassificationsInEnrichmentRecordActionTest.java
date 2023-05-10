@@ -1,15 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +26,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
     private Properties settings;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
     }
@@ -148,7 +144,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("504", "a", "Ny Note");
+        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubField("504", 'a', "Ny Note");
 
         when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
 
@@ -164,12 +160,12 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         MarcRecord commonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubfield("y08", "a", "Ny Note");
+        new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubField("y08", 'a', "Ny Note");
 
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        MarcField y08 = new MarcField("y08", "00");
-        y08.getSubfields().add(new MarcSubField("a", "Ny Note"));
-        y08.getSubfields().add(new MarcSubField("a", "UPDATE opstillingsændring"));
+        DataField y08 = new DataField("y08", "00");
+        y08.getSubFields().add(new SubField('a', "Ny Note"));
+        y08.getSubFields().add(new SubField('a', "UPDATE opstillingsændring"));
         expected.getFields().add(y08);
 
         when(state.getLibraryRecordsHandler().updateLibraryExtendedRecord(isNull(), eq(commonRecord), eq(enrichmentRecord))).thenReturn(newEnrichmentRecord);
@@ -185,12 +181,12 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         assertThat(actual, not(expected));
 
         // Check that subfield 001 *c has a value in both records
-        assertNotNull(new MarcRecordReader(expected).getValue("001", "c"));
-        assertNotNull(new MarcRecordReader(actual).getValue("001", "c"));
+        assertNotNull(new MarcRecordReader(expected).getValue("001", 'c'));
+        assertNotNull(new MarcRecordReader(actual).getValue("001", 'c'));
 
         // Verify that the records are identical without 001 *c
-        new MarcRecordWriter(expected).removeSubfield("001", "c");
-        new MarcRecordWriter(actual).removeSubfield("001", "c");
+        new MarcRecordWriter(expected).removeSubfield("001", 'c');
+        new MarcRecordWriter(actual).removeSubfield("001", 'c');
         assertThat(actual, is(expected));
     }
 

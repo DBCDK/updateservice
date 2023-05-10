@@ -1,12 +1,7 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
@@ -27,8 +22,8 @@ public class CreateVolumeRecordAction extends AbstractRawRepoAction {
 
     Properties settings;
 
-    public CreateVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(CreateVolumeRecordAction.class.getSimpleName(), globalActionState, record);
+    public CreateVolumeRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(CreateVolumeRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 

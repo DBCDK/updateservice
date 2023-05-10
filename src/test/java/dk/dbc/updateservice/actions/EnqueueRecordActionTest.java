@@ -1,16 +1,12 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +30,7 @@ class EnqueueRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
@@ -43,8 +39,8 @@ class EnqueueRecordActionTest {
     private MarcRecord prepareRecord(String bibliographicRecordId, int agencyId) {
         final MarcRecord record = new MarcRecord();
         final MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "a", bibliographicRecordId);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
+        writer.addOrReplaceSubField("001", 'a', bibliographicRecordId);
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(agencyId));
 
         return record;
     }

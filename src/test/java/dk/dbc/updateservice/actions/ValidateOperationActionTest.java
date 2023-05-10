@@ -1,8 +1,9 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.update.LibraryGroup;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class ValidateOperationActionTest {
     private Properties settings;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
     }
@@ -62,7 +63,7 @@ class ValidateOperationActionTest {
     @Test
     void testPerformAction_fbs_DoubleRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
 
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(record, null));
         String schemaName = "book";

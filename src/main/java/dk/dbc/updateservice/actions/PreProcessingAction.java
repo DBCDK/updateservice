@@ -1,12 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.jsonb.JSONBException;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
@@ -14,9 +10,6 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-
-import javax.xml.bind.JAXBException;
-import java.io.UnsupportedEncodingException;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
@@ -37,15 +30,16 @@ public class PreProcessingAction extends AbstractRawRepoAction {
         try {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
             // Check for empty record. Opencat-business will throw all kinds of errors when receiving a null record
-            // so it is better to not send the record in the first place.
+            // Which means it is better to not send the record in the first place.
             if (!marcRecord.getFields().isEmpty()) {
                 final MarcRecord preprocessedMarcRecord = state.getOpencatBusiness().preprocess(state.getMarcRecord(), trackingId);
-                // It doesn't work to reassign the object so instead we just overwrite the fields
-                marcRecord.setFields(preprocessedMarcRecord.getFields());
+                // It doesn't work to reassign the object, instead we just overwrite the fields
+                marcRecord.getFields().clear();
+                marcRecord.getFields().addAll(preprocessedMarcRecord.getFields());
             }
 
             return ServiceResult.newOkResult();
-        } catch (UnsupportedEncodingException | JAXBException | JSONBException | OpencatBusinessConnectorException ex) {
+        } catch (JSONBException | OpencatBusinessConnectorException | MarcReaderException ex) {
             LOGGER.use(log -> log.error("Error during pre-processing", ex));
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         } finally {

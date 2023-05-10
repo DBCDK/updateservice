@@ -1,13 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -15,6 +10,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -39,7 +35,7 @@ class StoreRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.DBC;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         settings = new UpdateTestUtils().getSettings();
     }
@@ -203,7 +199,7 @@ class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), is(modified));
+        assertThat(modifiedReader.getValue("001", 'c'), is(modified));
     }
 
     @Test
@@ -217,6 +213,6 @@ class StoreRecordActionTest {
 
         final MarcRecordReader modifiedReader = new MarcRecordReader(record);
 
-        assertThat(modifiedReader.getValue("001", "c"), is("19971020"));
+        assertThat(modifiedReader.getValue("001", 'c'), is("19971020"));
     }
 }

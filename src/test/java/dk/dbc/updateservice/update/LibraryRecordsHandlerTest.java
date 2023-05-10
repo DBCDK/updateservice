@@ -1,15 +1,10 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Leader;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.jupiter.api.Test;
@@ -19,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -40,28 +36,28 @@ class LibraryRecordsHandlerTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
-        writer.addOrReplaceSubfield("aaa", "a", "b");
-        writer.addOrReplaceSubfield("bbb", "a", "b");
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
+        writer.addOrReplaceSubField("aaa", 'a', "b");
+        writer.addOrReplaceSubField("bbb", 'a', "b");
 
         // Prepare expected common record
         MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
-        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        expectedCommonRecordWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
 
         // Prepare expected DBC/191919 record
-        MarcRecord expectedDBCRecord = new MarcRecord();
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("001")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("004")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
+        MarcRecord expectedDBCRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("001")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("004")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("aaa")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("bbb")));
         MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
-        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        expectedDBCRecordWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
 
         List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
 
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", "b")), is(expectedList));
+        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", 'b')), is(expectedList));
     }
 
     @Test
@@ -70,378 +66,378 @@ class LibraryRecordsHandlerTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "b", "870971");
-        writer.addOrReplaceSubfield("aaa", "a", "b");
-        writer.addOrReplaceSubfield("bbb", "a", "b");
+        writer.addOrReplaceSubField("001", 'b', "870971");
+        writer.addOrReplaceSubField("aaa", 'a', "b");
+        writer.addOrReplaceSubField("bbb", 'a', "b");
 
         // Prepare expected common record
         MarcRecord expectedCommonRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter expectedCommonRecordWriter = new MarcRecordWriter(expectedCommonRecord);
-        expectedCommonRecordWriter.addOrReplaceSubfield("001", "b", "870971");
+        expectedCommonRecordWriter.addOrReplaceSubField("001", 'b', "870971");
 
         // Prepare expected DBC/191919 record
-        MarcRecord expectedDBCRecord = new MarcRecord();
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("001")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("004")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("aaa")));
-        expectedDBCRecord.getFields().add(new MarcField(reader.getField("bbb")));
+        MarcRecord expectedDBCRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("001")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("004")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("aaa")));
+        expectedDBCRecord.getFields().add(new DataField(reader.getField("bbb")));
         MarcRecordWriter expectedDBCRecordWriter = new MarcRecordWriter(expectedDBCRecord);
-        expectedDBCRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        expectedDBCRecordWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
 
         List<MarcRecord> expectedList = Arrays.asList(expectedCommonRecord, expectedDBCRecord);
 
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
-        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", "b")), is(expectedList));
+        assertThat(instance.splitRecordDataIO(record, reader.getValue("001", 'b')), is(expectedList));
     }
 
     @Test
-    void testHasClassificationsChanged008() {
+    void testHasClassificationsChanged008() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *tm");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *tp");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "008 00 *tm");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "008 00 *tp");
         LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("008t er ændret fra m eller s til p"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *ts");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "008 00 *ts");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("008t er ændret fra m eller s til p"));
 
         classificationMessages = new ArrayList<>();
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "008 00 *ty");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "008 00 *ty");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
     }
 
     @Test
-    void testHasClassificationsChanged009() {
+    void testHasClassificationsChanged009() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br*gxx");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("009ag er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb*gxx");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb*gxx");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br*gxx");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb*gxr");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb*gxr");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br*gxx");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("009ag er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *bb*gxr");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *br*gxx");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *bb*gxr");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *br*gxx");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("009ag er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb*gxr*as*gxx");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx*as*gxr");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb*gxr*as*gxx");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br*gxx*as*gxr");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *bb*gxr*as*gxx");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "009 00 *as *br*gxx*as*gxy");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *bb*gxr*as*gxx");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "009 00 *as *br*gxx*as*gxy");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("009ag er ændret"));
     }
 
     @Test
-    void testHasClassificationsChanged038() {
+    void testHasClassificationsChanged038() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aer");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "038 00 *aer");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "038 00 *aeo");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("038a er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "038 00 *aeo");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "038 00 *aeo");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "038 00 *aeo");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
     }
 
     @Test
-    void testHasClassificationsChanged039() {
+    void testHasClassificationsChanged039() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*bdk");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *afol*btr");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *afol*bdk");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("039 er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *bdk*afol");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *afol*btr");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *bdk*afol");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("039 er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "039 00 *afol*btr");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *afol*btr");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "039 00 *afol*btr");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
     }
 
     @Test
-    void testHasClassificationsChanged100() {
+    void testHasClassificationsChanged100() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*E2*eII*fkejser over romerriget");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*E2*eII*fkejser over romerriget");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("100 er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romérriget");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romerriget");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "100 00 *aMarcus Aurelius*fkejser over romérriget");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
     }
 
     @Test
-    void testHasClassificationsChanged110() {
+    void testHasClassificationsChanged110() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska feministkongressen*i35*k1989*jReykjavik");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "110 00*aNordiska feministkongressen*i35*k1989*jReykjavik");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "110 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("110 er ændret"));
     }
 
     @Test
-    void testHasClassificationsChanged239() {
+    void testHasClassificationsChanged239() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         List<String> classificationMessages = new ArrayList<>();
 
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 117. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 117. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*aYoung Frankenstein*\u00F8Brady");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*aYoung Frankenstein*\u00F8Lee");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*aYoung Frankenstein*\u00F8Brady");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*aYoung Frankenstein*\u00F8Lee");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239 er ændret"));
     }
 
     @Test
-    void testHasClassificationsChanged245() {
+    void testHasClassificationsChanged245() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 2");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 4");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 2");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 4");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245g er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 2");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 2");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 2");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 2");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 123456789");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *g[Bind] 1234567890");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 123456789");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *g[Bind] 1234567890");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245g er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *mDiskette");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *mPapirform");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *mDiskette");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *mPapirform");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245m er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *mDiskette");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *mDiskette");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *mDiskette");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *mDiskette");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *nBand 1");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *nBand 2");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *nBand 1");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *nBand 2");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245n er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *nBand 1");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *nBand 1");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *nBand 1");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *nBand 1");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *oRobinsonetter");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *oRobinsonader");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *oRobinsonetter");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245o er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *oRobinsonader");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *oRobinsõnader");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *oRobinsonader");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *oRobinsõnader");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySüpplement");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySupplement");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySüpplement");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySupplement");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySupplement");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySupplement");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySupplement");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySupplement");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySupplement");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *ySupplementerne");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySupplement");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *ySupplementerne");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245y er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245ø er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
-        newRecord = MarcRecordFactory.readRecord(f001FBS + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00 *a Downton Abbey *ø A journey to the highlands");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001FBS + "245 00 *a Downton Abbey *ø A journey to the highlands [Sæson 3]");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("245ø er ændret"));
     }
 
     @Test
-    void testHasClassificationsChangedSpecial() {
+    void testHasClassificationsChangedSpecial() throws UpdateException {
         MarcRecord oldRecord;
         MarcRecord newRecord;
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239t er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "120 00*aNordiska mejerikongressen*i35*k1989*jReykjavik");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239t er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239t er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00*aPieces 117. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239t er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00*aPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         // felt 239 + 245
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
                 "245 00*aPiece de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*aPierces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00*aPierces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur)");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("239t er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "245 00*n4. Band*aKupperzeit");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "245 00*n4. Band*aKupperzeit");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "239 00*tPieces de viole, 1. livre (Suite for viola da gamba og continuo, A-dur) \n" +
                 "004 00*as \n" +
                 "245 00*n3. Band*aKupferzeit");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
@@ -451,7 +447,7 @@ class LibraryRecordsHandlerTest {
     }
 
     @Test
-    void test652() {
+    void test652() throws UpdateException {
         final LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
 
         MarcRecord oldRecord;
@@ -460,27 +456,27 @@ class LibraryRecordsHandlerTest {
         final String f001DBC = "001 00 *b 870970 \n";
 
         List<String> classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC);
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC);
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "652 00 *m Hejsa");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("652m er ændret"));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *m Hejsa");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "654 00 *m Hejsa");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "652 00 *m Hejsa");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *o Hejsa");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "654 00 *o Hejsa");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "652 00 *o Hejsa");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + "654 00 *m Hejsa");
-        newRecord = MarcRecordFactory.readRecord(f001DBC + "652 00 *o Hejsa");
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "654 00 *m Hejsa");
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "652 00 *o Hejsa");
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
         assertThat(classificationMessages.size(), is(1));
         assertThat(resourceBundle.getString(classificationMessages.get(0)), is("652o er ændret"));
@@ -489,8 +485,8 @@ class LibraryRecordsHandlerTest {
         final String f652NyrupRasmussen = "652 00 *å 1 *m 99.4 *a Nyrup Rasmussen *h Poul \n";
 
         classificationMessages = new ArrayList<>();
-        oldRecord = MarcRecordFactory.readRecord(f001DBC + f652Socialdemokraterne + f652NyrupRasmussen);
-        newRecord = MarcRecordFactory.readRecord(f001DBC + f652NyrupRasmussen + f652Socialdemokraterne);
+        oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + f652Socialdemokraterne + f652NyrupRasmussen);
+        newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + f652NyrupRasmussen + f652Socialdemokraterne);
         assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
         assertThat(classificationMessages.size(), is(0));
     }

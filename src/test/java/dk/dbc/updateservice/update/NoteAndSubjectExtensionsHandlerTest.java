@@ -1,10 +1,11 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
@@ -20,7 +21,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,24 +55,12 @@ class NoteAndSubjectExtensionsHandlerTest {
         closeable.close();
     }
 
-    protected static class TestSet {
-        final MarcRecord inputRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_RECORD_CLASSIFICATION);
-        final MarcRecord commonRec = new MarcRecord(inputRecord);
-        final MarcRecordWriter inputWriter = new MarcRecordWriter(inputRecord);
-        final MarcRecordReader inputReader = new MarcRecordReader(inputRecord);
-        final MarcRecordWriter commonRecWriter = new MarcRecordWriter(commonRec);
-        final MarcRecordReader reader = new MarcRecordReader(inputRecord);
-
-        TestSet() throws IOException {
-        }
-    }
-
     @Test
     void testisNationalCommonRecord_OK() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("032", "a", "DBF12345");
-        writer.addOrReplaceSubfield("032", "x", "SFU12345");
+        writer.addOrReplaceSubField("032", 'a', "DBF12345");
+        writer.addOrReplaceSubField("032", 'x', "SFU12345");
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isPublishedDBCRecord(record), is(false));
@@ -125,12 +113,12 @@ class NoteAndSubjectExtensionsHandlerTest {
     @Test
     void testisFieldChangedInOtherRecord_001_match() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        MarcField field = new MarcField("001", "00");
-        field.getSubfields().add(new MarcSubField("a", "111111111"));
-        field.getSubfields().add(new MarcSubField("b", "870970"));
-        field.getSubfields().add(new MarcSubField("c", "19971020"));
-        field.getSubfields().add(new MarcSubField("d", "19940516"));
-        field.getSubfields().add(new MarcSubField("f", "a"));
+        DataField field = new DataField("001", "00");
+        field.getSubFields().add(new SubField('a', "111111111"));
+        field.getSubFields().add(new SubField('b', "870970"));
+        field.getSubFields().add(new SubField('c', "19971020"));
+        field.getSubFields().add(new SubField('d', "19940516"));
+        field.getSubFields().add(new SubField('f', "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
@@ -141,12 +129,12 @@ class NoteAndSubjectExtensionsHandlerTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
-        MarcField field = new MarcField("001", "00");
-        field.getSubfields().add(new MarcSubField("a", "20611529"));
-        field.getSubfields().add(new MarcSubField("b", "870970"));
-        field.getSubfields().add(new MarcSubField("c", "19971020"));
-        field.getSubfields().add(new MarcSubField("d", "19940516"));
-        field.getSubfields().add(new MarcSubField("f", "a"));
+        DataField field = new DataField("001", "00");
+        field.getSubFields().add(new SubField('a', "20611529"));
+        field.getSubFields().add(new SubField('b', "870970"));
+        field.getSubFields().add(new SubField('c', "19971020"));
+        field.getSubFields().add(new SubField('d', "19940516"));
+        field.getSubFields().add(new SubField('f', "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
@@ -156,16 +144,16 @@ class NoteAndSubjectExtensionsHandlerTest {
     void testisFieldChangedInOtherRecord_001_missing001cd_match() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.removeSubfield("001", "c");
-        writer.removeSubfield("001", "d");
+        writer.removeSubfield("001", 'c');
+        writer.removeSubfield("001", 'd');
 
         // 001 00 *a 20611529 *b 870970 *c 19971020 *d 19940516 *f a
-        MarcField field = new MarcField("001", "00");
-        field.getSubfields().add(new MarcSubField("a", "20611529"));
-        field.getSubfields().add(new MarcSubField("b", "870970"));
-        field.getSubfields().add(new MarcSubField("c", "19971020"));
-        field.getSubfields().add(new MarcSubField("d", "19940516"));
-        field.getSubfields().add(new MarcSubField("f", "a"));
+        DataField field = new DataField("001", "00");
+        field.getSubFields().add(new SubField('a', "20611529"));
+        field.getSubFields().add(new SubField('b', "870970"));
+        field.getSubFields().add(new SubField('c', "19971020"));
+        field.getSubFields().add(new SubField('d', "19940516"));
+        field.getSubFields().add(new SubField('f', "a"));
 
         NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
@@ -175,12 +163,12 @@ class NoteAndSubjectExtensionsHandlerTest {
     void testisFieldChangedInOtherRecord_Field900_withxwz_NoChange_1() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
-        final MarcField field = new MarcField("900", "00");
-        field.getSubfields().add(new MarcSubField("a", "Møllgaard"));
-        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
-        field.getSubfields().add(new MarcSubField("x", "se"));
-        field.getSubfields().add(new MarcSubField("w", "Møllgaard, Peter (f. 1964-02-23)"));
-        field.getSubfields().add(new MarcSubField("z", "700/1"));
+        final DataField field = new DataField("900", "00");
+        field.getSubFields().add(new SubField('a', "Møllgaard"));
+        field.getSubFields().add(new SubField('h', "H. Peter"));
+        field.getSubFields().add(new SubField('x', "se"));
+        field.getSubFields().add(new SubField('w', "Møllgaard, Peter (f. 1964-02-23)"));
+        field.getSubFields().add(new SubField('z', "700/1"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
@@ -190,12 +178,12 @@ class NoteAndSubjectExtensionsHandlerTest {
     void testisFieldChangedInOtherRecord_Field900_Withxwz_NoChange_2() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
-        final MarcField field = new MarcField("900", "00");
-        field.getSubfields().add(new MarcSubField("a", "Kastberg"));
-        field.getSubfields().add(new MarcSubField("h", "Claus"));
-        field.getSubfields().add(new MarcSubField("x", "se også under det senere navn"));
-        field.getSubfields().add(new MarcSubField("w", "Kastberg Nielsen, Claus"));
-        field.getSubfields().add(new MarcSubField("z", "700/2"));
+        final DataField field = new DataField("900", "00");
+        field.getSubFields().add(new SubField('a', "Kastberg"));
+        field.getSubFields().add(new SubField('h', "Claus"));
+        field.getSubFields().add(new SubField('x', "se også under det senere navn"));
+        field.getSubFields().add(new SubField('w', "Kastberg Nielsen, Claus"));
+        field.getSubFields().add(new SubField('z', "700/2"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
@@ -205,9 +193,9 @@ class NoteAndSubjectExtensionsHandlerTest {
     void testisFieldChangedInOtherRecord_Field900_Withoutxwz_NoChange() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
-        final MarcField field = new MarcField("900", "00");
-        field.getSubfields().add(new MarcSubField("a", "Møllgaard"));
-        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
+        final DataField field = new DataField("900", "00");
+        field.getSubFields().add(new SubField('a', "Møllgaard"));
+        field.getSubFields().add(new SubField('h', "H. Peter"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(false));
@@ -217,9 +205,9 @@ class NoteAndSubjectExtensionsHandlerTest {
     void testisFieldChangedInOtherRecord_Field900_Withoutxwz_Changed() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.EXPANDED_VOLUME);
 
-        final MarcField field = new MarcField("900", "00");
-        field.getSubfields().add(new MarcSubField("a", "Møllegaard")); // Added 'e'
-        field.getSubfields().add(new MarcSubField("h", "H. Peter"));
+        final DataField field = new DataField("900", "00");
+        field.getSubFields().add(new SubField('a', "Møllegaard")); // Added 'e'
+        field.getSubFields().add(new SubField('h', "H. Peter"));
 
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, resourceBundle);
         assertThat(instance.isFieldChangedInOtherRecord(field, record), is(true));
@@ -273,23 +261,23 @@ class NoteAndSubjectExtensionsHandlerTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter recordWriter = new MarcRecordWriter(record);
         recordWriter.removeField("504");
-        recordWriter.addOrReplaceSubfield("504", "&", "1");
-        recordWriter.addOrReplaceSubfield("504", "a", "Julemandens Nisseslagteri");
+        recordWriter.addOrReplaceSubField("504", '&', "1");
+        recordWriter.addOrReplaceSubField("504", 'a', "Julemandens Nisseslagteri");
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter currentWriter = new MarcRecordWriter(currentRecord);
         currentWriter.removeField("100");
-        currentWriter.addOrReplaceSubfield("100", "5", "12345678");
-        currentWriter.addOrReplaceSubfield("100", "6", "876543");
+        currentWriter.addOrReplaceSubField("100", '5', "12345678");
+        currentWriter.addOrReplaceSubField("100", '6', "876543");
 
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter expectedWriter = new MarcRecordWriter(expected);
         expectedWriter.removeField("100");
-        expectedWriter.addOrReplaceSubfield("100", "5", "12345678");
-        expectedWriter.addOrReplaceSubfield("100", "6", "876543");
+        expectedWriter.addOrReplaceSubField("100", '5', "12345678");
+        expectedWriter.addOrReplaceSubField("100", '6', "876543");
         expectedWriter.removeField("504");
-        expectedWriter.addOrReplaceSubfield("504", "&", "1");
-        expectedWriter.addOrReplaceSubfield("504", "a", "Julemandens Nisseslagteri");
+        expectedWriter.addOrReplaceSubField("504", '&', "1");
+        expectedWriter.addOrReplaceSubField("504", 'a', "Julemandens Nisseslagteri");
 
         String groupId = "830010";
 
@@ -308,8 +296,8 @@ class NoteAndSubjectExtensionsHandlerTest {
         MarcRecordReader reader = new MarcRecordReader(record);
 
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("032", "a", "DBF12345");
-        writer.addOrReplaceSubfield("032", "x", "ACC12345");
+        writer.addOrReplaceSubField("032", 'a', "DBF12345");
+        writer.addOrReplaceSubField("032", 'x', "ACC12345");
 
         MarcRecord existingRecord = new MarcRecord(record);
 
@@ -326,14 +314,15 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-        MarcField currentNoteField = new MarcField("666", "00");
-        currentNoteField.getSubfields().add(new MarcSubField("&", "1"));
-        currentNoteField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField currentNoteField = new DataField("666", "00");
+        currentNoteField.getSubFields().add(new SubField('&', "1"));
+        currentNoteField.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         currentRecord.getFields().add(currentNoteField);
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField field = new MarcField("530", "00");
-        field.setSubfields(Collections.singletonList(new MarcSubField("a", "Julemandens Nisseslagteri")));
+        DataField field = new DataField("530", "00");
+        field.getSubFields().clear();
+        field.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         record.getFields().add(field);
 
         when(rawRepo.recordExists(currentReader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(true);
@@ -362,20 +351,21 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-        MarcField currentNoteField = new MarcField("666", "00");
-        currentNoteField.getSubfields().add(new MarcSubField("&", "723456"));
-        currentNoteField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField currentNoteField = new DataField("666", "00");
+        currentNoteField.getSubFields().add(new SubField('&', "723456"));
+        currentNoteField.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         currentRecord.getFields().add(currentNoteField);
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField field = new MarcField("530", "00");
-        field.setSubfields(Collections.singletonList(new MarcSubField("a", "Julemandens Nisseslagteri")));
+        DataField field = new DataField("530", "00");
+        field.getSubFields().clear();
+        field.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         record.getFields().add(field);
 
         MarcRecord expectedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField expectedField = new MarcField("530", "00");
-        expectedField.getSubfields().add(new MarcSubField("&", groupId));
-        expectedField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField expectedField = new DataField("530", "00");
+        expectedField.getSubFields().add(new SubField('&', groupId));
+        expectedField.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         expectedRecord.getFields().add(expectedField);
         new MarcRecordWriter(expectedRecord).sort();
 
@@ -398,6 +388,7 @@ class NoteAndSubjectExtensionsHandlerTest {
      * current record are added a field 666 with *& containing the value 1 making the field a dbc field
      * Then we make an incoming record with no 666 field
      * The test fails due to the missing subject field
+     *
      * @throws Exception happens when the extensionRecordDataForRawRepo for some reason doesn't fail
      */
     @Test
@@ -406,9 +397,9 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-        MarcField currentNoteField = new MarcField("666", "00");
-        currentNoteField.getSubfields().add(new MarcSubField("&", "1"));
-        currentNoteField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField currentNoteField = new DataField("666", "00");
+        currentNoteField.getSubFields().add(new SubField('&', "1"));
+        currentNoteField.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         currentRecord.getFields().add(currentNoteField);
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
@@ -439,25 +430,26 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         MarcRecord currentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-        MarcField currentNoteField = new MarcField("666", "00");
-        currentNoteField.getSubfields().add(new MarcSubField("&", "723456"));
-        currentNoteField.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField currentNoteField = new DataField("666", "00");
+        currentNoteField.getSubFields().add(new SubField('&', "723456"));
+        currentNoteField.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         currentRecord.getFields().add(currentNoteField);
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField field530 = new MarcField("530", "00");
-        field530.setSubfields(Collections.singletonList(new MarcSubField("a", "Julemandens Nisseslagteri")));
+        DataField field530 = new DataField("530", "00");
+        field530.getSubFields().clear();
+        field530.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         record.getFields().add(field530);
         record.getFields().add(currentNoteField);
 
         MarcRecord expectedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
-        MarcField expectedField530 = new MarcField("530", "00");
-        expectedField530.getSubfields().add(new MarcSubField("&", groupId));
-        expectedField530.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField expectedField530 = new DataField("530", "00");
+        expectedField530.getSubFields().add(new SubField('&', groupId));
+        expectedField530.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         expectedRecord.getFields().add(expectedField530);
-        MarcField expectedField666 = new MarcField("666", "00");
-        expectedField666.getSubfields().add(new MarcSubField("&", "723456"));
-        expectedField666.getSubfields().add(new MarcSubField("a", "Julemandens Nisseslagteri"));
+        DataField expectedField666 = new DataField("666", "00");
+        expectedField666.getSubFields().add(new SubField('&', "723456"));
+        expectedField666.getSubFields().add(new SubField('a', "Julemandens Nisseslagteri"));
         expectedRecord.getFields().add(expectedField666);
         new MarcRecordWriter(expectedRecord).sort();
 
@@ -485,7 +477,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("666", "a", "a subject");
+        recordWriter.addFieldSubfield("666", 'a', "a subject");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -511,8 +503,8 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("530", "a", "a Note");
-        recordWriter.addFieldSubfield("666", "a", "a subject");
+        recordWriter.addFieldSubfield("530", 'a', "a Note");
+        recordWriter.addFieldSubfield("666", 'a', "a subject");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -553,6 +545,7 @@ class NoteAndSubjectExtensionsHandlerTest {
             assertThat(ex.getMessage(), is(resourceBundle.getString("update.library.record.catalog.codes.not.cb")));
         }
     }
+
     @Test
     void testLibraryCreateNewCatalogCode() throws Exception {
         final String groupId = "830010";
@@ -571,9 +564,9 @@ class NoteAndSubjectExtensionsHandlerTest {
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
         final MarcRecord actual = instance.extensionRecordDataForRawRepo(record, groupId);
         resultWriter.removeField("032");
-        MarcField addField = new MarcField("032", "00");
-        addField.getSubfields().add(new MarcSubField("&", groupId));
-        addField.getSubfields().add(new MarcSubField("x", "OVE199746"));
+        DataField addField = new DataField("032", "00");
+        addField.getSubFields().add(new SubField('&', groupId));
+        addField.getSubFields().add(new SubField('x', "OVE199746"));
         result.getFields().add(addField);
         assertThat(actual, is(result));
     }
@@ -606,26 +599,26 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         // Verifies that the content is the same despite order and existence of *& and OVE code
         final NoteAndSubjectExtensionsHandler instance = new NoteAndSubjectExtensionsHandler(vipCoreService, rawRepo, ResourceBundles.getBundle("actions"));
-        MarcField m1 = new MarcField();
-        m1.setName("032");
-        MarcField m2 = new MarcField();
-        m2.setName("032");
-        MarcSubField s1 = new MarcSubField("a", "tekst1");
-        MarcSubField s2 = new MarcSubField("b", "tekst2");
-        MarcSubField s3 = new MarcSubField("c", "tekst3");
-        MarcSubField s4 = new MarcSubField("&", "875100");
-        MarcSubField s5 = new MarcSubField("x", "OVE202218");
-        m1.getSubfields().add(s1);
-        m1.getSubfields().add(s2);
-        m1.getSubfields().add(s3);
+        DataField m1 = new DataField();
+        m1.setTag("032");
+        DataField m2 = new DataField();
+        m2.setTag("032");
+        SubField s1 = new SubField('a', "tekst1");
+        SubField s2 = new SubField('b', "tekst2");
+        SubField s3 = new SubField('c', "tekst3");
+        SubField s4 = new SubField('&', "875100");
+        SubField s5 = new SubField('x', "OVE202218");
+        m1.getSubFields().add(s1);
+        m1.getSubFields().add(s2);
+        m1.getSubFields().add(s3);
         assertThat(instance.compareCatalogSubFields(m1, m2, true), is(false));
-        m2.getSubfields().add(s1);
-        m2.getSubfields().add(s3);
-        m2.getSubfields().add(s2);
+        m2.getSubFields().add(s1);
+        m2.getSubFields().add(s3);
+        m2.getSubFields().add(s2);
         assertThat(instance.compareCatalogSubFields(m1, m2, true), is(true));
         assertThat(instance.compareCatalogSubFields(m1, m2, false), is(true));
-        m2.getSubfields().add(s4);
-        m2.getSubfields().add(s5);
+        m2.getSubFields().add(s4);
+        m2.getSubFields().add(s5);
         assertThat(instance.compareCatalogSubFields(m1, m2, true), is(false));
         assertThat(instance.compareCatalogSubFields(m1, m2, false), is(true));
 
@@ -640,7 +633,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("530", "a", "a Note");
+        recordWriter.addFieldSubfield("530", 'a', "a Note");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -666,7 +659,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("530", "a", "a Note");
+        recordWriter.addFieldSubfield("530", 'a', "a Note");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -697,7 +690,7 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("666", "a", "a subject");
+        recordWriter.addFieldSubfield("666", 'a', "a subject");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -728,8 +721,8 @@ class NoteAndSubjectExtensionsHandlerTest {
 
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.NATIONAL_COMMON_RECORD);
         final MarcRecordWriter recordWriter = new MarcRecordWriter(record);
-        recordWriter.addFieldSubfield("530", "a", "a Note");
-        recordWriter.addFieldSubfield("666", "a", "a subject");
+        recordWriter.addFieldSubfield("530", 'a', "a Note");
+        recordWriter.addFieldSubfield("666", 'a', "a subject");
         final Map<String, MarcRecord> curRecordCollection = new HashMap<>();
         curRecordCollection.put(currentReader.getRecordId(), currentRecord);
 
@@ -1018,7 +1011,7 @@ class NoteAndSubjectExtensionsHandlerTest {
     }
 
     private MarcRecord sortRecord(MarcRecord record) {
-        record.getFields().sort(Comparator.comparing(MarcField::getName));
+        record.getFields().sort(Comparator.comparing(Field::getTag));
 
         return record;
     }

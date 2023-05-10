@@ -1,10 +1,9 @@
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -13,6 +12,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class AuthenticateRecordActionTest {
     GlobalActionState state;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700400");
     }
@@ -95,7 +95,7 @@ class AuthenticateRecordActionTest {
     @Test
     void testPerformAction_OK_School() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "300000");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "300000");
         String groupId = "312345";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -140,7 +140,7 @@ class AuthenticateRecordActionTest {
     @Test
     void testPerformAction_OK_IsCommonNationalRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
         String groupId = "700400";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -163,7 +163,7 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_NewRecord_NoOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
         new MarcRecordWriter(record).removeField("996");
         String groupId = "830010";
 
@@ -186,8 +186,8 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_NewRecord_DifferentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "700400");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "700400");
         String groupId = "830010";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -209,8 +209,8 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_NewRecord_SameOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830010";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -232,8 +232,8 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "DBC");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "DBC");
         String groupId = "830010";
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -241,12 +241,12 @@ class AuthenticateRecordActionTest {
         UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         updateServiceRequestDTO.setAuthenticationDTO(authenticationDTO);
         state.setUpdateServiceRequestDTO(updateServiceRequestDTO);
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
@@ -260,11 +260,11 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DBCOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "DBC");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "DBC");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -274,7 +274,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(true);
@@ -288,11 +288,11 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "RET");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -302,7 +302,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(false);
@@ -316,15 +316,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_CorrectCatLevel() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "5");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("008", 'v', "5");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "RET");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord currentRecord = new MarcRecord(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "4");
+        new MarcRecordWriter(currentRecord).addOrReplaceSubField("008", 'v', "4");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -334,7 +334,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(currentRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
@@ -348,12 +348,12 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_RETOwner_HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("008", "v", "0");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "RET");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("008", 'v', "0");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "RET");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -363,7 +363,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_RET_RECORD)).thenReturn(true);
@@ -377,15 +377,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_NoCurrentOwner() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
         new MarcRecordWriter(record).removeField("996");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "830010");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -395,7 +395,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
@@ -409,15 +409,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_DifferentOwnerAndGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830020";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700400");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700400");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -427,7 +427,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -442,15 +442,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830020";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700300");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -460,7 +460,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -476,15 +476,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_SameOwner_OtherGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "700300");
         String groupId = "830020";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700300");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -494,7 +494,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -510,15 +510,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_OtherOwner_SameGroup() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "700300";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700300");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -528,7 +528,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -544,15 +544,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_700300_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "700300");
         String groupId = "700300";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700300");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700300");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -562,7 +562,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700300", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -578,15 +578,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_NoPermission() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700400");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700400");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -596,7 +596,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(false);
@@ -613,15 +613,15 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_AuthCommonLib_Ok() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830010";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("996", "a", "700400");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("996", 'a', "700400");
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
         authenticationDTO.setGroupId(groupId);
@@ -631,7 +631,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("830010", VipCoreLibraryRulesConnector.Rule.AUTH_PUBLIC_LIB_COMMON_RECORD)).thenReturn(true);
@@ -648,14 +648,14 @@ class AuthenticateRecordActionTest {
     void testPerformAction_OK_NotCommonNationalRecord_ExistingRecord_DifferentOwnerAndGroupId() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("996", "a", "830010");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("996", 'a', "830010");
         String groupId = "830020";
-        List<MarcField> l1 = new ArrayList<>();
-        List<MarcField> l2 = new ArrayList<>();
+        List<DataField> l1 = new ArrayList<>();
+        List<DataField> l2 = new ArrayList<>();
 
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("001", 'b', "870970");
 
 
         AuthenticationDTO authenticationDTO = new AuthenticationDTO();
@@ -666,7 +666,7 @@ class AuthenticateRecordActionTest {
 
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT)).thenReturn(false);
         when(state.getNoteAndSubjectExtensionsHandler().isPublishedDBCRecord(record)).thenReturn(false);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_DBC_RECORDS)).thenReturn(false);
@@ -683,8 +683,8 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -700,8 +700,8 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -726,7 +726,7 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -742,7 +742,7 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
@@ -766,17 +766,17 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
-        List<MarcField> l1 = new ArrayList<>();
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
+        List<DataField> l1 = new ArrayList<>();
 
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "&", "lektor");
-        List<MarcField> l2 = new ArrayList<>();
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("665", 'q', "Grønland");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("665", '&', "lektor");
+        List<DataField> l2 = new ArrayList<>();
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
 
         AuthenticateRecordAction instance = new AuthenticateRecordAction(state, record);
@@ -789,16 +789,16 @@ class AuthenticateRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecord curRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
-        List<MarcField> l1 = new ArrayList<>();
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
+        List<DataField> l1 = new ArrayList<>();
 
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "&", "lektor");
-        new MarcRecordWriter(curRecord).addOrReplaceSubfield("665", "q", "Grønland");
-        List<MarcField> l2 = new ArrayList<>();
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("665", '&', "lektor");
+        new MarcRecordWriter(curRecord).addOrReplaceSubField("665", 'q', "Grønland");
+        List<DataField> l2 = new ArrayList<>();
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(true);
-        when(state.getNoteAndSubjectExtensionsHandler().marcFieldsEqualsIgnoreAmpersand(l1, l2 )).thenReturn(true);
+        when(state.getNoteAndSubjectExtensionsHandler().dataFieldsEqualsIgnoreAmpersand(l1, l2)).thenReturn(true);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(curRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);
 
@@ -819,7 +819,7 @@ class AuthenticateRecordActionTest {
     void testAuthenticateMetaCompassField_NewRecordNo665() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
 
@@ -832,8 +832,8 @@ class AuthenticateRecordActionTest {
     void testAuthenticateMetaCompassField_NewRecordNew665HasAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(true);
@@ -847,8 +847,8 @@ class AuthenticateRecordActionTest {
     void testAuthenticateMetaCompassField_NewRecordNew665NoAuth() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        new MarcRecordWriter(record).addOrReplaceSubfield("001", "b", "870970");
-        new MarcRecordWriter(record).addOrReplaceSubfield("665", "q", "Grønland");
+        new MarcRecordWriter(record).addOrReplaceSubField("001", 'b', "870970");
+        new MarcRecordWriter(record).addOrReplaceSubField("665", 'q', "Grønland");
 
         when(state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(false);
         when(state.getVipCoreService().hasFeature("700400", VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS)).thenReturn(false);

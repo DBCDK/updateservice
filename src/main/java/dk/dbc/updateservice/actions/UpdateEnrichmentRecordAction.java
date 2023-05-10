@@ -1,20 +1,15 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
@@ -50,7 +45,11 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      */
     static class Decoder {
         MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
-            return RecordContentTransformer.decodeRecord(bytes);
+            try {
+                return UpdateRecordContentTransformer.decodeRecord(bytes);
+            } catch (UpdateException e) {
+                throw new UnsupportedEncodingException(e.getMessage());
+            }
         }
     }
 
@@ -109,7 +108,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
                 log.info("Correct content of enrichment record.");
                 log.info("Old content:\n{}", marcRecord);
                 log.info("New content:\n{}", enrichmentRecord);
-                if (enrichmentRecord.isEmpty()) {
+                if (enrichmentRecord.getFields().isEmpty()) {
                     return performDeletionAction();
                 }
 
@@ -194,6 +193,6 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     void removeMinusEnrichment(MarcRecord marcRecord) {
         MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
-        writer.removeSubfield("z98", "b");
+        writer.removeSubfield("z98", 'b');
     }
 }

@@ -1,9 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcConverter;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -18,6 +17,7 @@ import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
@@ -176,13 +177,12 @@ public class GlobalActionState {
 
     public Set<Integer> getAgenciesWithHoldings(MarcRecord marcRecord) {
         MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        Set<Integer> result = Stream.concat(
-                Stream.of(reader.getRecordId()),
-                reader.getCentralAliasIds().stream())
+        return Stream.concat(
+                        Stream.of(reader.getRecordId()),
+                        reader.getCentralAliasIds().stream())
                 .map(id -> getHoldingsItems().getAgenciesWithHoldings(id))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-        return result;
     }
 
 
@@ -328,7 +328,7 @@ public class GlobalActionState {
             */
             doubleRecordPossible = false;
 
-            if (marcRecordReader.hasSubfield("001", "a") && marcRecordReader.hasSubfield("001", "b")) {
+            if (marcRecordReader.hasSubfield("001", 'a') && marcRecordReader.hasSubfield("001", 'b')) {
                 boolean markedForDeletion = marcRecordReader.markedForDeletion();
                 boolean isDBCMode = getLibraryGroup().isDBC();
                 int agencyId = marcRecordReader.getAgencyIdAsInt();
@@ -376,15 +376,16 @@ public class GlobalActionState {
             }
             if (list != null) {
                 for (Object o : list) {
-                    if (o instanceof Node) {
-                        marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
-                        break;
-                    } else if (o instanceof String) {
-                        String marcString = (String) o;
-                        if (!"".equals(marcString.trim())) {
-                            marcRecord = MarcConverter.convertFromMarcXChange(marcString);
+                    String marcString = (String) o;
+                    if (!"".equals(marcString.trim())) {
+                        try {
+                            marcRecord = UpdateRecordContentTransformer.decodeRecord(marcString.getBytes(StandardCharsets.UTF_8));
+
                             break;
+                        } catch (UpdateException e) {
+                            throw new RuntimeException(e);
                         }
+
                     }
                 }
             }

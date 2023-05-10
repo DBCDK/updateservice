@@ -1,15 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +26,7 @@ class DeleteRecordActionTest {
     private final int localSingleAgencyId = 700400;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         properties = new UpdateTestUtils().getSettings();
     }
@@ -71,16 +67,16 @@ class DeleteRecordActionTest {
     @Test
     void testRecordToStoreTwoFields() throws Exception {
 
-        List<MarcSubField> field001 = new ArrayList<>();
-        field001.add(new MarcSubField("a", localSingleRecordId));
-        field001.add(new MarcSubField("b", Integer.toString(localSingleAgencyId)));
+        List<SubField> field001 = new ArrayList<>();
+        field001.add(new SubField('a', localSingleRecordId));
+        field001.add(new SubField('b', Integer.toString(localSingleAgencyId)));
 
-        List<MarcSubField> field004 = new ArrayList<>();
-        field001.add(new MarcSubField("r", "d"));
+        List<SubField> field004 = new ArrayList<>();
+        field001.add(new SubField('r', "d"));
 
         MarcRecord record = new MarcRecord();
-        record.getFields().add(new MarcField("001", "00", field001));
-        record.getFields().add(new MarcField("004", "00", field004));
+        record.getFields().add(new DataField("001", "00").addAllSubFields(field001));
+        record.getFields().add(new DataField("004", "00").addAllSubFields(field004));
 
         MarcRecord rr = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         when(state.getRawRepo().fetchRecord(eq(localSingleRecordId), eq(localSingleAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));

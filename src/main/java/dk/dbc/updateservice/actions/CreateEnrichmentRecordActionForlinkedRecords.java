@@ -1,21 +1,17 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Leader;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 
@@ -23,6 +19,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+
+import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 
 /**
  * Action to create or update an enrichment record from a common record.
@@ -110,11 +108,11 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
 
     protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException {
         final Record record = rawRepo.fetchRecord(recordId, agencyId);
-        return RecordContentTransformer.decodeRecord(record.getContent());
+        return UpdateRecordContentTransformer.decodeRecord(record.getContent());
     }
 
     private MarcRecord createEnrichmentRecord() throws UpdateException {
-        MarcRecord enrichmentRecord = new MarcRecord();
+        MarcRecord enrichmentRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
         final MarcRecordReader recordReader = new MarcRecordReader(record);
         final String recordId = recordReader.getRecordId();
         if (rawRepo.recordExists(recordId, agencyId)) {
@@ -122,20 +120,20 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
         } else {
             final MarcRecordWriter enrichmentRecordWriter = new MarcRecordWriter(enrichmentRecord);
             enrichmentRecordWriter.copyFieldsFromRecord(Arrays.asList("001", "004"), record);
-            enrichmentRecordWriter.addOrReplaceSubfield("001", "b", Integer.toString(agencyId));
+            enrichmentRecordWriter.addOrReplaceSubField("001", 'b', Integer.toString(agencyId));
         }
         enrichmentRecord.getFields().add(getFormattedY08Field(recordWithHoldings));
 
         return enrichmentRecord;
     }
 
-    private MarcField getFormattedY08Field(MarcRecord rec) {
-        final MarcField yNoteField = new MarcField("y08", "00");
+    private DataField getFormattedY08Field(MarcRecord rec) {
+        final DataField yNoteField = new DataField("y08", "00");
         final MarcRecordReader reader = new MarcRecordReader(rec);
-        final String faust = reader.getValue("001", "a");
+        final String faust = reader.getValue("001", 'a');
         String faustWithIntro;
         try {
-            final MarcField noteField = state.getLibraryRecordsHandler().fetchNoteField(rec);
+            final DataField noteField = state.getLibraryRecordsHandler().fetchNoteField(rec);
             final String yNoteFieldString = getNoteFieldString(noteField);
             if (yNoteFieldString == null) {
                 faustWithIntro = String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust);
@@ -143,34 +141,34 @@ public class CreateEnrichmentRecordActionForlinkedRecords extends AbstractRawRep
                 faustWithIntro = String.format(RECATEGORIZATION_STRING, faust).concat(" " + yNoteFieldString);
                 faustWithIntro = faustWithIntro.replace(RECATEGORIZATION_STRING_OBSOLETE, "");
             }
-            yNoteField.getSubfields().add(new MarcSubField("a", faustWithIntro));
+            yNoteField.getSubFields().add(new SubField('a', faustWithIntro));
             return yNoteField;
         } catch (UpdateException e) {
             LOGGER.use(log -> log.error("Error : UpdateException, probably due to malformed record \n", e));
-            yNoteField.getSubfields().add(new MarcSubField("a", String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
+            yNoteField.getSubFields().add(new SubField('a', String.format(ERRONEOUS_RECATEGORIZATION_STRING, faust)));
             return yNoteField;
         }
     }
 
-    private String getNoteFieldString(MarcField noteField) {
-        if (noteField.getSubfields() == null || noteField.getSubfields().isEmpty()) {
+    private String getNoteFieldString(DataField noteField) {
+        if (noteField.getSubFields() == null || noteField.getSubFields().isEmpty()) {
             return null;
         }
 
-        final List<MarcSubField> subFields = noteField.getSubfields();
+        final List<SubField> subFields = noteField.getSubFields();
         return LOGGER.call(log -> {
             String res = "";
-            for (Iterator<MarcSubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
-                MarcSubField sf = mfIter.next();
+            for (Iterator<SubField> mfIter = subFields.listIterator(); mfIter.hasNext(); ) {
+                SubField sf = mfIter.next();
                 log.trace("working on subfield: {}", sf);
                 if (mfIter.hasNext()) {
-                    if (sf.getName().equals("d")) {
-                        res = res.concat(sf.getValue() + ": ");
+                    if ('d' == sf.getCode()) {
+                        res = res.concat(sf.getData() + ": ");
                     } else {
-                        res = res.concat(sf.getValue() + " ");
+                        res = res.concat(sf.getData() + " ");
                     }
                 } else {
-                    res = res.concat(sf.getValue());
+                    res = res.concat(sf.getData());
                 }
             }
             return res;

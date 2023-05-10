@@ -1,19 +1,14 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,35 +26,35 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
         int hasSchool = 0;
         boolean hasLED = false;
         String thisId = "";
-        for (MarcField field : marcRecord.getFields()) {
-            if (RawRepo.MATVURD_FIELDS.contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("a".equals(subField.getName())) {
-                        matvurdRecords.add(subField.getValue());
+        for (DataField field : marcRecord.getFields(DataField.class)) {
+            if (RawRepo.MATVURD_FIELDS.contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('a' == subField.getCode()) {
+                        matvurdRecords.add(subField.getData());
                     }
                 }
-            } else if ("001".contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("a".equals(subField.getName())) {
-                        thisId = subField.getValue();
+            } else if ("001".contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('a' == subField.getCode()) {
+                        thisId = subField.getData();
                     }
                 }
-            } else if ("004".contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("r".equals(subField.getName()) && "d".equals(subField.getValue())) {
+            } else if ("004".contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('r' == subField.getCode() && "d".equals(subField.getData())) {
                         return ServiceResult.newOkResult();
                     }
                 }
-            } else if ("032".contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("x".equals(subField.getName()) && subField.getValue().startsWith("LED")) {
+            } else if ("032".contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('x' == subField.getCode() && subField.getData().startsWith("LED")) {
                         hasLED = true;
                         break;
                     }
                 }
-            } else if ("700".contains(field.getName())) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if ("f".equals(subField.getName()) && "skole".equals(subField.getValue())) {
+            } else if ("700".contains(field.getTag())) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('f' == subField.getCode() && "skole".equals(subField.getData())) {
                         hasSchool = 1;
                         break;
                     }
@@ -92,16 +87,16 @@ public class MatVurdR01R02CheckRecordsAction extends AbstractRawRepoAction {
             final RecordId recordId = new RecordId(id, RawRepo.COMMON_AGENCY);
             final Set<RecordId> childrenIds = state.getRawRepo().children(recordId);
             for (RecordId recordId1 : childrenIds) {
-                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId1.getBibliographicRecordId(), recordId1.getAgencyId()).getContent());
+                final MarcRecord curRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId1.getBibliographicRecordId(), recordId1.getAgencyId()).getContent());
                 final MarcRecordReader reader = new MarcRecordReader(curRecord);
                 if (RawRepo.MATVURD_AGENCY == reader.getAgencyIdAsInt() && !thisId.equals(reader.getRecordId())) {
-                    for (String content : reader.getValues("032", "x")) {
+                    for (String content : reader.getValues("032", 'x')) {
                         if (content.startsWith("LED")) {
                             idHasLED = true;
                             break;
                         }
                     }
-                    for (String content : reader.getValues("700", "f")) {
+                    for (String content : reader.getValues("700", 'f')) {
                         if (content.equals("skole")) {
                             idHasSchool++;
                             break;

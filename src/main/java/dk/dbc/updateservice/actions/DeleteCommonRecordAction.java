@@ -1,19 +1,14 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
@@ -31,8 +26,8 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
     Properties settings;
 
-    public DeleteCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord record) {
-        super(DeleteCommonRecordAction.class.getSimpleName(), globalActionState, record);
+    public DeleteCommonRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord) {
+        super(DeleteCommonRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         settings = properties;
     }
 
@@ -64,7 +59,7 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
 
                 for (RecordId enrichmentId : rawRepo.enrichments(recordId)) {
                     final Record rawRepoEnrichmentRecord = rawRepo.fetchRecord(enrichmentId.getBibliographicRecordId(), enrichmentId.getAgencyId());
-                    final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
+                    final MarcRecord enrichmentRecord = UpdateRecordContentTransformer.decodeRecord(rawRepoEnrichmentRecord.getContent());
 
                     final MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
                     writer.markForDeletion();
@@ -114,12 +109,12 @@ public class DeleteCommonRecordAction extends AbstractRawRepoAction {
     private void deleteLittolkChildren(Set<RecordId> recordChildren) throws UpdateException, UnsupportedEncodingException {
         LOGGER.<Void, UpdateException, UnsupportedEncodingException>callChecked2(log -> {
             for (RecordId recordId : recordChildren) {
-                final MarcRecord littolkEnrichment = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
+                final MarcRecord littolkEnrichment = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT).getContent());
                 log.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.DBC_ENRICHMENT);
                 new MarcRecordWriter(littolkEnrichment).markForDeletion();
                 children.add(new UpdateEnrichmentRecordAction(state, settings, littolkEnrichment));
 
-                final MarcRecord littolkRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
+                final MarcRecord littolkRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY).getContent());
                 log.info("Creating DeleteRecordAction for {}:{}", recordId.getBibliographicRecordId(), RawRepo.LITTOLK_AGENCY);
                 children.add(new DeleteCommonRecordAction(state, settings, littolkRecord));
             }

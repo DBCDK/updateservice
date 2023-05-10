@@ -1,11 +1,12 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class UpdateCommonRecordActionTest {
     private static final String GROUP_ID = "700000";
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
         settings = new UpdateTestUtils().getSettings();
@@ -252,7 +253,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateNewRecord_Changed032_fail_NonCB() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'a', "DBI202242");
         final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -271,8 +272,8 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateNewRecord_Changed032_fail_CB() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI202242");
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'a', "DBI202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'x', "OVE202242");
         final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -291,7 +292,7 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_CreateNewRecord_OVE_NonCB() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'x', "OVE202242");
         final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
@@ -310,8 +311,8 @@ class UpdateCommonRecordActionTest {
     @Test
     void testPerformAction_ExistingRecord_OVEPlusOther032_CB() throws Exception {
         final MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "ABC202242");
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "x", "OVE202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'a', "ABC202242");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'x', "OVE202242");
         final String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         final int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();

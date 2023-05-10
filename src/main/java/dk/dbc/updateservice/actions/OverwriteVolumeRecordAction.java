@@ -1,13 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.MarcRecordExpandException;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -43,12 +38,12 @@ public class OverwriteVolumeRecordAction extends OverwriteSingleRecordAction {
             } else {
                 return performActionDefault();
             }
-        } catch (RawRepoException ex) {
+        } catch (MarcRecordExpandException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
-    private ServiceResult performActionDefault() throws UpdateException, RawRepoException {
+    private ServiceResult performActionDefault() throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
         final String parentId = reader.getParentRecordId();

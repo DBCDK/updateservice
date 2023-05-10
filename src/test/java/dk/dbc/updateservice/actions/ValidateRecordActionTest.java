@@ -1,11 +1,12 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +33,7 @@ class ValidateRecordActionTest {
     private MarcRecord record;
 
     @BeforeEach
-    public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException {
+    public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException, UpdateException {
         record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
 
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
@@ -174,7 +175,7 @@ class ValidateRecordActionTest {
     void testDeleteCommonRecordNotAuthRoot() throws Exception {
         final ValidateRecordAction validateRecordAction = new ValidateRecordAction(state, settings);
         record = AssertActionsUtil.loadRecord(AssertActionsUtil.VOLUME_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("004", "r", "d");
+        new MarcRecordWriter(record).addOrReplaceSubField("004", 'r', "d");
         state.setMarcRecord(record);
 
         final String message = state.getMessages().getString("delete.record.common.record.missing.rights");

@@ -1,8 +1,8 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.dto.OptionEnumDTO;
 import dk.dbc.updateservice.dto.OptionsDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -127,22 +127,22 @@ public class UpdateRequestAction extends AbstractAction {
                 final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
                 if (reader.hasField("001")) {
-                    if (!(reader.hasSubfield("001", "a") && !reader.getRecordId().isEmpty())) {
+                    if (!(reader.hasSubfield("001", 'a') && !reader.getRecordId().isEmpty())) {
                         message = state.getMessages().getString("sanity.check.failed.empty.001");
                     }
                     if (reader.getRecordId().strip().contains(" ")) {
                         message = state.getMessages().getString("sanity.check.failed.spaces.001");
                     }
-                    if (!(reader.hasSubfield("001", "b") && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
+                    if (!(reader.hasSubfield("001", 'b') && reader.getAgencyId() != null && !reader.getAgencyId().isEmpty() && reader.getAgencyIdAsInt() > 0)) {
                         message = state.getMessages().getString("sanity.check.failed.libraryno.001");
                     }
                 } else {
                     message = state.getMessages().getString("sanity.check.failed.no.001");
                 }
-                for (MarcField marcField : marcRecord.getFields()) {
-                    final Matcher matcher = INDICATOR_PATTERN.matcher(marcField.getIndicator());
+                for (DataField marcField : marcRecord.getFields(DataField.class)) {
+                    final Matcher matcher = INDICATOR_PATTERN.matcher(getIndicators(marcField));
                     if (!matcher.find()) {
-                        message = String.format(state.getMessages().getString("invalid.indicator.in.field"), marcField.getName());
+                        message = String.format(state.getMessages().getString("invalid.indicator.in.field"), marcField.getTag());
                     }
                 }
             } catch (Exception ex) {
@@ -153,4 +153,22 @@ public class UpdateRequestAction extends AbstractAction {
             return message;
         });
     }
+
+    private String getIndicators(DataField field) {
+        final StringBuilder sb = new StringBuilder();
+        if (field.getInd1() == null) {
+            sb.append(" ");
+        } else {
+            sb.append(field.getInd1());
+        }
+
+        if (field.getInd2() == null) {
+            sb.append(" ");
+        } else {
+            sb.append(field.getInd2());
+        }
+
+        return sb.toString();
+    }
+
 }

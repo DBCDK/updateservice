@@ -1,13 +1,12 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcFieldReader;
-import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.ExpandCommonMarcRecord;
+import dk.dbc.common.records.MarcRecordExpandException;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.marcrecord.ExpandCommonMarcRecord;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -15,6 +14,7 @@ import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
 import static dk.dbc.updateservice.update.DefaultEnrichmentRecordHandler.hasMinusEnrichment;
 
 class OverwriteSingleRecordAction extends AbstractRawRepoAction {
@@ -57,12 +58,12 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 performActionDefault();
             }
             return ServiceResult.newOkResult();
-        } catch (RawRepoException ex) {
+        } catch (MarcRecordExpandException ex) {
             return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
         }
     }
 
-    void performActionDBCRecord() throws UpdateException, RawRepoException {
+    void performActionDBCRecord() throws UpdateException, MarcRecordExpandException {
         LOGGER.use(log -> log.info("Performing action for DBC record"));
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
@@ -103,7 +104,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                     }
 
                     if (authorityHasClassificationChange) {
-                        final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
+                        final MarcRecord currentChildRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
                         // If there is classification change in the authority record we need to update all the child records
                         final Set<RecordId> parents = rawRepo.parents(id);
 
@@ -113,7 +114,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         for (RecordId parent : parents) {
                             if (870979 == parent.getAgencyId() && !otherAuthorityRecords.containsKey(parent.getBibliographicRecordId())) {
                                 final Record childRecord = rawRepo.fetchMergedRecord(parent.getBibliographicRecordId(), parent.getAgencyId());
-                                otherAuthorityRecords.put(parent.getBibliographicRecordId(), RecordContentTransformer.decodeRecord(childRecord.getContent()));
+                                otherAuthorityRecords.put(parent.getBibliographicRecordId(), UpdateRecordContentTransformer.decodeRecord(childRecord.getContent()));
                             }
                         }
 
@@ -131,7 +132,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                             final MarcRecord updatedCommonRecord = state.getRecordSorter().sortRecord(
                                     ExpandCommonMarcRecord.expandMarcRecord(updatedRecordCollection, id.getBibliographicRecordId()));
                             children.addAll(createActionsForCreateOrUpdateEnrichments(updatedCommonRecord, currentCommonRecord));
-                        } catch (RawRepoException e) {
+                        } catch (MarcRecordExpandException e) {
                             throw new UpdateException("Exception while expanding the records", e);
                         }
                     }
@@ -165,13 +166,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * @return True if field 100, 110, 400, 410, 500 or 510 has been changed
      * @throws UpdateException Something went horribly wrong
      */
-    boolean shouldUpdateChildrenModifiedDate(MarcRecord marcRecord) throws UpdateException, RawRepoException {
+    boolean shouldUpdateChildrenModifiedDate(MarcRecord marcRecord) throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         // Suppress updating B-records if A-record has "minusAJOUR" even if there are proof printing changes in field 100/400/500.
         // s13 will not be present in the common record, so we have to look at the input record
         final MarcRecordReader inputRecordReader = new MarcRecordReader(state.getMarcRecord());
-        if (inputRecordReader.hasValue("s13", "a", "minusAJOUR")) {
+        if (inputRecordReader.hasValue("s13", 'a', "minusAJOUR")) {
             return false;
         }
 
@@ -203,52 +204,52 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * There can only be one universe connected to a series record but there can be several B-records
      * that shall have their universe modified.
      * This modification cannot affect classification and enrichment.
-     * @param marcRecord         The 870979 record that are updated.
-     * @throws UpdateException   Something went wrong - multiple reasons.
-     * @throws RawRepoException  Something went wrong - multiple reasons.
+     *
+     * @param marcRecord The 870979 record that are updated.
+     * @throws UpdateException  Something went wrong - multiple reasons.
+     * @throws RawRepoException Something went wrong - multiple reasons.
      */
-    void handleUniverseLinks(MarcRecord marcRecord) throws UpdateException, RawRepoException {
+    void handleUniverseLinks(MarcRecord marcRecord) throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
             final MarcRecord currentRecord = loadCurrentRecord();
             final MarcRecordReader currentReader = new MarcRecordReader(currentRecord);
-            final MarcField currentReaderField = currentReader.getField("234");
-            final MarcField newField = reader.getField("234");
+            final DataField currentReaderField = currentReader.getField("234");
+            final DataField newField = reader.getField("234");
             final Set<RecordId> ids = state.getRawRepo().children(recordId);
             String link = "";
             if (newField != null) {
-                for (MarcSubField subField : newField.getSubfields()) {
-                    if (subField.getName().equals("6")) {
-                        link = subField.getValue();
+                for (SubField subField : newField.getSubFields()) {
+                    if ('6' == subField.getCode()) {
+                        link = subField.getData();
                     }
                 }
             }
 
             for (RecordId id : ids) {
-
-                final MarcRecord currentChildRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
+                final MarcRecord currentChildRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchMergedRecord(id.getBibliographicRecordId(), id.getAgencyId()).getContent());
                 final MarcRecordWriter currentChildWriter = new MarcRecordWriter(currentChildRecord);
                 final MarcRecordReader currentChildReader = new MarcRecordReader(currentChildRecord);
                 boolean createAction = false;
                 if (currentReaderField == null && newField != null) {
                     // handle new universe - that is, find all B-records that is children of the series record and add a
                     // field 846 whith a link to the universe record.
-                    currentChildWriter.addFieldSubfield("846", "5", "870979");
-                    currentChildWriter.addOrReplaceSubfield("846", "6", link);
+                    currentChildWriter.addFieldSubfield("846", '5', "870979");
+                    currentChildWriter.addOrReplaceSubField("846", '6', link);
                     createAction = true;
                 } else if (currentReaderField != null && newField == null) {
                     // handle removing universe - that is, find all B-records that is children of the series record and remove
                     // field 846 from those records.
                     currentChildWriter.removeField("846");
                     createAction = true;
-                } else if (currentReaderField != null){
+                } else if (currentReaderField != null) {
                     // Just for the record, newField is never null if we reach here
                     // handle change universe - that is, find all B-records that is children of the series record and replace
                     // the content of field 846 in those records. Technically, remove the 846 fields and add new.
                     currentChildWriter.removeField("846");
-                    currentChildWriter.addFieldSubfield("846", "5", "870979");
-                    currentChildWriter.addOrReplaceSubfield("846", "6", link);
+                    currentChildWriter.addFieldSubfield("846", '5', "870979");
+                    currentChildWriter.addOrReplaceSubField("846", '6', link);
                     createAction = true;
                 }
                 if (createAction) {
@@ -263,7 +264,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         }
     }
 
-    boolean authorityRecordHasClassificationChange(MarcRecord marcRecord) throws UpdateException, RawRepoException {
+    boolean authorityRecordHasClassificationChange(MarcRecord marcRecord) throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
         if (state.getRawRepo().recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
@@ -290,7 +291,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         if (recordIsHeadOrSection(marcRecord)) {
             for (RecordId child : state.getRawRepo().children(recordId)) {
                 LOGGER.use(log -> log.info("Found child record {}", child));
-                MarcRecord childRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId()).getContent());
+                MarcRecord childRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId()).getContent());
                 findChildrenAndHoldingsOnChildren(childRecord, librariesWithPosts);
             }
         } else {
@@ -301,10 +302,10 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
     }
 
     private boolean recordIsHeadOrSection(MarcRecord marcRecord) {
-        return Arrays.asList("s", "h").contains(new MarcRecordReader(marcRecord).getValue("004", "a"));
+        return Arrays.asList("s", "h").contains(new MarcRecordReader(marcRecord).getValue("004", 'a'));
     }
 
-    private void performActionDefault() throws UpdateException, RawRepoException {
+    private void performActionDefault() throws UpdateException, MarcRecordExpandException {
         LOGGER.use(log -> log.info("Performing default action "));
         children.add(StoreRecordAction.newStoreMarcXChangeAction(state, settings, marcRecord));
         children.add(new RemoveLinksAction(state, marcRecord));
@@ -344,7 +345,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         });
     }
 
-    MarcRecord loadCurrentRecord() throws UpdateException, RawRepoException {
+    MarcRecord loadCurrentRecord() throws UpdateException, MarcRecordExpandException {
         if (this.currentMarcRecord == null) {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
@@ -352,7 +353,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             if (RawRepo.AUTHORITY_AGENCY == agencyId) {
                 final Record currentRecord = rawRepo.fetchRecord(recordId, agencyId);
 
-                this.currentMarcRecord = RecordContentTransformer.decodeRecord(currentRecord.getContent());
+                this.currentMarcRecord = UpdateRecordContentTransformer.decodeRecord(currentRecord.getContent());
             } else {
                 final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recordId, agencyId);
 
@@ -365,24 +366,22 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
 
     protected MarcRecord loadRecord(String recordId, int agencyId) throws UpdateException, UnsupportedEncodingException {
         final Record record = rawRepo.fetchRecord(recordId, agencyId);
-        return RecordContentTransformer.decodeRecord(record.getContent());
+        return UpdateRecordContentTransformer.decodeRecord(record.getContent());
     }
 
-    MarcRecord expandRecord() throws UpdateException, RawRepoException {
+    MarcRecord expandRecord() throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
         final String recordId = reader.getRecordId();
 
         final Map<String, MarcRecord> newRecordCollection = new HashMap<>();
         newRecordCollection.put(recordId, marcRecord);
 
-        for (MarcField field : marcRecord.getFields()) {
-            final MarcFieldReader fieldReader = new MarcFieldReader(field);
-
-            if (fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
-                final String autRecordId = fieldReader.getValue("6");
+        for (DataField field : marcRecord.getFields(DataField.class)) {
+            if (field.hasSubField(hasSubFieldCode('5')) && field.hasSubField(hasSubFieldCode('6'))) {
+                final String autRecordId = field.getSubField(hasSubFieldCode('6')).orElseThrow().getData();
 
                 final Record extRecord = rawRepo.fetchRecord(autRecordId, RawRepo.AUTHORITY_AGENCY);
-                final MarcRecord autRecord = RecordContentTransformer.decodeRecord(extRecord.getContent());
+                final MarcRecord autRecord = UpdateRecordContentTransformer.decodeRecord(extRecord.getContent());
                 newRecordCollection.put(autRecordId, autRecord);
             }
         }
@@ -417,7 +416,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         }
                         if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
-                            MarcRecord extRecordData = RecordContentTransformer.decodeRecord(extRecord.getContent());
+                            MarcRecord extRecordData = UpdateRecordContentTransformer.decodeRecord(extRecord.getContent());
                             log.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                             result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, marcRecord, currentRecord, Integer.toString(id)));
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {

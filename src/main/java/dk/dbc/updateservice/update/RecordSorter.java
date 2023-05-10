@@ -1,12 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.jsonb.JSONBException;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import org.perf4j.StopWatch;
@@ -14,9 +10,6 @@ import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
-
-import javax.xml.bind.JAXBException;
-import java.io.UnsupportedEncodingException;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
@@ -47,7 +40,7 @@ public class RecordSorter {
             } else {
                 return opencatBusinessConnector.sortRecord(schemaName, marcRecord, trackingId);
             }
-        } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException ex) {
+        } catch (OpencatBusinessConnectorException | JSONBException | MarcReaderException ex) {
             LOGGER.error("Error when trying to sort the record. ", ex);
             return marcRecord;
         } finally {

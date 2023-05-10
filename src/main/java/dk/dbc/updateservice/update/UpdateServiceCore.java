@@ -1,11 +1,10 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcConverter;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.RecordContentTransformer;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.actions.GlobalActionState;
@@ -38,15 +37,14 @@ import dk.dbc.vipcore.exception.VipCoreException;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.w3c.dom.Node;
 
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.xml.transform.dom.DOMSource;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -288,8 +286,8 @@ public class UpdateServiceCore {
 
             if (!hasMinusEnrichment(marcRecord)) {
                 final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
-                final String recordId = recordReader.getValue("001", "a");
-                final int agencyId = Integer.parseInt(recordReader.getValue("001", "b"));
+                final String recordId = recordReader.getValue("001", 'a');
+                final int agencyId = Integer.parseInt(recordReader.getValue("001", 'b'));
                 if (rawRepo.recordExists(recordId, agencyId)) {
                     final MarcRecord oldRecord = loadRecord(recordId, agencyId);
                     final Set<Integer> holdingAgencies = holdingsItems.getAgenciesWithHoldings(recordId);
@@ -423,9 +421,9 @@ public class UpdateServiceCore {
         return throwable;
     }
 
-    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException {
+    protected MarcRecord loadRecord(String recordId, Integer agencyId) throws UpdateException, UnsupportedEncodingException, MarcReaderException {
         final Record record = rawRepo.fetchRecord(recordId, agencyId);
-        return RecordContentTransformer.decodeRecord(record.getContent());
+        return UpdateRecordContentTransformer.decodeRecord(record.getContent());
     }
 
     public ServiceResult DoubleRecordFrontendStatusDTOToServiceResult(DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO) {
@@ -448,17 +446,17 @@ public class UpdateServiceCore {
         return result;
     }
 
-    private MarcRecord getRecord(RecordDataDTO recordDataDTO) {
+    private MarcRecord getRecord(RecordDataDTO recordDataDTO) throws UpdateException {
         MarcRecord marcRecord = null;
         if (recordDataDTO != null) {
             final List<Object> list = recordDataDTO.getContent();
-            for (Object o : list) {
-                if (o instanceof Node) {
-                    marcRecord = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
-                    break;
-                } else if (o instanceof String && !((String) o).trim().isEmpty()) {
-                    marcRecord = MarcConverter.convertFromMarcXChange((String) o);
-                    break;
+            if (list != null) {
+                for (Object o : list) {
+                    String marcString = (String) o;
+                    if (!"".equals(marcString.trim())) {
+                        marcRecord = UpdateRecordContentTransformer.decodeRecord(marcString.getBytes(StandardCharsets.UTF_8));
+                        break;
+                    }
                 }
             }
         }
