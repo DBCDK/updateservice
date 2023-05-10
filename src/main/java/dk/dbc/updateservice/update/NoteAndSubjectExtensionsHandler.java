@@ -150,7 +150,7 @@ public class NoteAndSubjectExtensionsHandler {
             // Controlled subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentControlledSubjectFields);
         } else {
-            if (isDbcField(currentControlledSubjectFields)) {
+            if (checkStructureForDbc(curRecord, EXTENDABLE_CONTROLLED_SUBJECT_FIELDS, currentControlledSubjectFields)) {
                 final String msg = messages.getString("update.dbc.record.dbc.subjects");
                 LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", msg));
                 throw new UpdateException(msg);
@@ -194,6 +194,73 @@ public class NoteAndSubjectExtensionsHandler {
                 }
             }
         }
+    }
+
+    /**
+     * Collect specified fields from the record
+     * @param record     The record to collect fields from
+     * @param fieldList  The list of fields to collect
+     * @return           The found list of fields
+     * @throws UpdateException Somehow the expansion of the record failed
+     */
+    private List<MarcField> collectFields(MarcRecord record, String fieldList) throws UpdateException {
+        final MarcRecord expandedCurrentRecord;
+        expandedCurrentRecord = getExpandedRecord(record);
+        return expandedCurrentRecord.getFields().stream()
+                .filter(field -> field.getName().matches(fieldList)).collect(Collectors.toList());
+    }
+
+    /**
+     * Find and check fields. If it's a record that is part of a volume, then the whole
+     * structure is checked.
+     * @param record     The record that is to be investigated
+     * @param fieldList  List of fields to check
+     * @param fields     Current found fields
+     * @return           Returns whether there is dbc owned fields or not
+     * @throws UpdateException Something went wrong while fetching a record
+     */
+    private boolean checkStructureForDbc(MarcRecord record, String fieldList, List<MarcField> fields) throws UpdateException {
+        boolean result;
+        MarcRecord worker = new MarcRecord(record);
+        List<MarcField> fullList = new ArrayList<>(fields);
+        MarcRecordReader reader = new MarcRecordReader(worker);
+        final String recordType = reader.getValue("004", "a");
+        if (Arrays.asList("h", "s", "b").contains(recordType)) {
+            // her skal der dykkes, surfaces, sidesteppes og andet spændende.
+            List<RecordId> recSet = new ArrayList<>();
+            if (!"h".equals(recordType)) {
+                RecordId id = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
+                final Set<RecordId> parents = rawRepo.parents(id);
+                final Set<RecordId> commonParents = parents.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
+                for (RecordId parent : commonParents) {
+                    final Record childRecord = rawRepo.fetchRecord(parent.getBibliographicRecordId(), parent.getAgencyId());
+                    final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                    MarcRecordReader r = new MarcRecordReader(childMarcRecord);
+                    if ("h".equals(r.getValue("004", "a"))) {
+                        recSet.add(new RecordId(r.getRecordId(), r.getAgencyIdAsInt()));
+                        worker.setFields(childMarcRecord.getFields());
+                        break;
+                    }
+                }
+                // It should not be possible to end here, but we don't want to throw som weird exception
+                recSet.add(new RecordId("DUMMY", 0));
+            } else {
+                recSet.add(new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt()));
+            }
+            // Add head records field - could also be the single record - type e
+            fullList.addAll(collectFields(worker, fieldList));
+            final Set<RecordId> children = rawRepo.children(recSet.get(0));
+            // And then all the children fields - there may be none
+            for (RecordId child : children) {
+                final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
+                final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                MarcRecordReader r = new MarcRecordReader(childMarcRecord);
+                fullList.addAll(collectFields(childMarcRecord, fieldList));
+            }
+        }
+
+        result = isDbcField(fullList);
+        return result;
     }
 
     /**
@@ -249,7 +316,7 @@ public class NoteAndSubjectExtensionsHandler {
             if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
                 result.getFields().addAll(currentNoteFields);
             } else {
-                if (isDbcField(currentNoteFields)) {
+                if (checkStructureForDbc(curRecord, noteField, currentNoteFields)) {
                     final String msg = String.format(messages.getString("update.dbc.record.dbc.notes"), noteField);
                     // Business exception which means we don't want the error in the errorlog, so only log as info
                     log.info("Unable to create sub actions due to an error: {}", msg);
