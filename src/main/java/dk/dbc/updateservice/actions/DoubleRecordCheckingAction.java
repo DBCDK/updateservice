@@ -10,8 +10,6 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 
-import javax.xml.bind.JAXBException;
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
