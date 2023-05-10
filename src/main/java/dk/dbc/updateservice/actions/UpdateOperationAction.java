@@ -2,7 +2,9 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.jsonb.JSONBException;
 import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -255,7 +257,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
                 }
 
                 return ServiceResult.newOkResult();
-            } catch (Exception e) {
+            } catch (VipCoreException | JSONBException | MarcReaderException e) {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, e.getMessage());
             }
         });
@@ -579,7 +581,7 @@ class UpdateOperationAction extends AbstractRawRepoAction {
      *
      * @throws UpdateException In case of an error.
      */
-    private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws Exception {
+    private void performActionsForRemovedLITWeekNumber(MarcRecord marcRecord) throws UpdateException {
         LOGGER.callChecked(log -> {
             try {
                 final MarcRecordReader reader = new MarcRecordReader(marcRecord);
