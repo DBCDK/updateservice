@@ -50,7 +50,7 @@ class ValidateRecordActionTest {
     }
 
     /**
-     * Test ValidateRecordAction.performAction() for validation a record succesfully
+     * Test ValidateRecordAction.performAction() for validation a record successfully
      * without any errors.
      * <p>
      * <dl>

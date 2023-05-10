@@ -122,7 +122,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
 
     /**
      * Test UpdateClassificationsInEnrichmentRecordAction.createRecord(): Update enrichment record
-     * succesfully.
+     * successfully.
      * <p>
      * <dl>
      * <dt>Given</dt>

@@ -9,10 +9,8 @@ import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
 import dk.dbc.updateservice.client.BibliographicRecordExtraDataEncoder;
-import dk.dbc.updateservice.dto.AuthenticationDTO;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.ExtraRecordDataDTO;
 import dk.dbc.updateservice.dto.RecordDataDTO;
@@ -55,7 +53,6 @@ public class AssertActionsUtil {
     public static final String COMMON_SCHOOL_RECORD_RESOURCE = "actions/common_school_enrichment.marc";
     public static final String SCHOOL_RECORD_RESOURCE = "actions/school_enrichment.marc";
     public static final String VOLUME_RECORD_RESOURCE = "actions/volume.marc";
-    public static final String COMMON_RECORD_CLASSIFICATION = "actions/common_classification.marc";
     public static final String NATIONAL_COMMON_RECORD = "actions/national-common-record.marc";
     public static final String OVE_RECORD = "actions/ove-record.marc";
     public static final String LITTOLK_COMMON = "actions/littolk-common.marc";
@@ -71,6 +68,7 @@ public class AssertActionsUtil {
 
     public static MarcRecord loadRecord(String filename) throws IOException, UpdateException {
         final InputStream is = AssertActionsUtil.class.getResourceAsStream("/dk/dbc/updateservice/" + filename);
+        assert is != null;
         return UpdateRecordContentTransformer.readRecordFromString(IOUtils.readAll(is, "UTF-8"));
     }
 
@@ -155,16 +153,6 @@ public class AssertActionsUtil {
         final int agencyId = new MarcRecordReader(record).getAgencyIdAsInt();
 
         return new RecordId(bibliographicRecordId, agencyId);
-    }
-
-    public static void assertAuthenticateRecordAction(ServiceAction action, MarcRecord record, Authenticator authenticator, AuthenticationDTO AuthenticationDTO) {
-        assertThat(action, notNullValue());
-        assertThat(action.getClass().getName(), is(AuthenticateRecordAction.class.getName()));
-
-        final AuthenticateRecordAction authenticateRecordAction = (AuthenticateRecordAction) action;
-        assertThat(authenticateRecordAction.state.readRecord(), is(record));
-        assertThat(authenticateRecordAction.state.getAuthenticator(), is(authenticator));
-        assertThat(authenticateRecordAction.state.getUpdateServiceRequestDTO().getAuthenticationDTO(), is(AuthenticationDTO));
     }
 
     public static void assertUpdateCommonRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String groupId, LibraryRecordsHandler recordsHandler, HoldingsItemsConnector holdingsItems, VipCoreService vipCoreService) {

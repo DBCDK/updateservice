@@ -22,7 +22,6 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class CreateSingleRecordActionTest {
@@ -66,8 +65,8 @@ class CreateSingleRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         assertThat(createSingleRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -103,8 +102,8 @@ class CreateSingleRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().agenciesForRecord(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
+        when(state.getRawRepo().agenciesForRecord(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(true);
 
         CreateSingleRecordAction createSingleRecordAction = new CreateSingleRecordAction(state, settings, record);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -141,8 +140,8 @@ class CreateSingleRecordActionTest {
         Record rr2 = new RawRepoRecordMock(recordId, 123456);
         rr2.setMimeType(MarcXChangeMimeType.ENRICHMENT);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 123456));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 123456)).thenReturn(rr2);
@@ -163,8 +162,8 @@ class CreateSingleRecordActionTest {
         Record rr1 = new RawRepoRecordMock(recordId, 700300);
         rr1.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
 
@@ -189,8 +188,8 @@ class CreateSingleRecordActionTest {
         Record rr2 = new RawRepoRecordMock(recordId, 800500);
         rr2.setMimeType(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(700300, 800500));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 700300)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 800500)).thenReturn(rr2);
@@ -212,8 +211,8 @@ class CreateSingleRecordActionTest {
         Record rr = new RawRepoRecordMock(recordId, 870971);
         rr.setMimeType(MarcXChangeMimeType.ARTICLE);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(870971));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870971)).thenReturn(rr);
 
@@ -237,8 +236,8 @@ class CreateSingleRecordActionTest {
         Record rr3 = new RawRepoRecordMock(recordId, 830020);
         rr3.setMimeType(MarcXChangeMimeType.ENRICHMENT);
 
-        when(state.getRawRepo().agenciesForRecordAll(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(870970, 830010, 830020));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
         when(state.getVipCoreService().getFFULibraries()).thenReturn(ffuLibraries);
         when(state.getRawRepo().fetchRecord(recordId, 870970)).thenReturn(rr1);
         when(state.getRawRepo().fetchRecord(recordId, 830010)).thenReturn(rr2);

@@ -13,7 +13,6 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -54,7 +53,7 @@ class LinkRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(true);
 
         LinkRecordAction linkRecordAction = new LinkRecordAction(state, record);
         linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
@@ -74,7 +73,7 @@ class LinkRecordActionTest {
     }
 
     /**
-     * Test LinkRecord.performAction() to create a link to an non existing record
+     * Test LinkRecord.performAction() to create a link to a non-existing record
      * in the rawrepo.
      * <p>
      * <dl>
@@ -101,7 +100,7 @@ class LinkRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(false);
 
         LinkRecordAction instance = new LinkRecordAction(state, record);
         instance.setLinkToRecordId(new RecordId(parentId, agencyId));

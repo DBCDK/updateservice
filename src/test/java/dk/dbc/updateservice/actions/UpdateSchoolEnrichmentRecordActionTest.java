@@ -11,7 +11,6 @@ import java.util.Properties;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 
@@ -30,7 +29,7 @@ class UpdateSchoolEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(false);
 
         UpdateSchoolEnrichmentRecordAction instance = new UpdateSchoolEnrichmentRecordAction(state, settings, record);
         assertThat(instance.getParentAgencyId(), is(RawRepo.COMMON_AGENCY));
@@ -41,7 +40,7 @@ class UpdateSchoolEnrichmentRecordActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.SCHOOL_RECORD_RESOURCE);
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(recordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(true);
 
         UpdateSchoolEnrichmentRecordAction instance = new UpdateSchoolEnrichmentRecordAction(state, settings, record);
         assertThat(instance.getParentAgencyId(), is(RawRepo.SCHOOL_COMMON_AGENCY));

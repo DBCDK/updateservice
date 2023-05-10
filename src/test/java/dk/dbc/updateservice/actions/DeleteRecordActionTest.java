@@ -55,7 +55,7 @@ class DeleteRecordActionTest {
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
         MarcRecord rr = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        when(state.getRawRepo().fetchRecord(eq(localSingleRecordId), eq(localSingleAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(localSingleRecordId, localSingleAgencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
 
         MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(expected).markForDeletion();
@@ -79,7 +79,7 @@ class DeleteRecordActionTest {
         record.getFields().add(new DataField("004", "00").addAllSubFields(field004));
 
         MarcRecord rr = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        when(state.getRawRepo().fetchRecord(eq(localSingleRecordId), eq(localSingleAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(localSingleRecordId, localSingleAgencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(rr, MarcXChangeMimeType.MARCXCHANGE));
 
         DeleteRecordAction instance = new DeleteRecordAction(state, properties, record);
         instance.setMimetype(MarcXChangeMimeType.MARCXCHANGE);

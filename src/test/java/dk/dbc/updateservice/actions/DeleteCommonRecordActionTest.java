@@ -19,7 +19,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class DeleteCommonRecordActionTest {
@@ -65,9 +64,9 @@ class DeleteCommonRecordActionTest {
         String bibliographicRecordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(new HashSet<>());
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().recordExistsMaybeDeleted(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().children(AssertActionsUtil.getRecordId(record))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(record))).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesWithHoldings(bibliographicRecordId)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
@@ -116,10 +115,10 @@ class DeleteCommonRecordActionTest {
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(new HashSet<>());
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
-        when(state.getRawRepo().fetchRecord(eq(bibliographicRecordId), eq(enrichmentAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().recordExistsMaybeDeleted(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().children(AssertActionsUtil.getRecordId(record))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(record))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
+        when(state.getRawRepo().fetchRecord(bibliographicRecordId, enrichmentAgencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(enrichmentRecord, MarcXChangeMimeType.ENRICHMENT));
         when(state.getHoldingsItems().getAgenciesWithHoldings(bibliographicRecordId)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
@@ -161,9 +160,9 @@ class DeleteCommonRecordActionTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(AssertActionsUtil.createRecordSet(volumeRecord));
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().recordExistsMaybeDeleted(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().children(AssertActionsUtil.getRecordId(record))).thenReturn(AssertActionsUtil.createRecordSet(volumeRecord));
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(record))).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesWithHoldings(bibliographicRecordId)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
@@ -199,9 +198,9 @@ class DeleteCommonRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_MAIN_ENRICHMENT_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(AssertActionsUtil.createRecordSet(volumeRecord));
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
+        when(state.getRawRepo().recordExistsMaybeDeleted(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().children(AssertActionsUtil.getRecordId(record))).thenReturn(AssertActionsUtil.createRecordSet(volumeRecord));
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(record))).thenReturn(AssertActionsUtil.createRecordSet(enrichmentRecord));
         when(state.getHoldingsItems().getAgenciesWithHoldings(bibliographicRecordId)).thenReturn(new HashSet<>());
 
         DeleteCommonRecordAction deleteCommonRecordAction = new DeleteCommonRecordAction(state, settings, record);
@@ -221,15 +220,15 @@ class DeleteCommonRecordActionTest {
 
         String littolkRecordId = AssertActionsUtil.getBibliographicRecordId(littolkRecord);
 
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(true);
-        when(state.getRawRepo().children(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(AssertActionsUtil.createRecordSet(littolkRecord));
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(record)))).thenReturn(new HashSet<>());
-        when(state.getRawRepo().enrichments(eq(AssertActionsUtil.getRecordId(littolkRecord)))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().recordExistsMaybeDeleted(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(littolkRecordId, RawRepo.LITTOLK_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(littolkRecordId, RawRepo.DBC_ENRICHMENT)).thenReturn(true);
+        when(state.getRawRepo().children(AssertActionsUtil.getRecordId(record))).thenReturn(AssertActionsUtil.createRecordSet(littolkRecord));
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(record))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().enrichments(AssertActionsUtil.getRecordId(littolkRecord))).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesWithHoldings(bibliographicRecordId)).thenReturn(new HashSet<>());
-        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
-        when(state.getRawRepo().fetchRecord(eq(littolkRecordId), eq(RawRepo.LITTOLK_AGENCY))).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(littolkRecordId, RawRepo.DBC_ENRICHMENT)).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkEnrichment, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().fetchRecord(littolkRecordId, RawRepo.LITTOLK_AGENCY)).thenReturn(AssertActionsUtil.createRawRepoRecord(littolkRecord, MarcXChangeMimeType.MARCXCHANGE));
 
         MarcRecord littolkEnrichmentRecordMarkedForDeletion = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
         new MarcRecordWriter(littolkEnrichmentRecordMarkedForDeletion).markForDeletion();

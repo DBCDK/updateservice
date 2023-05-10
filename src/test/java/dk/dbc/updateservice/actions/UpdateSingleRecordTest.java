@@ -166,7 +166,7 @@ class UpdateSingleRecordTest {
     }
 
     /**
-     * Test performAction(): Delete single common record with with holdings and no auth to export holdings.
+     * Test performAction(): Delete single common record with holdings and no auth to export holdings.
      * <p>
      * <dl>
      * <dt>Given</dt>
@@ -210,7 +210,7 @@ class UpdateSingleRecordTest {
     }
 
     /**
-     * Test performAction(): Delete single common record with with holdings.
+     * Test performAction(): Delete single common record with holdings.
      * <p>
      * <dl>
      * <dt>Given</dt>

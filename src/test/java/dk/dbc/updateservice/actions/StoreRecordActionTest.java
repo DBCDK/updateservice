@@ -22,7 +22,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -69,7 +68,7 @@ class StoreRecordActionTest {
         StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
 
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
         assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
@@ -93,7 +92,7 @@ class StoreRecordActionTest {
 
         assertThat(storeRecordAction.getMimetype(), is(MarcXChangeMimeType.MATVURD));
 
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(new RawRepoRecordMock(recordId, agencyId));
 
         assertThat(storeRecordAction.performAction(), is(ServiceResult.newOkResult()));
 
@@ -140,8 +139,8 @@ class StoreRecordActionTest {
         storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
         storeRecordAction.encoder = encoder;
 
-        when(state.getRawRepo().fetchRecord(eq(recordId), eq(agencyId))).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-        when(encoder.encodeRecord(eq(record))).thenThrow(new JAXBException("error"));
+        when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(new RawRepoRecordMock(recordId, agencyId));
+        when(encoder.encodeRecord(record)).thenThrow(new JAXBException("error"));
 
         ServiceResult serviceResult = storeRecordAction.performAction();
         assertThat(serviceResult, is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));

@@ -15,7 +15,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class UpdateSchoolCommonRecordTest {
@@ -59,8 +58,8 @@ class UpdateSchoolCommonRecordTest {
         String bibliographicRecordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(false);
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = new UpdateSchoolCommonRecord(state, settings, record);
         assertThat(updateSchoolCommonRecord.performAction(), is(ServiceResult.newOkResult()));
@@ -103,8 +102,8 @@ class UpdateSchoolCommonRecordTest {
         String bibliographicRecordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -151,11 +150,11 @@ class UpdateSchoolCommonRecordTest {
         int schoolAgencyId = AssertActionsUtil.getAgencyIdAsInt(schoolRecord);
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SCHOOL_RECORD_RESOURCE);
 
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(schoolAgencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecord(eq(bibliographicRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
-        when(state.getRawRepo().fetchRecord(eq(bibliographicRecordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, schoolAgencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(bibliographicRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
+        when(state.getRawRepo().fetchRecord(bibliographicRecordId, schoolAgencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
         UpdateSchoolCommonRecord updateSchoolCommonRecord = new UpdateSchoolCommonRecord(state, settings, record);
         assertThat(updateSchoolCommonRecord.performAction(), is(ServiceResult.newOkResult()));
@@ -203,8 +202,8 @@ class UpdateSchoolCommonRecordTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(true);
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -254,11 +253,11 @@ class UpdateSchoolCommonRecordTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(schoolAgencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(RawRepo.SCHOOL_COMMON_AGENCY))).thenReturn(true);
-        when(state.getRawRepo().agenciesForRecord(eq(bibliographicRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
-        when(state.getRawRepo().fetchRecord(eq(bibliographicRecordId), eq(schoolAgencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, schoolAgencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, RawRepo.SCHOOL_COMMON_AGENCY)).thenReturn(true);
+        when(state.getRawRepo().agenciesForRecord(bibliographicRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet(schoolAgencyId));
+        when(state.getRawRepo().fetchRecord(bibliographicRecordId, schoolAgencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(schoolRecord, MarcXChangeMimeType.ENRICHMENT));
 
         UpdateSchoolCommonRecord instance = new UpdateSchoolCommonRecord(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));

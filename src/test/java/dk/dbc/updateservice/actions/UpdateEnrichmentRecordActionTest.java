@@ -278,7 +278,7 @@ class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record that is optimize to an
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record that is optimized to an
      * empty record by LibraryRecordsHandler.
      * <p>
      * <dl>
@@ -412,7 +412,7 @@ class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Delete enrichment record with with holdings.
+     * Test UpdateEnrichmentRecordAction.performAction(): Delete enrichment record with holdings.
      * <p>
      * <dl>
      * <dt>Given</dt>

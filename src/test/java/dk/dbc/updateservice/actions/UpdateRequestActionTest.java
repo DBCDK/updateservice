@@ -22,7 +22,6 @@ import java.util.Properties;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class UpdateRequestActionTest {
@@ -437,7 +436,7 @@ class UpdateRequestActionTest {
         state.getUpdateServiceRequestDTO().setBibliographicRecordDTO(AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, bibliographicRecordExtraData));
         state.getUpdateServiceRequestDTO().setSchemaName("book");
         state.setLibraryGroup(LibraryGroup.DBC);
-        when(state.getRawRepo().checkProvider(eq("new_provider_name"))).thenReturn(true);
+        when(state.getRawRepo().checkProvider("new_provider_name")).thenReturn(true);
 
         UpdateRequestAction updateRequestAction = new UpdateRequestAction(state, settings);
         assertThat(updateRequestAction.performAction(), is(ServiceResult.newOkResult()));

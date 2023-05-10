@@ -17,7 +17,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class CreateVolumeRecordActionTest {
@@ -67,12 +66,12 @@ class CreateVolumeRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecord(eq(volumeRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(volumeRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(false);
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         assertThat(createVolumeRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -117,12 +116,12 @@ class CreateVolumeRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecord(eq(volumeRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(volumeRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(true);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(true);
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("update.record.with.002.links");
@@ -159,13 +158,13 @@ class CreateVolumeRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecordAll(eq(volumeRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExistsMaybeDeleted(volumeRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecordAll(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet(700300));
         when(state.getRawRepo().fetchRecord(volumeRecordId, 700300)).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(false);
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = state.getMessages().getString("create.record.with.locals");
@@ -201,12 +200,12 @@ class CreateVolumeRecordActionTest {
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
         new MarcRecordWriter(volumeRecord).addOrReplaceSubField("014", 'a', volumeRecordId);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecord(eq(volumeRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(volumeRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(false);
 
         CreateVolumeRecordAction createVolumeRecordAction = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), volumeRecordId, agencyId);
@@ -242,12 +241,12 @@ class CreateVolumeRecordActionTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().recordExistsMaybeDeleted(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
-        when(state.getRawRepo().agenciesForRecord(eq(volumeRecordId))).thenReturn(AssertActionsUtil.createAgenciesSet());
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().recordExistsMaybeDeleted(volumeRecordId, agencyId)).thenReturn(false);
+        when(state.getRawRepo().agenciesForRecord(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(false);
 
         CreateVolumeRecordAction instance = new CreateVolumeRecordAction(state, settings, volumeRecord);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), volumeRecordId, agencyId, mainRecordId, agencyId);

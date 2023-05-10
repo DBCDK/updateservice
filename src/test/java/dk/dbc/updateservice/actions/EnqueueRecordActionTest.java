@@ -55,7 +55,7 @@ class EnqueueRecordActionTest {
      * </dd>
      * <dt>When</dt>
      * <dd>
-     * Enqueue a record by its id. Provider id is not initailized.
+     * Enqueue a record by its id. Provider id is not initialized.
      * </dd>
      * <dt>Then</dt>
      * <dd>

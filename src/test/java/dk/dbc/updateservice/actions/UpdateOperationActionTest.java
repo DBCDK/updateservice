@@ -291,7 +291,7 @@ class UpdateOperationActionTest {
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
-        // this shall not create an doublerecord action
+        // this shall not create a DoubleRecord action
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
@@ -332,7 +332,7 @@ class UpdateOperationActionTest {
 
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
-        // this shall create an doublerecord action
+        // this shall create a DoubleRecord action
         updWriter.addOrReplaceSubField("996", 'a', "810010");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
