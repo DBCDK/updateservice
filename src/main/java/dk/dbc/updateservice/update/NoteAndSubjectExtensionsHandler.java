@@ -254,7 +254,6 @@ public class NoteAndSubjectExtensionsHandler {
             for (RecordId child : children) {
                 final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
                 final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
-                MarcRecordReader r = new MarcRecordReader(childMarcRecord);
                 fullList.addAll(collectFields(childMarcRecord, fieldList));
             }
         }
