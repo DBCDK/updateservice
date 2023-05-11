@@ -48,7 +48,6 @@ public class MetakompasHandler {
                     "004 00 *rn*ae*xm\n" +
                     "008 00 *th*v0\n" +
                     "040 00 *bdan*fDBC\n" +
-                    "165 00 \n" +
                     "670 00 *a\n" +
                     "996 00 *aDBC\n";
     private static final String ENRICHMENT_RECORD_TEMPLATE =
