@@ -109,6 +109,7 @@ public class NoteAndSubjectExtensionsHandler {
      * Creates an extended record of some unexpanded record. Please note, this was first done
      * because the callChecked interface couldn't handle three exceptions, but are now used at two
      * places
+     *
      * @param marcRecord the record to expand
      * @return expanded record
      * @throws UpdateException there is something rotten in rawrepo
@@ -204,11 +205,11 @@ public class NoteAndSubjectExtensionsHandler {
      * @return           The found list of fields
      * @throws UpdateException Somehow the expansion of the record failed
      */
-    private List<MarcField> collectFields(MarcRecord record, String fieldList) throws UpdateException {
+    private List<DataField> collectFields(MarcRecord record, String fieldList) throws UpdateException {
         final MarcRecord expandedCurrentRecord;
         expandedCurrentRecord = getExpandedRecord(record);
-        return expandedCurrentRecord.getFields().stream()
-                .filter(field -> field.getName().matches(fieldList)).collect(Collectors.toList());
+        return expandedCurrentRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(fieldList)).collect(Collectors.toList());
     }
 
     /**
@@ -220,12 +221,12 @@ public class NoteAndSubjectExtensionsHandler {
      * @return           Returns whether there is dbc owned fields or not
      * @throws UpdateException Something went wrong while fetching a record
      */
-    private boolean checkStructureForDbc(MarcRecord record, String fieldList, List<MarcField> fields) throws UpdateException {
+    private boolean checkStructureForDbc(MarcRecord record, String fieldList, List<DataField> fields) throws UpdateException {
         boolean result;
         MarcRecord worker = new MarcRecord(record);
-        List<MarcField> fullList = new ArrayList<>(fields);
+        List<DataField> fullList = new ArrayList<>(fields);
         MarcRecordReader reader = new MarcRecordReader(worker);
-        final String recordType = reader.getValue("004", "a");
+        final String recordType = reader.getValue("004", 'a');
         if (Arrays.asList("h", "s", "b").contains(recordType)) {
             // her skal der dykkes, surfaces, sidesteppes og andet spændende.
             List<RecordId> recSet = new ArrayList<>();
@@ -235,11 +236,12 @@ public class NoteAndSubjectExtensionsHandler {
                 final Set<RecordId> commonParents = parents.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
                 for (RecordId parent : commonParents) {
                     final Record childRecord = rawRepo.fetchRecord(parent.getBibliographicRecordId(), parent.getAgencyId());
-                    final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                    final MarcRecord childMarcRecord = UpdateRecordContentTransformer.decodeRecord(childRecord.getContent());
                     MarcRecordReader r = new MarcRecordReader(childMarcRecord);
-                    if ("h".equals(r.getValue("004", "a"))) {
+                    if ("h".equals(r.getValue("004", 'a'))) {
                         recSet.add(new RecordId(r.getRecordId(), r.getAgencyIdAsInt()));
-                        worker.setFields(childMarcRecord.getFields());
+                        worker.getFields().clear();
+                        worker.getFields().addAll(childMarcRecord.getFields());
                         break;
                     }
                 }
@@ -254,7 +256,7 @@ public class NoteAndSubjectExtensionsHandler {
             // And then all the children fields - there may be none
             for (RecordId child : children) {
                 final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
-                final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                final MarcRecord childMarcRecord = UpdateRecordContentTransformer.decodeRecord(childRecord.getContent());
                 fullList.addAll(collectFields(childMarcRecord, fieldList));
             }
         }
@@ -563,9 +565,10 @@ public class NoteAndSubjectExtensionsHandler {
             // * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *& and "OVE", that is,
             // * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *& with groupId should be added
             if (compareCatalogSubFields(newWork, currentWork, false)) {
-                String oveCode = getOveCode(newWork);
+                final String oveCode = getOveCode(newWork);
+                final List<SubField> oveAndAmpSubFields = updateOveAndAmp(newWork, groupId, oveCode);
                 newWork.getSubFields().clear();
-                newWork.getSubFields().addAll(updateOveAndAmp(newWork, groupId, oveCode));
+                newWork.getSubFields().addAll(oveAndAmpSubFields);
                 resultCatalogCodeFields.add(newWork);
                 return resultCatalogCodeFields;
             } else {
