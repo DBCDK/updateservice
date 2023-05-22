@@ -124,6 +124,15 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 if (rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
                     curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 }
+                MarcRecordReader currentReader = new MarcRecordReader(curRecord);
+                String actRecOwner = reader.getValue("996", "a");
+                if ("DBC".equals(currentReader.getValue("996", "a")) &&
+                        ! "DBC".equals(actRecOwner)) {
+                    if (!"metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
+                        return createErrorReply(resourceBundle.getString("update.common.record.take.dbc.library.error"));
+                    }
+                }
+
                 /*
                 This is a bit messy. Metakompas records doesn't have a field 032, but the record the metakompas data
                 will receive does, so the road may go down into noteAndSubjectExtentionsHandler and that must not happen.
