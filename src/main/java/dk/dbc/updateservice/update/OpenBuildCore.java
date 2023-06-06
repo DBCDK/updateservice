@@ -157,7 +157,7 @@ public class OpenBuildCore {
         final RecordDataDTO recordDataDTO = new RecordDataDTO();
         final BuildResponseDTO buildResponseDTO = new BuildResponseDTO();
         final byte[] content = UpdateRecordContentTransformer.encodeRecord(marcRecord);
-        recordDataDTO.setContent(Collections.singletonList(Arrays.toString(content)));
+        recordDataDTO.setContent(Collections.singletonList(new String(content)));
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
         bibliographicRecordDTO.setRecordPacking(JNDIResources.RECORD_PACKING_XML);
