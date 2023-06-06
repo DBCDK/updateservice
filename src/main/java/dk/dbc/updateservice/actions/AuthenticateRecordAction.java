@@ -130,8 +130,8 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                     curRecord = UpdateRecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 }
                 MarcRecordReader currentReader = new MarcRecordReader(curRecord);
-                String actRecOwner = reader.getValue("996", "a");
-                if ("DBC".equals(currentReader.getValue("996", "a")) &&
+                String actRecOwner = reader.getValue("996", 'a');
+                if ("DBC".equals(currentReader.getValue("996", 'a')) &&
                         ! "DBC".equals(actRecOwner) &&
                         !"metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                     return createErrorReply(resourceBundle.getString("update.common.record.take.dbc.library.error"));
