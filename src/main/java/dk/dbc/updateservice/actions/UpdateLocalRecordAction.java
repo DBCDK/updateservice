@@ -1,19 +1,14 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.AgencyNumber;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -187,7 +182,7 @@ public class UpdateLocalRecordAction extends AbstractRawRepoAction {
         if (recordIdChildrenList.size() != 1) {
             return ServiceResult.newOkResult();
         }
-        final MarcRecord mainRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
+        final MarcRecord mainRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(parentRecordId, parentAgencyId).getContent());
         final MarcRecordWriter writer = new MarcRecordWriter(mainRecord);
         writer.markForDeletion();
         final UpdateLocalRecordAction action = new UpdateLocalRecordAction(state, settings, mainRecord);

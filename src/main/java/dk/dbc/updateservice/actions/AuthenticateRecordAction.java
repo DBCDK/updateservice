@@ -1,15 +1,16 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Leader;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.TypeEnumDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import dk.dbc.updateservice.utils.ResourceBundles;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 
 /**
  * Action to authenticate a record.
@@ -45,12 +48,14 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
 
     /**
      * Constructs an instance for authentication of a record
+     *
      * @param globalActionState State object containing data with data from request.
      * @param marcRecord        The record to be authenticated
      */
     public AuthenticateRecordAction(GlobalActionState globalActionState, MarcRecord marcRecord) {
         super(AuthenticateRecordAction.class.getSimpleName(), globalActionState, marcRecord);
     }
+
     ResourceBundle resourceBundle;
 
     public void setResourceBundle() {
@@ -120,13 +125,13 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
                 final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
                 List<MessageEntryDTO> validationErrors;
 
-                MarcRecord curRecord = new MarcRecord();
+                MarcRecord curRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
                 if (rawRepo.recordExists(reader.getRecordId(), RawRepo.COMMON_AGENCY)) {
-                    curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                    curRecord = UpdateRecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(reader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 }
                 MarcRecordReader currentReader = new MarcRecordReader(curRecord);
-                String actRecOwner = reader.getValue("996", "a");
-                if ("DBC".equals(currentReader.getValue("996", "a")) &&
+                String actRecOwner = reader.getValue("996", 'a');
+                if ("DBC".equals(currentReader.getValue("996", 'a')) &&
                         ! "DBC".equals(actRecOwner) &&
                         !"metakompas".equals(state.getUpdateServiceRequestDTO().getSchemaName())) {
                     return createErrorReply(resourceBundle.getString("update.common.record.take.dbc.library.error"));
@@ -179,7 +184,7 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             final String recordId = reader.getRecordId();
             final int agencyId = reader.getAgencyIdAsInt();
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
-            final String owner = reader.getValue("996", "a");
+            final String owner = reader.getValue("996", 'a');
 
             log.info("Record agency: {}", agencyId);
             log.info("New owner: {}", owner);
@@ -199,9 +204,9 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
             }
 
             log.debug("Checking authentication for updating existing common record.");
-            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecord curRecord = UpdateRecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-            final String curOwner = curReader.getValue("996", "a");
+            final String curOwner = curReader.getValue("996", 'a');
 
             log.info("Current owner: {}", curOwner);
 
@@ -268,14 +273,14 @@ public class AuthenticateRecordAction extends AbstractRawRepoAction {
         return LOGGER.<List<MessageEntryDTO>, UpdateException, VipCoreException>callChecked2(log -> {
             final String groupId = state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId();
             final MarcRecordReader recordReader = new MarcRecordReader(this.getRecord());
-            final List<MarcField> newFields665 = recordReader.getFieldAll("665");
+            final List<DataField> newFields665 = recordReader.getFieldAll("665");
 
             if (state.getRawRepo().recordExists(recordReader.getRecordId(), recordReader.getAgencyIdAsInt())) {
-                final MarcRecord curRecord = RecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
+                final MarcRecord curRecord = UpdateRecordContentTransformer.decodeRecord(state.getRawRepo().fetchRecord(recordReader.getRecordId(), RawRepo.COMMON_AGENCY).getContent());
                 final MarcRecordReader curRecordReader = new MarcRecordReader(curRecord);
-                final List<MarcField> curFields665 = curRecordReader.getFieldAll("665");
+                final List<DataField> curFields665 = curRecordReader.getFieldAll("665");
                 final NoteAndSubjectExtensionsHandler noteAndSubjectExtensionsHandler = state.getNoteAndSubjectExtensionsHandler();
-                if (!noteAndSubjectExtensionsHandler.marcFieldsEqualsIgnoreAmpersand(newFields665, curFields665)) {
+                if (!noteAndSubjectExtensionsHandler.dataFieldsEqualsIgnoreAmpersand(newFields665, curFields665)) {
                     log.info("Found a change in field 665 - checking if {} has permission to change field 665", groupId);
                     final boolean canChangeMetaCompassRule = state.getVipCoreService().hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_METACOMPASS);
 

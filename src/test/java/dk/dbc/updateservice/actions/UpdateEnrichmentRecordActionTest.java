@@ -1,14 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -18,10 +12,10 @@ import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
@@ -35,7 +29,6 @@ import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +38,7 @@ class UpdateEnrichmentRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
@@ -97,11 +90,11 @@ class UpdateEnrichmentRecordActionTest {
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(record);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(false);
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(record);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(updateEnrichmentRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -159,11 +152,11 @@ class UpdateEnrichmentRecordActionTest {
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(record);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(record);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(updateEnrichmentRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -221,11 +214,11 @@ class UpdateEnrichmentRecordActionTest {
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(record);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(true);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(record);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(true);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -275,8 +268,8 @@ class UpdateEnrichmentRecordActionTest {
         String recordId = AssertActionsUtil.getBibliographicRecordId(enrichmentRecord);
         String commonRecordId = AssertActionsUtil.getBibliographicRecordId(commonRecord);
 
-        when(state.getRawRepo().recordExists(eq(commonRecordId), eq(RawRepo.COMMON_AGENCY))).thenReturn(false);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(commonRecordId, RawRepo.COMMON_AGENCY)).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, enrichmentRecord);
         String message = String.format(state.getMessages().getString("record.does.not.exist"), commonRecordId);
@@ -284,7 +277,7 @@ class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record that is optimize to an
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record that is optimized to an
      * empty record by LibraryRecordsHandler.
      * <p>
      * <dl>
@@ -316,12 +309,12 @@ class UpdateEnrichmentRecordActionTest {
         MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(new HashSet<>());
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(new MarcRecord());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(new HashSet<>());
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(new MarcRecord());
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -361,11 +354,11 @@ class UpdateEnrichmentRecordActionTest {
         UpdateEnrichmentRecordAction.Decoder decoder = mock(UpdateEnrichmentRecordAction.Decoder.class);
 
         Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
-        when(state.getRawRepo().recordExists(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(commonRecord.getId().getBibliographicRecordId()), eq(commonRecord.getId().getAgencyId()))).thenReturn(commonRecord);
-        when(decoder.decodeRecord(eq(commonRecord.getContent()))).thenThrow(new UnsupportedEncodingException("error"));
-        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(eq(commonRecordData), eq(record))).thenReturn(record);
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(decoder.decodeRecord(commonRecord.getContent())).thenThrow(new UnsupportedEncodingException("error"));
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(record);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
         updateEnrichmentRecordAction.decoder = decoder;
@@ -403,9 +396,9 @@ class UpdateEnrichmentRecordActionTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         new MarcRecordWriter(record).markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(new HashSet<>());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(new HashSet<>());
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -418,7 +411,7 @@ class UpdateEnrichmentRecordActionTest {
     }
 
     /**
-     * Test UpdateEnrichmentRecordAction.performAction(): Delete enrichment record with with holdings.
+     * Test UpdateEnrichmentRecordAction.performAction(): Delete enrichment record with holdings.
      * <p>
      * <dl>
      * <dt>Given</dt>
@@ -443,9 +436,9 @@ class UpdateEnrichmentRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         new MarcRecordWriter(record).markForDeletion();
 
-        when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
-        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId))).thenReturn(AssertActionsUtil.createAgenciesSet(agencyId));
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId)))).thenReturn(false);
+        when(state.getRawRepo().recordExists(recordId, agencyId)).thenReturn(true);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId)).thenReturn(AssertActionsUtil.createAgenciesSet(agencyId));
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
 
         UpdateEnrichmentRecordAction instance = new UpdateEnrichmentRecordAction(state, settings, record);
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
@@ -457,14 +450,14 @@ class UpdateEnrichmentRecordActionTest {
         assertFalse(iterator.hasNext());
     }
 
-    private Record createRawRepoRecord(MarcRecord record, String mimetype) throws JAXBException, UnsupportedEncodingException {
+    private Record createRawRepoRecord(MarcRecord record, String mimetype) {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         int agencyId = reader.getAgencyIdAsInt();
         RawRepoRecordMock rawRepoRecord = new RawRepoRecordMock(recordId, agencyId);
         rawRepoRecord.setDeleted(false);
         rawRepoRecord.setMimeType(mimetype);
-        rawRepoRecord.setContent(RecordContentTransformer.encodeRecord(record));
+        rawRepoRecord.setContent(UpdateRecordContentTransformer.encodeRecord(record));
         return rawRepoRecord;
     }
 }

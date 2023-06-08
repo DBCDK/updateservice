@@ -1,15 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +16,6 @@ import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class UpdateVolumeRecordTest {
@@ -30,7 +25,7 @@ class UpdateVolumeRecordTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId(GROUP_ID);
         state.setLibraryGroup(libraryGroup);
@@ -67,8 +62,8 @@ class UpdateVolumeRecordTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(volumeRecordId, agencyId)).thenReturn(false);
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
 
         UpdateVolumeRecord updateVolumeRecord = new UpdateVolumeRecord(state, settings, volumeRecord);
@@ -111,9 +106,9 @@ class UpdateVolumeRecordTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchMergedDBCRecord(eq(volumeRecordId), eq(RawRepo.DBC_ENRICHMENT))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(volumeRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().fetchMergedDBCRecord(volumeRecordId, RawRepo.DBC_ENRICHMENT)).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getLibraryRecordsHandler().hasClassificationData(volumeRecord)).thenReturn(false);
 
@@ -155,11 +150,11 @@ class UpdateVolumeRecordTest {
         MarcRecord volumeRecord = AssertActionsUtil.loadRecordAndMarkForDeletion(AssertActionsUtil.COMMON_VOLUME_RECORD_RESOURCE);
         String volumeRecordId = AssertActionsUtil.getBibliographicRecordId(volumeRecord);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(volumeRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(volumeRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(volumeRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(volumeRecordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(volumeRecord, MarcXChangeMimeType.MARCXCHANGE));
         when(state.getHoldingsItems().getAgenciesWithHoldings(volumeRecordId)).thenReturn(new HashSet<>());
-        when(state.getSolrFBS().hasDocuments(eq(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId)))).thenReturn(false);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", volumeRecordId))).thenReturn(false);
         when(state.getSolrFBS().getOwnerOf002(SolrServiceIndexer.createGetOwnerOf002QueryDBCOnly("002a", volumeRecordId))).thenReturn("");
 
         UpdateVolumeRecord instance = new UpdateVolumeRecord(state, settings, volumeRecord);

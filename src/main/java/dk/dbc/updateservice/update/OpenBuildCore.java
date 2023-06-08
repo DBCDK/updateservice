@@ -1,16 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcConverter;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcXchangeFactory;
-import dk.dbc.common.records.marcxchange.ObjectFactory;
-import dk.dbc.common.records.marcxchange.RecordType;
 import dk.dbc.jsonb.JSONBException;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.BibliographicRecordDTO;
@@ -22,21 +14,12 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.dom.DOMSource;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,10 +36,6 @@ public class OpenBuildCore {
 
     @Inject
     private OpencatBusinessConnector opencatBusinessConnector;
-
-
-    @EJB
-    private DocumentFactory documentFactory;
 
     @PostConstruct
     public void init() {
@@ -143,12 +122,14 @@ public class OpenBuildCore {
         if (recordData != null) {
             final List<Object> list = recordData.getContent();
             for (Object o : list) {
-                if (o instanceof Node) {
-                    res = MarcConverter.createFromMarcXChange(new DOMSource((Node) o));
-                    break;
-                } else if (o instanceof String && o.toString().startsWith("<")) {
-                    res = MarcConverter.convertFromMarcXChange((String) o);
-                    break;
+                String marcString = (String) o;
+                if (!"".equals(marcString.trim())) {
+                    try {
+                        res = UpdateRecordContentTransformer.decodeRecord(marcString.getBytes(StandardCharsets.UTF_8));
+                        break;
+                    } catch (UpdateException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         }
@@ -164,18 +145,18 @@ public class OpenBuildCore {
             final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
 
             return opencatBusinessConnector.buildRecord(buildSchema, marcRecord, trackingId);
-        } catch (JSONBException | OpencatBusinessConnectorException | JAXBException | UnsupportedEncodingException ex) {
+        } catch (JSONBException | OpencatBusinessConnectorException | MarcReaderException ex) {
             throw new EJBException("Error calling OpencatBusinessConnector", ex);
         } finally {
             watch.stop();
         }
     }
 
-    private BuildResponseDTO buildResult(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
+    private BuildResponseDTO buildResult(MarcRecord marcRecord) {
         final RecordDataDTO recordDataDTO = new RecordDataDTO();
         final BuildResponseDTO buildResponseDTO = new BuildResponseDTO();
-        final Document document = convertMarcRecordToDomDocument(marcRecord);
-        recordDataDTO.setContent(Collections.singletonList(document.getDocumentElement()));
+        final byte[] content = UpdateRecordContentTransformer.encodeRecord(marcRecord);
+        recordDataDTO.setContent(Collections.singletonList(new String(content)));
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordDataDTO(recordDataDTO);
         bibliographicRecordDTO.setRecordPacking(JNDIResources.RECORD_PACKING_XML);
@@ -186,19 +167,6 @@ public class OpenBuildCore {
         return buildResponseDTO;
     }
 
-    private Document convertMarcRecordToDomDocument(MarcRecord marcRecord) throws JAXBException, ParserConfigurationException {
-        final RecordType marcXhangeType = MarcXchangeFactory.createMarcXchangeFromMarc(marcRecord);
-        final ObjectFactory objectFactory = new ObjectFactory();
-        final JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXhangeType);
-
-        final JAXBContext jc = JAXBContext.newInstance(RecordType.class);
-        final Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, JNDIResources.MARCXCHANGE_1_1_SCHEMA_LOCATION);
-
-        final Document document = documentFactory.getNewDocument();
-        marshaller.marshal(jAXBElement, document);
-        return document;
-    }
 
     private void validateProperties() {
         final List<String> requiredProperties = new ArrayList<>();

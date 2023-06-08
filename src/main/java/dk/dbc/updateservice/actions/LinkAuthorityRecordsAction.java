@@ -1,14 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcFieldReader;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
@@ -16,6 +10,8 @@ import dk.dbc.updateservice.update.UpdateException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
 
 public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsAction {
     private static final Stream<String> AUTHORITY_RELATION_FIELDS = Stream.of("200", "210", "230", "232", "233", "234");
@@ -33,11 +29,10 @@ public class LinkAuthorityRecordsAction extends AbstractLinkRelationRecordsActio
         final int agencyId = reader.getAgencyIdAsInt();
         final RecordId recordIdObj = new RecordId(recordId, agencyId);
 
-        for (MarcField field : marcRecord.getFields()) {
-            final MarcFieldReader fieldReader = new MarcFieldReader(field);
-            if (AUTHORITY_ALL_FIELDS.contains(field.getName()) && fieldReader.hasSubfield("5") && fieldReader.hasSubfield("6")) {
-                final String authRecordId = fieldReader.getValue("6");
-                final int authAgencyId = Integer.parseInt(fieldReader.getValue("5"));
+        for (DataField field : marcRecord.getFields(DataField.class)) {
+            if (AUTHORITY_ALL_FIELDS.contains(field.getTag()) && field.hasSubField(hasSubFieldCode('5')) && field.hasSubField(hasSubFieldCode('6'))) {
+                final String authRecordId = field.getSubField(hasSubFieldCode('6')).orElseThrow().getData();
+                final int authAgencyId = Integer.parseInt(field.getSubField(hasSubFieldCode('5')).orElseThrow().getData());
 
                 final ServiceResult result = checkIfReferenceExists(authRecordId, authAgencyId);
                 if (result != null) {

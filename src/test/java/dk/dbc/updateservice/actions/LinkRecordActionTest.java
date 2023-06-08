@@ -1,14 +1,10 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -17,7 +13,6 @@ import java.io.IOException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,7 +22,7 @@ class LinkRecordActionTest {
     private GlobalActionState state;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
@@ -58,7 +53,7 @@ class LinkRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(true);
 
         LinkRecordAction linkRecordAction = new LinkRecordAction(state, record);
         linkRecordAction.setLinkToRecordId(new RecordId(parentId, agencyId));
@@ -78,7 +73,7 @@ class LinkRecordActionTest {
     }
 
     /**
-     * Test LinkRecord.performAction() to create a link to an non existing record
+     * Test LinkRecord.performAction() to create a link to a non-existing record
      * in the rawrepo.
      * <p>
      * <dl>
@@ -105,7 +100,7 @@ class LinkRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(false);
 
         LinkRecordAction instance = new LinkRecordAction(state, record);
         instance.setLinkToRecordId(new RecordId(parentId, agencyId));

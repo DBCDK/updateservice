@@ -16,7 +16,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
- * This unittest tests that the ServiceReult class and methods can correctly merge different results
+ * This unittest tests that the ServiceResult class and methods can correctly merge different results
  */
 class ServiceResultTest {
 

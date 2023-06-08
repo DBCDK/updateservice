@@ -1,12 +1,7 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -21,6 +16,7 @@ import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.NoteAndSubjectExtensionsHandler;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RecordSorter;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateStore;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.ResourceBundles;
@@ -64,12 +60,12 @@ public class UpdateTestUtils {
         return expected;
     }
 
-    public GlobalActionState getGlobalActionStateMockObject() throws IOException {
+    public GlobalActionState getGlobalActionStateMockObject() throws IOException, UpdateException {
         // If the object isn't initialized as a null string it can't figure out which of the overloaded functions to call
         return getGlobalActionStateMockObject((String) null);
     }
 
-    public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException {
+    public GlobalActionState getGlobalActionStateMockObject(String marcRecordName) throws IOException, UpdateException {
         GlobalActionState globalActionState = new GlobalActionState();
         UpdateServiceRequestDTO updateServiceRequestDTO = new UpdateServiceRequestDTO();
         AuthenticationDTO AuthenticationDTO = new AuthenticationDTO();
@@ -133,7 +129,7 @@ public class UpdateTestUtils {
     private static class RecordSorterMock extends RecordSorter {
         @Override
         public MarcRecord sortRecord(MarcRecord marcRecord) {
-            marcRecord.getFields().sort(Comparator.comparingInt(f -> Integer.parseInt(f.getName())));
+            marcRecord.getFields().sort(Comparator.comparingInt(f -> Integer.parseInt(f.getTag())));
 
             return marcRecord;
         }

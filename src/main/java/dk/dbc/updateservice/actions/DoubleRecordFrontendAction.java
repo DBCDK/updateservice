@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.jsonb.JSONBException;
@@ -17,8 +12,6 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 
-import javax.xml.bind.JAXBException;
-import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
@@ -50,7 +43,7 @@ public class DoubleRecordFrontendAction extends AbstractAction {
                 final String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
                 final DoubleRecordFrontendStatusDTO doubleRecordFrontendStatusDTO = state.getOpencatBusiness().checkDoubleRecordFrontend(state.readRecord(), trackingId);
                 return doubleRecordFrontendStatusDTOToServiceResult(doubleRecordFrontendStatusDTO);
-            } catch (OpencatBusinessConnectorException | JSONBException | JAXBException | UnsupportedEncodingException e) {
+            } catch (OpencatBusinessConnectorException | JSONBException e) {
                 final String message = String.format(state.getMessages().getString("internal.double.record.frontend.check.error"), e.getMessage());
                 log.error(message, e);
                 return ServiceResult.newOkResult();

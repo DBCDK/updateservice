@@ -1,16 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +27,7 @@ class LinkAuthorityRecordsActionTest {
     private GlobalActionState state;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
@@ -50,7 +45,7 @@ class LinkAuthorityRecordsActionTest {
     void recordWithAuthFields() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         for (String field : RawRepo.AUTHORITY_FIELDS) {
-            record.getFields().add(new MarcField(field, "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", field + "11111111"))));
+            record.getFields().add(new DataField(field, "00").addAllSubFields(Arrays.asList(new SubField('5', "870979"), new SubField('6', field + "11111111"))));
             when(state.getRawRepo().recordExists(field + "11111111", 870979)).thenReturn(true);
         }
 
@@ -72,7 +67,7 @@ class LinkAuthorityRecordsActionTest {
     @Test
     void recordWithAuthFields_NotFound() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        record.getFields().add(new MarcField("600", "00", Arrays.asList(new MarcSubField("5", "870979"), new MarcSubField("6", "22222222"))));
+        record.getFields().add(new DataField("600", "00").addAllSubFields(Arrays.asList(new SubField('5', "870979"), new SubField('6', "22222222"))));
 
         when(state.getRawRepo().recordExists("22222222", 870979)).thenReturn(false);
 

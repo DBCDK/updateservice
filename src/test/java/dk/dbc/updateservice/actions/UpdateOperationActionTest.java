@@ -1,17 +1,17 @@
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.SolrServiceIndexer;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ class UpdateOperationActionTest {
     private final LibraryGroup libraryGroupFBS = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
     }
 
@@ -105,7 +105,7 @@ class UpdateOperationActionTest {
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("n55", "a", "20170602");
+        writer.addOrReplaceSubField("n55", 'a', "20170602");
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
@@ -127,7 +127,7 @@ class UpdateOperationActionTest {
         assertThat(state.getCreateOverwriteDate(), is(expectedOverwriteDate.toInstant()));
 
         MarcRecordReader reader = new MarcRecordReader(updateOperationAction.getRecord());
-        assertFalse(reader.hasSubfield("n55", "a"));
+        assertFalse(reader.hasSubfield("n55", 'a'));
     }
 
     /**
@@ -272,15 +272,15 @@ class UpdateOperationActionTest {
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
+        updWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -291,7 +291,7 @@ class UpdateOperationActionTest {
         when(state.getLibraryRecordsHandler().recordDataForRawRepo(eq(updateRecord), eq(state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId()), eq(libraryGroupDBC), eq(state.getMessages()), eq(false))).thenReturn(rawRepoRecords);
         // TEST 1 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Test environment is : common rec owned by DBC, enrichment owned by 723000, update record owned by DBC
-        // this shall not create an doublerecord action
+        // this shall not create a DoubleRecord action
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
 
@@ -313,15 +313,14 @@ class UpdateOperationActionTest {
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        //updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -333,8 +332,8 @@ class UpdateOperationActionTest {
 
         // TEST 2 - REMEMBER - this test doesn't say anything about the success or failure of the create - just that the correct actions are created !!!!
         // Same as before but owner of updating record set to 810010
-        // this shall create an doublerecord action
-        updWriter.addOrReplaceSubfield("996", "a", "810010");
+        // this shall create a DoubleRecord action
+        updWriter.addOrReplaceSubField("996", 'a', "810010");
 
         UpdateOperationAction updateOperationAction = new UpdateOperationAction(state, settings);
         assertThat(updateOperationAction.performAction(), is(ServiceResult.newOkResult()));
@@ -359,15 +358,15 @@ class UpdateOperationActionTest {
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
+        updWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -404,15 +403,15 @@ class UpdateOperationActionTest {
         // Load an enrichment record. Set the library to 870970 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(enrichmentRecord);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
+        updWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
 
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -466,7 +465,7 @@ class UpdateOperationActionTest {
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        enrichmentWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         state.setLibraryGroup(libraryGroupFBS);
@@ -518,7 +517,7 @@ class UpdateOperationActionTest {
 
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        enrichmentWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(false);
@@ -717,15 +716,10 @@ class UpdateOperationActionTest {
     void testPreviousFaust_NewRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        List<MarcField> fields = record.getFields();
-
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        subfields.add(new MarcSubField("b", "12345678"));
-        subfields.add(new MarcSubField("c", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        record.addDataField("002", "00")
+                .addSubField('b', "766100")
+                .addSubField('c', "90014110")
+                .addSubField('x', "76610090014110");
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
         when(state.getRawRepo().fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt())).thenReturn(null);
@@ -749,12 +743,8 @@ class UpdateOperationActionTest {
     void testPreviousFaust_UpdateRecord_Match002a() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        List<MarcField> fields = record.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        record.addDataField("002", "00")
+                .addSubField('a', "12345678");
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
@@ -771,12 +761,8 @@ class UpdateOperationActionTest {
     void testPreviousFaust_UpdateRecord_Match002a_NoExisting() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        List<MarcField> fields = record.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        record.addDataField("002", "00")
+                .addSubField('a', "12345678");
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
@@ -792,14 +778,11 @@ class UpdateOperationActionTest {
     void testPreviousFaust_UpdateRecord_Match002x_CreateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        List<MarcField> fields = record.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("b", "766100"));
-        subfields.add(new MarcSubField("c", "90014110"));
-        subfields.add(new MarcSubField("x", "76610090014110"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        record.addDataField("002", "00")
+                .addSubField('b', "766100")
+                .addSubField('c', "90014110")
+                .addSubField('x', "76610090014110");
+
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
@@ -816,14 +799,10 @@ class UpdateOperationActionTest {
     void testPreviousFaust_UpdateRecord_Match002x_UpdateRecord() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
-        List<MarcField> fields = record.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("b", "766100"));
-        subfields.add(new MarcSubField("c", "90014110"));
-        subfields.add(new MarcSubField("x", "76610090014110"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        record.addDataField("002", "00")
+                .addSubField('b', "766100")
+                .addSubField('c', "90014110")
+                .addSubField('x', "76610090014110");
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
@@ -840,12 +819,11 @@ class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        List<MarcField> fields = existingRecord.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        existingRecord.addDataField("002", "00")
+                .addSubField('a', "12345678")
+                .addSubField('c', "90014110")
+                .addSubField('x', "76610090014110");
+
         state.setMarcRecord(record);
         state.setLibraryGroup(libraryGroupFBS);
 
@@ -861,17 +839,12 @@ class UpdateOperationActionTest {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordReader reader = new MarcRecordReader(record);
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        List<MarcField> fields = existingRecord.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
-        existingRecord.setFields(fields);
+        existingRecord.addDataField("002", "00")
+                .addSubField('a', "12345678");
 
         MarcRecord previousMarcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter previousWriter = new MarcRecordWriter(previousMarcRecord);
-        previousWriter.addFieldSubfield("001", "a", "12345678");
+        previousWriter.addFieldSubfield("001", 'a', "12345678");
         previousWriter.markForDeletion();
 
 
@@ -918,12 +891,8 @@ class UpdateOperationActionTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        List<MarcField> fields = existingRecord.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        existingRecord.addDataField("002", "00")
+                .addSubField('a', "12345678");
         Set<Integer> holdingList = new HashSet<>();
         holdingList.add(123);
         holdingList.add(456);
@@ -948,12 +917,8 @@ class UpdateOperationActionTest {
         MarcRecordWriter writer = new MarcRecordWriter(record);
         writer.markForDeletion();
         MarcRecord existingRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        List<MarcField> fields = existingRecord.getFields();
-        MarcField field002 = new MarcField("002", "00");
-        List<MarcSubField> subfields = new ArrayList<>();
-        subfields.add(new MarcSubField("a", "12345678"));
-        field002.setSubfields(subfields);
-        fields.add(field002);
+        existingRecord.addDataField("002", "00")
+                .addSubField('a', "12345678");
         Set<Integer> holdingList001 = new HashSet<>();
         Set<Integer> holdingList002 = new HashSet<>();
         holdingList002.add(123);
@@ -1118,13 +1083,13 @@ class UpdateOperationActionTest {
     }
 
     private MarcRecord constructRecordWith001(String bibliographicRecordId, String agencyId, String modified, String created) {
-        MarcField field = new MarcField("001", "00");
-        field.getSubfields().add(new MarcSubField("a", bibliographicRecordId));
-        field.getSubfields().add(new MarcSubField("b", agencyId));
-        field.getSubfields().add(new MarcSubField("c", modified));
+        DataField field = new DataField("001", "00")
+                .addSubField(new SubField('a', bibliographicRecordId))
+                .addSubField(new SubField('b', agencyId))
+                .addSubField(new SubField('c', modified));
 
         if (created != null) {
-            field.getSubfields().add(new MarcSubField("d", created));
+            field.getSubFields().add(new SubField('d', created));
         }
 
         MarcRecord record = new MarcRecord();
@@ -1139,28 +1104,28 @@ class UpdateOperationActionTest {
         // Load a 870970 record - this is the rawrepo record
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter mergeWriter = new MarcRecordWriter(mergedRecord);
-        mergeWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+        mergeWriter.addOrReplaceSubField("d09", 'z', "LIT123456");
 
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 191919 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
-        enrichmentWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+        enrichmentWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
+        enrichmentWriter.addOrReplaceSubField("d09", 'z', "LIT123456");
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
-        updWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
+        updWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("d09", 'z', "LIT123456");
 
         state.setLibraryGroup(libraryGroupDBC);
         when(state.getRawRepo().recordExists(eq(recordId), eq(agencyId))).thenReturn(true);
@@ -1192,27 +1157,27 @@ class UpdateOperationActionTest {
         // Load a 870970 record and create a merged version
         MarcRecord mergedRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter mergeWriter = new MarcRecordWriter(mergedRecord);
-        mergeWriter.addOrReplaceSubfield("d09", "z", "LIT123456");
+        mergeWriter.addOrReplaceSubField("d09", 'z', "LIT123456");
 
         // Load a 870970 record - this is the common record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter writer = new MarcRecordWriter(record);
-        writer.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        writer.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
 
         // Load an enrichment record. Set the library to 191919 in 001*b
         MarcRecord enrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         MarcRecordWriter enrichmentWriter = new MarcRecordWriter(enrichmentRecord);
-        enrichmentWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        enrichmentWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         int enrichmentAgencyId = AssertActionsUtil.getAgencyIdAsInt(enrichmentRecord);
 
         // Load the updating record - set the library to 870970 in 001*b
         MarcRecord updateRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
         state.setMarcRecord(updateRecord);
         MarcRecordWriter updWriter = new MarcRecordWriter(updateRecord);
-        updWriter.addOrReplaceSubfield("001", "a", "206111600");
-        updWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.COMMON_AGENCY));
+        updWriter.addOrReplaceSubField("001", 'a', "206111600");
+        updWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.COMMON_AGENCY));
 
         // Existing littolk records that will be deleted
         MarcRecord littolkCommon = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_COMMON);
@@ -1220,7 +1185,7 @@ class UpdateOperationActionTest {
         littCoWriter.markForDeletion();
         MarcRecord littolkEnrichment = AssertActionsUtil.loadRecord(AssertActionsUtil.LITTOLK_ENRICHMENT);
         MarcRecordWriter littEnWriter = new MarcRecordWriter(littolkEnrichment);
-        littEnWriter.addOrReplaceSubfield("001", "b", Integer.toString(RawRepo.DBC_ENRICHMENT));
+        littEnWriter.addOrReplaceSubField("001", 'b', Integer.toString(RawRepo.DBC_ENRICHMENT));
         littEnWriter.markForDeletion();
         String littolkRecordId = AssertActionsUtil.getBibliographicRecordId(littolkCommon);
 

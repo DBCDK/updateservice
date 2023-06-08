@@ -1,9 +1,9 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.updateservice.actions.AssertActionsUtil;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -97,7 +97,7 @@ class UpdateServiceCoreTest {
     @Test
     void testClassificationCheck_MinusEnrichment() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(marcRecord).addOrReplaceSubfield("z98", "b", "Minus påhængspost");
+        new MarcRecordWriter(marcRecord).addOrReplaceSubField("z98", 'b', "Minus påhængspost");
         final BibliographicRecordDTO bibliographicRecordDTO = AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null);
 
         final UpdateServiceCore updateServiceCore = new UpdateServiceCore();
@@ -146,7 +146,7 @@ class UpdateServiceCoreTest {
     @Test
     void testClassificationCheck_RecordExisting_Holdings_NyTitle() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(marcRecord).addOrReplaceSubfield("652", "m", "Ny titel");
+        new MarcRecordWriter(marcRecord).addOrReplaceSubField("652", 'm', "Ny titel");
         final BibliographicRecordDTO bibliographicRecordDTO = AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null);
         final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
         final String bibliographicRecordId = recordReader.getRecordId();
@@ -169,7 +169,7 @@ class UpdateServiceCoreTest {
     @Test
     void testClassificationCheck_RecordExisting_Holdings_UdenKlassemaerke() throws Exception {
         final MarcRecord marcRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(marcRecord).addOrReplaceSubfield("652", "m", "Uden klassemærke");
+        new MarcRecordWriter(marcRecord).addOrReplaceSubField("652", 'm', "Uden klassemærke");
         final BibliographicRecordDTO bibliographicRecordDTO = AssertActionsUtil.constructBibliographicRecordDTO(marcRecord, null);
         final MarcRecordReader recordReader = new MarcRecordReader(marcRecord);
         final String bibliographicRecordId = recordReader.getRecordId();
@@ -197,7 +197,7 @@ class UpdateServiceCoreTest {
         final String bibliographicRecordId = recordReader.getRecordId();
         final int agencyId = recordReader.getAgencyIdAsInt();
 
-        final UpdateServiceCore updateServiceCore =new UpdateServiceCore();
+        final UpdateServiceCore updateServiceCore = new UpdateServiceCore();
         updateServiceCore.rawRepo = mock(RawRepo.class);
         updateServiceCore.holdingsItems = mock(HoldingsItemsConnector.class);
         updateServiceCore.libraryRecordsHandler = mock(LibraryRecordsHandler.class);

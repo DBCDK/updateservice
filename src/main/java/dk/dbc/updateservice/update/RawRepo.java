@@ -1,16 +1,11 @@
-
 package dk.dbc.updateservice.update;
 
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcXchangeFactory;
-import dk.dbc.common.records.marcxchange.CollectionType;
-import dk.dbc.common.records.marcxchange.ObjectFactory;
-import dk.dbc.common.records.marcxchange.RecordType;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.common.records.ExpandCommonMarcRecord;
 import dk.dbc.commons.metricshandler.CounterMetric;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.commons.metricshandler.SimpleTimerMetric;
-import dk.dbc.marcrecord.ExpandCommonMarcRecord;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.marcxmerge.FieldRules;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
@@ -33,11 +28,7 @@ import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.sql.DataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -332,8 +323,8 @@ public class RawRepo {
      * <p/>
      * If the record does not exist in the RawRepo then it will be created.
      *
-     * @param bibliographicRecordId    String
-     * @param agencyId int
+     * @param bibliographicRecordId String
+     * @param agencyId              int
      * @return The RawRepo record.
      * @throws UpdateException In case of an error from RawRepo or an SQL exception.
      */
@@ -418,7 +409,7 @@ public class RawRepo {
                     result = new HashMap<>();
                     for (Map.Entry<String, Record> entry : recordMap.entrySet()) {
                         final Record record = entry.getValue();
-                        result.put(entry.getKey(), RecordContentTransformer.decodeRecord(record.getContent()));
+                        result.put(entry.getKey(), UpdateRecordContentTransformer.decodeRecord(record.getContent()));
                     }
                 }
                 return result;
@@ -652,7 +643,7 @@ public class RawRepo {
     /**
      * Creates a link between two records in rawrepo.
      *
-     * @param id       Id of the record to link from.
+     * @param id      Id of the record to link from.
      * @param referId Id of the record to link to.
      * @throws UpdateException In case of SQLException or RawRepoException, that exception
      *                         encapsulated in an UpdateException.
@@ -686,7 +677,7 @@ public class RawRepo {
     /**
      * Loads the existing links from the id record and adds referId to that list
      *
-     * @param id       Id of the record to link from.
+     * @param id      Id of the record to link from.
      * @param referId Id of the record to link to.
      * @throws UpdateException In case of SQLException or RawRepoException, that exception
      *                         encapsulated in an UpdateException.
@@ -809,20 +800,10 @@ public class RawRepo {
         if (marcRecord.getFields().isEmpty()) {
             return null;
         }
-        final RecordType marcXchangeType = MarcXchangeFactory.createMarcXchangeFromMarc(marcRecord);
 
-        final ObjectFactory objectFactory = new ObjectFactory();
-        final JAXBElement<RecordType> jAXBElement = objectFactory.createRecord(marcXchangeType);
+        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
 
-        final JAXBContext jc = JAXBContext.newInstance(CollectionType.class);
-        final Marshaller marshaller = jc.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, "http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd");
-
-        final StringWriter recData = new StringWriter();
-        marshaller.marshal(jAXBElement, recData);
-
-        LOGGER.info("Marshalled record: {}", recData.toString());
-        return recData.toString().getBytes(StandardCharsets.UTF_8);
+        return writer.write(marcRecord, StandardCharsets.UTF_8);
     }
 
     /**

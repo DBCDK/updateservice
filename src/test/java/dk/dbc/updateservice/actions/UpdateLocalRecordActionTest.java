@@ -1,19 +1,15 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.AgencyNumber;
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.LibraryGroup;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +22,6 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.never;
@@ -39,7 +34,7 @@ class UpdateLocalRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.setLibraryGroup(libraryGroup);
         settings = new UpdateTestUtils().getSettings();
@@ -114,7 +109,7 @@ class UpdateLocalRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(true);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, volumeRecord);
         assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newOkResult()));
@@ -153,7 +148,7 @@ class UpdateLocalRecordActionTest {
         int agencyId = reader.getAgencyIdAsInt();
         String parentId = reader.getParentRecordId();
 
-        when(state.getRawRepo().recordExists(eq(parentId), eq(agencyId))).thenReturn(false);
+        when(state.getRawRepo().recordExists(parentId, agencyId)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("reference.record.not.exist"), recordId, agencyId, parentId, agencyId);
@@ -185,7 +180,7 @@ class UpdateLocalRecordActionTest {
         MarcRecordReader reader = new MarcRecordReader(record);
         String recordId = reader.getRecordId();
         int agencyId = reader.getAgencyIdAsInt();
-        new MarcRecordWriter(record).addOrReplaceSubfield("014", "a", recordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("014", 'a', recordId);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("parent.point.to.itself"), recordId, agencyId);
@@ -219,7 +214,7 @@ class UpdateLocalRecordActionTest {
 
         Set<RecordId> children = new HashSet<>();
         children.add(new RecordId("xxx", 101010));
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(children);
+        when(state.getRawRepo().children(recordId)).thenReturn(children);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
         String message = String.format(state.getMessages().getString("delete.record.children.error"), recordId.getBibliographicRecordId());
@@ -257,7 +252,7 @@ class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
@@ -309,12 +304,12 @@ class UpdateLocalRecordActionTest {
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
-        when(state.getRawRepo().recordExists(eq(mainRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().recordExists(eq(bibliographicRecordId), eq(agencyId))).thenReturn(true);
-        when(state.getRawRepo().fetchRecord(eq(mainRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(mainRecord, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().fetchRecord(eq(bibliographicRecordId), eq(agencyId))).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
-        when(state.getRawRepo().children(eq(new RecordId(mainRecordId, agencyId)))).thenReturn(AssertActionsUtil.createRecordSet(record));
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(AssertActionsUtil.createRecordSet());
+        when(state.getRawRepo().recordExists(mainRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().recordExists(bibliographicRecordId, agencyId)).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(mainRecordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(mainRecord, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().fetchRecord(bibliographicRecordId, agencyId)).thenReturn(AssertActionsUtil.createRawRepoRecord(record, MarcXChangeMimeType.MARCXCHANGE));
+        when(state.getRawRepo().children(new RecordId(mainRecordId, agencyId))).thenReturn(AssertActionsUtil.createRecordSet(record));
+        when(state.getRawRepo().children(recordId)).thenReturn(AssertActionsUtil.createRecordSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(mainRecordId)).thenReturn(AssertActionsUtil.createAgenciesSet());
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(AssertActionsUtil.createAgenciesSet());
 
@@ -358,11 +353,11 @@ class UpdateLocalRecordActionTest {
 
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId.getBibliographicRecordId()))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
         assertThat(updateLocalRecordAction.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
@@ -403,10 +398,10 @@ class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
-        when(state.getHoldingsItems().getAgenciesWithHoldings(eq(recordId.getBibliographicRecordId()))).thenReturn(holdings);
+        when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(holdings);
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(false);
 
         UpdateLocalRecordAction updateLocalRecordAction = new UpdateLocalRecordAction(state, settings, record);
@@ -448,7 +443,7 @@ class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(new HashSet<>());
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
@@ -491,7 +486,7 @@ class UpdateLocalRecordActionTest {
         when(state.getVipCoreService().hasFeature(agencyId.toString(), VipCoreLibraryRulesConnector.Rule.AUTH_EXPORT_HOLDINGS)).thenReturn(true);
 
         UpdateLocalRecordAction instance = new UpdateLocalRecordAction(state, settings, record);
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         String message = state.getMessages().getString("delete.local.with.holdings.error");
         assertThat(instance.performAction(), is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message)));
     }
@@ -531,7 +526,7 @@ class UpdateLocalRecordActionTest {
         new MarcRecordWriter(record).markForDeletion();
         final RecordId recordId = AssertActionsUtil.getRecordId(record);
 
-        when(state.getRawRepo().children(eq(recordId))).thenReturn(new HashSet<>());
+        when(state.getRawRepo().children(recordId)).thenReturn(new HashSet<>());
         Set<Integer> holdings = new HashSet<>();
         holdings.add(agencyId.getAgencyId());
         when(state.getHoldingsItems().getAgenciesWithHoldings(recordId.getBibliographicRecordId())).thenReturn(holdings);

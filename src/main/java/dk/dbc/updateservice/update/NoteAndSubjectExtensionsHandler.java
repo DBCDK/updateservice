@@ -1,17 +1,14 @@
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.common.records.CatalogExtractionCode;
-import dk.dbc.common.records.MarcField;
-import dk.dbc.common.records.MarcFieldReader;
-import dk.dbc.common.records.MarcFieldWriter;
-import dk.dbc.common.records.MarcRecord;
+import dk.dbc.common.records.ExpandCommonMarcRecord;
+import dk.dbc.common.records.MarcRecordExpandException;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
-import dk.dbc.common.records.utils.RecordContentTransformer;
-import dk.dbc.marcrecord.ExpandCommonMarcRecord;
-import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Leader;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
@@ -29,6 +26,9 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
+import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 
 public class NoteAndSubjectExtensionsHandler {
     private static final DeferredLogger LOGGER = new DeferredLogger(NoteAndSubjectExtensionsHandler.class);
@@ -57,23 +57,23 @@ public class NoteAndSubjectExtensionsHandler {
      * if disputas and the agency may add dk5 to such, then do it
      * if not, then error.
      */
-    void addDK5Fields(MarcRecord result, MarcRecord marcRecord, MarcRecordReader reader, MarcRecord curRecord, MarcRecordReader curReader , String groupId ) throws UpdateException, VipCoreException {
+    void addDK5Fields(MarcRecord result, MarcRecord marcRecord, MarcRecordReader reader, MarcRecord curRecord, MarcRecordReader curReader, String groupId) throws UpdateException, VipCoreException {
         LOGGER.<Void, UpdateException, VipCoreException>callChecked2(log -> {
-            final List<MarcField> new652Fields = marcRecord.getFields().stream()
-                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-            final List<MarcField> current652Fields = curRecord.getFields().stream()
-                    .filter(field -> field.getName().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
-            if (marcFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
+            final List<DataField> new652Fields = marcRecord.getFields(DataField.class).stream()
+                    .filter(field -> field.getTag().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            final List<DataField> current652Fields = curRecord.getFields(DataField.class).stream()
+                    .filter(field -> field.getTag().matches(CLASSIFICATION_FIELDS)).collect(Collectors.toList());
+            if (dataFieldsEqualsIgnoreAmpersand(new652Fields, current652Fields)) {
                 result.getFields().addAll(current652Fields);
             } else {
                 // If disputa and there are new 652 fields, then we have to dig deeper
-                if (curReader.hasValue("008", "d", "m") && ! new652Fields.isEmpty()) {
+                if (curReader.hasValue("008", 'd', "m") && !new652Fields.isEmpty()) {
                     if (vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_ADD_DK5_TO_PHD_ALLOWED)) {
-                        final String curr = curReader.getValue("652", "m");
+                        final String curr = curReader.getValue("652", 'm');
                         if (curr.equalsIgnoreCase(NO_CLASSIFICATION)) {
-                            final String newDk5 = reader.getValue("652", "m");
-                            if (! newDk5.isEmpty()) {
-                                for (MarcField new652Field : new652Fields) {
+                            final String newDk5 = reader.getValue("652", 'm');
+                            if (!newDk5.isEmpty()) {
+                                for (DataField new652Field : new652Fields) {
                                     result.getFields().add(copyWithNewAmpersand(new652Field, groupId));
                                 }
                             } else {
@@ -109,6 +109,7 @@ public class NoteAndSubjectExtensionsHandler {
      * Creates an extended record of some unexpanded record. Please note, this was first done
      * because the callChecked interface couldn't handle three exceptions, but are now used at two
      * places
+     *
      * @param marcRecord the record to expand
      * @return expanded record
      * @throws UpdateException there is something rotten in rawrepo
@@ -120,7 +121,7 @@ public class NoteAndSubjectExtensionsHandler {
             final String recId = reader.getRecordId();
             final Map<String, MarcRecord> currentRecordCollection = rawRepo.fetchRecordCollection(recId, reader.getAgencyIdAsInt());
             result = ExpandCommonMarcRecord.expandMarcRecord(currentRecordCollection, recId);
-        } catch (RawRepoException e) {
+        } catch (MarcRecordExpandException e) {
             throw new UpdateException("Exception while expanding the records", e);
         }
         return result;
@@ -130,23 +131,24 @@ public class NoteAndSubjectExtensionsHandler {
      * Handles modifying subject fields given in EXTENDABLE_CONTROLLED_SUBJECT_FIELDS
      * The mechanism is pretty simple, if any of the fields are owned by dbc, then it isn't allowed for libraries to modify any
      * If none are dbc fields, then the old fields are deleted and the new ones are added with the updating agency as owner
-     * @param result            the resulting record
-     * @param marcRecord        the updating record
-     * @param curRecord         the record in rawrepo
-     * @param groupId           the updating agency id
-     * @throws UpdateException  attempt to modify dbc owned subjects detected
+     *
+     * @param result     the resulting record
+     * @param marcRecord the updating record
+     * @param curRecord  the record in rawrepo
+     * @param groupId    the updating agency id
+     * @throws UpdateException attempt to modify dbc owned subjects detected
      */
-    void addSubjectFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+    void addSubjectFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId) throws UpdateException {
         final MarcRecord expandedCurrentRecord;
         expandedCurrentRecord = getExpandedRecord(curRecord);
-        final List<MarcField> newControlledSubjectFields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> currentControlledSubjectFields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> currentExpandedControlledSubjectFields = expandedCurrentRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<DataField> newControlledSubjectFields = marcRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<DataField> currentControlledSubjectFields = curRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<DataField> currentExpandedControlledSubjectFields = expandedCurrentRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS)).collect(Collectors.toList());
 
-        if (marcFieldsEqualsIgnoreAmpersand(newControlledSubjectFields, currentExpandedControlledSubjectFields)) {
+        if (dataFieldsEqualsIgnoreAmpersand(newControlledSubjectFields, currentExpandedControlledSubjectFields)) {
             // Controlled subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentControlledSubjectFields);
         } else {
@@ -155,29 +157,29 @@ public class NoteAndSubjectExtensionsHandler {
                 LOGGER.use(log -> log.error("Unable to create sub actions due to an error: {}", msg));
                 throw new UpdateException(msg);
             } else {
-                for (MarcField newControlledSubjectField : newControlledSubjectFields) {
+                for (DataField newControlledSubjectField : newControlledSubjectFields) {
                     result.getFields().add(copyWithNewAmpersand(newControlledSubjectField, groupId));
                 }
             }
         }
 
         // Handle (non-controlled) subject fields. These fields are handled individually
-        final List<MarcField> newSubjectFields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
-        final List<MarcField> currentSubjectFields = expandedCurrentRecord.getFields().stream()
-                .filter(field -> field.getName().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<DataField> newSubjectFields = marcRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
+        final List<DataField> currentSubjectFields = expandedCurrentRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(EXTENDABLE_SUBJECT_FIELDS)).collect(Collectors.toList());
 
-        if (marcFieldsEqualsIgnoreAmpersand(newSubjectFields, currentSubjectFields)) {
+        if (dataFieldsEqualsIgnoreAmpersand(newSubjectFields, currentSubjectFields)) {
             // Subject field are identical, so just copy the existing ones over
             result.getFields().addAll(currentSubjectFields);
         } else {
-            final List<MarcField> currentSubjectFieldsCloned = new ArrayList<>();
-            currentSubjectFields.forEach(f -> currentSubjectFieldsCloned.add(new MarcField(f)));
-            currentSubjectFieldsCloned.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
+            final List<DataField> currentSubjectFieldsCloned = new ArrayList<>();
+            currentSubjectFields.forEach(f -> currentSubjectFieldsCloned.add(new DataField(f)));
+            currentSubjectFieldsCloned.forEach(f -> f.removeSubField('&'));
             // If the existing field is unchanged then we need to keep the value of *& which might not be included in the incoming record
-            for (MarcField newSubjectField : newSubjectFields) {
-                final MarcField newSubjectFieldClone = new MarcField(newSubjectField);
-                new MarcFieldWriter(newSubjectFieldClone).removeSubfield("&");
+            for (DataField newSubjectField : newSubjectFields) {
+                final DataField newSubjectFieldClone = new DataField(newSubjectField);
+                newSubjectFieldClone.removeSubField('&');
                 boolean addNewSubjectField = true;
                 for (int i = 0; i < currentSubjectFieldsCloned.size(); i++) {
                     // The position of the fields are the same. If we match a field in the list without ampersand then
@@ -189,7 +191,7 @@ public class NoteAndSubjectExtensionsHandler {
                     }
                 }
                 if (addNewSubjectField) {
-                    newSubjectFieldClone.getSubfields().add(0, new MarcSubField("&", groupId));
+                    newSubjectFieldClone.getSubFields().add(0, new SubField('&', groupId));
                     result.getFields().add(newSubjectFieldClone);
                 }
             }
@@ -203,11 +205,11 @@ public class NoteAndSubjectExtensionsHandler {
      * @return           The found list of fields
      * @throws UpdateException Somehow the expansion of the record failed
      */
-    private List<MarcField> collectFields(MarcRecord record, String fieldList) throws UpdateException {
+    private List<DataField> collectFields(MarcRecord record, String fieldList) throws UpdateException {
         final MarcRecord expandedCurrentRecord;
         expandedCurrentRecord = getExpandedRecord(record);
-        return expandedCurrentRecord.getFields().stream()
-                .filter(field -> field.getName().matches(fieldList)).collect(Collectors.toList());
+        return expandedCurrentRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(fieldList)).collect(Collectors.toList());
     }
 
     /**
@@ -219,12 +221,12 @@ public class NoteAndSubjectExtensionsHandler {
      * @return           Returns whether there is dbc owned fields or not
      * @throws UpdateException Something went wrong while fetching a record
      */
-    private boolean checkStructureForDbc(MarcRecord record, String fieldList, List<MarcField> fields) throws UpdateException {
+    private boolean checkStructureForDbc(MarcRecord record, String fieldList, List<DataField> fields) throws UpdateException {
         boolean result;
         MarcRecord worker = new MarcRecord(record);
-        List<MarcField> fullList = new ArrayList<>(fields);
+        List<DataField> fullList = new ArrayList<>(fields);
         MarcRecordReader reader = new MarcRecordReader(worker);
-        final String recordType = reader.getValue("004", "a");
+        final String recordType = reader.getValue("004", 'a');
         if (Arrays.asList("h", "s", "b").contains(recordType)) {
             // her skal der dykkes, surfaces, sidesteppes og andet spændende.
             List<RecordId> recSet = new ArrayList<>();
@@ -234,11 +236,12 @@ public class NoteAndSubjectExtensionsHandler {
                 final Set<RecordId> commonParents = parents.stream().filter(r -> r.getAgencyId() == RawRepo.COMMON_AGENCY).collect(Collectors.toSet());
                 for (RecordId parent : commonParents) {
                     final Record childRecord = rawRepo.fetchRecord(parent.getBibliographicRecordId(), parent.getAgencyId());
-                    final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                    final MarcRecord childMarcRecord = UpdateRecordContentTransformer.decodeRecord(childRecord.getContent());
                     MarcRecordReader r = new MarcRecordReader(childMarcRecord);
-                    if ("h".equals(r.getValue("004", "a"))) {
+                    if ("h".equals(r.getValue("004", 'a'))) {
                         recSet.add(new RecordId(r.getRecordId(), r.getAgencyIdAsInt()));
-                        worker.setFields(childMarcRecord.getFields());
+                        worker.getFields().clear();
+                        worker.getFields().addAll(childMarcRecord.getFields());
                         break;
                     }
                 }
@@ -253,7 +256,7 @@ public class NoteAndSubjectExtensionsHandler {
             // And then all the children fields - there may be none
             for (RecordId child : children) {
                 final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
-                final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                final MarcRecord childMarcRecord = UpdateRecordContentTransformer.decodeRecord(childRecord.getContent());
                 fullList.addAll(collectFields(childMarcRecord, fieldList));
             }
         }
@@ -265,15 +268,16 @@ public class NoteAndSubjectExtensionsHandler {
     /**
      * See whether there is a *&amp; 7xxxxx subfield or not.
      * Just for the fun of it, some dbc owned fields have subfields *&amp;0 and *&amp;1, so it's not enough to check if *&amp; exists
+     *
      * @param fields The field list to check
      * @return return true if there isn't a *&amp;7xxxxx subfield otherwise false
      */
-    private boolean isDbcField(List<MarcField> fields) {
+    private boolean isDbcField(List<DataField> fields) {
         boolean agencyOwned;
-        for (MarcField cnf : fields) {
+        for (DataField cnf : fields) {
             agencyOwned = false;
-            for (MarcSubField cnsf : cnf.getSubfields()) {
-                if (cnsf.getName().equals("&") && cnsf.getValue().startsWith("7")) {
+            for (SubField cnsf : cnf.getSubFields()) {
+                if ('&' == cnsf.getCode() && cnsf.getData().startsWith("7")) {
                     agencyOwned = true;
                     break;
                 }
@@ -291,28 +295,29 @@ public class NoteAndSubjectExtensionsHandler {
      * If there are no dbc note field, then add incoming notes (thereby destroying existing)
      * In all cases the *&amp; subfield is given the updating agency as owner
      * Update notes is impossible since we don't receive a "change this note to that" request, just a record with the content the updater want.
-     * @param result           The marcrecord containing the result of the function
-     * @param marcRecord       The updating record
-     * @param curRecord        The record found in rawrepo
-     * @param groupId          The updating library's agency id
+     *
+     * @param result     The marcrecord containing the result of the function
+     * @param marcRecord The updating record
+     * @param curRecord  The record found in rawrepo
+     * @param groupId    The updating library's agency id
      * @throws UpdateException Something not allowed has happened
      */
-    private void addNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+    private void addNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId) throws UpdateException {
         String[] fields = EXTENDABLE_NOTE_FIELDS.split("\\|");
         for (String field : fields) {
             doAddNoteFields(result, marcRecord, curRecord, groupId, field);
         }
     }
 
-    private void doAddNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId, String noteField ) throws UpdateException {
+    private void doAddNoteFields(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId, String noteField) throws UpdateException {
 
-        final List<MarcField> newNoteFields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(noteField)).collect(Collectors.toList());
-        final List<MarcField> currentNoteFields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(noteField)).collect(Collectors.toList());
+        final List<DataField> newNoteFields = marcRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(noteField)).collect(Collectors.toList());
+        final List<DataField> currentNoteFields = curRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(noteField)).collect(Collectors.toList());
 
         LOGGER.callChecked(log -> {
-            if (marcFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
+            if (dataFieldsEqualsIgnoreAmpersand(newNoteFields, currentNoteFields)) {
                 result.getFields().addAll(currentNoteFields);
             } else {
                 if (checkStructureForDbc(curRecord, noteField, currentNoteFields)) {
@@ -321,7 +326,7 @@ public class NoteAndSubjectExtensionsHandler {
                     log.info("Unable to create sub actions due to an error: {}", msg);
                     throw new UpdateException(msg);
                 }
-                for (MarcField newNoteField : newNoteFields) {
+                for (DataField newNoteField : newNoteFields) {
                     result.getFields().add(copyWithNewAmpersand(newNoteField, groupId));
                 }
             }
@@ -329,13 +334,13 @@ public class NoteAndSubjectExtensionsHandler {
         });
     }
 
-    void addCatalogField(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId ) throws UpdateException {
+    void addCatalogField(MarcRecord result, MarcRecord marcRecord, MarcRecord curRecord, String groupId) throws UpdateException {
         // Technically "there can be only one" of this field - maybe we can murder the List ? Nah, we keep the list of one
-        final List<MarcField> newCatalogCodeFields = marcRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
-        final List<MarcField> currentCatalogCodeFields = curRecord.getFields().stream()
-                .filter(field -> field.getName().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
-        List<MarcField> newFields = createCatalogField(newCatalogCodeFields, currentCatalogCodeFields, groupId);
+        final List<DataField> newCatalogCodeFields = marcRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
+        final List<DataField> currentCatalogCodeFields = curRecord.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
+        final List<DataField> newFields = createCatalogField(newCatalogCodeFields, currentCatalogCodeFields, groupId);
         new MarcRecordWriter(result).removeField("032");
         result.getFields().addAll(newFields);
     }
@@ -355,20 +360,20 @@ public class NoteAndSubjectExtensionsHandler {
         return LOGGER.<MarcRecord, UpdateException, VipCoreException>callChecked2(log -> {
             if (!rawRepo.recordExists(recId, RawRepo.COMMON_AGENCY)) {
                 log.info("No existing record - returning same record");
-                if (!"DBC".equals(reader.getValue("996", "a")) && reader.hasField("032")) {
+                if (!"DBC".equals(reader.getValue("996", 'a')) && reader.hasField("032")) {
                     if (!vipCoreService.isAuthRootOrCB(groupId)) {
                         final String msg = messages.getString("update.library.record.catalog.codes.not.cb");
                         log.error("Unable to create sub actions due to an error: {}", msg);
                         throw new UpdateException(msg);
                     }
                     validateCatalogCodes(marcRecord);
-                    addCatalogField(marcRecord, marcRecord, new MarcRecord(), groupId);
+                    addCatalogField(marcRecord, marcRecord, new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER)), groupId);
                 }
                 return marcRecord;
             }
-            final MarcRecord curRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecord curRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recId, RawRepo.COMMON_AGENCY).getContent());
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
-            if (!"DBC".equals(curReader.getValue("996", "a"))) {
+            if (!"DBC".equals(curReader.getValue("996", 'a'))) {
                 log.info("Record is decentral - returning same record");
                 validateCatalogCodes(marcRecord);
                 return marcRecord;
@@ -378,7 +383,7 @@ public class NoteAndSubjectExtensionsHandler {
             // i.e. has a weekcode in the record that are older than current time
             // However that will be verified by AuthenticateRecordAction so at this point we assume everything is fine
 
-            final MarcRecord result = new MarcRecord();
+            final MarcRecord result = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
             log.info("Record exists and is common national record - setting extension fields");
 
             String extendableFieldsRx = createExtendableFieldsRx(groupId);
@@ -391,9 +396,9 @@ public class NoteAndSubjectExtensionsHandler {
             log.info("Extendable fields: {} ", extendableFieldsRx);
 
             // Start by handling all the not-note/subject/OVE fields in the existing record
-            for (MarcField curField : curRecord.getFields()) {
-                if (!curField.getName().matches(extendableFieldsRx)) {
-                    final MarcField fieldClone = new MarcField(curField);
+            for (DataField curField : curRecord.getFields(DataField.class)) {
+                if (!curField.getTag().matches(extendableFieldsRx)) {
+                    final DataField fieldClone = new DataField(curField);
                     result.getFields().add(fieldClone);
                 }
             }
@@ -426,12 +431,12 @@ public class NoteAndSubjectExtensionsHandler {
     }
 
     private void validateCatalogCodes(MarcRecord record) throws UpdateException {
-        final List<MarcField> newCatalogCodeFields = record.getFields().stream()
-                .filter(field -> field.getName().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
+        final List<DataField> newCatalogCodeFields = record.getFields(DataField.class).stream()
+                .filter(field -> field.getTag().matches(CATALOGUE_CODE_FIELD)).collect(Collectors.toList());
         LOGGER.callChecked(log -> {
-            for (MarcField field : newCatalogCodeFields) {
-                for (MarcSubField subField : field.getSubfields()) {
-                    if (subField.getName().equals("a")) {
+            for (DataField field : newCatalogCodeFields) {
+                for (SubField subField : field.getSubFields()) {
+                    if ('a' == subField.getCode()) {
                         final String msg = messages.getString("update.library.record.catalog.codes.x.only");
                         log.error("Unable to create sub actions due to an error: {}", msg);
                         throw new UpdateException(msg);
@@ -442,52 +447,53 @@ public class NoteAndSubjectExtensionsHandler {
         });
     }
 
-    private String getOveCode(MarcField newCatalogField) {
-        for (MarcSubField subField : newCatalogField.getSubfields()) {
-            if ("x".equals(subField.getName()) && subField.getValue().startsWith("OVE")) return subField.getValue();
+    private String getOveCode(DataField newCatalogField) {
+        for (SubField subfield : newCatalogField.getSubFields()) {
+            if ('x' == subfield.getCode() && subfield.getData().startsWith("OVE")) return subfield.getData();
         }
         return "";
     }
 
-    List<MarcSubField> updateOveAndAmp(MarcField field, String groupId, String oveCode) {
-        List<MarcSubField> newList = new ArrayList<>();
-        List<MarcSubField> subs = field.getSubfields();
-        for (MarcSubField s1 : subs) {
-            if ("&".equals(s1.getName())) continue;
-            if ("x".equals(s1.getName()) && s1.getValue().startsWith("OVE")) continue;
+    List<SubField> updateOveAndAmp(DataField field, String groupId, String oveCode) {
+        List<SubField> newList = new ArrayList<>();
+        List<SubField> subs = field.getSubFields();
+        for (SubField s1 : subs) {
+            if ('&' == s1.getCode()) continue;
+            if ('x' == s1.getCode() && s1.getData().startsWith("OVE")) continue;
             newList.add(s1);
         }
         if (!oveCode.isEmpty()) {
-            newList.add(new MarcSubField("&", groupId));
-            newList.add(new MarcSubField("x", oveCode));
+            newList.add(new SubField('&', groupId));
+            newList.add(new SubField('x', oveCode));
         }
         return newList;
 
     }
 
-    List<MarcSubField> clean(List<MarcSubField> subs, boolean all) {
-        List<MarcSubField> newList = new ArrayList<>();
+    List<SubField> clean(List<SubField> subs, boolean all) {
+        List<SubField> newList = new ArrayList<>();
         if (all) {
             newList.addAll(subs);
         } else {
-            for (MarcSubField s1 : subs) {
-                if ("&".equals(s1.getName())) continue;
-                if ("x".equals(s1.getName()) && s1.getValue().startsWith("OVE")) continue;
+            for (SubField s1 : subs) {
+                if ('&' == s1.getCode()) continue;
+                if ('x' == s1.getCode() && s1.getData().startsWith("OVE")) continue;
                 newList.add(s1);
             }
         }
         return newList;
     }
+
     /**
      * @param l1  the field 032 in the incoming record
      * @param l2  the field 032 in the existing record
      * @param all if true, all subfields will be matched otherwise *&amp; and *x with OVE
-     * @return    true if l1 and l2 contains the same no matter order
+     * @return true if l1 and l2 contains the same no matter order
      */
-    boolean compareCatalogSubFields(MarcField l1, MarcField l2, boolean all) {
-        Collection<MarcSubField> s1 = clean(l1.getSubfields(), all);
-        Collection<MarcSubField> s2 = clean(l2.getSubfields(), all);
-        for (MarcSubField s : s1) {
+    boolean compareCatalogSubFields(DataField l1, DataField l2, boolean all) {
+        Collection<SubField> s1 = clean(l1.getSubFields(), all);
+        Collection<SubField> s2 = clean(l2.getSubFields(), all);
+        for (SubField s : s1) {
             if (s2.contains(s)) {
                 s2.remove(s);
             } else {
@@ -499,10 +505,10 @@ public class NoteAndSubjectExtensionsHandler {
 
     /**
      *
-     * @param newCatalogCodeFields      field 032 in incoming record - may be empty
-     * @param currentCatalogCodeFields  field 032 in existing record - may also be empty
-     * @return                          the new field 032
-     * @throws UpdateException          some subfields not containing an OVE code were removed or added which is strictly forbidden
+     * @param newCatalogCodeFields     field 032 in incoming record - may be empty
+     * @param currentCatalogCodeFields field 032 in existing record - may also be empty
+     * @return the new field 032
+     * @throws UpdateException some subfields not containing an OVE code were removed or added which is strictly forbidden
      * This function handle the case where a library attempts to add an OVE code to a DBC owned record. It also expects that there is only one field 032
      * Cases are :
      * 1: If the two fields are totally equal, then return one of them.
@@ -513,13 +519,13 @@ public class NoteAndSubjectExtensionsHandler {
      * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *&amp; and "OVE", that is,
      * if the fields only differ on *&amp; and *xOVE then those in the current shall be removed, the OVE code added and a *&amp; with groupId should be added
      */
-    private List<MarcField> createCatalogField(List<MarcField> newCatalogCodeFields, List<MarcField> currentCatalogCodeFields, String groupId) throws UpdateException {
-        List <MarcField> resultCatalogCodeFields = new ArrayList<>();
+    private List<DataField> createCatalogField(List<DataField> newCatalogCodeFields, List<DataField> currentCatalogCodeFields, String groupId) throws UpdateException {
+        List<DataField> resultCatalogCodeFields = new ArrayList<>();
         return LOGGER.callChecked(log -> {
-            MarcField currentWork;
-            currentWork = currentCatalogCodeFields.isEmpty() ? new MarcField() : currentCatalogCodeFields.get(0);
-            MarcField newWork;
-            newWork = newCatalogCodeFields.isEmpty() ? new MarcField() : newCatalogCodeFields.get(0);
+            DataField currentWork;
+            currentWork = currentCatalogCodeFields.isEmpty() ? new DataField() : currentCatalogCodeFields.get(0);
+            DataField newWork;
+            newWork = newCatalogCodeFields.isEmpty() ? new DataField() : newCatalogCodeFields.get(0);
 
             // Point 1
             if (compareCatalogSubFields(newWork, currentWork, true)) {
@@ -529,7 +535,7 @@ public class NoteAndSubjectExtensionsHandler {
             // Point 2
             if (newCatalogCodeFields.isEmpty()) {
                 // No need to check if current is empty - that case is handled in point 1
-                if (clean(currentWork.getSubfields(), true).isEmpty()) {
+                if (clean(currentWork.getSubFields(), true).isEmpty()) {
                     // remove any *& and OVE
                     return newCatalogCodeFields;
                 } else {
@@ -542,9 +548,10 @@ public class NoteAndSubjectExtensionsHandler {
             // Point 3
             // * 3: If the old field is empty, then new field, if it exists, may not contain subfields "a" and "x" without "OVE", that will be an error. If it contains *xOVE then add necessary
             if (currentCatalogCodeFields.isEmpty()) {
-                if (clean(newWork.getSubfields(), false).isEmpty()) {
+                if (clean(newWork.getSubFields(), false).isEmpty()) {
                     String oveCode = getOveCode(newWork);
-                    newWork.setSubfields(updateOveAndAmp(newWork, groupId, oveCode));
+                    newWork.getSubFields().clear();
+                    newWork.getSubFields().addAll(updateOveAndAmp(newWork, groupId, oveCode));
                     resultCatalogCodeFields.add(newWork);
                     return resultCatalogCodeFields;
                 } else {
@@ -558,8 +565,10 @@ public class NoteAndSubjectExtensionsHandler {
             // * 4: If there are both an old and a new 032 field then it should be checked that there only are difference due to *& and "OVE", that is,
             // * if the fields only differ on *& and *xOVE then those in the current shall be removed, the OVE code added and a *& with groupId should be added
             if (compareCatalogSubFields(newWork, currentWork, false)) {
-                String oveCode = getOveCode(newWork);
-                newWork.setSubfields(updateOveAndAmp(newWork, groupId, oveCode));
+                final String oveCode = getOveCode(newWork);
+                final List<SubField> oveAndAmpSubFields = updateOveAndAmp(newWork, groupId, oveCode);
+                newWork.getSubFields().clear();
+                newWork.getSubFields().addAll(oveAndAmpSubFields);
                 resultCatalogCodeFields.add(newWork);
                 return resultCatalogCodeFields;
             } else {
@@ -570,24 +579,24 @@ public class NoteAndSubjectExtensionsHandler {
         });
     }
 
-    private MarcField copyWithNewAmpersand(MarcField marcField, String groupId) {
-        final MarcField fieldClone = new MarcField(marcField);
-        new MarcFieldWriter(fieldClone).removeSubfield("&");
-        fieldClone.getSubfields().add(0, new MarcSubField("&", groupId));
+    private DataField copyWithNewAmpersand(DataField dataField, String groupId) {
+        final DataField fieldClone = new DataField(dataField);
+        fieldClone.removeSubField('&');
+        fieldClone.getSubFields().add(0, new SubField('&', groupId));
         return fieldClone;
     }
 
-    public boolean marcFieldsEqualsIgnoreAmpersand(List<MarcField> l1, List<MarcField> l2) {
-        final List<MarcField> l1Clone = new ArrayList<>();
-        final List<MarcField> l2Clone = new ArrayList<>();
+    public boolean dataFieldsEqualsIgnoreAmpersand(List<DataField> l1, List<DataField> l2) {
+        final List<DataField> l1Clone = new ArrayList<>();
+        final List<DataField> l2Clone = new ArrayList<>();
 
-        l1.forEach(f -> l1Clone.add(new MarcField(f)));
-        l1Clone.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
+        l1.forEach(f -> l1Clone.add(new DataField(f)));
+        l1Clone.forEach(f -> f.removeSubField('&'));
 
-        l2.forEach(f -> l2Clone.add(new MarcField(f)));
-        l2Clone.forEach(f -> new MarcFieldWriter(f).removeSubfield("&"));
+        l2.forEach(f -> l2Clone.add(new DataField(f)));
+        l2Clone.forEach(f -> f.removeSubField('&'));
 
-        final List<MarcField> l3Clone = new ArrayList<>(l1Clone);
+        final List<DataField> l3Clone = new ArrayList<>(l1Clone);
         l1Clone.forEach(f -> {
             if (l2Clone.contains(f)) {
                 l3Clone.remove(f);
@@ -604,38 +613,35 @@ public class NoteAndSubjectExtensionsHandler {
      * @param marcRecord record to compare the field in
      * @return boolean True if the record has a field that matches field
      */
-    boolean isFieldChangedInOtherRecord(MarcField field, MarcRecord marcRecord) {
+    boolean isFieldChangedInOtherRecord(DataField field, MarcRecord marcRecord) {
         final MarcRecord cloneMarcRecord = new MarcRecord(marcRecord);
         final MarcRecordReader cloneMarcRecordReader = new MarcRecordReader(cloneMarcRecord);
         final MarcRecordWriter cloneMarcRecordWriter = new MarcRecordWriter(cloneMarcRecord);
-        final MarcFieldReader fieldReader = new MarcFieldReader(field);
 
-        if (field.getName().equals("001")) {
-            if (fieldReader.hasSubfield("c")) {
-                cloneMarcRecordWriter.addOrReplaceSubfield("001", "c", fieldReader.getValue("c"));
+        if (field.getTag().equals("001")) {
+            if (field.hasSubField(hasSubFieldCode('c'))) {
+                cloneMarcRecordWriter.addOrReplaceSubField("001", 'c', field.getSubField(hasSubFieldCode('c')).orElseThrow().getData());
             }
 
-            if (fieldReader.hasSubfield("d")) {
-                cloneMarcRecordWriter.addOrReplaceSubfield("001", "d", fieldReader.getValue("d"));
+            if (field.hasSubField(hasSubFieldCode('d'))) {
+                cloneMarcRecordWriter.addOrReplaceSubField("001", 'd', field.getSubField(hasSubFieldCode('d')).orElseThrow().getData());
             }
         }
 
         // Handle field which has subfields from expanded authority records which is not allowed in the template
-        if (Arrays.asList("900", "910", "945", "952").contains(field.getName())) {
-            for (MarcField cloneField : cloneMarcRecordReader.getFieldAll(field.getName())) {
-                final MarcFieldWriter cloneFieldWriter = new MarcFieldWriter(cloneField);
-
-                for (String subfieldName : Arrays.asList("w", "x", "z")) {
-                    if (fieldReader.hasSubfield(subfieldName)) {
-                        cloneFieldWriter.addOrReplaceSubfield(subfieldName, fieldReader.getValue(subfieldName));
+        if (Arrays.asList("900", "910", "945", "952").contains(field.getTag())) {
+            for (DataField cloneField : cloneMarcRecordReader.getFieldAll(field.getTag())) {
+                for (char subfieldName : Arrays.asList('w', 'x', 'z')) {
+                    if (field.hasSubField(hasSubFieldCode(subfieldName))) {
+                        cloneField.addOrReplaceFirstSubField(new SubField(subfieldName, field.getSubField(hasSubFieldCode(subfieldName)).orElseThrow().getData()));
                     } else {
-                        cloneFieldWriter.removeSubfield(subfieldName);
+                        cloneField.removeSubField(subfieldName);
                     }
                 }
             }
         }
 
-        for (MarcField cf : cloneMarcRecordReader.getFieldAll(field.getName())) {
+        for (DataField cf : cloneMarcRecordReader.getFieldAll(field.getTag())) {
             if (cf.equals(field)) {
                 return false;
             }
@@ -690,7 +696,7 @@ public class NoteAndSubjectExtensionsHandler {
     public boolean isPublishedDBCRecord(MarcRecord marcRecord) throws UpdateException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
 
-        final String recordType = reader.getValue("004", "a");
+        final String recordType = reader.getValue("004", 'a');
 
         if (Arrays.asList("h", "s").contains(recordType)) {
             final RecordId recordId = new RecordId(reader.getRecordId(), reader.getAgencyIdAsInt());
@@ -702,7 +708,7 @@ public class NoteAndSubjectExtensionsHandler {
 
             for (RecordId child : commonChildren) {
                 final Record childRecord = rawRepo.fetchRecord(child.getBibliographicRecordId(), child.getAgencyId());
-                final MarcRecord childMarcRecord = RecordContentTransformer.decodeRecord(childRecord.getContent());
+                final MarcRecord childMarcRecord = UpdateRecordContentTransformer.decodeRecord(childRecord.getContent());
 
                 if (isPublishedDBCRecord(childMarcRecord)) {
                     return true;
@@ -710,7 +716,7 @@ public class NoteAndSubjectExtensionsHandler {
             }
             return false;
         } else {
-            return reader.hasValue("996", "a", "DBC") &&
+            return reader.hasValue("996", 'a', "DBC") &&
                     CatalogExtractionCode.isPublishedIgnoreCatalogCodes(marcRecord);
         }
     }
@@ -739,7 +745,7 @@ public class NoteAndSubjectExtensionsHandler {
             try {
                 final Map<String, MarcRecord> curRecordCollection = rawRepo.fetchRecordCollection(recId, RawRepo.COMMON_AGENCY);
                 curRecord = ExpandCommonMarcRecord.expandMarcRecord(curRecordCollection, recId);
-            } catch (RawRepoException e) {
+            } catch (MarcRecordExpandException e) {
                 throw new UpdateException("Exception while loading current record", e);
             }
             final MarcRecordReader curReader = new MarcRecordReader(curRecord);
@@ -751,16 +757,16 @@ public class NoteAndSubjectExtensionsHandler {
             if (!vipCoreService.hasFeature(groupId, VipCoreLibraryRulesConnector.Rule.AUTH_COMMON_NOTES)) {
                 log.info("AgencyId {} does not have feature AUTH_COMMON_NOTES in vipcore - checking for changed note fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
-                for (MarcField field : marcRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
-                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                for (DataField field : marcRecord.getFields(DataField.class)) {
+                    if (field.getTag().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, curRecord)) {
+                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getTag(), recId);
                         result.add(createMessageDTO(message));
                     }
                 }
                 // Check if all fields in the existing record are in the incoming record
-                for (MarcField field : curRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
-                        final String fieldName = field.getName();
+                for (DataField field : curRecord.getFields(DataField.class)) {
+                    if (field.getTag().matches(EXTENDABLE_NOTE_FIELDS) && isFieldChangedInOtherRecord(field, marcRecord)) {
+                        final String fieldName = field.getTag();
                         if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
                             final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
                             result.add(createMessageDTO(message));
@@ -775,18 +781,18 @@ public class NoteAndSubjectExtensionsHandler {
 
                 log.info("AgencyId {} does not have feature AUTH_COMMON_SUBJECTS in vipcore - checking for changed subject fields", groupId);
                 // Check if all fields in the incoming record are in the existing record
-                for (MarcField field : marcRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
+                for (DataField field : marcRecord.getFields(DataField.class)) {
+                    if (field.getTag().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
                             isFieldChangedInOtherRecord(field, expandedCurrentRecord)) {
-                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getName(), recId);
+                        final String message = String.format(resourceBundle.getString("notes.subjects.edit.field.error"), groupId, field.getTag(), recId);
                         result.add(createMessageDTO(message));
                     }
                 }
                 // Check if all fields in the existing record are in the incoming record
-                for (MarcField field : expandedCurrentRecord.getFields()) {
-                    if (field.getName().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
+                for (DataField field : expandedCurrentRecord.getFields(DataField.class)) {
+                    if (field.getTag().matches(EXTENDABLE_CONTROLLED_SUBJECT_FIELDS) &&
                             isFieldChangedInOtherRecord(field, marcRecord)) {
-                        final String fieldName = field.getName();
+                        final String fieldName = field.getTag();
                         if (curReader.getFieldAll(fieldName).size() != reader.getFieldAll(fieldName).size()) {
                             final String message = String.format(resourceBundle.getString("notes.subjects.delete.field.error"), groupId, fieldName, recId);
                             result.add(createMessageDTO(message));

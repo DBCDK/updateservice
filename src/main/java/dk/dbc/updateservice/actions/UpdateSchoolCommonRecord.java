@@ -1,17 +1,12 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.io.UnsupportedEncodingException;
@@ -69,7 +64,7 @@ public class UpdateSchoolCommonRecord extends AbstractRawRepoAction {
                 continue;
             }
             final Record rawRepoRecord = rawRepo.fetchRecord(recordId, agencyId);
-            final MarcRecord enrichmentRecord = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+            final MarcRecord enrichmentRecord = UpdateRecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
             final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
             linkRecordAction.setLinkToRecordId(new RecordId(recordId, target));

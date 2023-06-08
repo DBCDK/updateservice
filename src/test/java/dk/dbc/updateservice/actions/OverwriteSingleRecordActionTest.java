@@ -1,12 +1,13 @@
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordFactory;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +31,7 @@ class OverwriteSingleRecordActionTest {
     LibraryGroup libraryGroup = LibraryGroup.FBS;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         state.getUpdateServiceRequestDTO().getAuthenticationDTO().setGroupId("700000");
         state.setLibraryGroup(libraryGroup);
@@ -791,7 +792,7 @@ class OverwriteSingleRecordActionTest {
     @Test
     void testPerformAction_ChangedClassifications_Holdings_ShouldNotCreateButUpdateEnrichment() throws Exception {
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(record).addOrReplaceSubfield("032", "a", "DBI999999");
+        new MarcRecordWriter(record).addOrReplaceSubField("032", 'a', "DBI999999");
         record = state.getRecordSorter().sortRecord(record);
         String recordId = AssertActionsUtil.getBibliographicRecordId(record);
         int agencyId = AssertActionsUtil.getAgencyIdAsInt(record);
@@ -966,7 +967,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
 
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
         String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
@@ -1049,7 +1050,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
 
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1126,7 +1127,7 @@ class OverwriteSingleRecordActionTest {
         final String c1RecordId = "1 234 567 8";
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
-        new MarcRecordWriter(c1).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(c1).addOrReplaceSubField("002", 'a', c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
         String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
@@ -1208,7 +1209,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1285,8 +1286,8 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
-        new MarcRecordWriter(c2).addOrReplaceSubfield("032", "a", "DBI999999");
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
+        new MarcRecordWriter(c2).addOrReplaceSubField("032", 'a', "DBI999999");
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1362,7 +1363,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1440,7 +1441,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1517,7 +1518,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
         String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
@@ -1601,7 +1602,7 @@ class OverwriteSingleRecordActionTest {
         MarcRecord c2 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord e1 = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE, c2RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
         String e1RecordId = AssertActionsUtil.getBibliographicRecordId(e1);
         int e1AgencyId = AssertActionsUtil.getAgencyIdAsInt(e1);
 
@@ -1665,7 +1666,7 @@ class OverwriteSingleRecordActionTest {
         final String c2RecordId = "2 345 678 9";
         MarcRecord c1 = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE, c1RecordId);
         MarcRecord record = new MarcRecord(c1);
-        new MarcRecordWriter(record).addOrReplaceSubfield("002", "a", c2RecordId);
+        new MarcRecordWriter(record).addOrReplaceSubField("002", 'a', c2RecordId);
 
         Map<String, MarcRecord> recordCollection = new HashMap<>();
         recordCollection.put(c1RecordId, record);
@@ -1699,8 +1700,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "133 00 *a Andersen";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1710,10 +1711,9 @@ class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
-        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
         MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
         inwriter.removeField("133");
-        inwriter.addFieldSubfield("133", "a", "Hansen");
+        inwriter.addFieldSubfield("133", 'a', "Hansen");
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
@@ -1727,8 +1727,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "134 00 *a Andersen";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1738,10 +1738,9 @@ class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
-        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
         MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
         inwriter.removeField("134");
-        inwriter.addFieldSubfield("134", "a", "Hansen");
+        inwriter.addFieldSubfield("134", 'a', "Hansen");
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
@@ -1755,8 +1754,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "433 00 *a Andersen";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1766,10 +1765,9 @@ class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
-        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
         MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
         inwriter.removeField("433");
-        inwriter.addFieldSubfield("433", "a", "Hansen");
+        inwriter.addFieldSubfield("433", 'a', "Hansen");
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
@@ -1783,8 +1781,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "434 00 *a Andersen";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1794,10 +1792,9 @@ class OverwriteSingleRecordActionTest {
 
         OverwriteSingleRecordAction overwriteSingleRecordAction = new OverwriteSingleRecordAction(state, settings, inputAutRecord);
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(false));
-        MarcRecordWriter exwriter = new MarcRecordWriter(existingAutRecord);
         MarcRecordWriter inwriter = new MarcRecordWriter(inputAutRecord);
         inwriter.removeField("434");
-        inwriter.addFieldSubfield("434", "a", "Hansen");
+        inwriter.addFieldSubfield("434", 'a', "Hansen");
         assertThat(overwriteSingleRecordAction.shouldUpdateChildrenModifiedDate(inputAutRecord), is(true));
     }
 
@@ -1811,8 +1808,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "110 00 *a Andersen *h Flemming *c f. 1961-08-24";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1833,8 +1830,8 @@ class OverwriteSingleRecordActionTest {
                 "375 00 *a 1 *2 iso5218 *& VIAF\n" +
                 "410 00 *a Thulstrup *h Thomas";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("69022804", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1853,8 +1850,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 69022804 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
                 "110 00 *a Thulstrup *h Thomas C.";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("69022804", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1878,8 +1875,8 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1903,8 +1900,8 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian I .\n" + // Space after I
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1932,8 +1929,8 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1960,8 +1957,8 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -1988,8 +1985,8 @@ class OverwriteSingleRecordActionTest {
                 "510 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2026,9 +2023,9 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existingRecord);
-        MarcRecord stateAutRecord = MarcRecordFactory.readRecord(stateRecord);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(record);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existingRecord);
+        MarcRecord stateAutRecord = UpdateRecordContentTransformer.readRecordFromString(stateRecord);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(record);
 
         state.setMarcRecord(stateAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2048,8 +2045,8 @@ class OverwriteSingleRecordActionTest {
                 "004 00 *r n *a e *x n\n" +
                 "100 00 *a Andersen *h Flemming *c f. 1961-08-24";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("68058309", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2070,8 +2067,8 @@ class OverwriteSingleRecordActionTest {
                 "375 00 *a 1 *2 iso5218 *& VIAF\n" +
                 "400 00 *a Thulstrup *h Thomas";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("69022804", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2090,8 +2087,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 69022804 *b 870979 *c 20181211090242 *d 20131129 *f a *t faust\n" +
                 "100 00 *a Thulstrup *h Thomas C.";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("69022804", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2115,8 +2112,8 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2140,8 +2137,8 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian I .\n" + // Space after I
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2169,8 +2166,8 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2197,8 +2194,8 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian F.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2225,8 +2222,8 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2263,9 +2260,9 @@ class OverwriteSingleRecordActionTest {
                 "500 00 *a Mernild *h Sebastian I.\n" +
                 "996 00 *a DBCAUT";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existingRecord);
-        MarcRecord stateAutRecord = MarcRecordFactory.readRecord(stateRecord);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(record);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existingRecord);
+        MarcRecord stateAutRecord = UpdateRecordContentTransformer.readRecordFromString(stateRecord);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(record);
 
         state.setMarcRecord(stateAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2283,8 +2280,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2301,8 +2298,8 @@ class OverwriteSingleRecordActionTest {
 
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2319,8 +2316,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2336,8 +2333,8 @@ class OverwriteSingleRecordActionTest {
 
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2355,8 +2352,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian J.\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2374,8 +2371,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2393,8 +2390,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "110 00 *a Mernild *h Sebastian J.\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);
@@ -2412,8 +2409,8 @@ class OverwriteSingleRecordActionTest {
         String input = "001 00 *a 19257355 *b 870979 *c 20181211090242 *d 20171102 *f a\n" +
                 "100 00 *a Mernild *h Sebastian H.\n";
 
-        MarcRecord existingAutRecord = MarcRecordFactory.readRecord(existing);
-        MarcRecord inputAutRecord = MarcRecordFactory.readRecord(input);
+        MarcRecord existingAutRecord = UpdateRecordContentTransformer.readRecordFromString(existing);
+        MarcRecord inputAutRecord = UpdateRecordContentTransformer.readRecordFromString(input);
 
         state.setMarcRecord(inputAutRecord);
         when(state.getRawRepo().recordExists("19257355", RawRepo.AUTHORITY_AGENCY)).thenReturn(true);

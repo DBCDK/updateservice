@@ -1,12 +1,8 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.updateservice.auth.AuthenticatorException;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
+import dk.dbc.updateservice.update.UpdateException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +20,7 @@ class AuthenticateUserActionTest {
     private Properties properties;
 
     @BeforeEach
-    public void before() throws IOException {
+    public void before() throws IOException, UpdateException {
         state = new UpdateTestUtils().getGlobalActionStateMockObject();
         properties = new UpdateTestUtils().getSettings();
     }

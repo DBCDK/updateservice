@@ -1,14 +1,9 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.MarcSubField;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.binding.SubField;
 import dk.dbc.updateservice.update.UpdateException;
 
 import java.util.Properties;
@@ -60,12 +55,12 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
         final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
 
         // When categorization has changed in the common record an y08 *a note must be added
-        if (!reader.hasValue("y08", "a", RECATEGORIZATION_STRING)) {
-            // If there already is an y08 *a subfield but it contains a different kind of note then keep that note
-            if (reader.hasSubfield("y08", "a")) {
-                reader.getField("y08").getSubfields().add(new MarcSubField("a", RECLASSIFICATION_STRING));
+        if (!reader.hasValue("y08", 'a', RECATEGORIZATION_STRING)) {
+            // If there already is a y08 *a subfield, but it contains a different kind of note then keep that note
+            if (reader.hasSubfield("y08", 'a')) {
+                reader.getField("y08").getSubFields().add(new SubField('a', RECLASSIFICATION_STRING));
             } else {
-                writer.addOrReplaceSubfield("y08", "a", RECLASSIFICATION_STRING);
+                writer.addOrReplaceSubField("y08", 'a', RECLASSIFICATION_STRING);
             }
             writer.setChangedTimestamp();
         }

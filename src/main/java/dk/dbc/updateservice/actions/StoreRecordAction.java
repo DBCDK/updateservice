@@ -1,20 +1,15 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
@@ -72,7 +67,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      */
     static class Encoder {
         byte[] encodeRecord(MarcRecord marcRecord) throws JAXBException {
-            return RecordContentTransformer.encodeRecord(marcRecord);
+            return UpdateRecordContentTransformer.encodeRecord(marcRecord);
         }
     }
 
@@ -94,7 +89,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
                 if (this.marcRecord != null) {
                     recordToStore = recordToStore();
                 } else {
-                    recordToStore = RecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+                    recordToStore = UpdateRecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
                 }
                 recordToStore = state.getRecordSorter().sortRecord(recordToStore);
@@ -191,7 +186,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         if (RawRepo.DBC_AGENCY_ALL.contains(reader.getAgencyId())) {
             final String modified = getModifiedDate();
             final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
-            writer.addOrReplaceSubfield("001", "c", modified);
+            writer.addOrReplaceSubField("001", 'c', modified);
         }
     }
 

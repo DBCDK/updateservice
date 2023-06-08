@@ -1,16 +1,11 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.actions;
 
-import dk.dbc.common.records.MarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.common.records.utils.RecordContentTransformer;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
+import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
 import java.util.Properties;
@@ -87,7 +82,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
         return LOGGER.callChecked(log -> {
             final MarcRecord newEnrichmentRecord = new MarcRecord(marcRecord);
             final MarcRecordWriter writer = new MarcRecordWriter(newEnrichmentRecord);
-            writer.addOrReplaceSubfield("001", "a", targetRecordId);
+            writer.addOrReplaceSubField("001", 'a', targetRecordId);
 
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();
@@ -98,7 +93,7 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
                 log.info("Enrichment record has classifications. Creating sub action to update it.");
                 return createUpdateRecordAction(newEnrichmentRecord);
             }
-            final MarcRecord currentCommonRecord = RecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
+            final MarcRecord currentCommonRecord = UpdateRecordContentTransformer.decodeRecord(rawRepo.fetchRecord(recordId, RawRepo.COMMON_AGENCY).getContent());
 
             log.debug("ClassificationChangedInCommonRecs {} ", isClassificationChangedInCommonRecs);
             log.debug("isLinkRecInProduction {} ", isLinkRecInProduction);

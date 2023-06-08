@@ -15,8 +15,6 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
@@ -112,8 +110,7 @@ public class ValidateRecordAction extends AbstractAction {
                     result.setStatus(UpdateStatusEnumDTO.OK);
                 }
                 return result;
-            } catch (IOException | JSONBException | JAXBException | OpencatBusinessConnectorException |
-                     VipCoreException ex) {
+            } catch (JSONBException | OpencatBusinessConnectorException | VipCoreException ex) {
                 String message = String.format(state.getMessages().getString("internal.validate.record.error"), ex.getMessage());
                 log.error(message, ex);
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);

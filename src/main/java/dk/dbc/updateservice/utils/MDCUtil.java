@@ -1,12 +1,6 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.utils;
 
-import dk.dbc.common.records.MarcRecord;
-import dk.dbc.common.records.MarcRecordReader;
+import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.MDC;
 
@@ -17,7 +11,7 @@ public class MDCUtil {
     public static final String MDC_TRACKING_ID_LOG_CONTEXT = "trackingId";
 
     private MDCUtil() {
-        
+
     }
 
     public static void setupContextForRecord(RecordId recordId) {
@@ -25,9 +19,8 @@ public class MDCUtil {
     }
 
     public static void setupContextForRecord(MarcRecord marcRecord) {
-        MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        String recordId = reader.getValue("001", "a");
-        String agencyId = reader.getValue("001", "b");
+        String recordId = marcRecord.getSubFieldValue("001", 'a').orElse(null);
+        String agencyId = marcRecord.getSubFieldValue("001", 'b').orElse(null);
 
         setupContextForRecord(recordId, agencyId);
     }
@@ -39,8 +32,7 @@ public class MDCUtil {
     }
 
     public static void setupContextForEnrichmentRecord(MarcRecord commonRecord, String agencyId) {
-        MarcRecordReader reader = new MarcRecordReader(commonRecord);
-        String recordId = reader.getValue("001", "a");
+        String recordId = commonRecord.getSubFieldValue("001", 'a').orElse(null);
 
         setupContextForRecord(recordId, agencyId);
     }
