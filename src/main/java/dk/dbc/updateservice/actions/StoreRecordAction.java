@@ -6,7 +6,6 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
@@ -14,7 +13,6 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.MDCUtil;
 import org.slf4j.MDC;
 
-import javax.xml.bind.JAXBException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -66,7 +64,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      * Class used for mocking during unit test
      */
     static class Encoder {
-        byte[] encodeRecord(MarcRecord marcRecord) throws JAXBException {
+        byte[] encodeRecord(MarcRecord marcRecord) {
             return UpdateRecordContentTransformer.encodeRecord(marcRecord);
         }
     }
@@ -80,37 +78,32 @@ public class StoreRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            try {
-                log.info("Handling record: {}:{}", recordId.getBibliographicRecordId(), recordId.getAgencyId());
+            log.info("Handling record: {}:{}", recordId.getBibliographicRecordId(), recordId.getAgencyId());
 
-                final Record rawRepoRecord = rawRepo.fetchRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+            final Record rawRepoRecord = rawRepo.fetchRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
 
-                MarcRecord recordToStore;
-                if (this.marcRecord != null) {
-                    recordToStore = recordToStore();
-                } else {
-                    recordToStore = UpdateRecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
+            MarcRecord recordToStore;
+            if (this.marcRecord != null) {
+                recordToStore = recordToStore();
+            } else {
+                recordToStore = UpdateRecordContentTransformer.decodeRecord(rawRepoRecord.getContent());
 
-                }
-                recordToStore = state.getRecordSorter().sortRecord(recordToStore);
-                updateModifiedDate(recordToStore);
-                rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
-                if (mimetype != null && !mimetype.isEmpty()) {
-                    rawRepoRecord.setMimeType(mimetype);
-                }
-                rawRepoRecord.setDeleted(deletionMarkToStore());
-                if (state.getCreateOverwriteDate() != null) {
-                    rawRepoRecord.setCreated(state.getCreateOverwriteDate());
-                }
-                rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
-                rawRepo.saveRecord(rawRepoRecord);
-                log.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
-                log.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
-                return ServiceResult.newOkResult();
-            } catch (JAXBException ex) {
-                log.error("Error when trying to save record {}", recordId, ex);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, ex.getMessage());
             }
+            recordToStore = state.getRecordSorter().sortRecord(recordToStore);
+            updateModifiedDate(recordToStore);
+            rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
+            if (mimetype != null && !mimetype.isEmpty()) {
+                rawRepoRecord.setMimeType(mimetype);
+            }
+            rawRepoRecord.setDeleted(deletionMarkToStore());
+            if (state.getCreateOverwriteDate() != null) {
+                rawRepoRecord.setCreated(state.getCreateOverwriteDate());
+            }
+            rawRepoRecord.setTrackingId(MDC.get(MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT));
+            rawRepo.saveRecord(rawRepoRecord);
+            log.info("Save record [{}:{}]", rawRepoRecord.getId().getBibliographicRecordId(), rawRepoRecord.getId().getAgencyId());
+            log.debug("Details about record: mimeType: '{}', deleted: {}, trackingId: '{}'", rawRepoRecord.getMimeType(), rawRepoRecord.isDeleted(), rawRepoRecord.getTrackingId());
+            return ServiceResult.newOkResult();
         });
     }
 

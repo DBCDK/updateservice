@@ -162,7 +162,7 @@ class UpdateSchoolCommonRecordTest {
         ListIterator<ServiceAction> iterator = updateSchoolCommonRecord.children().listIterator();
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, record);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, "RAWREPO_PROVIDER_ID_FBS", MarcXChangeMimeType.ENRICHMENT);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, "RAWREPO_PROVIDER_ID_FBS");
 
         assertThat(iterator.hasNext(), is(false));
     }
@@ -264,7 +264,7 @@ class UpdateSchoolCommonRecordTest {
 
         ListIterator<ServiceAction> iterator = instance.children().listIterator();
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, commonRecord);
-        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.ENRICHMENT);
+        AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), schoolRecord, settings.getProperty(state.getRawRepoProviderId()));
         AssertActionsUtil.assertUpdateEnrichmentRecordAction(iterator.next(), state.getRawRepo(), record, state.getLibraryRecordsHandler(), state.getHoldingsItems());
         assertThat(iterator.hasNext(), is(false));
     }

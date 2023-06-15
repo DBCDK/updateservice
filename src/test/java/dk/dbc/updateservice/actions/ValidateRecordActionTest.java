@@ -33,7 +33,7 @@ class ValidateRecordActionTest {
     private MarcRecord record;
 
     @BeforeEach
-    public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException, UpdateException {
+    public void before() throws IOException, JAXBException, SAXException, ParserConfigurationException, UpdateException, jakarta.xml.bind.JAXBException {
         record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
 
         state = new UpdateTestUtils().getGlobalActionStateMockObject();

@@ -1,36 +1,21 @@
 package dk.dbc.updateservice.rest;
 
-import dk.dbc.serviceutils.ServiceStatus;
-import dk.dbc.updateservice.update.JNDIResources;
-
-import javax.ejb.Stateless;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-import java.util.Properties;
+import jakarta.ejb.Stateless;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 @Stateless
 @Path("/api")
-public class HowruService implements ServiceStatus {
+public class HowruService {
 
-    private final Properties settings = JNDIResources.getProperties();
-
-    private String dependencies = null;
-
-    private String getDependencies() {
-        if (dependencies == null) {
-            // Creates a string that can be parsed as JSON
-            dependencies = "[" +
-                    "\"" + settings.getProperty("VIPCORE_ENDPOINT") + "\"," +
-                    "\"" + settings.getProperty("IDP_SERVICE_URL") + "\"" +
-                    "]";
-        }
-
-        return dependencies;
-    }
-
-    @Override
+    @GET
+    @Path("howru")
+    @Produces({MediaType.APPLICATION_JSON})
     public Response howru() {
-        return ServiceStatus.super.howru(getDependencies());
+        return Response.ok().build();
     }
 
 }

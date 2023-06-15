@@ -6,7 +6,6 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.RawRepoRecordMock;
@@ -15,16 +14,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,49 +97,6 @@ class StoreRecordActionTest {
         assertThat(recordArgument.getValue().getMimeType(), is(storeRecordAction.getMimetype()));
         assertThat(recordArgument.getValue().isDeleted(), is(storeRecordAction.deletionMarkToStore()));
         assertThat(recordArgument.getValue().getContent(), is(new RawRepo().encodeRecord(storeRecordAction.recordToStore())));
-    }
-
-    /**
-     * Test StoreRecordAction.performAction() to store a record in RawRepo.
-     * <p>
-     * This test checks the behaviour if the RawRepoEncoder throws a
-     * JAXBException exception
-     * </p>
-     * <p>
-     * <dl>
-     * <dt>Given</dt>
-     * <dd>
-     * An empty rawrepo.
-     * </dd>
-     * <dt>When</dt>
-     * <dd>
-     * Store a record in rawrepo.
-     * </dd>
-     * <dt>Then</dt>
-     * <dd>
-     * The rawrepo is unchanged and a ServiceResult with
-     * status FAILED_UPDATE_INTERNAL_ERROR is returned.
-     * </dd>
-     * </dl>
-     */
-    @Test
-    void testPerformAction_JAXBException() throws Exception {
-        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.LOCAL_SINGLE_RECORD_RESOURCE);
-        MarcRecordReader reader = new MarcRecordReader(record);
-        String recordId = reader.getRecordId();
-        int agencyId = reader.getAgencyIdAsInt();
-        StoreRecordAction.Encoder encoder = mock(StoreRecordAction.Encoder.class);
-        state.setLibraryGroup(libraryGroup);
-        StoreRecordAction storeRecordAction = new StoreRecordAction(state, settings, record);
-        storeRecordAction.setMimetype(MarcXChangeMimeType.MARCXCHANGE);
-        storeRecordAction.encoder = encoder;
-
-        when(state.getRawRepo().fetchRecord(recordId, agencyId)).thenReturn(new RawRepoRecordMock(recordId, agencyId));
-        when(encoder.encodeRecord(record)).thenThrow(new JAXBException("error"));
-
-        ServiceResult serviceResult = storeRecordAction.performAction();
-        assertThat(serviceResult, is(ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, "error")));
-        verify(state.getRawRepo(), never()).saveRecord(any(Record.class));
     }
 
     /**

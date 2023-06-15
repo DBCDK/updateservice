@@ -74,7 +74,7 @@ class CreateSingleRecordActionTest {
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()));
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
     }
 
@@ -172,7 +172,7 @@ class CreateSingleRecordActionTest {
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()));
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
     }
 
@@ -248,7 +248,7 @@ class CreateSingleRecordActionTest {
         List<ServiceAction> children = createSingleRecordAction.children();
         assertThat(children.size(), is(3));
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), record);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), record, settings.getProperty(state.getRawRepoProviderId()));
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(2), state.getRawRepo(), record);
     }
 
@@ -273,7 +273,7 @@ class CreateSingleRecordActionTest {
         assertThat(children.size(), is(4));
 
         AssertActionsUtil.assertStoreRecordAction(children.get(0), state.getRawRepo(), recordWithoutEnrichmentFields, MarcXChangeMimeType.MATVURD);
-        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()), MarcXChangeMimeType.MARCXCHANGE);
+        AssertActionsUtil.assertEnqueueRecordAction(children.get(1), state.getRawRepo(), recordWithoutEnrichmentFields, settings.getProperty(state.getRawRepoProviderId()));
         AssertActionsUtil.assertLinkMatVurdRecordsAction(children.get(2), state.getRawRepo(), record); // <- Here we assert the correct record is used by LinkMatVurdRecordsAction
         AssertActionsUtil.assertLinkAuthorityRecordsAction(children.get(3), state.getRawRepo(), recordWithoutEnrichmentFields);
     }
