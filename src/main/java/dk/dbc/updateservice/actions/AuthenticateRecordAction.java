@@ -17,7 +17,7 @@ import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 
-import javax.ejb.EJBException;
+import jakarta.ejb.EJBException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

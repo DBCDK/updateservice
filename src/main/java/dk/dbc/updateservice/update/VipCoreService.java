@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -11,11 +6,11 @@ import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
 import dk.dbc.vipcore.marshallers.LibraryRule;
 import dk.dbc.vipcore.marshallers.LibraryRules;
 import dk.dbc.vipcore.marshallers.LibraryRulesRequest;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +28,7 @@ public class VipCoreService {
     /**
      * Could be more effectve with a variant of hasFeature that checks for the two states
      * but the code look cleaner, and we imagine that the cache will be fast.
+     *
      * @param agencyId the agency that is to be checked
      * @return return true if one of the two rules are set, otherwise false
      * @throws VipCoreException something went horribly wrong in the call to vipcore
@@ -42,7 +38,7 @@ public class VipCoreService {
         try {
             return hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS) ||
                     hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
-            } finally {
+        } finally {
             watch.stop();
         }
     }

@@ -1,7 +1,7 @@
 package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
-import dk.dbc.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;

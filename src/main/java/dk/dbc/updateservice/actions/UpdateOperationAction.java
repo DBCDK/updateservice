@@ -2,7 +2,7 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
-import dk.dbc.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnectorException;

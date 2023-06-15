@@ -1,20 +1,15 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.solr;
 
 import dk.dbc.updateservice.update.JNDIResources;
 import dk.dbc.updateservice.update.SolrException;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.ResourceBundles;
+import jakarta.ejb.Stateless;
 import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import javax.ejb.Stateless;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;

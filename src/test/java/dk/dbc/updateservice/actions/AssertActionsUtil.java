@@ -22,8 +22,8 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.update.VipCoreService;
 import dk.dbc.updateservice.utils.IOUtils;
+import jakarta.xml.bind.JAXBException;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,7 +93,7 @@ public class AssertActionsUtil {
         return record;
     }
 
-    public static BibliographicRecordDTO constructBibliographicRecordDTO(MarcRecord record, BibliographicRecordExtraData data) throws JAXBException, ParserConfigurationException {
+    public static BibliographicRecordDTO constructBibliographicRecordDTO(MarcRecord record, BibliographicRecordExtraData data) throws ParserConfigurationException, JAXBException {
         final BibliographicRecordDTO bibliographicRecordDTO = new BibliographicRecordDTO();
         bibliographicRecordDTO.setRecordSchema("info:lc/xmlns/marcxchange-v1");
         bibliographicRecordDTO.setRecordPacking("xml");
@@ -379,7 +379,7 @@ public class AssertActionsUtil {
         assertThat(doubleRecordCheckingAction.record, is(record));
     }
 
-    public static void assertEnqueueRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId, String mimetype) throws UpdateException {
+    public static void assertEnqueueRecordAction(ServiceAction action, RawRepo rawRepo, MarcRecord record, String providerId) throws UpdateException {
         assertThat(action, notNullValue());
         assertThat(action.getClass().getName(), is(EnqueueRecordAction.class.getName()));
 

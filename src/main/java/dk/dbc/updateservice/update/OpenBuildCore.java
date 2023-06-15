@@ -1,6 +1,6 @@
 package dk.dbc.updateservice.update;
 
-import dk.dbc.jsonb.JSONBException;
+import dk.dbc.commons.jsonb.JSONBException;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
@@ -15,10 +15,10 @@ import org.perf4j.StopWatch;
 import org.perf4j.log4j.Log4JStopWatch;
 import org.slf4j.MDC;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.EJBException;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
+import jakarta.annotation.PostConstruct;
+import jakarta.ejb.EJBException;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
