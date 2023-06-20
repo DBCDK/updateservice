@@ -158,6 +158,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final MarcRecord expectedEnrichmentMarcRecord = UpdateRecordContentTransformer.readRecordFromString(expectedEnrichmentRecordData);
 
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(existingEnrichmentMarcRecord, updatingCommonMarcRecord)).thenReturn(false);
+        when(state.getLibraryRecordsHandler().hasClassificationData(existingEnrichmentMarcRecord)).thenReturn(true);
 
         final UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction(state, settings, existingEnrichmentMarcRecord, "870970");
         instance.setCurrentCommonRecord(existingCommonMarcRecord);
@@ -224,6 +225,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final MarcRecord expectedEnrichmentMarcRecord = UpdateRecordContentTransformer.readRecordFromString(expectedEnrichmentRecordData);
 
         when(state.getLibraryRecordsHandler().hasClassificationsChanged(existingEnrichmentMarcRecord, updatingCommonMarcRecord)).thenReturn(false);
+        when(state.getLibraryRecordsHandler().hasClassificationData(existingEnrichmentMarcRecord)).thenReturn(true);
         when(state.getRawRepo().recordExists("61443886", 710100)).thenReturn(true);
 
         final UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction(state, settings, existingEnrichmentMarcRecord, "870970");
