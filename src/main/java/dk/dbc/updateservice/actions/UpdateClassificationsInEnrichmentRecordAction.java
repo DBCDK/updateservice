@@ -49,7 +49,8 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
      */
     @Override
     public ServiceResult performAction() throws UpdateException {
-        if (!state.getLibraryRecordsHandler().hasClassificationsChanged(marcRecord, updatingCommonRecord)) {
+        if (state.getLibraryRecordsHandler().hasClassificationData(marcRecord) &&
+                !state.getLibraryRecordsHandler().hasClassificationsChanged(marcRecord, updatingCommonRecord)) {
             handleSameClassification();
         } else {
             handleDifferentClassification();
