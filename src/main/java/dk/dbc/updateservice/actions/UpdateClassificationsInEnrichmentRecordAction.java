@@ -2,59 +2,88 @@ package dk.dbc.updateservice.actions;
 
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
+import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
+import dk.dbc.updateservice.update.LibraryRecordsHandler;
 import dk.dbc.updateservice.update.UpdateException;
 
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Updates the classifications in a enrichment record from the classifications
  * from a common record.
  */
-public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichmentRecordWithClassificationsAction {
+public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichmentRecordAction {
     private static final String RECATEGORIZATION_STRING = "UPDATE posttypeskift";
     private static final String RECLASSIFICATION_STRING = "UPDATE opstillingsændring";
 
-    private MarcRecord enrichmentRecord;
+    private MarcRecord currentCommonRecord = null;
+    private MarcRecord updatingCommonRecord = null;
+    private String overrideChangedTimestamp = null;
 
-    public UpdateClassificationsInEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, String agencyIdInput) {
-        super(globalActionState, properties, agencyIdInput);
+    public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
+        this.currentCommonRecord = currentCommonRecord;
+    }
+
+    public void setUpdatingCommonRecord(MarcRecord updatingCommonRecord) {
+        this.updatingCommonRecord = updatingCommonRecord;
+    }
+
+    public void setOverrideChangedTimestamp(String overrideChangedTimestamp) {
+        this.overrideChangedTimestamp = overrideChangedTimestamp;
+    }
+
+    public UpdateClassificationsInEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, String agencyIdInput) {
+        super(globalActionState, properties, marcRecord, Integer.parseInt(agencyIdInput));
         state = globalActionState;
     }
 
-    public MarcRecord getEnrichmentRecord() {
-        return enrichmentRecord;
-    }
-
-    public void setEnrichmentRecord(MarcRecord enrichmentRecord) {
-        this.enrichmentRecord = enrichmentRecord;
-    }
-
     /**
-     * updates the classifications in the enrichment record.
+     * Updates the classifications in the enrichment record.
      *
      * @return The enrichment record after its classifications has been updated.
      * @throws UpdateException In case of en JavaScript error.
      */
     @Override
-    public MarcRecord createRecord() throws UpdateException {
-        if (updatingCommonRecord == null) {
-            throw new IllegalStateException("updatingCommonRecord is not assigned a value");
+    public ServiceResult performAction() throws UpdateException {
+        if (!state.getLibraryRecordsHandler().hasClassificationsChanged(marcRecord, updatingCommonRecord)) {
+            handleSameClassification();
+        } else {
+            handleDifferentClassification();
         }
 
-        if (enrichmentRecord == null) {
-            throw new IllegalStateException("enrichmentRecord is not assigned a value");
-        }
+        return ServiceResult.newOkResult();
+    }
 
-        if (state.getLibraryRecordsHandler() == null) {
-            throw new IllegalStateException("recordsHandler is not assigned a value");
-        }
-        final MarcRecord marcRecord = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, enrichmentRecord);
-        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-        final MarcRecordWriter writer = new MarcRecordWriter(marcRecord);
+    private void handleSameClassification() throws UpdateException {
+        final List<String> nonClassificationFieldsLeft = marcRecord.getFields(DataField.class)
+                .stream()
+                .map(DataField::getTag)
+                .collect(Collectors.toList());
+        nonClassificationFieldsLeft.remove("001");
+        nonClassificationFieldsLeft.remove("004");
+        nonClassificationFieldsLeft.removeAll(LibraryRecordsHandler.CLASSIFICATION_FIELDS);
 
-        // When categorization has changed in the common record an y08 *a note must be added
+        if (nonClassificationFieldsLeft.isEmpty()) {
+            // The enrichment has no relevant fields left, so just delete it
+            performDeletionAction();
+        } else {
+            // Remove the classification field
+            final MarcRecordWriter enrichmentWriter = new MarcRecordWriter(marcRecord);
+            enrichmentWriter.removeFields(LibraryRecordsHandler.CLASSIFICATION_FIELDS);
+            performSaveRecord(marcRecord);
+        }
+    }
+
+    private void handleDifferentClassification() throws UpdateException {
+        final MarcRecord extendedRecord = state.getLibraryRecordsHandler().updateLibraryExtendedRecord(currentCommonRecord, updatingCommonRecord, marcRecord);
+        final MarcRecordReader reader = new MarcRecordReader(extendedRecord);
+        final MarcRecordWriter writer = new MarcRecordWriter(extendedRecord);
+
+        // When categorization has changed in the common record a y08 *a note must be added
         if (!reader.hasValue("y08", 'a', RECATEGORIZATION_STRING)) {
             // If there already is a y08 *a subfield, but it contains a different kind of note then keep that note
             if (reader.hasSubfield("y08", 'a')) {
@@ -62,10 +91,15 @@ public class UpdateClassificationsInEnrichmentRecordAction extends CreateEnrichm
             } else {
                 writer.addOrReplaceSubField("y08", 'a', RECLASSIFICATION_STRING);
             }
-            writer.setChangedTimestamp();
-        }
-        writer.sort();
+            if (overrideChangedTimestamp == null) {
+                writer.setChangedTimestamp();
+            } else {
+                writer.addOrReplaceSubField("001", 'c', overrideChangedTimestamp);
+            }
+            writer.sort();
 
-        return marcRecord;
+            performSaveRecord(extendedRecord);
+        }
     }
+
 }

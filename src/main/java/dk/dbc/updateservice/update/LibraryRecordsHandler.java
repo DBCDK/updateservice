@@ -44,7 +44,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 @Stateless
 public class LibraryRecordsHandler {
     private static final DeferredLogger LOGGER = new DeferredLogger(LibraryRecordsHandler.class);
-    private static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
+    public static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
     private static final List<String> REFERENCE_FIELDS = Arrays.asList("900", "910", "945");
     private static final List<String> RECORD_CONTROL_FIELDS = Arrays.asList("001", "004", "996");
     private static final List<String> CONTROL_AND_CLASSIFICATION_FIELDS = new ArrayList<>();
