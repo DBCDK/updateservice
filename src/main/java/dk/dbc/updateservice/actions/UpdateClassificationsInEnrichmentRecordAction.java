@@ -13,7 +13,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 /**
- * Updates the classifications in a enrichment record from the classifications
+ * Updates the classifications in an enrichment record from the classifications
  * from a common record.
  */
 public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichmentRecordAction {

@@ -15,14 +15,14 @@ import dk.dbc.opencat.connector.OpencatBusinessConnectorException;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
-
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
+
 import java.io.UnsupportedEncodingException;
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -44,13 +44,14 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 @Stateless
 public class LibraryRecordsHandler {
     private static final DeferredLogger LOGGER = new DeferredLogger(LibraryRecordsHandler.class);
-    public static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
     private static final List<String> REFERENCE_FIELDS = Arrays.asList("900", "910", "945");
     private static final List<String> RECORD_CONTROL_FIELDS = Arrays.asList("001", "004", "996");
     private static final List<String> CONTROL_AND_CLASSIFICATION_FIELDS = new ArrayList<>();
     private static final List<Character> IGNORABLE_CONTROL_SUBFIELDS = Arrays.asList('&', '0', '1', '4');
     private static final String DIACRITICAL_MARKS = "[\\p{InCombiningDiacriticalMarks}]";
     private static final String ALPHA_NUMERIC_DANISH_CHARS = "[^a-z0-9\u00E6\u00F8\u00E5]";
+
+    public static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
 
     @EJB
     private VipCoreService vipCoreService;
