@@ -1,5 +1,6 @@
 package dk.dbc.updateservice.actions;
 
+import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
@@ -11,14 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
 
 import static dk.dbc.updateservice.update.JNDIResources.RAWREPO_PROVIDER_ID_FBS;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -84,12 +85,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubField("y08", 'a', "Ny Note");
 
-        final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
-        final LocalDateTime dateTime = LocalDateTime.now();
-        final String changedTimestamp = dateTime.format(format);
-
         final MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(expected).addOrReplaceSubField("001", 'c', changedTimestamp);
 
         final DataField y08 = new DataField("y08", "00");
         y08.getSubFields().add(new SubField('a', "Ny Note"));
@@ -102,7 +98,6 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction(state, settings, enrichmentRecord, "870970");
         instance.setCurrentCommonRecord(null);
         instance.setUpdatingCommonRecord(commonRecord);
-        instance.setOverrideChangedTimestamp(changedTimestamp);
 
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
@@ -110,7 +105,20 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         assertThat(children.size(), is(3));
 
         final ListIterator<ServiceAction> iterator = children.listIterator();
-        AssertActionsUtil.assertStoreRecordAction(iterator.next(), state.getRawRepo(), expected, MarcXChangeMimeType.ENRICHMENT);
+        final StoreRecordAction actualStoreRecordAction = (StoreRecordAction) iterator.next();
+        final MarcRecord actual = actualStoreRecordAction.getRecord();
+
+        assertThat(actual, not(expected));
+
+        // Check that subfield 001 *c has a value in both records
+        assertThat(new MarcRecordReader(expected).getValue("001", 'c'), is("19971020"));
+        assertThat(new MarcRecordReader(actual).getValue("001", 'c'), notNullValue());
+
+        // Verify that the records are identical without 001 *c
+        new MarcRecordWriter(expected).removeSubfield("001", 'c');
+        new MarcRecordWriter(actual).removeSubfield("001", 'c');
+        assertThat(actual, is(expected));
+
         AssertActionsUtil.assertLinkRecordAction(iterator.next(), state.getRawRepo(), expected, commonRecord);
         AssertActionsUtil.assertEnqueueRecordAction(iterator.next(), state.getRawRepo(), expected, RAWREPO_PROVIDER_ID_FBS);
     }

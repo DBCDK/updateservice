@@ -23,19 +23,12 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
     private MarcRecord currentCommonRecord = null;
     private MarcRecord updatingCommonRecord = null;
 
-    // Used for mocking only
-    private String overrideChangedTimestamp = null;
-
     public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {
         this.currentCommonRecord = currentCommonRecord;
     }
 
     public void setUpdatingCommonRecord(MarcRecord updatingCommonRecord) {
         this.updatingCommonRecord = updatingCommonRecord;
-    }
-
-    public void setOverrideChangedTimestamp(String overrideChangedTimestamp) {
-        this.overrideChangedTimestamp = overrideChangedTimestamp;
     }
 
     public UpdateClassificationsInEnrichmentRecordAction(GlobalActionState globalActionState, Properties properties, MarcRecord marcRecord, String agencyIdInput) {
@@ -74,7 +67,7 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
             // The enrichment has no relevant fields left, so just delete it
             performDeletionAction();
         } else {
-            // Remove the classification field
+            // Remove the classification fields
             final MarcRecordWriter enrichmentWriter = new MarcRecordWriter(marcRecord);
             enrichmentWriter.removeFields(LibraryRecordsHandler.CLASSIFICATION_FIELDS);
             performSaveRecord(marcRecord);
@@ -94,11 +87,8 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
             } else {
                 writer.addOrReplaceSubField("y08", 'a', RECLASSIFICATION_STRING);
             }
-            if (overrideChangedTimestamp == null) {
-                writer.setChangedTimestamp();
-            } else {
-                writer.addOrReplaceSubField("001", 'c', overrideChangedTimestamp);
-            }
+            writer.setChangedTimestamp();
+
             writer.sort();
         }
 
