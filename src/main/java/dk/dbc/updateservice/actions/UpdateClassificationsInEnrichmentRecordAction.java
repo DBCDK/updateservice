@@ -100,9 +100,9 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
                 writer.addOrReplaceSubField("001", 'c', overrideChangedTimestamp);
             }
             writer.sort();
-
-            performSaveRecord(extendedRecord);
         }
+
+        performSaveRecord(extendedRecord);
     }
 
 }
