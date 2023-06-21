@@ -22,6 +22,8 @@ public class UpdateClassificationsInEnrichmentRecordAction extends UpdateEnrichm
 
     private MarcRecord currentCommonRecord = null;
     private MarcRecord updatingCommonRecord = null;
+
+    // Used for mocking only
     private String overrideChangedTimestamp = null;
 
     public void setCurrentCommonRecord(MarcRecord currentCommonRecord) {

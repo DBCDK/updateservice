@@ -11,6 +11,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Properties;
@@ -82,8 +84,12 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final MarcRecord newEnrichmentRecord = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
         new MarcRecordWriter(newEnrichmentRecord).addOrReplaceSubField("y08", 'a', "Ny Note");
 
+        final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        final LocalDateTime dateTime = LocalDateTime.now();
+        final String changedTimestamp = dateTime.format(format);
+
         final MarcRecord expected = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
-        new MarcRecordWriter(expected).addOrReplaceSubField("001", 'c', "20230619135542");
+        new MarcRecordWriter(expected).addOrReplaceSubField("001", 'c', changedTimestamp);
 
         final DataField y08 = new DataField("y08", "00");
         y08.getSubFields().add(new SubField('a', "Ny Note"));
@@ -96,7 +102,7 @@ class UpdateClassificationsInEnrichmentRecordActionTest {
         final UpdateClassificationsInEnrichmentRecordAction instance = new UpdateClassificationsInEnrichmentRecordAction(state, settings, enrichmentRecord, "870970");
         instance.setCurrentCommonRecord(null);
         instance.setUpdatingCommonRecord(commonRecord);
-        instance.setOverrideChangedTimestamp("20230619135542");
+        instance.setOverrideChangedTimestamp(changedTimestamp);
 
         assertThat(instance.performAction(), is(ServiceResult.newOkResult()));
 
