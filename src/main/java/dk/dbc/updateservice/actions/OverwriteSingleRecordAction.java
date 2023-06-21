@@ -7,7 +7,6 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -206,8 +205,8 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      * This modification cannot affect classification and enrichment.
      *
      * @param marcRecord The 870979 record that are updated.
-     * @throws UpdateException  Something went wrong - multiple reasons.
-     * @throws RawRepoException Something went wrong - multiple reasons.
+     * @throws UpdateException           Something went wrong - multiple reasons.
+     * @throws MarcRecordExpandException Something went wrong - multiple reasons.
      */
     void handleUniverseLinks(MarcRecord marcRecord) throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -416,9 +415,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         }
                         if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
-                            MarcRecord extRecordData = UpdateRecordContentTransformer.decodeRecord(extRecord.getContent());
+                            MarcRecord enrichmentMarcRecord = UpdateRecordContentTransformer.decodeRecord(extRecord.getContent());
                             log.info("Update classifications for extended library record: [{}:{}]", recordId, id);
-                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, marcRecord, currentRecord, Integer.toString(id)));
+                            result.add(getUpdateClassificationsInEnrichmentRecordActionData(enrichmentMarcRecord, marcRecord, currentRecord, reader.getAgencyId()));
                         } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
                             log.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
@@ -438,10 +437,9 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
         });
     }
 
-    private CreateEnrichmentRecordWithClassificationsAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord extRecordData, MarcRecord marcRecord, MarcRecord currentRecord, String id) {
+    private UpdateClassificationsInEnrichmentRecordAction getUpdateClassificationsInEnrichmentRecordActionData(MarcRecord enrichment, MarcRecord marcRecord, MarcRecord currentRecord, String id) {
         final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
-                new UpdateClassificationsInEnrichmentRecordAction(state, settings, id);
-        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(extRecordData);
+                new UpdateClassificationsInEnrichmentRecordAction(state, settings, enrichment, id);
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(currentRecord);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(marcRecord);
         return updateClassificationsInEnrichmentRecordAction;

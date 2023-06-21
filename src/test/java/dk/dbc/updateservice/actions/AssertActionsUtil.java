@@ -359,8 +359,7 @@ public class AssertActionsUtil {
 
         final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction = (UpdateClassificationsInEnrichmentRecordAction) action;
         assertThat(updateClassificationsInEnrichmentRecordAction.state.getRawRepo(), is(rawRepo));
-        assertThat(updateClassificationsInEnrichmentRecordAction.getUpdatingCommonRecord(), is(commonRecord));
-        assertThat(updateClassificationsInEnrichmentRecordAction.getEnrichmentRecord(), is(record));
+        assertThat(updateClassificationsInEnrichmentRecordAction.getRecord(), is(record));
     }
 
     public static void assertDoubleRecordFrontendAction(ServiceAction action, MarcRecord record) {

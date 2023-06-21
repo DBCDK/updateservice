@@ -133,12 +133,11 @@ public class MoveEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return An instance of updateClassificationsInEnrichmentRecordAction
      */
     private ServiceAction createUpdateRecordAndClassificationsAction(MarcRecord updateRecord, MarcRecord commonRecord) {
-        final MarcRecordReader reader = new MarcRecordReader(updateRecord);
+        final MarcRecordReader reader = new MarcRecordReader(commonRecord);
         final UpdateClassificationsInEnrichmentRecordAction updateClassificationsInEnrichmentRecordAction =
-                new UpdateClassificationsInEnrichmentRecordAction(state, settings, reader.getAgencyId());
+                new UpdateClassificationsInEnrichmentRecordAction(state, settings, updateRecord, reader.getAgencyId());
         updateClassificationsInEnrichmentRecordAction.setCurrentCommonRecord(commonRecord);
         updateClassificationsInEnrichmentRecordAction.setUpdatingCommonRecord(commonRecord);
-        updateClassificationsInEnrichmentRecordAction.setEnrichmentRecord(updateRecord);
         return updateClassificationsInEnrichmentRecordAction;
     }
 }
