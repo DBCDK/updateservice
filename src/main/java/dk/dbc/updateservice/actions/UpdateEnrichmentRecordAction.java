@@ -12,6 +12,7 @@ import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateRecordContentTransformer;
 import dk.dbc.updateservice.utils.DeferredLogger;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
 /**
@@ -25,6 +26,7 @@ import java.util.Properties;
 public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     private static final DeferredLogger LOGGER = new DeferredLogger(UpdateEnrichmentRecordAction.class);
 
+    Decoder decoder = new Decoder();
     Properties settings;
     private final int parentAgencyId;
 
@@ -36,6 +38,19 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
         super(UpdateEnrichmentRecordAction.class.getSimpleName(), globalActionState, marcRecord);
         this.settings = properties;
         this.parentAgencyId = parentAgencyId;
+    }
+
+    /**
+     * Class used for mocking during unit test
+     */
+    static class Decoder {
+        MarcRecord decodeRecord(byte[] bytes) throws UnsupportedEncodingException {
+            try {
+                return UpdateRecordContentTransformer.decodeRecord(bytes);
+            } catch (UpdateException e) {
+                throw new UnsupportedEncodingException(e.getMessage());
+            }
+        }
     }
 
     /**
@@ -66,39 +81,44 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
     @Override
     public ServiceResult performAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
-            log.info("Handling record: {}", marcRecord);
-            final MarcRecordReader reader = new MarcRecordReader(marcRecord);
-            if (reader.markedForDeletion()) {
-                return performDeletionAction();
-            }
+            try {
+                log.info("Handling record: {}", marcRecord);
+                final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+                if (reader.markedForDeletion()) {
+                    return performDeletionAction();
+                }
 
-            final String wrkRecordId = reader.getRecordId();
-            final String wrkParentId = reader.getParentRecordId();
-            if (wrkParentId != null && !wrkParentId.isEmpty()) {
-                final String agencyId = reader.getAgencyId();
-                final String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
-                log.warn("Unable to update enrichment record due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-            if (!rawRepo.recordExists(wrkRecordId, getParentAgencyId())) {
-                final String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
-                log.warn("Unable to update enrichment record due to an error: {}", message);
-                return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
-            }
-            final Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
-            final MarcRecord decodedRecord = UpdateRecordContentTransformer.decodeRecord(commonRecord.getContent());
-            final MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
+                final String wrkRecordId = reader.getRecordId();
+                final String wrkParentId = reader.getParentRecordId();
+                if (wrkParentId != null && !wrkParentId.isEmpty()) {
+                    final String agencyId = reader.getAgencyId();
+                    final String message = String.format(state.getMessages().getString("enrichment.has.parent"), wrkRecordId, agencyId);
+                    log.warn("Unable to update enrichment record due to an error: {}", message);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+                if (!rawRepo.recordExists(wrkRecordId, getParentAgencyId())) {
+                    final String message = String.format(state.getMessages().getString("record.does.not.exist"), wrkRecordId);
+                    log.warn("Unable to update enrichment record due to an error: {}", message);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, message);
+                }
+                final Record commonRecord = rawRepo.fetchRecord(wrkRecordId, getParentAgencyId());
+                final MarcRecord decodedRecord = decoder.decodeRecord(commonRecord.getContent());
+                final MarcRecord enrichmentRecord = state.getLibraryRecordsHandler().correctLibraryExtendedRecord(decodedRecord, marcRecord);
 
-            log.info("Correct content of enrichment record.");
-            log.info("Old content:\n{}", marcRecord);
-            log.info("New content:\n{}", enrichmentRecord);
-            if (enrichmentRecord.getFields().isEmpty()) {
-                return performDeletionAction();
+                log.info("Correct content of enrichment record.");
+                log.info("Old content:\n{}", marcRecord);
+                log.info("New content:\n{}", enrichmentRecord);
+                if (enrichmentRecord.getFields().isEmpty()) {
+                    return performDeletionAction();
+                }
+
+                removeMinusEnrichment(enrichmentRecord);
+
+                return performSaveRecord(enrichmentRecord);
+            } catch (UnsupportedEncodingException ex) {
+                log.error("Update error: " + ex.getMessage(), ex);
+                throw new UpdateException(ex.getMessage(), ex);
             }
-
-            removeMinusEnrichment(enrichmentRecord);
-
-            return performSaveRecord(enrichmentRecord);
         });
     }
 
@@ -116,7 +136,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      *
      * @return OK.
      */
-    protected ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
+    private ServiceResult performSaveRecord(MarcRecord enrichmentRecord) {
         final String recordId = new MarcRecordReader(marcRecord).getRecordId();
         children.add(StoreRecordAction.newStoreEnrichmentAction(state, settings, enrichmentRecord));
         final LinkRecordAction linkRecordAction = new LinkRecordAction(state, enrichmentRecord);
@@ -142,7 +162,7 @@ public class UpdateEnrichmentRecordAction extends AbstractRawRepoAction {
      * @return OK.
      * @throws UpdateException In case of critical errors.
      */
-    protected ServiceResult performDeletionAction() throws UpdateException {
+    private ServiceResult performDeletionAction() throws UpdateException {
         return LOGGER.callChecked(log -> {
             final MarcRecordReader reader = new MarcRecordReader(marcRecord);
             final String recordId = reader.getRecordId();

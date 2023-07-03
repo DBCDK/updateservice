@@ -17,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -27,6 +28,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class UpdateEnrichmentRecordActionTest {
@@ -322,6 +325,44 @@ class UpdateEnrichmentRecordActionTest {
         AssertActionsUtil.assertRemoveLinksAction(iterator.next(), state.getRawRepo(), record);
         AssertActionsUtil.assertDeleteRecordAction(iterator.next(), state.getRawRepo(), record, MarcXChangeMimeType.ENRICHMENT);
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    /**
+     * Test UpdateEnrichmentRecordAction.performAction(): Update enrichment record where
+     * the common record can not be decoded.
+     * <p>
+     * <dl>
+     * <dt>Given</dt>
+     * <dd>
+     * A rawrepo with a common record, that can not be decoded.
+     * </dd>
+     * <dt>When</dt>
+     * <dd>
+     * Update an enrichment record.
+     * </dd>
+     * <dt>Then</dt>
+     * <dd>
+     * Throw UpdateException that encapsulates the UnsupportedEncodingException.
+     * </dd>
+     * </dl>
+     */
+    @Test
+    void testPerformAction_UpdateRecord_EncodingException() throws Exception {
+        MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.ENRICHMENT_SINGLE_RECORD_RESOURCE);
+        String recordId = AssertActionsUtil.getBibliographicRecordId(record);
+        MarcRecord commonRecordData = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
+        UpdateEnrichmentRecordAction.Decoder decoder = mock(UpdateEnrichmentRecordAction.Decoder.class);
+
+        Record commonRecord = createRawRepoRecord(commonRecordData, MarcXChangeMimeType.MARCXCHANGE);
+        when(state.getRawRepo().recordExists(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(true);
+        when(state.getRawRepo().fetchRecord(commonRecord.getId().getBibliographicRecordId(), commonRecord.getId().getAgencyId())).thenReturn(commonRecord);
+        when(decoder.decodeRecord(commonRecord.getContent())).thenThrow(new UnsupportedEncodingException("error"));
+        when(state.getLibraryRecordsHandler().correctLibraryExtendedRecord(commonRecordData, record)).thenReturn(record);
+        when(state.getSolrFBS().hasDocuments(SolrServiceIndexer.createSubfieldQueryDBCOnly("002a", recordId))).thenReturn(false);
+
+        UpdateEnrichmentRecordAction updateEnrichmentRecordAction = new UpdateEnrichmentRecordAction(state, settings, record);
+        updateEnrichmentRecordAction.decoder = decoder;
+        assertThrows(UpdateException.class, updateEnrichmentRecordAction::performAction);
     }
 
     /**
