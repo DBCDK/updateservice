@@ -64,8 +64,12 @@ public class StoreRecordAction extends AbstractRawRepoAction {
      * Class used for mocking during unit test
      */
     static class Encoder {
-        byte[] encodeRecord(MarcRecord marcRecord) {
+        byte[] encodeRecordToMarcXchange(MarcRecord marcRecord) {
             return UpdateRecordContentTransformer.encodeRecord(marcRecord);
+        }
+
+        byte[] encodeRecordToJson(MarcRecord marcRecord) throws UpdateException{
+            return UpdateRecordContentTransformer.encodeRecordToJson(marcRecord);
         }
     }
 
@@ -91,7 +95,8 @@ public class StoreRecordAction extends AbstractRawRepoAction {
             }
             recordToStore = state.getRecordSorter().sortRecord(recordToStore);
             updateModifiedDate(recordToStore);
-            rawRepoRecord.setContent(encoder.encodeRecord(recordToStore));
+            rawRepoRecord.setContent(encoder.encodeRecordToMarcXchange(recordToStore));
+            rawRepoRecord.setContentJson(encoder.encodeRecordToJson(recordToStore));
             if (mimetype != null && !mimetype.isEmpty()) {
                 rawRepoRecord.setMimeType(mimetype);
             }

@@ -4,6 +4,8 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.writer.JsonLineWriter;
+import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 
 import java.io.ByteArrayInputStream;
@@ -24,8 +26,17 @@ public class UpdateRecordContentTransformer {
     }
 
     public static byte[] encodeRecord(MarcRecord marcRecord) {
-        MarcXchangeV1Writer marcXchangeV1Writer = new MarcXchangeV1Writer();
+        final MarcXchangeV1Writer marcXchangeV1Writer = new MarcXchangeV1Writer();
         return marcXchangeV1Writer.write(marcRecord, StandardCharsets.UTF_8);
+    }
+
+    public static byte[] encodeRecordToJson(MarcRecord marcRecord) throws UpdateException {
+        final JsonLineWriter writer = new JsonLineWriter();
+        try {
+            return writer.write(marcRecord, StandardCharsets.UTF_8);
+        } catch (MarcWriterException e) {
+            throw new UpdateException(e.getMessage(), e);
+        }
     }
 
     public static MarcRecord readRecordFromString(String line) throws UpdateException {

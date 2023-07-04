@@ -385,7 +385,7 @@ public class RawRepo {
             }
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.fetchMergedRecord");
             updateSimpleTimerMetric(methodName, watch);
@@ -423,7 +423,7 @@ public class RawRepo {
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.fetchRecordCollection");
             updateSimpleTimerMetric(methodName, watch);
@@ -470,7 +470,7 @@ public class RawRepo {
             }
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.fetchRecord");
             updateSimpleTimerMetric(methodName, watch);
@@ -507,7 +507,7 @@ public class RawRepo {
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.recordExists");
             updateSimpleTimerMetric(methodName, watch);
@@ -541,7 +541,7 @@ public class RawRepo {
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.recordExistsMaybeDeleted");
             updateSimpleTimerMetric(methodName, watch);
@@ -730,7 +730,7 @@ public class RawRepo {
             throw new UpdateException(ex.getMessage(), ex);
         } catch (Exception e) {
             incrementErrorCounterMetric(methodName, e);
-            throw e;
+            throw new UpdateException(e.getMessage(), e);
         } finally {
             watch.stop("rawrepo.changedRecord");
             updateSimpleTimerMetric(methodName, watch);
