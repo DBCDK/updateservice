@@ -1,7 +1,7 @@
 version: '3.2'
 services:
   update-systemtests-rawrepo-db:
-    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-1.15-snapshot:DIT-5165
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-postgres-2.2-snapshot:DIT-5194
     environment:
       - POSTGRES_DB=rawrepo
       - POSTGRES_USER=rawrepo
@@ -92,7 +92,7 @@ services:
       - "4848"
 
   update-systemtests-rawrepo-record-service:
-    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-349
+    image: docker-metascrum.artifacts.dbccloud.dk/rawrepo-record-service:DIT-353
     environment:
       -  INSTANCE_NAME=${USER}_systemtest
       -  VIPCORE_ENDPOINT=http://ocb-tools-systemtests:8080
