@@ -17,6 +17,7 @@ import java.util.Set;
 public class RawRepoRecordMock implements Record {
     private RecordId id = null;
     private byte[] content = null;
+    private byte[] contentJson = null;
     private String mimeType = null;
     private Instant created = null;
     private Instant modified = null;
@@ -47,6 +48,16 @@ public class RawRepoRecordMock implements Record {
     @Override
     public void setContent(byte[] content) {
         this.content = content;
+    }
+
+    @Override
+    public byte[] getContentJson() {
+        return contentJson;
+    }
+
+    @Override
+    public void setContentJson(byte[] contentJson) {
+        this.contentJson = contentJson;
     }
 
     public String getMimeType() {
