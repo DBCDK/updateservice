@@ -219,23 +219,6 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * Normalize and cut a string
-     *
-     * @param input the string to treat
-     * @param cut   should we cut ?
-     * @return Nicely trimmed string
-     */
-    private String cutAndClean(String input, int cut) {
-        String result;
-        result = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
-        result = result.toLowerCase().replaceAll(ALPHA_NUMERIC_DANISH_CHARS, "");
-        if (cut > 0 && result.length() > cut) {
-            result = result.substring(0, cut);
-        }
-        return result;
-    }
-
-    /**
      * Returns the content of a field/subfield if exists and an empty string if not
      *
      * @param reader   record reader
@@ -302,7 +285,7 @@ public class LibraryRecordsHandler {
         final boolean resultCheck110 = check110(oldReader, newReader, classificationsChangedMessage);
         final boolean resultCheck239And245 = check239And245(oldReader, newReader, compareLength, classificationsChangedMessage);
         final boolean resultCheck245 = check245(oldReader, newReader, compareLength, classificationsChangedMessage);
-        final boolean resultCheck652 = check652(oldReader, newReader, compareLength, classificationsChangedMessage);
+        final boolean resultCheck652 = check652(oldReader, newReader, 10, classificationsChangedMessage);
 
         return resultCheck008 ||
                 resultCheck009 ||
@@ -637,59 +620,58 @@ public class LibraryRecordsHandler {
             DataField new652 = get652654MorO(newReader, "652");
             if (current.getSubFields().size() > 0) {
                 if (compareSubfieldContent(current.getSubFields(), new652.getSubFields(), "moabefh",
-                        true, 10)) {
+                        true, cut)) {
                     return false;
                 }
             } else {
                 // Sadly, they weren't equal, so we look for 654 in the old record - some panic may ensue
                 current = get652654MorO(oldReader, "654");
-                if (current.getSubFields().size() > 0) {
-                    if (compareSubfieldContent(current.getSubFields(), new652.getSubFields(), "moabefh",
-                            true, 10)) {
-                        return false;
-                    }
+                if (current.getSubFields().size() > 0 &&
+                        compareSubfieldContent(current.getSubFields(), new652.getSubFields(), "moabefh",
+                                true, cut)) {
+                    return false;
                 }
             }
 
             // Now we will say something nice to the librarian
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('m')),
-                    new652.getSubFields(hasSubFieldCode('m')), "m", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('m')), "m", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652m.difference");
                 log.info("Classification has changed - reason 652m difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('o')),
-                    new652.getSubFields(hasSubFieldCode('o')), "o", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('o')), "o", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652o.difference");
                 log.info("Classification has changed - reason 652o difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('a')),
-                    new652.getSubFields(hasSubFieldCode('a')), "a", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('a')), "a", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652a.difference");
                 log.info("Classification has changed - reason 652a difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('b')),
-                    new652.getSubFields(hasSubFieldCode('b')), "b", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('b')), "b", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652b.difference");
                 log.info("Classification has changed - reason 652b difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('e')),
-                    new652.getSubFields(hasSubFieldCode('e')), "e", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('e')), "e", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.e.difference");
                 log.info("Classification has changed - reason 652e difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('f')),
-                    new652.getSubFields(hasSubFieldCode('f')), "f", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('f')), "f", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.f.difference");
                 log.info("Classification has changed - reason 652f difference");
                 return true;
             }
             if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('h')),
-                    new652.getSubFields(hasSubFieldCode('h')), "h", true, 10)) {
+                    new652.getSubFields(hasSubFieldCode('h')), "h", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652mo.h.difference");
                 log.info("Classification has changed - reason 652h difference");
                 return true;
@@ -778,7 +760,7 @@ public class LibraryRecordsHandler {
     }
 
     private boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(DataField field, MarcRecord enrichment) {
-        String subfieldZ = field.getSubField(DataField.hasSubFieldCode('z')).orElse(null).getData();
+        String subfieldZ = field.getSubField(hasSubFieldCode('z')).orElse(null).getData();
         if (subfieldZ != null) {
             if (subfieldZ.length() > 4) {
                 subfieldZ = subfieldZ.substring(0, 2);
