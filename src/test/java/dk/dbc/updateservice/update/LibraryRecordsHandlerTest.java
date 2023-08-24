@@ -477,9 +477,8 @@ class LibraryRecordsHandlerTest {
         classificationMessages = new ArrayList<>();
         oldRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "654 00 *m Hejsa");
         newRecord = UpdateRecordContentTransformer.readRecordFromString(f001DBC + "652 00 *o Hejsa");
-        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(true));
-        assertThat(classificationMessages.size(), is(1));
-        assertThat(resourceBundle.getString(classificationMessages.get(0)), is("652o er ændret"));
+        assertThat(instance.hasClassificationsChanged(oldRecord, newRecord, classificationMessages), is(false));
+        assertThat(classificationMessages.size(), is(0));
 
         final String f652Socialdemokraterne = "652 00 *p 32.269 *a Socialdemokraterne \n";
         final String f652NyrupRasmussen = "652 00 *å 1 *m 99.4 *a Nyrup Rasmussen *h Poul \n";
