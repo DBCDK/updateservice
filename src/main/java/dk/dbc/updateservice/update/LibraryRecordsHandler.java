@@ -30,12 +30,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 
+import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
 /**
  * Class to manipulate library records for a local library. Local records and
  * local extended records.
@@ -123,8 +125,8 @@ public class LibraryRecordsHandler {
         String gString;
         // run through until a - search for g - if a first, then push a,<empty>
         // if g then push a,g - start from scratch.
-        // after : if a and no g then push a,<empty>
-        // can there be a after a ? what about g after g ?
+        // after : if a and no g then push "a",<empty>
+        // can there be "a" after "a" ? what about g after g ?
         // There are no validation for them being paired so yes
         // test cases :
         // *a s *b b -> as
@@ -217,61 +219,6 @@ public class LibraryRecordsHandler {
     }
 
     /**
-     * Normalize and cut a string
-     *
-     * @param input the string to treat
-     * @param cut   should we cut ?
-     * @return Nicely trimmed string
-     */
-    private String cutAndClean(String input, int cut) {
-        String result = "";
-        result = Normalizer.normalize(input, Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
-        result = result.toLowerCase().replaceAll(ALPHA_NUMERIC_DANISH_CHARS, "");
-        if (cut > 0 && result.length() > cut) {
-            result = result.substring(0, cut);
-        }
-        return result;
-    }
-
-    /**
-     * Compares content of multi occurrence fields
-     *
-     * @param oldList  reader for old record
-     * @param newList  reader for new record
-     * @param subfield subfields to check
-     * @return The result of the comparison
-     */
-    private boolean compareSubfieldContentMultiField652(MarcRecordReader oldList, MarcRecordReader newList, char subfield) {
-        final String oldValue = oldList.getValue("652", subfield);
-        final String newValue = newList.getValue("652", subfield);
-
-        return (oldValue == null ||
-                newValue == null ||
-                !cutAndClean(oldValue, 0).equals(cutAndClean(newValue, 0))) && (oldValue != null || newValue != null);
-
-    }
-
-    private boolean compareMultiSubfieldContentMultiField652(MarcRecordReader oldReader, MarcRecordReader newReader, char subfield, int cut) {
-        final List<String> oldValues = oldReader.getValues("652", subfield);
-        final List<String> newValues = newReader.getValues("652", subfield);
-
-        if (oldValues.size() != newValues.size()) {
-            return true;
-        }
-
-        Collections.sort(oldValues);
-        Collections.sort(newValues);
-
-        for (int i = 0; i < oldValues.size(); i++) {
-            if (!cutAndClean(oldValues.get(i), cut).equals(cutAndClean(newValues.get(i), cut))) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Returns the content of a field/subfield if exists and an empty string if not
      *
      * @param reader   record reader
@@ -288,7 +235,7 @@ public class LibraryRecordsHandler {
     /**
      * Tests if the classifications has changed between 2 records.
      * <p>
-     * This method is mainly used to checks for changes between 2 versions of
+     * This method is mainly used to check for changes between 2 versions of
      * the same record.
      *
      * @param oldRecord The old record.
@@ -320,6 +267,7 @@ public class LibraryRecordsHandler {
         // It is wanted to compare the full data content when deciding if classification has changed.
         // This would normally mean removal of this variable and fix things where it has effect.
         // Though, it has been mentioned that it could change in the future, so we don't do the nice stuff.
+        // Things have changed - in 652 it is now wanted to have a 10-character limit, but still not global.
         final int compareLength = 0;
 
         LOGGER.use(log -> {
@@ -337,7 +285,7 @@ public class LibraryRecordsHandler {
         final boolean resultCheck110 = check110(oldReader, newReader, classificationsChangedMessage);
         final boolean resultCheck239And245 = check239And245(oldReader, newReader, compareLength, classificationsChangedMessage);
         final boolean resultCheck245 = check245(oldReader, newReader, compareLength, classificationsChangedMessage);
-        final boolean resultCheck652 = check652(oldReader, newReader, compareLength, classificationsChangedMessage);
+        final boolean resultCheck652 = check652(oldReader, newReader, 10, classificationsChangedMessage);
 
         return resultCheck008 ||
                 resultCheck009 ||
@@ -619,73 +567,119 @@ public class LibraryRecordsHandler {
         });
     }
 
+    /**
+     * Return a field that have an m or o subfield. One of those subfields should be in the record since it is
+     * mandatory to have one, but only one.
+     * @param newReader new record reader
+     * @return the field
+     */
+    private DataField get652654MorO(MarcRecordReader newReader, String fieldName) {
+        List<DataField> fields = newReader.getFieldAll(fieldName);
+        for (DataField field : fields) {
+            if (field.hasSubField(hasSubFieldCode('m')) || field.hasSubField(hasSubFieldCode('o'))) {
+                return sortField652(field, fieldName);
+            }
+        }
+        return new DataField();
+    }
+
+    /**
+     * There is no guarantee that the subfields in 652 come in a specific order, so we order them
+     * for further treatment
+     * @param fieldToSort field to sort
+     * @return the sorted field
+     */
+    DataField sortField652(DataField fieldToSort, String fieldName) {
+        DataField result = new DataField(fieldName, "00");
+        List<Character> subfields = new ArrayList<>(Arrays.asList('m', 'o', 'a', 'b', 'e', 'f', 'h'));
+        for (Character subfield : subfields) {
+            Optional<SubField> s = fieldToSort.getSubField(hasSubFieldCode(subfield));
+            if (s.isPresent()) {
+                result.addSubField(s.get());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Rules has changed so now there must only be one 652m or 652o which have all 652 classification
+     * information.
+     * @param oldReader Reader for the existing record
+     * @param newReader Reader for the incoming record
+     * @param cut       Kind of obsolete, but kept for now
+     * @param classificationsChangedMessage List with reasons - kind of funny, there will only be one
+     *                                      even if there are multiple changes.
+     * @return Return true if there is relevant changes, otherwise false
+     */
     private boolean check652(MarcRecordReader oldReader, MarcRecordReader newReader, int cut, List<String> classificationsChangedMessage) {
-        // 652 section
         return LOGGER.call(log -> {
-            if (compareMultiSubfieldContentMultiField652(oldReader, newReader, 'a', cut)) {
-                classificationsChangedMessage.add("classificationchanged.reason.652a.difference");
-                log.info("Classification has changed - reason 652a difference");
-                return true;
-            }
 
-            if (compareMultiSubfieldContentMultiField652(oldReader, newReader, 'b', cut)) {
-                classificationsChangedMessage.add("classificationchanged.reason.652b.difference");
-                log.info("Classification has changed - reason 652b difference");
-                return true;
-            }
-
-            //  if 652m or 652o then
-            //      if 652e stripped changed return true
-            //      if 652f stripped changed return true
-            //      if 652h stripped changed return true
-            final String f652m = oldReader.getValue("652", 'm');
-            final String f652o = oldReader.getValue("652", 'o');
-            final boolean subfieldMHasBeenCopied = hasSubfieldBeenCopied654652(oldReader, newReader, 'm');
-            final boolean subfieldOHasBeenCopied = hasSubfieldBeenCopied654652(oldReader, newReader, 'o');
-            if ((f652m != null || f652o != null) &&
-                    !(subfieldMHasBeenCopied || subfieldOHasBeenCopied)) {
-                if (compareSubfieldContentMultiField652(oldReader, newReader, 'e')) {
-                    classificationsChangedMessage.add("classificationchanged.reason.652mo.e.difference");
-                    log.info("Classification has changed - reason 652m|o : subfield e difference");
-                    return true;
+            // First we collect the fields with *o or *m from new and old. Rules says that there may only be one in a record.
+            // Rules also say that 652*m/o is obligatory so there will be a new.
+            DataField current = get652654MorO(oldReader, "652");
+            DataField new652 = get652654MorO(newReader, "652");
+            if (current.getSubFields().size() > 0) {
+                if (compareSubfieldContent(current.getSubFields(), new652.getSubFields(), "moabefh",
+                        true, cut)) {
+                    return false;
                 }
-                if (compareSubfieldContentMultiField652(oldReader, newReader, 'f')) {
-                    classificationsChangedMessage.add("classificationchanged.reason.652mo.f.difference");
-                    log.info("Classification has changed - reason 652m|o : subfield f difference");
-                    return true;
-                }
-                if (compareSubfieldContentMultiField652(oldReader, newReader, 'h')) {
-                    classificationsChangedMessage.add("classificationchanged.reason.652mo.h.difference");
-                    log.info("Classification has changed - reason 652m|o : subfield h difference");
-                    return true;
+            } else {
+                // Sadly, they weren't equal, so we look for 654 in the old record - some panic may ensue
+                current = get652654MorO(oldReader, "654");
+                if (current.getSubFields().size() > 0 &&
+                        compareSubfieldContent(current.getSubFields(), new652.getSubFields(), "moabefh",
+                                true, cut)) {
+                    return false;
                 }
             }
 
-            //  if 652m stripped changed return true
-            if (!subfieldMHasBeenCopied && compareSubfieldContentMultiField652(oldReader, newReader, 'm')) {
+            // Now we will say something nice to the librarian
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('m')),
+                    new652.getSubFields(hasSubFieldCode('m')), "m", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652m.difference");
                 log.info("Classification has changed - reason 652m difference");
                 return true;
             }
-
-            //  if 652o stripped changed return true
-            if (!subfieldOHasBeenCopied && compareSubfieldContentMultiField652(oldReader, newReader, 'o')) {
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('o')),
+                    new652.getSubFields(hasSubFieldCode('o')), "o", true, cut)) {
                 classificationsChangedMessage.add("classificationchanged.reason.652o.difference");
                 log.info("Classification has changed - reason 652o difference");
+                return true;
+            }
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('a')),
+                    new652.getSubFields(hasSubFieldCode('a')), "a", true, cut)) {
+                classificationsChangedMessage.add("classificationchanged.reason.652a.difference");
+                log.info("Classification has changed - reason 652a difference");
+                return true;
+            }
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('b')),
+                    new652.getSubFields(hasSubFieldCode('b')), "b", true, cut)) {
+                classificationsChangedMessage.add("classificationchanged.reason.652b.difference");
+                log.info("Classification has changed - reason 652b difference");
+                return true;
+            }
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('e')),
+                    new652.getSubFields(hasSubFieldCode('e')), "e", true, cut)) {
+                classificationsChangedMessage.add("classificationchanged.reason.652mo.e.difference");
+                log.info("Classification has changed - reason 652e difference");
+                return true;
+            }
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('f')),
+                    new652.getSubFields(hasSubFieldCode('f')), "f", true, cut)) {
+                classificationsChangedMessage.add("classificationchanged.reason.652mo.f.difference");
+                log.info("Classification has changed - reason 652f difference");
+                return true;
+            }
+            if (!compareSubfieldContent(current.getSubFields(hasSubFieldCode('h')),
+                    new652.getSubFields(hasSubFieldCode('h')), "h", true, cut)) {
+                classificationsChangedMessage.add("classificationchanged.reason.652mo.h.difference");
+                log.info("Classification has changed - reason 652h difference");
                 return true;
             }
 
             return false;
         });
     }
-
-    private boolean hasSubfieldBeenCopied654652(MarcRecordReader oldReader, MarcRecordReader newReader, char subfield) {
-        final String oldValue = oldReader.getValue("654", subfield);
-        final String newValue = newReader.getValue("652", subfield);
-
-        return oldValue != null && oldValue.equals(newValue);
-    }
-
 
     private MarcRecord updateClassificationsInRecord(MarcRecord currentCommonMarc, MarcRecord libraryRecord) {
         final MarcRecord result = new MarcRecord(libraryRecord);
@@ -766,7 +760,7 @@ public class LibraryRecordsHandler {
     }
 
     private boolean isEnrichmentReferenceFieldPresentInAlreadyProcessedFields(DataField field, MarcRecord enrichment) {
-        String subfieldZ = field.getSubField(DataField.hasSubFieldCode('z')).orElse(null).getData();
+        String subfieldZ = field.getSubField(hasSubFieldCode('z')).orElse(null).getData();
         if (subfieldZ != null) {
             if (subfieldZ.length() > 4) {
                 subfieldZ = subfieldZ.substring(0, 2);
@@ -1036,7 +1030,7 @@ public class LibraryRecordsHandler {
 
 
     /**
-     * Modifies the new record if record is being recategorized
+     * Modifies the new record if record is being re-categorized
      *
      * @param currentCommonRecord  record in rr
      * @param updatingCommonRecord incoming record
