@@ -414,13 +414,13 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                         if (!state.getVipCoreService().hasFeature(Integer.toString(id), VipCoreLibraryRulesConnector.Rule.USE_ENRICHMENTS)) {
                             continue;
                         }
-                        if (rawRepo.recordExists(recordId, id)) {
+                        if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
+                            log.info("Enrichment record is not created or updated for record [{}:{}], because groupId equals agencyid", recordId, id);
+                        } else if (rawRepo.recordExists(recordId, id)) {
                             Record extRecord = rawRepo.fetchRecord(recordId, id);
                             MarcRecord extRecordData = UpdateRecordContentTransformer.decodeRecord(extRecord.getContent());
                             log.info("Update classifications for extended library record: [{}:{}]", recordId, id);
                             result.add(getUpdateClassificationsInEnrichmentRecordActionData(extRecordData, marcRecord, currentRecord, Integer.toString(id)));
-                        } else if (state.getUpdateServiceRequestDTO().getAuthenticationDTO().getGroupId().equals(Integer.toString(id))) {
-                            log.info("Enrichment record is not created for record [{}:{}], because groupId equals agencyid", recordId, id);
                         } else {
                             if (DefaultEnrichmentRecordHandler.shouldCreateEnrichmentRecordsResult(state.getMessages(), marcRecord, currentRecord)) {
                                 log.info("Create new enrichment library record: [{}:{}].", recordId, id);
