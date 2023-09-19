@@ -31,6 +31,19 @@ class LibraryRecordsHandlerTest {
     }
 
     @Test
+    void testPerformAction_remove002Notifications() {
+        LibraryRecordsHandler instance = new MockLibraryRecordsHandler();
+        String content245a = "En [FLYT BEHOLDNING inden 1/1 2028] titel";
+        assertThat(instance.remove002Notifications(content245a), is("En titel"));
+        content245a = " [FLYT BEHOLDNING inden 1/1 2028]   En titel";
+        assertThat(instance.remove002Notifications(content245a), is("En titel"));
+        content245a = "En titel[FLYT BEHOLDNING inden 1/1 2028]";
+        assertThat(instance.remove002Notifications(content245a), is("En titel"));
+        content245a = "[POSTEN NEDLÆGGES inden 1/1 2028] En titel";
+        assertThat(instance.remove002Notifications(content245a), is(content245a));
+
+    }
+    @Test
     void testSplitCompleteBasisRecord() throws Exception {
         // Prepare record
         MarcRecord record = AssertActionsUtil.loadRecord(AssertActionsUtil.COMMON_SINGLE_RECORD_RESOURCE);
