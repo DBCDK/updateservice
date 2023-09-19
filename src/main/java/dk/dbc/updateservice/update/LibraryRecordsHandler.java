@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-import static dk.dbc.marc.binding.MarcRecord.hasTag;
 import static dk.dbc.marc.reader.DanMarc2LineFormatReader.DEFAULT_LEADER;
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
@@ -716,7 +715,7 @@ public class LibraryRecordsHandler {
         if (!hasClassificationData(libraryRecord)) {
             final MarcRecordWriter writer = new MarcRecordWriter(result);
             writer.copyFieldsFromRecord(CLASSIFICATION_FIELDS_NO_TITLE, currentCommonMarc);
-            DataField titleField = currentCommonMarc.getField(DataField.class, hasTag("245")).orElse(null);
+            DataField titleField = currentCommonMarc.getField(DataField.class, MarcRecord.hasTag("245")).orElse(null);
             if (titleField != null) {
                 for (SubField subField : titleField.getSubFields()) {
                     if (subField.getCode() == 'a') {
