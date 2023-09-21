@@ -47,6 +47,7 @@ import static dk.dbc.marc.binding.DataField.hasSubFieldCode;
 public class LibraryRecordsHandler {
     private static final DeferredLogger LOGGER = new DeferredLogger(LibraryRecordsHandler.class);
     private static final List<String> CLASSIFICATION_FIELDS = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "245", "652");
+    private static final List<String> CLASSIFICATION_FIELDS_NO_TITLE = Arrays.asList("008", "009", "038", "039", "100", "110", "239", "652");
     private static final List<String> REFERENCE_FIELDS = Arrays.asList("900", "910", "945");
     private static final List<String> RECORD_CONTROL_FIELDS = Arrays.asList("001", "004", "996");
     private static final List<String> CONTROL_AND_CLASSIFICATION_FIELDS = new ArrayList<>();
@@ -162,6 +163,21 @@ public class LibraryRecordsHandler {
     }
 
     /**
+     * When a record is chosen to become a 002 linking, a note is placed in 245a
+     * in sharp brackets saying something about moving holdings. When location is
+     * checked, that not must not be a part of the title neither shall it be copied
+     * to the enrichment record.
+     * @param input The string that is going to be cleaned
+     * @return the cleaned string
+     */
+    public String remove002Notifications(String input) {
+        String result = input.replaceAll("\\[.*FLYT BEHOLDNING.*\\]", " ");
+        result = result.replaceAll("\\s+", " ");
+        result = result.trim();
+        return result;
+    }
+
+    /**
      * Returns a string containing subfield content maybe stripped, maybe normalized
      *
      * @param subfieldList List of subfields in the field
@@ -171,17 +187,26 @@ public class LibraryRecordsHandler {
      * @return The collected data
      */
     private String getCompareString(List<SubField> subfieldList, String subfields, boolean normalize, int cut) {
+        return getCompareString(subfieldList, subfields, normalize, cut, false);
+    }
+
+    private String getCompareString(List<SubField> subfieldList, String subfields, boolean normalize, int cut, boolean clean245a) {
         if (subfieldList == null) {
             return "";
         }
         final StringBuilder collector = new StringBuilder();
         String subCollector;
         for (SubField aSubfieldList : subfieldList) {
+            String subFieldData = aSubfieldList.getData();
+            if (clean245a && 'a' == aSubfieldList.getCode()) {
+                // This is to handle the 002 case where we want to destroy data
+                subFieldData = remove002Notifications(subFieldData);
+            }
             if (subfields.indexOf(aSubfieldList.getCode()) > -1) {
                 if (normalize) {
-                    subCollector = Normalizer.normalize(aSubfieldList.getData(), Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
+                    subCollector = Normalizer.normalize(subFieldData, Normalizer.Form.NFD).replaceAll(DIACRITICAL_MARKS, "");
                 } else {
-                    subCollector = aSubfieldList.getData();
+                    subCollector = subFieldData;
                 }
                 subCollector = subCollector.toLowerCase().replaceAll(ALPHA_NUMERIC_DANISH_CHARS, "");
                 if (cut > 0 && subCollector.length() > cut) {
@@ -206,13 +231,17 @@ public class LibraryRecordsHandler {
      * @return returns true if equal otherwise false
      */
     private boolean compareSubfieldContent(List<SubField> oldList, List<SubField> newList, String subfields, boolean normalize, int cut) {
+        return compareSubfieldContent(oldList, newList, subfields, normalize, cut, false);
+    }
+
+    private boolean compareSubfieldContent(List<SubField> oldList, List<SubField> newList, String subfields, boolean normalize, int cut, boolean clean245a) {
         return LOGGER.call(log -> {
             if (oldList == null && newList == null) {
                 log.info("compareSubfieldContent - both NULL");
                 return true;
             }
-            final String oldMatch = getCompareString(oldList, subfields, normalize, cut);
-            final String newMatch = getCompareString(newList, subfields, normalize, cut);
+            final String oldMatch = getCompareString(oldList, subfields, normalize, cut, clean245a);
+            final String newMatch = getCompareString(newList, subfields, normalize, cut, clean245a);
             log.info("Old str <{}>, new str <{}>", oldMatch, newMatch);
             return oldMatch.equals(newMatch);
         });
@@ -421,8 +450,8 @@ public class LibraryRecordsHandler {
             //      hvis der er et 239t og det er forskelligt fra 245a så skal der returneres (ingen grund til at checke øvrige delfelter).
             //
             // hvis 245a har ændret sig :
-            // hvis 004a = s og der er et 245n i mindst en af posterne og 245n ikke har ændet sig så skal 239 betinget 245 check ikke gælde
-            // hvis 004a = b og der er et 245g i mindst en af posterne og 245g ikke har ændet sig så skal 239 betinget 245 check ikke gælde
+            // hvis 004a = s og der er et 245n i mindst en af posterne og 245n ikke har ændret sig så skal 239 betinget 245 check ikke gælde
+            // hvis 004a = b og der er et 245g i mindst en af posterne og 245g ikke har ændret sig så skal 239 betinget 245 check ikke gælde
             // if checkField : if 239*[ahkeftø] stripped 10 has changed return true.
             oldField = oldReader.getField("239");
             newField = newReader.getField("239");
@@ -433,7 +462,7 @@ public class LibraryRecordsHandler {
                 if (newField != null) {
                     final DataField field245 = oldReader.getField("245");
                     if (field245 != null) {
-                        f245a = getCompareString(field245.getSubFields(), "a", true, cut);
+                        f245a = getCompareString(field245.getSubFields(), "a", true, cut, true);
                     }
                     final String f239t = getCompareString(newReader.getField("239").getSubFields(), "t", true, cut);
                     checkField239 = !f245a.equals(f239t);
@@ -448,7 +477,7 @@ public class LibraryRecordsHandler {
                 if (newField == null) {
                     final DataField field245 = newReader.getField("245");
                     if (field245 != null) {
-                        f245a = getCompareString(field245.getSubFields(), "a", true, cut);
+                        f245a = getCompareString(field245.getSubFields(), "a", true, cut, true);
                     }
                     final String f239t = getCompareString(oldReader.getField("239").getSubFields(), "t", true, cut);
                     checkField239 = !f245a.equals(f239t);
@@ -491,7 +520,7 @@ public class LibraryRecordsHandler {
             newField = newReader.getField("245");
             oldSubfieldList = oldField == null ? null : oldField.getSubFields();
             newSubfieldList = newField == null ? null : newField.getSubFields();
-            if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "a", true, cut)) {
+            if (!compareSubfieldContent(oldSubfieldList, newSubfieldList, "a", true, cut, true)) {
                 newValue = newReader.getValue("004", 'a');
                 newValue = newValue == null ? "" : newValue;
                 if (newValue.equals("s")) {
@@ -685,8 +714,18 @@ public class LibraryRecordsHandler {
         final MarcRecord result = new MarcRecord(libraryRecord);
         if (!hasClassificationData(libraryRecord)) {
             final MarcRecordWriter writer = new MarcRecordWriter(result);
-            writer.copyFieldsFromRecord(CLASSIFICATION_FIELDS, currentCommonMarc);
+            writer.copyFieldsFromRecord(CLASSIFICATION_FIELDS_NO_TITLE, currentCommonMarc);
+            DataField titleField = currentCommonMarc.getField(DataField.class, MarcRecord.hasTag("245")).orElse(null);
+            if (titleField != null) {
+                for (SubField subField : titleField.getSubFields()) {
+                    if (subField.getCode() == 'a') {
+                        subField.setData(remove002Notifications(subField.getData()));
+                    }
+                }
+                writer.getMarcRecord().addField(titleField);
+            }
         }
+
         return result;
     }
 
@@ -867,7 +906,7 @@ public class LibraryRecordsHandler {
      * This function will split (if necessary) the input record into common record and DBC enrichment record
      *
      * @param marcRecord   The record to be updated
-     * @param libraryGroup Whether it is a FBS or DataIO template
+     * @param libraryGroup Whether it is an FBS or DataIO template
      * @return a list of records to put in rawrepo
      * @throws VipCoreException             in case of an error
      * @throws UnsupportedEncodingException in case of an error
