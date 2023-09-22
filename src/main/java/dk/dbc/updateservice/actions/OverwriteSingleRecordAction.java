@@ -7,7 +7,6 @@ import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
-import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
@@ -74,7 +73,7 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
             children.add(LinkRecordAction.newLinkParentAction(state, marcRecord));
         }
 
-        // If this is an authority record being updated, then we need to see if any depending common records needs updating
+        // If this is an authority record being updated, then we need to see if any dependant common records needs updating
         if (RawRepo.AUTHORITY_AGENCY == reader.getAgencyIdAsInt()) {
             LOGGER.use(log -> log.info("Agency is 870979 - handling actions for child records"));
             final boolean shouldUpdateChildrenModifiedDate = shouldUpdateChildrenModifiedDate(marcRecord);
@@ -207,7 +206,6 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
      *
      * @param marcRecord The 870979 record that are updated.
      * @throws UpdateException  Something went wrong - multiple reasons.
-     * @throws RawRepoException Something went wrong - multiple reasons.
      */
     void handleUniverseLinks(MarcRecord marcRecord) throws UpdateException, MarcRecordExpandException {
         final MarcRecordReader reader = new MarcRecordReader(marcRecord);
@@ -234,10 +232,18 @@ class OverwriteSingleRecordAction extends AbstractRawRepoAction {
                 boolean createAction = false;
                 if (currentReaderField == null && newField != null) {
                     // handle new universe - that is, find all B-records that is children of the series record and add a
-                    // field 846 whith a link to the universe record.
-                    currentChildWriter.addFieldSubfield("846", '5', "870979");
-                    currentChildWriter.addOrReplaceSubField("846", '6', link);
-                    createAction = true;
+                    // field 846 with a link to the universe record.
+                    // First we check whether the record already have a field 846 and what the content of subfield 6 is
+                    if (currentChildReader.hasField("846")) {
+                        if (!currentChildReader.hasValue("846", '6', link)) {
+                            currentChildWriter.addOrReplaceSubField("846", '6', link);
+                            createAction = true;
+                        }
+                    } else {
+                        currentChildWriter.addFieldSubfield("846", '5', "870979");
+                        currentChildWriter.addOrReplaceSubField("846", '6', link);
+                        createAction = true;
+                    }
                 } else if (currentReaderField != null && newField == null) {
                     // handle removing universe - that is, find all B-records that is children of the series record and remove
                     // field 846 from those records.
