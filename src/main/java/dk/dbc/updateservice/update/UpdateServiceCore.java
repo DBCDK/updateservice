@@ -13,7 +13,6 @@ import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.rawrepo.dto.RecordEntryDTO;
-import dk.dbc.rawrepo.dto.RecordIdDTO;
 import dk.dbc.updateservice.actions.EnqueueRecordAction;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
