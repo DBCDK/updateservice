@@ -285,7 +285,7 @@ class UpdateServiceCoreTest {
         assertThat(commonRecord.getMimeType(), is(MarcXChangeMimeType.MARCXCHANGE));
 
         inOrder.verify(updateServiceCore.rawRepo).linkRecordAppend(enrichmentRecordId, commonRecordId);
-        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "fbs-provider", true, false, 1001);
+        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "fbs-provider", true, false, 500);
 
         inOrder.verifyNoMoreInteractions();
     }
@@ -336,7 +336,7 @@ class UpdateServiceCoreTest {
         assertThat(commonRecord.getMimeType(), is(MarcXChangeMimeType.MARCXCHANGE));
 
         inOrder.verify(updateServiceCore.rawRepo).linkRecordAppend(enrichmentRecordId, commonRecordId);
-        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 1001);
+        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 500);
 
         inOrder.verifyNoMoreInteractions();
     }
@@ -378,7 +378,7 @@ class UpdateServiceCoreTest {
         assertThat(enrichmentRecord.getMimeType(), is(MarcXChangeMimeType.ENRICHMENT));
 
         inOrder.verify(updateServiceCore.rawRepo).linkRecordAppend(enrichmentRecordId, commonRecordId);
-        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 1001);
+        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 500);
 
         inOrder.verifyNoMoreInteractions();
     }
@@ -468,7 +468,7 @@ class UpdateServiceCoreTest {
         assertThat(parentRecord.getContentJson(), is("{}".getBytes()));
         assertThat(parentRecord.getMimeType(), is(MarcXChangeMimeType.AUTHORITY));
 
-        inOrder.verify(updateServiceCore.rawRepo).enqueue(commonRecordId, "dbc-provider", true, false, 1001);
+        inOrder.verify(updateServiceCore.rawRepo).enqueue(commonRecordId, "dbc-provider", true, false, 500);
         inOrder.verifyNoMoreInteractions();
     }
 
@@ -521,7 +521,7 @@ class UpdateServiceCoreTest {
         assertThat(commonRecordCaptorValue.getMimeType(), is(MarcXChangeMimeType.MARCXCHANGE));
 
         inOrder.verify(updateServiceCore.rawRepo).linkRecordAppend(enrichmentRecordId, commonRecordId);
-        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 1001);
+        inOrder.verify(updateServiceCore.rawRepo).enqueue(enrichmentRecordId, "dbc-provider", true, false, 500);
         inOrder.verifyNoMoreInteractions();
     }
 
