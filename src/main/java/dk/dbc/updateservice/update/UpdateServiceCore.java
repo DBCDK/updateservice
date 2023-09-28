@@ -248,7 +248,7 @@ public class UpdateServiceCore {
                 rawRepo.linkRecordAppend(recordId, relation);
             }
 
-            rawRepo.enqueue(recordId, providerId, true, false, 1001);
+            rawRepo.enqueue(recordId, providerId, true, false, RawRepo.ENQUEUE_PRIORITY_DEFAULT);
         } catch (JsonProcessingException | VipCoreException | RawRepoException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         }
