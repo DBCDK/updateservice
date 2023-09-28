@@ -1,5 +1,7 @@
 package dk.dbc.updateservice.update;
 
+import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RelationHintsVipCore;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.vipcore.exception.VipCoreException;
 import dk.dbc.vipcore.libraryrules.VipCoreLibraryRulesConnector;
@@ -13,6 +15,7 @@ import org.perf4j.log4j.Log4JStopWatch;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
@@ -34,10 +37,21 @@ public class VipCoreService {
      * @throws VipCoreException something went horribly wrong in the call to vipcore
      */
     public boolean isAuthRootOrCB(String agencyId) throws VipCoreException {
-        final StopWatch watch = new Log4JStopWatch("service.vipcore.hasFeature").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.isAuthRootOrCB").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
         try {
             return hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.REGIONAL_OBLIGATIONS) ||
                     hasFeature(agencyId, VipCoreLibraryRulesConnector.Rule.AUTH_ROOT);
+        } finally {
+            watch.stop();
+        }
+    }
+
+    public List<Integer> getAgencyPriority(int agencyId) throws VipCoreException, RawRepoException {
+        final StopWatch watch = new Log4JStopWatch("service.vipcore.getAgencyPriority").setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        try {
+            final RelationHintsVipCore relationHints = new RelationHintsVipCore(vipCoreLibraryRulesConnector);
+
+            return relationHints.getAgencyPriority(agencyId);
         } finally {
             watch.stop();
         }

@@ -1,0 +1,2125 @@
+{
+  "recordId": {
+    "bibliographicRecordId": "135010529",
+    "agencyId": 870970
+  },
+  "mimetype": "text/marcxchange",
+  "created": "2022-11-08T07:36:32.996169Z",
+  "modified": "2023-03-24T12:03:23.931508Z",
+  "trackingId": "{135010529:bog} - cfp-{135010529:870970}",
+  "content": {
+    "leader": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "n",
+      " ",
+      " ",
+      " ",
+      " ",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      " ",
+      " ",
+      "4",
+      "5",
+      "0",
+      "0"
+    ],
+    "fields": [
+      {
+        "name": "001",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "135010529"
+          },
+          {
+            "name": "b",
+            "value": "870970"
+          },
+          {
+            "name": "c",
+            "value": "20230324130313"
+          },
+          {
+            "name": "d",
+            "value": "20221108"
+          },
+          {
+            "name": "f",
+            "value": "a"
+          }
+        ]
+      },
+      {
+        "name": "004",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "r",
+            "value": "n"
+          },
+          {
+            "name": "a",
+            "value": "e"
+          }
+        ]
+      },
+      {
+        "name": "008",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "t",
+            "value": "s"
+          },
+          {
+            "name": "u",
+            "value": "f"
+          },
+          {
+            "name": "a",
+            "value": "2022"
+          },
+          {
+            "name": "b",
+            "value": "gb"
+          },
+          {
+            "name": "l",
+            "value": "eng"
+          },
+          {
+            "name": "v",
+            "value": "0"
+          }
+        ]
+      },
+      {
+        "name": "009",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "s"
+          },
+          {
+            "name": "g",
+            "value": "xc"
+          },
+          {
+            "name": "b",
+            "value": "a"
+          },
+          {
+            "name": "h",
+            "value": "xx"
+          }
+        ]
+      },
+      {
+        "name": "023",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "b",
+            "value": "5013929336636"
+          }
+        ]
+      },
+      {
+        "name": "032",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "x",
+            "value": "ACM202245"
+          },
+          {
+            "name": "x",
+            "value": "BKM202316"
+          }
+        ]
+      },
+      {
+        "name": "039",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "und"
+          }
+        ]
+      },
+      {
+        "name": "100",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "5",
+            "value": "870979"
+          },
+          {
+            "name": "6",
+            "value": "69599087"
+          }
+        ]
+      },
+      {
+        "name": "245",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "A ¤painter in sound"
+          },
+          {
+            "name": "c",
+            "value": "pre-Beatles productions and classical influences"
+          }
+        ]
+      },
+      {
+        "name": "260",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "b",
+            "value": "él Records"
+          },
+          {
+            "name": "b",
+            "value": "Cherry Red Records"
+          },
+          {
+            "name": "c",
+            "value": "p 2022"
+          }
+        ]
+      },
+      {
+        "name": "300",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "n",
+            "value": "4 cd'er"
+          },
+          {
+            "name": "d",
+            "value": "1 kommentarbilag"
+          }
+        ]
+      },
+      {
+        "name": "512",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "Indspillet ca. 1938-1962"
+          }
+        ]
+      },
+      {
+        "name": "531",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "Indhold:"
+          }
+        ]
+      },
+      {
+        "name": "538",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "f",
+            "value": "él Records"
+          },
+          {
+            "name": "g",
+            "value": "ACME 366 CDX"
+          }
+        ]
+      },
+      {
+        "name": "652",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "m",
+            "value": "78.797"
+          }
+        ]
+      },
+      {
+        "name": "652",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "p",
+            "value": "99.4"
+          },
+          {
+            "name": "a",
+            "value": "Martin"
+          },
+          {
+            "name": "h",
+            "value": "George"
+          }
+        ]
+      },
+      {
+        "name": "666",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "m",
+            "value": "pop"
+          },
+          {
+            "name": "m",
+            "value": "crossover"
+          },
+          {
+            "name": "m",
+            "value": "senromantik"
+          },
+          {
+            "name": "m",
+            "value": "impressionisme"
+          },
+          {
+            "name": "m",
+            "value": "neoklassik"
+          },
+          {
+            "name": "m",
+            "value": "filmmusik"
+          },
+          {
+            "name": "n",
+            "value": "instrumental"
+          },
+          {
+            "name": "n",
+            "value": "vokal"
+          },
+          {
+            "name": "n",
+            "value": "orkester"
+          },
+          {
+            "name": "p",
+            "value": "1800-1899"
+          },
+          {
+            "name": "p",
+            "value": "1900-1999"
+          },
+          {
+            "name": "p",
+            "value": "1950-1959"
+          },
+          {
+            "name": "p",
+            "value": "1960-1969"
+          },
+          {
+            "name": "l",
+            "value": "England"
+          }
+        ]
+      },
+      {
+        "name": "666",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "f",
+            "value": "pladeproducere"
+          }
+        ]
+      },
+      {
+        "name": "700",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "5",
+            "value": "870979"
+          },
+          {
+            "name": "6",
+            "value": "90058169"
+          }
+        ]
+      },
+      {
+        "name": "710",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "5",
+            "value": "870979"
+          },
+          {
+            "name": "6",
+            "value": "93131134"
+          }
+        ]
+      },
+      {
+        "name": "770",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "11"
+          },
+          {
+            "name": "5",
+            "value": "870979"
+          },
+          {
+            "name": "6",
+            "value": "90609807"
+          }
+        ]
+      },
+      {
+        "name": "780",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "51"
+          },
+          {
+            "name": "5",
+            "value": "870979"
+          },
+          {
+            "name": "6",
+            "value": "92761673"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "11"
+          },
+          {
+            "name": "a",
+            "value": "Serenade for 10 blæsere, violoncel og kontrabas, d-mol, opus 44"
+          },
+          {
+            "name": "e",
+            "value": "London Baroque Ensemble"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Karl Haas"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "12"
+          },
+          {
+            "name": "a",
+            "value": "Little red monkey"
+          },
+          {
+            "name": "e",
+            "value": "Frank Chacksfield's Tunesmiths"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "13"
+          },
+          {
+            "name": "a",
+            "value": "Com Rigs are Bonnie"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "14"
+          },
+          {
+            "name": "a",
+            "value": "Bandbox"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "15"
+          },
+          {
+            "name": "a",
+            "value": "Honeysuckle rose"
+          },
+          {
+            "name": "e",
+            "value": "Cléo Laine with the Johnny Dankworth Seven"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "16"
+          },
+          {
+            "name": "a",
+            "value": "Bicycle bellies (signature tune of \"Yakity-yak\")"
+          },
+          {
+            "name": "e",
+            "value": "Sidney Torch and his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "17"
+          },
+          {
+            "name": "a",
+            "value": "Robin Hood"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "18"
+          },
+          {
+            "name": "a",
+            "value": "Became mucho"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "19"
+          },
+          {
+            "name": "a",
+            "value": "Theme from ITV's $64,000 question"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "20"
+          },
+          {
+            "name": "a",
+            "value": "Don't you rock me daddy-o"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "21"
+          },
+          {
+            "name": "a",
+            "value": "Skiffling strings"
+          },
+          {
+            "name": "e",
+            "value": "Ron Goodwin & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "22"
+          },
+          {
+            "name": "a",
+            "value": "Don't let go"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "23"
+          },
+          {
+            "name": "a",
+            "value": "Mercury gets the message"
+          },
+          {
+            "name": "e",
+            "value": "Ron Goodwin & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "24"
+          },
+          {
+            "name": "a",
+            "value": "Trip to Mars"
+          },
+          {
+            "name": "e",
+            "value": "Jack Parnell & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "25"
+          },
+          {
+            "name": "a",
+            "value": "Saturday jump (signature tune of \"Saturday club\""
+          },
+          {
+            "name": "e",
+            "value": "Humphrey Lyttelton & his Band"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "26"
+          },
+          {
+            "name": "a",
+            "value": "The ¤house that Humph built"
+          },
+          {
+            "name": "e",
+            "value": "Humphrey Lyttelton & his Band"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "27"
+          },
+          {
+            "name": "a",
+            "value": "Little girl, brown girl"
+          },
+          {
+            "name": "e",
+            "value": "Christopher Logue with the Tont Kinsey Quintet"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "28"
+          },
+          {
+            "name": "a",
+            "value": "The ¤girl from Corsica"
+          },
+          {
+            "name": "e",
+            "value": "Ron Goodwin & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "29"
+          },
+          {
+            "name": "a",
+            "value": "Long time boy"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "30"
+          },
+          {
+            "name": "a",
+            "value": "African waltz"
+          },
+          {
+            "name": "e",
+            "value": "Johnny Dankworth & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "31"
+          },
+          {
+            "name": "a",
+            "value": "You're driving me crazy"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "32"
+          },
+          {
+            "name": "a",
+            "value": "Pasadena"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "33"
+          },
+          {
+            "name": "a",
+            "value": "Everybody loves my baby"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "34"
+          },
+          {
+            "name": "a",
+            "value": "Time beat"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "35"
+          },
+          {
+            "name": "a",
+            "value": "Waltz in orbit"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "36"
+          },
+          {
+            "name": "a",
+            "value": "Just for Jerry"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "37"
+          },
+          {
+            "name": "a",
+            "value": "The ¤lark ascending"
+          },
+          {
+            "name": "e",
+            "value": "Jean Pougnet, violin"
+          },
+          {
+            "name": "e",
+            "value": "London Philharmonic Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Adrian Boult"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "38"
+          },
+          {
+            "name": "a",
+            "value": "Experiments with mice"
+          },
+          {
+            "name": "e",
+            "value": "Johnny Dankworth & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "39"
+          },
+          {
+            "name": "a",
+            "value": "The ¤guru song"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "40"
+          },
+          {
+            "name": "a",
+            "value": "The ¤hippopotamus song"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "41"
+          },
+          {
+            "name": "a",
+            "value": "Bad penny blues"
+          },
+          {
+            "name": "e",
+            "value": "Humphrey Lyttelton & his Band"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "42"
+          },
+          {
+            "name": "a",
+            "value": "I'm so ashamed"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "43"
+          },
+          {
+            "name": "a",
+            "value": "You keep me swingin'"
+          },
+          {
+            "name": "e",
+            "value": "Fred Flange and Peter Sellers"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "44"
+          },
+          {
+            "name": "a",
+            "value": "Ukulele lady"
+          },
+          {
+            "name": "e",
+            "value": "The Temperence Seven with vocal refrain by Peter Sellers"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "45"
+          },
+          {
+            "name": "a",
+            "value": "Shadows on the grass"
+          },
+          {
+            "name": "e",
+            "value": "Irene Handl and Peter Sellers"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "46"
+          },
+          {
+            "name": "a",
+            "value": "Goodness gracious me!"
+          },
+          {
+            "name": "e",
+            "value": "Peter Sellers and Sophia Loren"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "47"
+          },
+          {
+            "name": "a",
+            "value": "Zoo be Zoo be Zoo"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "48"
+          },
+          {
+            "name": "a",
+            "value": "Bangers and mash"
+          },
+          {
+            "name": "e",
+            "value": "Peter Sellers and Sophia Loren"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "49"
+          },
+          {
+            "name": "a",
+            "value": "Victorian plums"
+          },
+          {
+            "name": "e",
+            "value": "Tommy Watt & his Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "50"
+          },
+          {
+            "name": "a",
+            "value": "Portrait of our love"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "51"
+          },
+          {
+            "name": "a",
+            "value": "The ¤armadillo"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "52"
+          },
+          {
+            "name": "a",
+            "value": "The ¤spider in the bath"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "53"
+          },
+          {
+            "name": "a",
+            "value": "My kind of girl"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "54"
+          },
+          {
+            "name": "a",
+            "value": "Murder she says (theme from the film)"
+          },
+          {
+            "name": "e",
+            "value": "Ron Goodwin & his concert Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "55"
+          },
+          {
+            "name": "a",
+            "value": "The ¤hole in the ground"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "56"
+          },
+          {
+            "name": "a",
+            "value": "Right, said Fred"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "57"
+          },
+          {
+            "name": "a",
+            "value": "Barefoot girl"
+          },
+          {
+            "name": "e",
+            "value": "Ron Goodwin & his concert Orchestra"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "58"
+          },
+          {
+            "name": "a",
+            "value": "Tale of men's shirts"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "59"
+          },
+          {
+            "name": "a",
+            "value": "Mock Mozart"
+          },
+          {
+            "name": "e",
+            "value": "The Voices and Noises of Peter Ustinov"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "60"
+          },
+          {
+            "name": "a",
+            "value": "Phoney folk-lore"
+          },
+          {
+            "name": "e",
+            "value": "The Voices and Noises of Peter Ustinov"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "61"
+          },
+          {
+            "name": "a",
+            "value": "Unchained melody"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "62"
+          },
+          {
+            "name": "a",
+            "value": "You gotta go oww!"
+          },
+          {
+            "name": "e",
+            "value": "Count Jim Moriarty with Gravely Stephens and the Massed Alberts"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "63"
+          },
+          {
+            "name": "a",
+            "value": "Jakka and the flying saucers (an interplanetary fairy tale) (parts one & two)"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "64"
+          },
+          {
+            "name": "a",
+            "value": "Take a pew"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "65"
+          },
+          {
+            "name": "a",
+            "value": "And the same to you"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "66"
+          },
+          {
+            "name": "a",
+            "value": "Sitting on the bench"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "67"
+          },
+          {
+            "name": "a",
+            "value": "The ¤sewers of the strand"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "68"
+          },
+          {
+            "name": "a",
+            "value": "Train commercial - The astronauts"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "69"
+          },
+          {
+            "name": "a",
+            "value": "Morse code melody"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "70"
+          },
+          {
+            "name": "a",
+            "value": "Bridge on the river Wye (part one)"
+          },
+          {
+            "name": "e",
+            "value": "Spike Milligan, Peter Sellers, Jonathan Miller, Peter Cook"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "71"
+          },
+          {
+            "name": "a",
+            "value": "Bridge on the river Wye (part two)"
+          },
+          {
+            "name": "e",
+            "value": "Spike Milligan, Peter Sellers, Jonathan Miller, Peter Cook"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "72"
+          },
+          {
+            "name": "a",
+            "value": "Planeterne, opus 32"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "Venus"
+          },
+          {
+            "name": "7",
+            "value": ") /"
+          },
+          {
+            "name": "e",
+            "value": "BBC Symphony Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Malcolm Sargent"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "73"
+          },
+          {
+            "name": "a",
+            "value": "Præludium for klaver"
+          },
+          {
+            "name": "e",
+            "value": "Vlado Perlemuter, klaver"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "74"
+          },
+          {
+            "name": "A",
+            "value": "daphnis og chloe suite nr. 2 lever du jour"
+          },
+          {
+            "name": "a",
+            "value": "Daphnis og Chloë (Suite nr. 2"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "Lever du jour"
+          },
+          {
+            "name": "7",
+            "value": ")) /"
+          },
+          {
+            "name": "e",
+            "value": "New England Conservatory Chorus and Alumni Chorus"
+          },
+          {
+            "name": "e",
+            "value": "Boston Symphony Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Charles Munch"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "75"
+          },
+          {
+            "name": "a",
+            "value": "Le ¤tombeau de Couperin (Fuga)"
+          },
+          {
+            "name": "e",
+            "value": "Monique Haas, klaver"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "76"
+          },
+          {
+            "name": "a",
+            "value": "En ¤fauns eftermiddag"
+          },
+          {
+            "name": "e",
+            "value": "Philharmonia Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Guido Cantelli"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "77"
+          },
+          {
+            "name": "a",
+            "value": "L'¤isle joyeuse"
+          },
+          {
+            "name": "e",
+            "value": "Samson François, klaver"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "78"
+          },
+          {
+            "name": "a",
+            "value": "A ¤village Romeo and Juliet"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "The ¤walk to the Paradise Garden"
+          },
+          {
+            "name": "7",
+            "value": ") /"
+          },
+          {
+            "name": "e",
+            "value": "Halle Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: John Barbirolli"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "79"
+          },
+          {
+            "name": "a",
+            "value": "Koanga"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "La ¤calinda"
+          },
+          {
+            "name": "7",
+            "value": ") /"
+          },
+          {
+            "name": "e",
+            "value": "London Philharmonic Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Thomas Beecham"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "80"
+          },
+          {
+            "name": "a",
+            "value": "Folk song arrangements, volume 3"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "The ¤foggy, foggy dew"
+          },
+          {
+            "name": "7",
+            "value": ") :"
+          },
+          {
+            "name": "u",
+            "value": "British Isles"
+          },
+          {
+            "name": "e",
+            "value": "Peter Pears, tenor"
+          },
+          {
+            "name": "e",
+            "value": "Benjamin Britten, klaver"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "81"
+          },
+          {
+            "name": "a",
+            "value": "Koncert for obo og strygeorkester, c-mol (Introduzione - Larghetto)"
+          },
+          {
+            "name": "e",
+            "value": "Evelyn Rothwell, obo"
+          },
+          {
+            "name": "e",
+            "value": "Pro Arte Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: John Barbirolli"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "82"
+          },
+          {
+            "name": "a",
+            "value": "Porgy og Bess"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "Bess you is my woman now"
+          },
+          {
+            "name": "7",
+            "value": ") /"
+          },
+          {
+            "name": "e",
+            "value": "solister: Todd Duncan og Anne Brown"
+          },
+          {
+            "name": "e",
+            "value": "Decca Symphony Orchestra"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Alexander Smallens"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "83"
+          },
+          {
+            "name": "a",
+            "value": "Matthæuspassion, BWV 244"
+          },
+          {
+            "name": "7",
+            "value": "("
+          },
+          {
+            "name": "v",
+            "value": "Kommt, ihr Töchter, helft mir klagen"
+          },
+          {
+            "name": "7",
+            "value": ") /"
+          },
+          {
+            "name": "e",
+            "value": "Munich-Bach Orchestra and Chorus"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: Karl Richter"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "84"
+          },
+          {
+            "name": "a",
+            "value": "Koncert for klaver og orkester nr. 2, c-mol, opus 18 (2. sats : Adagio sostenuto)"
+          },
+          {
+            "name": "e",
+            "value": "William Kapell, klaver"
+          },
+          {
+            "name": "e",
+            "value": "The Robin Hood Dell Orchestra of Philadelphia"
+          },
+          {
+            "name": "e",
+            "value": "dirigent: William Steinberg"
+          }
+        ]
+      },
+      {
+        "name": "795",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "å",
+            "value": "85"
+          },
+          {
+            "name": "a",
+            "value": "Præludium for klaver nr. 4, e-mol, opus 28:4"
+          },
+          {
+            "name": "e",
+            "value": "Geza Anda, klaver"
+          }
+        ]
+      },
+      {
+        "name": "990",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "b",
+            "value": "v"
+          },
+          {
+            "name": "u",
+            "value": "nt"
+          }
+        ]
+      },
+      {
+        "name": "996",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "DBC"
+          }
+        ]
+      }
+    ]
+  },
+  "enrichmentTrail": "870970",
+  "deleted": false
+}

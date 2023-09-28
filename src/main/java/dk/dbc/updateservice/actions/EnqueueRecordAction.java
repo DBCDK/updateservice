@@ -5,6 +5,7 @@ import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.rawrepo.RecordId;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.update.JNDIResources;
+import dk.dbc.updateservice.update.LibraryGroup;
 import dk.dbc.updateservice.update.RawRepo;
 import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.utils.DeferredLogger;
@@ -68,15 +69,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
                 log.info("Using override priority {}", priority);
             }
 
-            if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
-            } else if (state.getLibraryGroup().isDBC() || state.getLibraryGroup().isSBCI()) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
-            } else if (state.getLibraryGroup().isPH()) {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
-            } else {
-                providerId = settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
-            }
+            providerId = EnqueueRecordAction.getProvider(settings, state.getLibraryGroup());
 
             if (providerId == null) {
                 return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, state.getMessages().getString("provider.id.not.set"));
@@ -108,6 +101,18 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
 
             return ServiceResult.newOkResult();
         });
+    }
+
+    public static String getProvider(Properties settings, LibraryGroup libraryGroup) {
+        if (settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE) != null) {
+            return settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_OVERRIDE);
+        } else if (libraryGroup.isDBC() || libraryGroup.isSBCI()) {
+            return settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_DBC);
+        } else if (libraryGroup.isPH()) {
+            return settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_PH);
+        } else {
+            return settings.getProperty(JNDIResources.RAWREPO_PROVIDER_ID_FBS);
+        }
     }
 
     /**
