@@ -1,5 +1,9 @@
 package dk.dbc.updateservice.rest;
 
+import dk.dbc.commons.jsonb.JSONBContext;
+import dk.dbc.commons.jsonb.JSONBException;
+import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordEntryDTO;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceResult;
 import dk.dbc.updateservice.dto.AuthenticationDTO;
@@ -11,6 +15,7 @@ import dk.dbc.updateservice.dto.UpdateServiceRequestDTO;
 import dk.dbc.updateservice.dto.UpdateStatusEnumDTO;
 import dk.dbc.updateservice.dto.writers.UpdateRecordResponseDTOWriter;
 import dk.dbc.updateservice.update.RawRepo;
+import dk.dbc.updateservice.update.UpdateException;
 import dk.dbc.updateservice.update.UpdateServiceCore;
 import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.validate.Validator;
@@ -22,11 +27,15 @@ import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.metrics.Counter;
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricRegistry;
@@ -41,6 +50,8 @@ import org.slf4j.MDC;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static dk.dbc.updateservice.rest.ApplicationConfig.LOG_DURATION_THRESHOLD_MS;
 import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
@@ -50,6 +61,7 @@ import static dk.dbc.updateservice.utils.MDCUtil.MDC_TRACKING_ID_LOG_CONTEXT;
 @Path("/api")
 public class UpdateServiceRest {
     private static final DeferredLogger LOGGER = new DeferredLogger(UpdateServiceRest.class);
+    private final JSONBContext jsonbContext = new JSONBContext();
     private GlobalActionState globalActionState;
 
     @EJB
@@ -88,6 +100,18 @@ public class UpdateServiceRest {
             .withDescription("Number of requests per agency/group id")
             .withType(MetricType.COUNTER)
             .withUnit("requests").build();
+
+    static final Metadata putRecordCounterMetaData = Metadata.builder()
+            .withName("update_put_record_requests_counter")
+            .withDescription("Number of requests to updaterecord")
+            .withType(MetricType.COUNTER)
+            .withUnit("requests").build();
+
+    static final Metadata putRecordDurationMetaData = Metadata.builder()
+            .withName("update_put_record_requests_timer")
+            .withDescription("Duration of updaterecord in milliseconds")
+            .withType(MetricType.SIMPLE_TIMER)
+            .withUnit(MetricUnits.MILLISECONDS).build();
 
     @PostConstruct
     protected void init() {
@@ -211,6 +235,53 @@ public class UpdateServiceRest {
                 getSchemasTimer.update(Duration.ofMillis(watch.getElapsedTime()));
             }
         });
+    }
+
+    @PUT
+    @Path("v1/kafka/{key}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response putRecord(@PathParam("key") String key,
+                              String body) {
+        StopWatch watch = new Log4JStopWatch().setTimeThreshold(LOG_DURATION_THRESHOLD_MS);
+        try {
+            splitKey(key); // Just check if the key has the correct format
+            final RecordEntryDTO recordDTO = jsonbContext.unmarshall(body, RecordEntryDTO.class);
+
+            updateServiceCore.updateRecord(recordDTO);
+            return Response.ok().build();
+        } catch (UpdateException | JSONBException ex) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage()).build();
+        } finally {
+            metricRegistry.counter(updateRecordCounterMetaData)
+                    .inc();
+
+            metricRegistry.simpleTimer(updateRecordDurationMetaData)
+                    .update(Duration.ofMillis(watch.getElapsedTime()));
+        }
+    }
+
+    @DELETE
+    @Path("v1/kafka/{key}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response deleteRecord() {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+    }
+
+    private RecordId splitKey(String key) throws UpdateException {
+        final String patternString = "(\\d{6}):(.*)";
+        final Pattern r = Pattern.compile(patternString);
+        final Matcher matcher = r.matcher(key);
+
+        if (!matcher.matches()) {
+            throw new UpdateException(String.format("Unknown format of key: '%s'. Doesn't match %s", key, patternString));
+        }
+
+        final int agencyId = Integer.parseInt(matcher.group(1));
+        final String bibliographicRecordId = matcher.group(2);
+
+        return new RecordId(bibliographicRecordId, agencyId);
     }
 
     private void incrementGroupIdCounter(UpdateServiceRequestDTO updateServiceRequestDTO) {

@@ -147,7 +147,7 @@ public class StoreRecordAction extends AbstractRawRepoAction {
         return storeRecordAction;
     }
 
-    static String getMarcXChangeMimetype(int agencyId) {
+    public static String getMarcXChangeMimetype(int agencyId) {
         if (RawRepo.ARTICLE_AGENCY == agencyId ||
                 RawRepo.RETRO_AGENCY == agencyId) {
             return MarcXChangeMimeType.ARTICLE;

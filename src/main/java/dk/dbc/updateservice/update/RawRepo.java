@@ -120,7 +120,8 @@ public class RawRepo {
     public static final List<String> AUTHORITY_FIELDS = ExpandCommonMarcRecord.AUTHORITY_FIELD_LIST;
     public static final List<String> MATVURD_FIELDS = Arrays.asList("r01", "r02");
 
-    public static final int ENQUEUE_PRIORITY_DEFAULT = 500;
+    public static final int ENQUEUE_PRIORITY_DEFAULT_USER = 500;
+    public static final int ENQUEUE_PRIORITY_DEFAULT_BATCH = 1000;
 
     @Resource(lookup = "jdbc/rawrepo")
     private DataSource dataSource;

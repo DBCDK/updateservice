@@ -1,8 +1,3 @@
-/*
- * Copyright Dansk Bibliotekscenter a/s. Licensed under GNU GPL v3
- *  See license text at https://opensource.dbc.dk/licenses/gpl-3.0
- */
-
 package dk.dbc.updateservice.update;
 
 import dk.dbc.rawrepo.Record;
@@ -15,20 +10,28 @@ import java.util.Set;
  * @author DBC {@literal <dbc.dk>}
  */
 public class RawRepoRecordMock implements Record {
-    private RecordId id = null;
-    private byte[] content = null;
-    private byte[] contentJson = null;
-    private String mimeType = null;
-    private Instant created = null;
-    private Instant modified = null;
-    private String trackingId = null;
-    private boolean original = false;
-    private boolean deleted = false;
-    private boolean enriched = false;
+    private RecordId id ;
+    private byte[] content;
+    private byte[] contentJson;
+    private String mimeType;
+    private Instant created;
+    private Instant modified;
+    private String trackingId;
+    private boolean original;
+    private boolean deleted;
+    private boolean enriched;
     private Set<RecordId> references = null;
 
     public RawRepoRecordMock(String id, int library) {
         this.id = new RecordId(id, library);
+        this.deleted = false;
+        this.mimeType = "";
+        this.content = new byte[0];
+        this.created = Instant.now();
+        this.modified = Instant.now();
+        this.trackingId = "";
+        this.original = true;
+        this.enriched = false;
     }
 
     @Override

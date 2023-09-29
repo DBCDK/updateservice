@@ -1,0 +1,105 @@
+{
+  "recordId": {
+    "bibliographicRecordId": "135010529",
+    "agencyId": 763000
+  },
+  "mimetype": "text/enrichment+marcxchange",
+  "created": "2023-04-17T11:34:21.541322Z",
+  "modified": "2023-04-17T11:34:21.55836Z",
+  "trackingId": "{135010529:bog} - cfp-{135010529:763000}",
+  "content": {
+    "leader": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "n",
+      " ",
+      " ",
+      " ",
+      " ",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      " ",
+      " ",
+      "4",
+      "5",
+      "0",
+      "0"
+    ],
+    "fields": [
+      {
+        "name": "001",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "135010529"
+          },
+          {
+            "name": "b",
+            "value": "763000"
+          },
+          {
+            "name": "c",
+            "value": "20230417113421"
+          },
+          {
+            "name": "d",
+            "value": "20230417"
+          },
+          {
+            "name": "f",
+            "value": "a"
+          }
+        ]
+      },
+      {
+        "name": "004",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "r",
+            "value": "n"
+          },
+          {
+            "name": "a",
+            "value": "e"
+          }
+        ]
+      },
+      {
+        "name": "300",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "n",
+            "value": "4 cd'er"
+          },
+          {
+            "name": "d",
+            "value": "ENGLAND"
+          }
+        ]
+      }
+    ]
+  },
+  "enrichmentTrail": "763000",
+  "deleted": false
+}

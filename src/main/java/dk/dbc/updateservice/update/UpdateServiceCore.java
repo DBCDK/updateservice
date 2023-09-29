@@ -1,15 +1,23 @@
 package dk.dbc.updateservice.update;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dk.dbc.common.records.ExpandCommonMarcRecord;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.commons.metricshandler.MetricsHandlerBean;
 import dk.dbc.holdingitems.content.HoldingsItemsConnector;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marcxmerge.MarcXChangeMimeType;
 import dk.dbc.opencat.connector.OpencatBusinessConnector;
+import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
+import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.dto.RecordEntryDTO;
+import dk.dbc.updateservice.actions.EnqueueRecordAction;
 import dk.dbc.updateservice.actions.GlobalActionState;
 import dk.dbc.updateservice.actions.ServiceEngine;
 import dk.dbc.updateservice.actions.ServiceResult;
+import dk.dbc.updateservice.actions.StoreRecordAction;
 import dk.dbc.updateservice.actions.UpdateRequestAction;
 import dk.dbc.updateservice.auth.Authenticator;
 import dk.dbc.updateservice.client.BibliographicRecordExtraData;
@@ -17,6 +25,7 @@ import dk.dbc.updateservice.dto.BibliographicRecordDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendDTO;
 import dk.dbc.updateservice.dto.DoubleRecordFrontendStatusDTO;
 import dk.dbc.updateservice.dto.MessageEntryDTO;
+import dk.dbc.updateservice.dto.RecordDTOMapper;
 import dk.dbc.updateservice.dto.RecordDataDTO;
 import dk.dbc.updateservice.dto.SchemaDTO;
 import dk.dbc.updateservice.dto.SchemasRequestDTO;
@@ -34,18 +43,20 @@ import dk.dbc.updateservice.utils.DeferredLogger;
 import dk.dbc.updateservice.utils.ResourceBundles;
 import dk.dbc.updateservice.validate.Validator;
 import dk.dbc.vipcore.exception.VipCoreException;
-import org.perf4j.StopWatch;
-import org.perf4j.log4j.Log4JStopWatch;
-import org.slf4j.MDC;
-
 import jakarta.ejb.EJB;
 import jakarta.ejb.EJBException;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import org.perf4j.StopWatch;
+import org.perf4j.log4j.Log4JStopWatch;
+import org.slf4j.MDC;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -77,7 +88,7 @@ public class UpdateServiceCore {
     HoldingsItemsConnector holdingsItems;
 
     @EJB
-    private VipCoreService vipCoreService;
+    VipCoreService vipCoreService;
 
     @EJB
     private SolrFBS solrService;
@@ -104,7 +115,7 @@ public class UpdateServiceCore {
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
-    private final Properties settings = JNDIResources.getProperties();
+    final Properties settings = JNDIResources.getProperties();
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
@@ -203,6 +214,104 @@ public class UpdateServiceCore {
                 updateServiceFinallyCleanUp(watch, updateRequestAction, serviceEngine);
             }
         });
+    }
+
+    public void updateRecord(RecordEntryDTO recordEntryDTO) throws UpdateException {
+        try {
+            final RecordId recordId = RecordDTOMapper.getRecordId(recordEntryDTO);
+            final String bibliographicRecordId = recordEntryDTO.getRecordId().getBibliographicRecordId();
+            final int agencyId = recordEntryDTO.getRecordId().getAgencyId();
+            final Record rawRecord = rawRepo.fetchRecord(bibliographicRecordId, agencyId);
+            final List<RecordId> relationParents;
+
+            RecordDTOMapper.toRecord(recordEntryDTO, rawRecord);
+
+            // Set relations for active record. Deleted record don't have any relations
+            if (!rawRecord.isDeleted()) {
+                if (MarcXChangeMimeType.ENRICHMENT.equals(rawRecord.getMimeType())) {
+                    relationParents = Collections.singletonList(getCommonRecord(bibliographicRecordId, agencyId));
+                } else {
+                    // Look for referenced records
+                    final MarcRecord marcRecord = RecordDTOMapper.getMarcRecord(recordEntryDTO);
+                    relationParents = getParentRelations(marcRecord);
+                }
+            } else {
+                relationParents = Collections.emptyList();
+            }
+
+            final LibraryGroup libraryGroup = vipCoreService.getLibraryGroup(Integer.toString(agencyId));
+            final String providerId = EnqueueRecordAction.getProvider(settings, libraryGroup);
+            rawRepo.saveRecord(rawRecord);
+            rawRepo.removeLinks(recordId);
+            for (RecordId relation : relationParents) {
+                makeSureParentRecordExists(relation.getBibliographicRecordId(), relation.getAgencyId());
+                rawRepo.linkRecordAppend(recordId, relation);
+            }
+
+            rawRepo.enqueue(recordId, providerId, true, false, RawRepo.ENQUEUE_PRIORITY_DEFAULT_BATCH);
+        } catch (JsonProcessingException | VipCoreException | RawRepoException ex) {
+            throw new UpdateException(ex.getMessage(), ex);
+        }
+    }
+
+    private void makeSureParentRecordExists(String bibliographicRecordId, int agencyId) throws UpdateException {
+        boolean shouldSave = false;
+        final Record parentRecord = rawRepo.fetchRecord(bibliographicRecordId, agencyId);
+        final Instant originalModified = parentRecord.getModified();
+        if (parentRecord.getMimeType() == null || parentRecord.getMimeType().isEmpty()) {
+            // In case it is a brand-new record
+            parentRecord.setMimeType(StoreRecordAction.getMarcXChangeMimetype(agencyId));
+            parentRecord.setContentJson("{}".getBytes());
+            shouldSave = true;
+        }
+        if (parentRecord.isDeleted()) {
+            // Record already exists but is deleted
+            parentRecord.setDeleted(false);
+            shouldSave = true;
+        }
+        if (shouldSave) {
+            parentRecord.setModified(originalModified);
+            rawRepo.saveRecord(parentRecord);
+        }
+    }
+
+    private RecordId getCommonRecord(String bibliographicRecordId, int agencyId) throws RawRepoException, VipCoreException, UpdateException {
+        if (agencyId == 191919) {
+            final List<Integer> agencyPriorityList = vipCoreService.getAgencyPriority(agencyId);
+            agencyPriorityList.remove(Integer.valueOf(agencyId)); // We have to use Integer, as the valueOf which takes an int uses the value as index not object
+            final Set<Integer> agenciesForRecord = rawRepo.agenciesForRecordAll(bibliographicRecordId);
+            for (Integer agencyForRecord : agenciesForRecord) {
+                if (agencyPriorityList.contains(agencyForRecord)) {
+                    return new RecordId(bibliographicRecordId, agencyForRecord);
+                }
+            }
+
+            throw new UpdateException(String.format("Unable to determine parent agency id for enrichment record %s:%s", bibliographicRecordId, agencyId));
+        } else {
+            return new RecordId(bibliographicRecordId, 870970);
+        }
+    }
+
+    private List<RecordId> getParentRelations(MarcRecord marcRecord) {
+        final List<RecordId> res = new ArrayList<>();
+
+        final MarcRecordReader reader = new MarcRecordReader(marcRecord);
+
+        // Handle 014/016 parent record
+        final String parentRecordId = reader.getParentRecordId();
+        final String parentAgencyIdAsString = reader.getParentAgencyId();
+        if (parentRecordId != null && parentAgencyIdAsString != null) {
+            res.add(new RecordId(parentRecordId, reader.getAgencyIdAsInt()));
+        }
+
+        // Handle authority records
+        for (String fieldName : ExpandCommonMarcRecord.AUTHORITY_FIELD_LIST) {
+            final List<String> authReferences = reader.getValues(fieldName, '6');
+            for (String authReference : authReferences) {
+                res.add(new RecordId(authReference, 870979));
+            }
+        }
+        return res;
     }
 
     /**
@@ -370,7 +479,7 @@ public class UpdateServiceCore {
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
 
         final BibliographicRecordExtraData bibliographicRecordExtraData = globalActionState.getRecordExtraData();
-        String priority = Integer.toString(RawRepo.ENQUEUE_PRIORITY_DEFAULT);
+        String priority = Integer.toString(RawRepo.ENQUEUE_PRIORITY_DEFAULT_USER);
         if (bibliographicRecordExtraData != null && bibliographicRecordExtraData.getPriority() != null) {
             priority = bibliographicRecordExtraData.getPriority().toString();
         }

@@ -1,0 +1,178 @@
+{
+  "recordId": {
+    "bibliographicRecordId": "135010529",
+    "agencyId": 191919
+  },
+  "mimetype": "text/enrichment+marcxchange",
+  "created": "2022-11-08T07:36:32.996169Z",
+  "modified": "2023-03-24T12:03:23.931508Z",
+  "trackingId": "{135010529:bog} - cfp-{135010529:191919}",
+  "content": {
+    "leader": [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "n",
+      " ",
+      " ",
+      " ",
+      " ",
+      "2",
+      "2",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      " ",
+      " ",
+      " ",
+      "4",
+      "5",
+      "0",
+      "0"
+    ],
+    "fields": [
+      {
+        "name": "001",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "135010529"
+          },
+          {
+            "name": "b",
+            "value": "191919"
+          },
+          {
+            "name": "c",
+            "value": "20230324130323"
+          },
+          {
+            "name": "d",
+            "value": "20221108"
+          },
+          {
+            "name": "f",
+            "value": "a"
+          }
+        ]
+      },
+      {
+        "name": "004",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "r",
+            "value": "n"
+          },
+          {
+            "name": "a",
+            "value": "e"
+          }
+        ]
+      },
+      {
+        "name": "d08",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "f",
+            "value": "cfp"
+          },
+          {
+            "name": "a",
+            "value": "Uncut dec."
+          },
+          {
+            "name": "o",
+            "value": "cfp+lhp"
+          }
+        ]
+      },
+      {
+        "name": "d09",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "z",
+            "value": "ACP202245"
+          },
+          {
+            "name": "z",
+            "value": "SFG202316"
+          }
+        ]
+      },
+      {
+        "name": "d70",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "c",
+            "value": "20221125"
+          }
+        ]
+      },
+      {
+        "name": "s12",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "t",
+            "value": "TeamBAM202310"
+          }
+        ]
+      },
+      {
+        "name": "z98",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "Minus korrekturprint"
+          }
+        ]
+      },
+      {
+        "name": "z99",
+        "indicator": [
+          "0",
+          "0"
+        ],
+        "subfields": [
+          {
+            "name": "a",
+            "value": "cfp"
+          }
+        ]
+      }
+    ]
+  },
+  "enrichmentTrail": "191919",
+  "deleted": false
+}
