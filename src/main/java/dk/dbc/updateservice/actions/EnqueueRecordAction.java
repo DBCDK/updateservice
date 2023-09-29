@@ -62,7 +62,7 @@ public class EnqueueRecordAction extends AbstractRawRepoAction {
         return LOGGER.callChecked(log -> {
             String providerId;
 
-            int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT;
+            int priority = RawRepo.ENQUEUE_PRIORITY_DEFAULT_USER;
 
             if (settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE) != null) {
                 priority = Integer.parseInt(settings.getProperty(JNDIResources.RAWREPO_PRIORITY_OVERRIDE));

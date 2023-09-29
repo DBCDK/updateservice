@@ -248,7 +248,7 @@ public class UpdateServiceCore {
                 rawRepo.linkRecordAppend(recordId, relation);
             }
 
-            rawRepo.enqueue(recordId, providerId, true, false, RawRepo.ENQUEUE_PRIORITY_DEFAULT);
+            rawRepo.enqueue(recordId, providerId, true, false, RawRepo.ENQUEUE_PRIORITY_DEFAULT_BATCH);
         } catch (JsonProcessingException | VipCoreException | RawRepoException ex) {
             throw new UpdateException(ex.getMessage(), ex);
         }
@@ -479,7 +479,7 @@ public class UpdateServiceCore {
         MDC.put(MDC_PREFIX_ID_LOG_CONTEXT, prefixId.toString());
 
         final BibliographicRecordExtraData bibliographicRecordExtraData = globalActionState.getRecordExtraData();
-        String priority = Integer.toString(RawRepo.ENQUEUE_PRIORITY_DEFAULT);
+        String priority = Integer.toString(RawRepo.ENQUEUE_PRIORITY_DEFAULT_USER);
         if (bibliographicRecordExtraData != null && bibliographicRecordExtraData.getPriority() != null) {
             priority = bibliographicRecordExtraData.getPriority().toString();
         }
