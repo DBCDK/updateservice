@@ -367,11 +367,12 @@ public class NoteAndSubjectExtensionsHandler {
 
     private void populateBadRecord(MarcRecord bad, MarcRecord part1, MarcRecord part2) {
         for (DataField curField : part1.getFields(DataField.class)) {
-            if (!("032".equals(curField.getTag()) || "990".equals(curField.getTag()) || curField.hasSubField(hasSubFieldCode('6')))) {
-                if (isFieldChangedInOtherRecord(curField, part2)) {
-                    final DataField fieldClone = new DataField(curField);
-                    bad.getFields().add(fieldClone);
-                }
+            if (!("032".equals(curField.getTag()) ||
+                    "990".equals(curField.getTag()) ||
+                    curField.hasSubField(hasSubFieldCode('6'))) &&
+                    isFieldChangedInOtherRecord(curField, part2)) {
+                final DataField fieldClone = new DataField(curField);
+                bad.getFields().add(fieldClone);
             }
         }
     }
