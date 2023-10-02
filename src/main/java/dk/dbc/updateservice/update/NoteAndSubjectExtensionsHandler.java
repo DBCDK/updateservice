@@ -6,6 +6,7 @@ import dk.dbc.common.records.MarcRecordExpandException;
 import dk.dbc.common.records.MarcRecordReader;
 import dk.dbc.common.records.MarcRecordWriter;
 import dk.dbc.marc.binding.DataField;
+import dk.dbc.marc.binding.Field;
 import dk.dbc.marc.binding.Leader;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.binding.SubField;
@@ -345,6 +346,76 @@ public class NoteAndSubjectExtensionsHandler {
         result.getFields().addAll(newFields);
     }
 
+    private void cleanUpUntouchables(String extendableFieldsRx, MarcRecord cleaned, MarcRecord record) {
+        for (DataField curField : record.getFields(DataField.class)) {
+            if (!curField.getTag().matches(extendableFieldsRx)) {
+                String indics = "";
+                if (curField.getInd1() != null) { indics = indics.concat(curField.getInd1().toString());}
+                if (curField.getInd2() != null) { indics = indics.concat(curField.getInd2().toString());}
+                if (curField.getInd3() != null) { indics = indics.concat(curField.getInd3().toString());}
+                DataField fieldAdd = new DataField(curField.getTag(), indics);
+                for (SubField subfield :  curField.getSubFields()) {
+                    // subfield & isn't sent to the cicero client, so we have to ignore such
+                    if (subfield.getCode() != '&') {
+                        fieldAdd.addSubField(subfield);
+                    }
+                }
+                cleaned.getFields().add(fieldAdd);
+            }
+        }
+    }
+
+    private void populateBadRecord(MarcRecord bad, MarcRecord part1, MarcRecord part2) {
+        for (DataField curField : part1.getFields(DataField.class)) {
+            if (!("032".equals(curField.getTag()) ||
+                    "990".equals(curField.getTag()) ||
+                    curField.hasSubField(hasSubFieldCode('6'))) &&
+                    isFieldChangedInOtherRecord(curField, part2)) {
+                final DataField fieldClone = new DataField(curField);
+                bad.getFields().add(fieldClone);
+            }
+        }
+    }
+
+    /**
+     * Fields that a library isn't allowed to fiddle with will be matched to the current record and an error
+     * will be returned if they don't match.
+     * Though, no rules without exceptions - field 032 is checked at another place, field 990 isn't sent to the client
+     * and fields containing A-links (subfield 6) is ignored.
+     * @param extendableFieldsRx regular expression that matches modifiable fields
+     * @param curRecord          current record in rawrepo
+     * @param updateRecord       the updating record
+     * @throws UpdateException   There was an error somewhere
+     */
+    private void compareUntouchableFields(String extendableFieldsRx, MarcRecord curRecord, MarcRecord updateRecord) throws UpdateException {
+        LOGGER.callChecked(log -> {
+            MarcRecord current = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
+            cleanUpUntouchables(extendableFieldsRx, current, curRecord);
+            MarcRecord newRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
+            cleanUpUntouchables(extendableFieldsRx, newRecord, updateRecord);
+            MarcRecord badRecord = new MarcRecord().setLeader(new Leader().setData(DEFAULT_LEADER));
+            populateBadRecord(badRecord, current, newRecord);
+            if (!badRecord.getFields().isEmpty()) {
+                String badFields = "";
+                boolean first = true;
+                for (Field field : badRecord.getFields()) {
+                    if (first) {
+                        first = false;
+                        badFields = field.getTag();
+                    } else {
+                        badFields = badFields.concat(", " + field.getTag());
+                    }
+
+                }
+                final String msg = String.format(messages.getString("update.dbc.record.modify.field.not.allowed"),
+                        badFields);
+                log.error("Unable to create sub actions due to an error: {}", msg);
+                throw new UpdateException(msg);
+            }
+            return null;
+        });
+    }
+
     /**
      * Update the incoming record with relevant fields - notes, subjects etc.
      *
@@ -394,6 +465,8 @@ public class NoteAndSubjectExtensionsHandler {
             }
             extendableFieldsRx += "|" + CLASSIFICATION_FIELDS;
             log.info("Extendable fields: {} ", extendableFieldsRx);
+
+            compareUntouchableFields(extendableFieldsRx, curRecord, marcRecord);
 
             // Start by handling all the not-note/subject/OVE fields in the existing record
             for (DataField curField : curRecord.getFields(DataField.class)) {
