@@ -112,6 +112,7 @@ public class UpdateServiceCore {
     private static final String UPDATE_WATCHTAG = "request.updaterecord";
     private static final String GET_SCHEMAS_WATCHTAG = "request.getSchemas";
     private static final String UPDATE_SERVICE_NIL_RECORD = "update.service.nil.record";
+    private static final String UPDATE_SERVICE_ALLOWALL_TYPE_CHANGE = "update.service.allowall.type.change";
     public static final String UPDATERECORD_STOPWATCH = "UpdateService";
     public static final String GET_SCHEMAS_STOPWATCH = "GetSchemas";
 
@@ -119,7 +120,7 @@ public class UpdateServiceCore {
 
     private static final ResourceBundle resourceBundle = ResourceBundles.getBundle("actions");
 
-    private GlobalActionState inititializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
+    private GlobalActionState initializeGlobalStateObject(GlobalActionState globalActionState, UpdateServiceRequestDTO updateServiceRequestDTO) {
         GlobalActionState newGlobalActionStateObject = new GlobalActionState(globalActionState);
         newGlobalActionStateObject.setUpdateServiceRequestDTO(updateServiceRequestDTO);
         newGlobalActionStateObject.setAuthenticator(authenticator);
@@ -136,6 +137,34 @@ public class UpdateServiceCore {
         newGlobalActionStateObject.setLibraryGroup(null);
         validateRequiredSettings();
         return newGlobalActionStateObject;
+    }
+
+    /**
+     * Currently this function only check if it's an allowall/superallowall request
+     * and if it's an attempt to change the record type from single to head. More may follow.
+     *
+     * @param updateServiceRequestDTO The incoming request
+     * @param state the state for the record - kind of silly, but that's life
+     * @return Either an OK Service result or an ERROR
+     * @throws UpdateException something went wrong trying to read current record
+     */
+    private ServiceResult checkAllowAll(UpdateServiceRequestDTO updateServiceRequestDTO, GlobalActionState state) throws UpdateException {
+        if (updateServiceRequestDTO.getSchemaName().toLowerCase().contains("allowall")) {
+            MarcRecordReader reader = new MarcRecordReader(state.readRecord());
+            RawRepo rawRepo = state.getRawRepo();
+            if (rawRepo.recordExists(reader.getRecordId(), reader.getAgencyIdAsInt())) {
+                Record rr = rawRepo.fetchRecord(reader.getRecordId(), reader.getAgencyIdAsInt());
+                MarcRecord origin = UpdateRecordContentTransformer.decodeRecord(rr.getContent());
+                MarcRecordReader originReader = new MarcRecordReader(origin);
+                if ("h".equals(reader.getValue("004", 'a')) &&
+                        "e".equals(originReader.getValue("004", 'a'))) {
+                    final ResourceBundle bundle = ResourceBundles.getBundle("messages");
+                    final String msg = bundle.getString(UPDATE_SERVICE_ALLOWALL_TYPE_CHANGE);
+                    return ServiceResult.newErrorResult(UpdateStatusEnumDTO.FAILED, msg);
+                }
+            }
+        }
+        return ServiceResult.newOkResult();
     }
 
     /**
@@ -158,7 +187,7 @@ public class UpdateServiceCore {
         final StopWatch watch = new Log4JStopWatch().setTimeThreshold(ApplicationConfig.LOG_DURATION_THRESHOLD_MS);
         return LOGGER.call(log -> {
             ServiceResult serviceResult;
-            final GlobalActionState state = inititializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
+            final GlobalActionState state = initializeGlobalStateObject(globalActionState, updateServiceRequestDTO);
             logMdcUpdateMethodEntry(state);
             UpdateRequestAction updateRequestAction = null;
             ServiceEngine serviceEngine = null;
@@ -176,7 +205,10 @@ public class UpdateServiceCore {
 
                     serviceEngine = new ServiceEngine(metricsHandlerBean);
                     serviceEngine.setLoggerKeys(MDC.getCopyOfContextMap());
-                    serviceResult = serviceEngine.executeAction(updateRequestAction);
+                    serviceResult = checkAllowAll(updateServiceRequestDTO, state);
+                    if (serviceResult.getStatus() == UpdateStatusEnumDTO.OK) {
+                        serviceResult = serviceEngine.executeAction(updateRequestAction);
+                    }
 
                     updateRecordResponseDTO = UpdateRecordResponseDTOWriter.newInstance(serviceResult);
 
