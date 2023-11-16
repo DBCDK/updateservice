@@ -26,9 +26,12 @@ public class MDCUtil {
     }
 
     public static void setupContextForRecord(String recordId, String agencyId) {
-        final String trackingIdPattern = "%s-{%s:%s}";
-        String newTrackingId = String.format(trackingIdPattern, MDC.get(MDC_TRACKING_ID_LOG_CONTEXT), recordId, agencyId);
-        MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, newTrackingId);
+        String trackingId = MDC.get(MDC_TRACKING_ID_LOG_CONTEXT);
+        if(!trackingId.contains(recordId)) {
+            final String trackingIdPattern = "%s-{%s:%s}";
+            String newTrackingId = String.format(trackingIdPattern, trackingId, recordId, agencyId);
+            MDC.put(MDC_TRACKING_ID_LOG_CONTEXT, newTrackingId);
+        }
     }
 
     public static void setupContextForEnrichmentRecord(MarcRecord commonRecord, String agencyId) {
