@@ -1,5 +1,8 @@
 <img src="http://www.dbc.dk/logo.png" alt="DBC" title="DBC" align="right">
 
+[!WARNING]
+Update service is integrated with Rawrepo repository .. this repo is archived 
+
 # UpdateService
 
 Updateservice is a REST webservice which is used for validating and persisting marc records send to rawrepo.
